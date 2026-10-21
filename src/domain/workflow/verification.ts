@@ -25,7 +25,7 @@ export async function verifyChecks(services: NexusServices, checks: Oracle[], ru
       } else if (check.kind === 'file' || check.kind === 'json' || check.kind === 'metric') {
         if (!check.path) throw new NexusError('INVALID_ARGUMENT', '文件 oracle 缺少 path');
         const path = safePath(workspaceRoot, check.path);
-        safePath(workspaceRoot, await realpath(path));
+        safePath(await realpath(workspaceRoot), await realpath(path));
         const info = await stat(path);
         if (!info.isFile() || info.size > 32 * 1024 * 1024) throw new NexusError('BUDGET_EXHAUSTED', '检查文件不是普通文件或超过 32 MiB');
         const data = await readFile(path), hash = createHash('sha256').update(data).digest('hex');

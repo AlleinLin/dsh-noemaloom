@@ -10,7 +10,7 @@ import {
   type CheckPolicy, type GatePolicy, type ModelCandidate, type ModelRef, type RoleModelPolicy,
   type GeneratedLeaf, type RouteDecision, type RouteSelectionInput, type TaskShape, type WorkflowBlueprint,
 } from '../orchestration/index.js';
-import { digest, newId, now, object, required, revision, safePath, text } from './util.js';
+import { digest, newId, now, object, required, revision, safeExistingPath, safePath, text } from './util.js';
 import { validatePlan } from './plan.js';
 import type { Oracle, RouteBinding, Run, TaskNode } from './types.js';
 import { prepareAdaptationCompilation, saveCompiledPlan, type LearningSettings } from './adaptation-compiler.js';
@@ -350,7 +350,8 @@ export class OrchestrationService {
     if (blueprint.nodes.some(node => node.kind === 'framework' && node.ref.startsWith('generated:')) && !generated) {
       throw new NexusError('GENERATED_LEAF_REQUIRED', '生成框架必须通过 compile_leaf 读取已校验的本任务归档，不能只写字符串引用。');
     }
-    const workspaceRoot = context.workspaceRoot ?? this.services.workspaceRoot;
+    const workspaceInput = context.workspaceRoot ?? this.services.workspaceRoot;
+    const workspaceRoot = await realpath(workspaceInput);
     const shape = classifyTaskShape(shapeInput), compiled = compileBlueprint(blueprint, shape), goal = text(p.goal, 'goal', 20000);
     const adaptations = await prepareAdaptationCompilation(this.services, p, context, goal);
     const catalog = (await this.models()).items, roleAssets = readRoleAssets();
@@ -368,9 +369,7 @@ export class OrchestrationService {
       }
       const generatedPaths: string[] = [];
       for (const claim of generated.leaf.ownedPaths) {
-        const full = safePath(workspaceRoot, claim);
-        const canonical = await realpath(full);
-        safePath(workspaceRoot, canonical);
+        const canonical = await safeExistingPath(workspaceInput, claim);
         if (!shapeInput.surfaces.some(surface => surface.paths.some(root => {
           try { safePath(root, canonical); return true; } catch { return false; }
         }))) throw new NexusError('SCOPE_MISMATCH', '生成方法 ownership 超出已授权任务路径。', { claim });

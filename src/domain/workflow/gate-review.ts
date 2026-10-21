@@ -32,7 +32,7 @@ export async function freezeReviewMission(services: NexusServices, run: Run, rev
   const seenFiles = new Set<string>();
   const addFile = async (path: string, nodeId: string): Promise<void> => {
     const full = safePath(workspaceRoot, path);
-    safePath(workspaceRoot, await realpath(full));
+    safePath(await realpath(workspaceRoot), await realpath(full));
     const info = await stat(full);
     if (info.isDirectory()) {
       const entries = await readdir(full, { withFileTypes: true });

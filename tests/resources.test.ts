@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, readdir, rm, symlink, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
@@ -103,6 +103,26 @@ test('skill discovery keeps same-name sources, chooses official priority, and CA
   assert.equal(saved.metadata.name, 'same');
   assert.equal(saved.body, 'Updated body.');
   assert.ok(f.events.some(item => item.event === 'resources.skills.changed'));
+});
+
+test('skill directory links and linked discovery roots remain read-only even for targets inside the workspace', async t => {
+  const f = await fixture(t);
+  const target = join(f.workspaceRoot, 'actual-skills');
+  await mkdir(join(target, 'linked'), { recursive: true });
+  await writeFile(join(target, 'linked', 'SKILL.md'), skill('linked', 'Linked target'));
+  const projectSkills = join(f.workspaceRoot, '.dsh', 'skills');
+  await mkdir(projectSkills, { recursive: true });
+  await symlink(join(target, 'linked'), join(projectSkills, 'linked'), process.platform === 'win32' ? 'junction' : 'dir');
+  await mkdir(join(f.workspaceRoot, '.agents'));
+  await symlink(target, join(f.workspaceRoot, '.agents', 'skills'), process.platform === 'win32' ? 'junction' : 'dir');
+  const items = (await f.call('skills.list')).items;
+  assert.equal(items.length, 2);
+  for (const item of items) {
+    assert.equal(item.editable, false, item.source);
+    assert.ok(item.warnings.some((warning: string) => warning.includes('链接')));
+    await assert.rejects(f.call('skills.disable', { id: item.id }), (error: unknown) => (error as NexusError).code === 'PERMISSION_DENIED');
+  }
+  assert.equal(await readFile(join(target, 'linked', 'SKILL.md'), 'utf8'), skill('linked', 'Linked target'));
 });
 
 test('skill toggles preserve body, user invocation, unknown frontmatter and read-only registry ownership', async t => {

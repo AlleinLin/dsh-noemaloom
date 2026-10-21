@@ -70,6 +70,19 @@ function safeRel(value: string) {
   return value;
 }
 
+async function hasLinkedAncestor(path: string): Promise<boolean> {
+  // realpath also expands Windows short names; a spelling change alone is
+  // not evidence of a link. Inspect every component to retain junction and
+  // symlink protection, including links above the configured skill root.
+  let current = resolve(path);
+  for (;;) {
+    if ((await lstat(current)).isSymbolicLink()) return true;
+    const parent = dirname(current);
+    if (parent === current) return false;
+    current = parent;
+  }
+}
+
 export function createSkillResources(services: NexusServices) {
   async function roots(context?: DispatchContext): Promise<Root[]> {
     const workspace = resolve(context?.workspaceRoot ?? services.workspaceRoot);
@@ -126,7 +139,7 @@ export function createSkillResources(services: NexusServices) {
           const info = await stat(candidate);
           if (!info.isFile()) continue;
           if (info.size > MAX_SKILL) throw new NexusError('RESOURCE_LIMIT', '技能文件超过 1 MiB');
-          const actual = await realpath(candidate), linked = actual !== resolve(candidate);
+          const actual = await realpath(candidate), linked = await hasLinkedAncestor(candidate);
           const content = await readFile(candidate, 'utf8'), parsed = parseSkillContent(content);
           const local = within(await realpath(source.ioRoot), actual);
           const editable = !source.readOnly && local && !linked;

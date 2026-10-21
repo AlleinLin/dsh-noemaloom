@@ -398,6 +398,7 @@ test('review rule documents become captured auxiliary source and enter the actua
     f.services.host.model = async request => { prompts.push(request.prompt); return model(request); };
     const review = f.modules.get('review')!;
     const preview: any = await review.dispatch({ action: 'preview', params: { mode: 'project', rulePaths: ['AGENTS.md'] } });
+    assert.equal(preview.snapshot.root, await fs.realpath(f.root));
     const rule = preview.snapshot.files.find((file: any) => file.path === 'AGENTS.md');
     assert.equal(rule.primary, false); assert.equal(rule.state, 'captured');
     assert.match(rule.right.text, /REVIEW_POLICY_FIXTURE/);

@@ -96,7 +96,9 @@ test('fixture ledger restores raw bytes, retains rescue, rejects post-plan edit 
     await writeFile(join(workspace, '.env'), 'PRIVATE_FIXTURE_SECRET=excluded');
     const engine = new ChangeLedgerEngine({ storageDir: join(root, 'ledger'), turnCheckpointMode: 'off' });
     const point = await engine.create({ cwd: workspace, sessionId: 'fixture' });
-    const manifest = await engine.store.readManifest(workspace, point.id);
+    // The low-level store keys canonical workspace identities returned by the
+    // engine, rather than caller aliases such as a Windows 8.3 temp path.
+    const manifest = await engine.store.readManifest(point.workspace, point.id);
     assert.equal(manifest.entries['.env'], undefined);
     await writeFile(join(workspace, 'binary.dat'), Buffer.from('new'));
     const plan = await engine.planRestore({ cwd: workspace, restorePointId: point.id, sessionId: 'fixture' });

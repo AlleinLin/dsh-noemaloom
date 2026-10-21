@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, realpath, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { NexusError, type NexusServices, type NexusStore, type StoredRecord } from '../src/ports/contracts.js';
@@ -158,7 +158,7 @@ test('MMR-083/085 generated leaf is private, discoverable and compiles to one im
     const value = result.plan.value;
     assert.equal(value.nodes.filter(node => node.role === 'implementer').length, 1);
     assert.match(value.nodes.find(node => node.role === 'implementer')!.prompt!, /All described exports have source references/);
-    assert.deepEqual(value.nodes.find(node => node.role === 'implementer')!.writeClaims, [f.services.workspaceRoot]);
+    assert.deepEqual(value.nodes.find(node => node.role === 'implementer')!.writeClaims, [await realpath(f.services.workspaceRoot)]);
     assert.ok(value.nodes.some(node => node.orchestration?.gateId === 'G5'));
     assert.ok(value.nodes.some(node => node.orchestration?.gateId === 'G6'));
     assert.ok(value.provenance.generatedLeafSnapshot);

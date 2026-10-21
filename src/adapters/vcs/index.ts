@@ -193,6 +193,9 @@ export function createVcsAdapter(services: NexusServices) {
   }
   return {
     async capture(root: string, options: CaptureOptions = {}): Promise<VcsSnapshot> {
+      // Snapshots and subsequent scope checks must use one filesystem identity,
+      // including when Windows supplies an 8.3 spelling for the workspace.
+      root = await fs.realpath(root);
       const vcs = options.vcs ?? (await fs.stat(path.join(root, '.svn')).then(() => 'svn' as const, () => 'git' as const));
       return vcs === 'svn' ? captureSvn(root, options) : captureGit(root, options);
     },

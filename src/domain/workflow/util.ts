@@ -1,4 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto';
+import { realpath } from 'node:fs/promises';
 import { isAbsolute, relative, resolve, sep } from 'node:path';
 import { NexusError, type JsonRecord, type NexusServices, type StoredRecord } from '../../ports/contracts.js';
 
@@ -24,6 +25,13 @@ export function safePath(root: string, path: string): string {
   const rel = relative(resolve(root), full);
   if (rel === '..' || rel.startsWith(`..${sep}`) || isAbsolute(rel)) throw new NexusError('SCOPE_MISMATCH', '路径超出当前工作区');
   return full;
+}
+/** Check lexical scope and the real target, accepting either spelling of the root. */
+export async function safeExistingPath(root: string, path: string): Promise<string> {
+  const canonicalRoot = await realpath(root), full = resolve(root, path);
+  try { safePath(root, full); }
+  catch { safePath(canonicalRoot, full); }
+  return safePath(canonicalRoot, await realpath(full));
 }
 export async function required<T>(services: NexusServices, collection: string, id: string): Promise<StoredRecord<T>> {
   const row = await services.store.get<T>(collection, id);
