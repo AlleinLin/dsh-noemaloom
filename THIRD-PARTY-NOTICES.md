@@ -33,6 +33,10 @@ versions, copyright notices, source identities, and modifications.
 - ThoughtDAG and Synapse — MIT; the full copied license text and specific selected
   source provenance are retained in `assets/notices/thoughtdag/` and
   `assets/notices/synapse/`, including their original copyright statements.
+  The published ThoughtDAG runtime is pinned to 0.5.21; its package provenance
+  and license are in `notices/originals/thoughtdag/`. Reviewed host/client
+  adaptations retain its search, question forms, permission modes and release
+  history, while suppressing the standalone plugin installation reminder.
 - Runtime UI/transport dependencies: ws 8.18.3 (MIT), qrcode.react 4.2.0
   (ISC, Paul O’Shannessy), its bundled QR Code Generator (MIT, Project Nayuki),
   @xterm/xterm 6.0.0 and @xterm/addon-fit 0.11.0 (MIT). Exact installed
@@ -48,6 +52,11 @@ versions, copyright notices, source identities, and modifications.
   and full license texts are retained in each vendor tree and runtime notices.
 - @xyflow/react 12.11.6 and its graph dependencies — MIT; used by the original
   dshell pipe graph, with license texts copied into `notices/native/` at build.
+- cxv117793-blip/dsh-step-pause 0.3.0 — MIT, Copyright (c) 2026
+  dsh-step-pause contributors. The periodic pre-step progress behavior is
+  adapted into the shared Nexus runtime and scoped settings. Full license,
+  verbatim upstream host source and package manifest, commit and file hashes
+  are retained in `notices/step-pause/`; adaptations are listed in `SOURCE.json`.
 
 Restricted code-review source is not copied. Its user capabilities are independently
 implemented. External OpenViking service licensing is distinct from adapter licensing.

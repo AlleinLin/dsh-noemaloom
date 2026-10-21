@@ -37,6 +37,8 @@ const requiredFiles = [
   'lib/build-info.json', 'cordis.patch.yml', 'cordis.presets.patch.yml',
   'locale/zh-CN.json', 'locale/en.json', 'locale/ru.json', 'assets/icon.svg',
   'LICENSE', 'NOTICE', 'THIRD-PARTY-NOTICES.md', 'sources.lock.json',
+  'notices/step-pause/LICENSE', 'notices/step-pause/SOURCE.json',
+  'notices/step-pause/index.upstream.js', 'notices/step-pause/package.upstream.json',
   'vendor/memory-cognition/nexus_bridge.py', 'vendor/memory-cognition/utf8_boot.py',
   'vendor/memory-cognition/package.json', 'vendor/memory-cognition/LICENSE',
   'vendor/memory-cognition/md_cg/__init__.py', 'vendor/memory-cognition/md_cg/mcp_server.py',
@@ -572,9 +574,15 @@ export async function auditPackage({ packagePath, outputPath = resolve(root, 'ev
     });
     check('provenance', () => {
       const lock = JSON.parse(decoder.decode(files.get('sources.lock.json')?.data ?? Buffer.alloc(0)));
-      if (lock.sourceCount !== 36 || lock.dshWebSubpackageCount !== 19 || lock.host?.release !== '0.2.1-rc.2'
+      if (lock.sourceCount !== 37 || lock.dshWebSubpackageCount !== 19 || lock.host?.release !== '0.2.1-rc.2'
         || lock.acceptance?.count !== 769 || lock.acceptance?.sha256 !== '113bc7b9b60b4bf44d3645dc07209a3c65148ecddf54ac5dd7cba696b8049e1a') throw new Error('Packaged source identity or frozen acceptance provenance is incomplete');
-      if (!Array.isArray(lock.units) || lock.units.length !== 36 || new Set(lock.units.map(unit => unit.id)).size !== 36) throw new Error('Packaged source provenance must identify all 36 sources');
+      if (!Array.isArray(lock.units) || lock.units.length !== 37 || new Set(lock.units.map(unit => unit.id)).size !== 37) throw new Error('Packaged source provenance must identify all 37 sources');
+      const progress = JSON.parse(decoder.decode(files.get('notices/step-pause/SOURCE.json')?.data ?? Buffer.alloc(0)));
+      if (progress.revision !== 'eeb93a7ff027e4beba94b8089dfb72dfe45b2550' || progress.license !== 'MIT') throw new Error('Step progress source identity is missing');
+      for (const [name, identity] of Object.entries(progress.files ?? {})) {
+        const path = `notices/step-pause/${name}`, expected = lock.actualReusedFileHashes?.[path];
+        if (!expected || identity.sha256 !== expected || sha256(files.get(path)?.data ?? Buffer.alloc(0)) !== expected) throw new Error(`Step progress upstream evidence changed: ${path}`);
+      }
       for (const id of ['DSH-agent-procedures', 'Nexus-Aethra/Nexus-Terminal']) {
         if (!lock.nativeArchives?.some(source => source.identity === id && /^[a-f0-9]{64}$/u.test(source.sha256))) throw new Error(`Missing native archive provenance: ${id}`);
       }

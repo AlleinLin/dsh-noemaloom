@@ -2,6 +2,7 @@ import { analysisHash } from './surface.js';
 import { SECRET_KEY, redactString } from '../operations/index.js';
 import { canonicalJson, sha256 } from '../storage/index.js';
 import { THOROUGH_PROMPT } from './prompts.js';
+import { isHumanInputMessage } from '../../shared/step-pause.js';
 
 export interface ConversationPacket { sessionId: string; parentId?: string; status: string; events: any[] }
 export interface ConversationCoverage {
@@ -43,7 +44,7 @@ export function conversationSurface(root: string, packets: ConversationPacket[],
     for (const event of packet.events) {
       eventCount++;
       const message = event.data?.message ?? event.data;
-      if (packet.sessionId === root && event.type === 'user/message' && message?.source?.kind === 'user') {
+      if (packet.sessionId === root && event.type === 'user/message' && isHumanInputMessage(message)) {
         const humanText = typeof message.content === 'string' ? message.content : Array.isArray(message.content)
           ? message.content.filter((b: any) => b?.type === 'text' && typeof b.text === 'string').map((b: any) => b.text).join('\n') : '';
         if (humanText !== THOROUGH_PROMPT) latestUser = message;

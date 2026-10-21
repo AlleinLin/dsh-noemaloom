@@ -20,6 +20,7 @@ import { registerInsightsHook } from './insights-hook.js';
 import { registerCompanionHook } from './companion-hook.js';
 import { registerLiveCommands } from './live-commands.js';
 import { registerAutonomyHook } from './autonomy-hook.js';
+import { registerStepPauseHook } from './step-pause-hook.js';
 import type { HostContext, NexusConfig } from './types.js';
 export { hostAuthority } from './host-adapter.js';
 
@@ -133,6 +134,8 @@ export async function createNexusRuntime(ctx: HostContext, config: NexusConfig =
   initializationCleanup.push(stopCompanion);
   const stopAutonomy = registerAutonomyHook(ctx, dispatcher.services, controller);
   initializationCleanup.push(stopAutonomy);
+  const stopStepPause = registerStepPauseHook(ctx, dispatcher.services);
+  initializationCleanup.push(stopStepPause);
   const stopLiveCommands = registerLiveCommands(registrationContext);
   initializationCleanup.push(stopLiveCommands);
   controller.setRouteDisposer(registerRpcRoute(ctx, dispatcher, controller, config.maxRequestBytes ?? 1048576));
@@ -189,7 +192,7 @@ export async function createNexusRuntime(ctx: HostContext, config: NexusConfig =
       return disposal ??= (async () => {
         const failures: unknown[] = [];
         for (const cleanup of [
-          stopLiveCommands, stopAutonomy, stopCompanion, stopInsights, ...remoteDisposers.slice().reverse(), () => controller.dispose(), () => host.dispose(),
+          stopLiveCommands, stopStepPause, stopAutonomy, stopCompanion, stopInsights, ...remoteDisposers.slice().reverse(), () => controller.dispose(), () => host.dispose(),
           () => executor.dispose(), ...disposers.slice().reverse(), () => dispatcher.dispose(), () => store.close(),
         ]) {
           try { await cleanup(); } catch (error) { failures.push(error); }

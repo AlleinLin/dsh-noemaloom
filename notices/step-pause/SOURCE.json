@@ -1,0 +1,38 @@
+{
+  "identity": "cxv117793-blip/dsh-step-pause",
+  "repository": "https://github.com/cxv117793-blip/dsh-step-pause",
+  "revision": "eeb93a7ff027e4beba94b8089dfb72dfe45b2550",
+  "version": "0.3.0",
+  "license": "MIT",
+  "copyright": "Copyright (c) 2026 dsh-step-pause contributors",
+  "retrievedOn": "2026-10-21",
+  "upstreamHost": ">=0.2.0-rc.2",
+  "integrationHost": "0.2.1-rc.2",
+  "files": {
+    "LICENSE": {
+      "upstreamPath": "LICENSE",
+      "sha256": "06a0ed70620305f263c09beb45e6d6288fec60259afd0dcb07865ac6f0b6a525"
+    },
+    "index.upstream.js": {
+      "upstreamPath": "lib/index.js",
+      "sha256": "7823a2578586e004bfd6343cdc0c62be827462bac53e53bc694c3faa966075db"
+    },
+    "package.upstream.json": {
+      "upstreamPath": "package.json",
+      "sha256": "4569204de6a820be3b886e677798d6a25e45f45b788f435186bab0d31aeef01c"
+    }
+  },
+  "integration": {
+    "host": "src/host/step-pause-hook.ts",
+    "shared": "src/shared/step-pause.ts",
+    "settings": "src/client/StepPauseSettings.tsx",
+    "changes": [
+      "Adapt periodic pre-step progress reporting into the existing Nexus runtime, without a separate upstream plugin activation.",
+      "Replace manually constructed messages with the official createUserMessage constructor and producer metadata.",
+      "Use existing global/workspace/session scope settings, strict runtime agent/session identity, and owner-only policy mutation.",
+      "Bound optional settings reads and preserve native errors, decisions, cancellation, recovery, and unload behavior.",
+      "Keep stable current-step tail injection, per-agent turn/step deduplication, report caps, and original task format priority.",
+      "Exclude debug-visible synthetic notices from human-input observers and latest-objective selection."
+    ]
+  }
+}

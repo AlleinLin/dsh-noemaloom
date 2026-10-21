@@ -6,6 +6,7 @@ import type { HostContext } from './types.js';
 import type { OperationController } from './lifecycle.js';
 import { NEXUS_SOURCE } from './source.js';
 import { assertNoSecret, estimateTokens } from '../domain/memory/types.js';
+import { isHumanInputMessage } from '../shared/step-pause.js';
 
 function projectId(root: string): string { return `prj_${createHash('sha256').update(root).digest('hex').slice(0, 24)}`; }
 function textContent(message: any): string {
@@ -59,7 +60,7 @@ export function registerMemoryHooks(ctx: HostContext, services: NexusServices, c
     const root = agent.session.header.cwd ?? services.workspaceRoot;
     const settings = { value: await memorySettings(services, root, { sessionId: agent.id }) };
     if (settings?.value.autoInject !== true) return next();
-    const userText = messages.filter((message: any) => message.source?.kind === 'user').map(textContent).join('\n').slice(0, 12000);
+    const userText = messages.filter(isHumanInputMessage).map(textContent).join('\n').slice(0, 12000);
     if (!userText.trim()) return next();
     const recall: any = await services.invoke('memory', {
       action: 'recall', params: { query: userText, turnId: String(turn), budgetTokens: 2400 }, limit: 8,
@@ -89,7 +90,7 @@ export function registerMemoryHooks(ctx: HostContext, services: NexusServices, c
       const turnStart = [...events].reverse().find((item: any) => item.type === 'turn/start' && item.data?.turn === event.data?.turn);
       if (!turnStart || turnStart.seq < session.firstLiveSeq) return;
       const ids = new Set(events.filter((item: any) => item.seq >= turnStart.seq && item.seq <= event.seq)
-        .filter((item: any) => item.type === 'assistant/message' && !item.data?.interrupted || item.type === 'user/message' && item.data?.source?.kind === 'user')
+        .filter((item: any) => item.type === 'assistant/message' && !item.data?.interrupted || item.type === 'user/message' && isHumanInputMessage(item.data))
         .map((item: any) => item.type === 'user/message' ? item.data?.id : item.data?.message?.id).filter(Boolean));
       const text = session.deriveMessages().filter((message: any) => ids.has(message.id) && ['user', 'assistant'].includes(message.role)).map((message: any) => `${message.role}: ${textContent(message)}`).join('\n\n');
       if (!text.trim()) return;

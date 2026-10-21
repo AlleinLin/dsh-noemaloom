@@ -4,6 +4,7 @@ import type { HostContext } from './types.js';
 import type { OperationController } from './lifecycle.js';
 import { hostAuthority } from './host-adapter.js';
 import { workspaceIdentity } from '../domain/workspace-runtime.js';
+import { isHumanInputMessage } from '../shared/step-pause.js';
 
 interface Lane {
   session: any; controller: AbortController; notices: Promise<unknown>;
@@ -55,7 +56,7 @@ export function registerAutonomyHook(ctx: HostContext, services: NexusServices, 
   }
   function input(session: any, message: any, seq: number) {
     message = message?.message ?? message;
-    if (!permitted(session) || message?.source?.kind !== 'user') return;
+    if (!permitted(session) || !isHumanInputMessage(message)) return;
     const lane = laneOf(session), id = typeof message.id === 'string' ? message.id : `event-${seq}`;
     if (!lane.seen.has(id)) {
       lane.seen.add(id);

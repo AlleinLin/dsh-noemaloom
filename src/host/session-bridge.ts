@@ -13,6 +13,7 @@ import { NEXUS_SOURCE } from './source.js';
 import type { HostContext, NexusConfig } from './types.js';
 import { optionalChildField, resolveChildModelOptions } from './child-models.js';
 import { nativeWorkspaces, sessionTitles } from './session-metadata.js';
+import { isHumanInputMessage } from '../shared/step-pause.js';
 
 interface NativeSnapshot {
   session: SessionHeader;
@@ -143,8 +144,8 @@ export function createSessionBridge(
   }
   const revision = (snapshot: NativeSnapshot): string => hash({ header: snapshot.session, inheritedEventCount: snapshot.inheritedEventCount, events: snapshot.events });
   function projectEvent(event: SessionEvent): JsonRecord {
-    const data = object(event.data), message = messageOf(event), source = object(message.source);
-    const directUser = event.type === 'user/message' && source.kind === 'user' && event.surfaceOp === 'append';
+    const data = object(event.data), message = messageOf(event);
+    const directUser = event.type === 'user/message' && isHumanInputMessage(message) && event.surfaceOp === 'append';
     // Retain every official field (data, surfaceOp, provenance, stream, ...).
     // These additional fields serve recovery/history consumers; they do not
     // replace the durable message or claim producer context came from a human.

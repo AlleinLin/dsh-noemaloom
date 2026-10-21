@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "specificationDate": "2026-10-19",
-  "sourceCount": 36,
+  "sourceCount": 37,
   "nativeArchives": [
     {
       "identity": "DSH-agent-procedures",
@@ -43,6 +43,31 @@
     "sha256": "113bc7b9b60b4bf44d3645dc07209a3c65148ecddf54ac5dd7cba696b8049e1a"
   },
   "units": [
+    {
+      "id": "SRC-37",
+      "identity": "cxv117793-blip__dsh-step-pause",
+      "requirements": "Periodic current-step progress reporting, main-agent isolation, report budgets and configurable prompt visibility",
+      "decision": "Adapt the MIT host behavior into the existing Nexus lifecycle and three-tier scope settings; retain verbatim upstream evidence without activating a duplicate plugin",
+      "coverage": "native step progress",
+      "source": {
+        "package": "dsh-step-pause",
+        "version": "0.3.0",
+        "declaredLicense": "MIT",
+        "repository": "https://github.com/cxv117793-blip/dsh-step-pause",
+        "revision": "eeb93a7ff027e4beba94b8089dfb72dfe45b2550",
+        "licenseFiles": ["notices/step-pause/LICENSE"],
+        "packageManifest": "notices/step-pause/package.upstream.json",
+        "snapshot": "notices/step-pause/index.upstream.js",
+        "revisionKind": "git-commit",
+        "contentIdentity": "git:eeb93a7ff027e4beba94b8089dfb72dfe45b2550"
+      },
+      "implementationCandidates": [
+        "src/host/step-pause-hook.ts",
+        "src/shared/step-pause.ts",
+        "src/client/StepPauseSettings.tsx"
+      ],
+      "implementationStatus": "adapted_requires_runtime_evidence"
+    },
     {
       "id": "SRC-01",
       "identity": "annkun__dsh-memory",
@@ -3957,12 +3982,14 @@
       "coverage": "05 / CTX",
       "runtimePackage": {
         "package": "dsh-thoughtdag",
-        "version": "0.5.20",
-        "resolved": "https://registry.npmjs.org/dsh-thoughtdag/-/dsh-thoughtdag-0.5.20.tgz",
-        "integrity": "sha512-hiaKYnjBQWiqUA+XcyiycvjTXn14ifWwyNASB6n6UE5YYih4I86iexWD7jD8CUmtaBO0Kk29xFjnEfBw8cnY4A==",
-        "reviewedClientAsset": "dist-app/assets/index-CaJu4U8U.js",
-        "reviewedClientSha256": "cca8e617c281e863cd01ece767e3e19416c3923ab3ecc550257e0c541fc24e46",
-        "reviewedHtmlSha256": "2a8b5ca2fb120f500014faefd39c108eb81cb1c1536f44be17e6539cece38b6d",
+        "version": "0.5.21",
+        "resolved": "https://registry.npmjs.org/dsh-thoughtdag/-/dsh-thoughtdag-0.5.21.tgz",
+        "integrity": "sha512-4stjDLZF2t81/5/krFj1x4UVs2jglQfW+0IDbvnK6oo7RF7C9vC93tMirP5d3WlDhdOboqRCDWV92zyB/cQztA==",
+        "reviewedHostSha256": "97db3817e8cd18581fe3222d264f1ad8038fc774c603197159a3d54ac008ef75",
+        "hostAdapter": "scripts/adapt-thoughtdag-host.mjs",
+        "reviewedClientAsset": "dist-app/assets/index-DDS2ZyPK.js",
+        "reviewedClientSha256": "227907218eeb1fa4ca08feaec7652d841b482f6e7457e72e9a8916f4b4797b54",
+        "reviewedHtmlSha256": "dc4f321465428fe8d1e5703ba60a2a1719023ea1aaf17f7f63ca381f00f4538f",
         "adapter": "scripts/adapt-thoughtdag-client.mjs",
         "publishedEntry": "lib/canvas-original/thoughtdag/dist-app/assets/nexus-entry.js"
       },
@@ -4522,6 +4549,9 @@
     }
   ],
   "actualReusedFileHashes": {
+    "notices/step-pause/LICENSE": "06a0ed70620305f263c09beb45e6d6288fec60259afd0dcb07865ac6f0b6a525",
+    "notices/step-pause/index.upstream.js": "7823a2578586e004bfd6343cdc0c62be827462bac53e53bc694c3faa966075db",
+    "notices/step-pause/package.upstream.json": "4569204de6a820be3b886e677798d6a25e45f45b788f435186bab0d31aeef01c",
     "vendor/acp-kernel/DESIGN-prompts.md": "379da590ba96f29c8dec359ef5b6a99e6695952627fcf3eaee4a567879a97e75",
     "vendor/acp-kernel/DESIGN.md": "a0cdc64d259de80539507d17585f3ea0bf04c5b7cfe15d1ef1075e13e8e201d6",
     "vendor/acp-kernel/LICENSE": "5f82d3c8724c30a0ece8819b23babc4587a50eddf350273c6c8f0c936bad2a74",

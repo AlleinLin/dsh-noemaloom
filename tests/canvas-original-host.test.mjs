@@ -3,6 +3,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
+import { getEventListeners } from 'node:events';
 
 // Build first, then exercise the shipping adapter and the actual published
 // host code it wraps. No substitute graph/store implementation is used here.
@@ -48,7 +49,7 @@ async function fixture() {
       snapshotEvents: () => [...events],
     }];
   }));
-  const created = [], forked = [], prompted = [], injected = [], cancelled = [];
+  const created = [], forked = [], prompted = [], injected = [], cancelled = [], agents = new Map();
   let nextId = 0;
   const emit = (name, ...args) => [...(listeners.get(name) ?? [])].map(listener => listener(...args));
   const ctx = {
@@ -64,6 +65,11 @@ async function fixture() {
     },
     extend(values) { return Object.assign(Object.create(this), values); },
     effect(callback) { const dispose = callback(); if (typeof dispose === 'function') disposers.push(dispose); },
+    inject(names, mount) {
+      if (names.includes('permissionPresets') && ctx.permissionPresets) {
+        return mount(Object.assign(Object.create(ctx), { permissionPresets: ctx.permissionPresets }));
+      }
+    },
     on(name, listener) {
       let current = listeners.get(name);
       if (!current) listeners.set(name, current = new Set());
@@ -77,7 +83,7 @@ async function fixture() {
     agents: {
       get(id) {
         if (!headers.some(header => header.id === id)) return undefined;
-        return {
+        if (!agents.has(id)) agents.set(id, {
           id, session: sessions.get(id),
           inject(message) {
             injected.push({ id, message });
@@ -86,7 +92,8 @@ async function fixture() {
           },
           whenIdle: async () => {},
           cancel() { cancelled.push(id); },
-        };
+        });
+        return agents.get(id);
       },
     },
     llm: { listModels: async () => [] },
@@ -112,12 +119,13 @@ async function fixture() {
       },
       async prompt(input) {
         prompted.push(input);
+        if (ctx.promptImplementation) return ctx.promptImplementation(input);
         emit('session/event', { id: input.sessionId }, { type: 'turn/start', data: { turn: 1 } });
         emit('session/event', { id: input.sessionId }, {
           type: 'user/message', data: { id: 'own-question', source: { kind: 'user', rpcId: input.requestId } },
         });
         if (ctx.approvalDuringPrompt) {
-          const agent = { id: input.sessionId };
+          const agent = ctx.agents.get(input.sessionId);
           const [decision] = emit('approval/request', { agent, toolName: 'run_code', callId: 'call-1', signal: new AbortController().signal }, () => 'native');
           await decision;
         }
@@ -132,9 +140,11 @@ async function fixture() {
     const route = routes.find(row => row.path === `/${kind}/api`);
     assert.ok(route, `${kind} original API is registered`);
     const query = new URLSearchParams({ nexusLevel: level, nexusId: id });
+    const requestListeners = new Map();
+    res.closeRequest = () => requestListeners.get('close')?.();
     const req = {
       method, headers: { host: 'localhost' }, url: `/${kind}/api${path}?${query}`,
-      on() {},
+      on(name, listener) { requestListeners.set(name, listener); },
       async *[Symbol.asyncIterator]() { if (body !== undefined) yield Buffer.from(JSON.stringify(body)); },
     };
     await route.handler(req, res);
@@ -143,10 +153,16 @@ async function fixture() {
       data: res.headers['content-type']?.includes('application/json') ? JSON.parse(res.body) : undefined,
     };
   }
+  let unloaded = false;
+  const unload = async () => {
+    if (unloaded) return;
+    unloaded = true;
+    for (const dispose of disposers.reverse()) await dispose();
+  };
   return {
-    ctx, headers, sessions, workspaces, errors, created, forked, prompted, injected, cancelled, request, event,
+    ctx, headers, sessions, workspaces, errors, created, forked, prompted, injected, cancelled, agents, request, event, emit, unload,
     async dispose() {
-      try { for (const dispose of disposers.reverse()) await dispose(); }
+      try { await unload(); }
       finally { await rm(profileDirectory, { recursive: true, force: true }); }
     },
   };
@@ -197,6 +213,187 @@ test('Synapse original store isolates native tiers and removes moved sessions wi
     await f.dispose();
     await rm(directory, { recursive: true, force: true });
   }
+});
+
+function frames(res) {
+  return res.body.split('\n').filter(line => line.startsWith('data: {')).map(line => JSON.parse(line.slice(6)));
+}
+function startTurn(f, input, turn = 1) {
+  f.emit('session/event', { id: input.sessionId }, { type: 'turn/start', data: { turn } });
+  f.emit('session/event', { id: input.sessionId }, {
+    type: 'user/message', data: { id: `own-${turn}`, source: { kind: 'user', rpcId: input.requestId } },
+  });
+}
+function endTurn(f, input, turn = 1) {
+  f.emit('session/event', { id: input.sessionId }, { type: 'turn/end', data: { turn } });
+}
+const turnBody = harness => ({
+  model: 'harness/agent', messages: [{ role: 'user', content: 'canvas question' }], harness: { session: 'a', ...harness },
+});
+
+test('ThoughtDAG native question forms enforce originating scope and preserve answer normalization', { timeout: 10_000 }, async () => {
+  const f = await fixture(), question = deferred(), answer = deferred();
+  const signal = new AbortController().signal;
+  f.ctx.promptImplementation = async input => {
+    startTurn(f, input);
+    const [result] = f.emit('user-questions/request', {
+      agent: f.ctx.agents.get(input.sessionId), signal,
+      questions: [{ id: 'choice', header: 'Target', question: 'Which target?', options: [{ label: 'A' }, { label: 'B' }] }],
+    }, () => 'native');
+    answer.resolve(await result);
+    endTurn(f, input);
+  };
+  try {
+    await applyThoughtdag(f.ctx, { whyTools: false, whyPrompt: false });
+    const stream = response(frame => {
+      for (const line of frame.split('\n')) if (line.startsWith('data: {')) {
+        const payload = JSON.parse(line.slice(6));
+        if (payload.approval?.kind === 'form') question.resolve(payload.approval);
+      }
+    });
+    const running = f.request('thoughtdag', 'workspace', 'wa', '/stream', 'POST', turnBody(), stream);
+    const form = await question.promise;
+    assert.equal(getEventListeners(signal, 'abort').length, 1);
+    assert.equal((await f.request('thoughtdag', 'session', 'a', `/approvals/${form.id}`, 'POST', {
+      answers: [{ id: 'choice', selected: ['B'] }],
+    })).status, 404);
+    assert.equal((await f.request('thoughtdag', 'workspace', 'wa', `/approvals/${form.id}`, 'POST', {
+      answers: [{ id: 'choice', selected: ['A', 'invalid'], custom: '  another option  ' }, { id: 'foreign', selected: ['B'] }],
+    })).status, 200);
+    assert.deepEqual(await answer.promise, { answers: [{ id: 'choice', selected: ['A'], custom: 'another option' }] });
+    await running;
+    assert.equal(getEventListeners(signal, 'abort').length, 0);
+    assert.equal((await f.request('thoughtdag', 'workspace', 'wa', `/approvals/${form.id}`, 'POST', { answers: [] })).status, 404);
+    assert.equal(frames(stream).some(frame => frame.approvalDecided?.outcome === 'answered'), true);
+  } finally { await f.dispose(); }
+});
+
+test('ThoughtDAG standing tool allowances match exact arguments and remain within one canvas scope', { timeout: 10_000 }, async () => {
+  const f = await fixture(), outcomes = [];
+  let turn = 0, command = 'pwd';
+  f.ctx.promptImplementation = async input => {
+    const current = ++turn;
+    startTurn(f, input, current);
+    for (const [index, description] of ['first wording', 'other wording'].entries()) {
+      const callId = `call-${current}-${index}`;
+      f.emit('session/event', { id: input.sessionId }, {
+        type: 'tool/call', data: { turn: current, callId, name: 'bash', arguments: { command, description } },
+      });
+      const [result] = f.emit('approval/request', {
+        agent: f.ctx.agents.get(input.sessionId), toolName: 'run_code', callId, signal: new AbortController().signal,
+      }, () => 'native');
+      outcomes.push(await result);
+    }
+    endTurn(f, input, current);
+  };
+  try {
+    await applyThoughtdag(f.ctx, { whyTools: false, whyPrompt: false });
+    const run = async level => {
+      const replies = [], asked = [];
+      const stream = response(frame => {
+        for (const line of frame.split('\n')) if (line.startsWith('data: {')) {
+          const payload = JSON.parse(line.slice(6));
+          if (payload.approval) {
+            asked.push(payload.approval);
+            // The host emits the frame immediately before registering its waiter.
+            replies.push(Promise.resolve().then(() => f.request('thoughtdag', level, level === 'workspace' ? 'wa' : 'a',
+              `/approvals/${payload.approval.id}`, 'POST', { outcome: 'allowed-session' })));
+          }
+        }
+      });
+      await f.request('thoughtdag', level, level === 'workspace' ? 'wa' : 'a', '/stream', 'POST', turnBody(), stream);
+      assert.equal((await Promise.all(replies)).every(reply => reply.status === 200), true);
+      return { asked, stream };
+    };
+    assert.equal((await run('workspace')).asked.length, 1, 'prose-only argument changes retain the exact step allowance');
+    assert.equal((await run('workspace')).asked.length, 0, 'the same live session can reuse its standing allowance');
+    command = 'whoami';
+    assert.equal((await run('workspace')).asked.length, 1, 'another command needs a new decision');
+    command = 'pwd';
+    assert.equal((await run('session')).asked.length, 1, 'the same session in a different native tier cannot reuse it');
+    f.emit('agent/disposed', { agent: f.agents.get('a') });
+    f.agents.delete('a');
+    assert.equal((await run('workspace')).asked.length, 1, 'a replacement agent has no prior in-memory allowances');
+    assert.equal(outcomes.every(outcome => outcome === 'allowed-once'), true, 'standing decisions are translated to the native one-shot vocabulary');
+  } finally { await f.dispose(); }
+});
+
+test('ThoughtDAG temporary permission presets start and restore at the owned turn boundaries', { timeout: 10_000 }, async () => {
+  const f = await fixture(), policies = [];
+  let preset = 'default';
+  f.ctx.approval = { setPolicy(_agent, policy) { policies.push(policy); } };
+  f.ctx.permissionPresets = {
+    names: ['default', 'auto', 'danger-full-access'], current: () => preset,
+    apply(_session, name, setPolicy) { preset = name; setPolicy(name); },
+  };
+  f.ctx.promptImplementation = async input => {
+    f.emit('session/event', { id: input.sessionId }, { type: 'turn/start', data: { turn: 99 } });
+    assert.deepEqual(policies, [], 'a queued canvas request cannot alter a preceding human turn');
+    startTurn(f, input, 100);
+    assert.equal(preset, 'danger-full-access');
+    endTurn(f, input, 100);
+    assert.equal(preset, 'default', 'the preset is restored synchronously before the next user turn');
+    f.emit('session/event', { id: input.sessionId }, { type: 'turn/start', data: { turn: 101 } });
+    const [native] = f.emit('approval/request', { agent: f.ctx.agents.get(input.sessionId), toolName: 'bash' }, () => 'native');
+    assert.equal(await native, 'native', 'a later user turn retains native approval handling');
+  };
+  try {
+    await applyThoughtdag(f.ctx, { whyTools: false, whyPrompt: false });
+    assert.deepEqual((await f.request('thoughtdag', 'workspace', 'wa', '/permission-modes')).data, { auto: true, allow: true });
+    const stream = response();
+    await f.request('thoughtdag', 'workspace', 'wa', '/stream', 'POST', turnBody({ permission: 'allow' }), stream);
+    assert.deepEqual(policies, ['danger-full-access', 'default']);
+    assert.equal(frames(stream).some(frame => frame.permission?.mode === 'allow' && frame.permission.applied), true);
+    assert.deepEqual(f.cancelled, []);
+  } finally { await f.dispose(); }
+});
+
+test('closing a queued ThoughtDAG request cannot change permissions or cancel a different native turn', { timeout: 10_000 }, async () => {
+  const f = await fixture(), entered = deferred(), policies = [];
+  f.ctx.approval = { setPolicy(_agent, policy) { policies.push(policy); } };
+  f.ctx.permissionPresets = {
+    names: ['default', 'danger-full-access'], current: () => 'default',
+    apply(_session, name, setPolicy) { setPolicy(name); },
+  };
+  f.ctx.promptImplementation = async input => {
+    f.emit('session/event', { id: input.sessionId }, { type: 'turn/start', data: { turn: 42 } });
+    entered.resolve();
+  };
+  try {
+    await applyThoughtdag(f.ctx, { whyTools: false, whyPrompt: false });
+    const stream = response();
+    const running = f.request('thoughtdag', 'workspace', 'wa', '/stream', 'POST', turnBody({ permission: 'allow' }), stream);
+    await entered.promise;
+    stream.closeRequest();
+    await running;
+    assert.deepEqual(policies, []);
+    assert.deepEqual(f.cancelled, []);
+  } finally { await f.dispose(); }
+});
+
+test('ThoughtDAG unload resolves pending forms and removes their abort listeners', { timeout: 10_000 }, async () => {
+  const f = await fixture(), question = deferred(), answers = deferred();
+  const signal = new AbortController().signal;
+  f.ctx.promptImplementation = async input => {
+    startTurn(f, input);
+    const [result] = f.emit('user-questions/request', {
+      agent: f.ctx.agents.get(input.sessionId), signal,
+      questions: [{ id: 'q', question: 'Choose', options: [{ label: 'A' }] }],
+    }, () => 'native');
+    question.resolve();
+    answers.resolve(await result);
+  };
+  try {
+    await applyThoughtdag(f.ctx, { whyTools: false, whyPrompt: false });
+    const running = f.request('thoughtdag', 'workspace', 'wa', '/stream', 'POST', turnBody());
+    await question.promise;
+    assert.equal(getEventListeners(signal, 'abort').length, 1);
+    await f.unload();
+    assert.deepEqual(await answers.promise, { answers: [{ id: 'q', selected: [] }] });
+    await running;
+    assert.equal(getEventListeners(signal, 'abort').length, 0);
+    assert.deepEqual(f.cancelled, ['a'], 'unload can cancel the still-active owned canvas turn');
+  } finally { await f.dispose(); }
 });
 
 test('ThoughtDAG preserves the original host while scoping models, archives, and new native sessions', { timeout: 10_000 }, async () => {

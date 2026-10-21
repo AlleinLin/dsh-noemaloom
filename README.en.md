@@ -41,7 +41,7 @@ that weaves separate threads into a continuous fabric.
 | :--- | :--- |
 | Memory and files | File memory, project scope, search and provider adapters |
 | Context | Compression, archival and reversible recovery |
-| Tasks and models | Workflows, subagents, model discovery and task insights |
+| Tasks and models | Workflows, subagents, model discovery, task insights and periodic progress |
 | Workbench | Graphs, native UI adapters, terminal and workspace surfaces |
 | Engineering | Project rules, methods, resources and extensions |
 | Recovery | Request recovery, connections, cancellation and lifecycle management |
@@ -50,6 +50,10 @@ Availability depends on the host and configuration. Python memory components nee
 their own Python dependencies; remote providers need their own service setup.
 
 ## Getting started
+
+ThoughtDAG uses the pinned 0.5.21 upstream release, retaining native web search,
+question forms, tool allowances and permission modes. Noemaloom manages its
+updates; see [the adaptation notes](docs/thoughtdag-upstream.md).
 
 Target host: **DeepSeek Harness Desktop 0.2.1-rc.2**.
 Node.js 24 LTS is recommended. The supplied Desktop installer uses Windows PowerShell.
@@ -74,6 +78,11 @@ Save your work and fully exit Desktop before installing:
 
 Reopen Desktop, confirm the plugin is enabled, then configure the desired models,
 memory services and workspaces. See [build and installation](docs/BUILDING.md).
+
+[Step progress](docs/step-progress.md) shares the existing global, workspace and
+session settings. By default the main agent reports every 10 steps, then
+continues in the same response while preserving task format constraints.
+It never interrupts a running tool; its prompt remains in conversation history.
 
 > The repository is named `dsh-noemaloom`. Runtime identifiers remain
 > `@local/dsh-nexus` and `nexus-*` to preserve preset and adapter compatibility.

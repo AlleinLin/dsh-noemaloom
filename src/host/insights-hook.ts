@@ -2,6 +2,7 @@ import type { NexusServices } from '../ports/contracts.js';
 import type { HostContext } from './types.js';
 import type { OperationController } from './lifecycle.js';
 import { hostAuthority } from './host-adapter.js';
+import { isHumanInputMessage } from '../shared/step-pause.js';
 
 /** Coalesce phase changes; no render-driven requests and no historical replay.
  * Tool deltas and reasoning tokens never trigger auxiliary model calls. */
@@ -10,7 +11,7 @@ export function registerInsightsHook(ctx: HostContext, services: NexusServices, 
   let disposed = false;
   const stop = ctx.on('session/event', (session: any, event: any) => {
     if (event.seq < session.firstLiveSeq || !['turn/end', 'user/message'].includes(event.type)) return;
-    if (event.type === 'user/message' && event.data?.source?.kind !== 'user') return;
+    if (event.type === 'user/message' && !isHumanInputMessage(event.data?.message ?? event.data)) return;
     const old = queued.get(session.id);
     if (old) clearTimeout(old);
     const run = (retry = false) => {

@@ -6,6 +6,7 @@ import { hostAuthority } from './host-adapter.js';
 import { auxiliarySettings } from '../domain/insights/auxiliary.js';
 import { workspaceIdentity } from '../domain/workspace-runtime.js';
 import { THOROUGH_PROMPT } from '../domain/insights/companion.js';
+import { isHumanInputMessage } from '../shared/step-pause.js';
 
 /** Auxiliary failures never enter main-agent recovery, mutate its messages,
  * or dispose its activation. Each lane owns its cancellation lifetime. */
@@ -51,7 +52,7 @@ export function registerCompanionHook(ctx: HostContext, services: NexusServices,
     lane.invalidating = invoke(lane, 'invalidate').then(() => undefined, warn);
   }
   listen('agent/inbox/inserted', ({ agent, message }: any) => {
-    if (!eligible(agent.session) || message?.source?.kind !== 'user') return;
+    if (!eligible(agent.session) || !isHumanInputMessage(message)) return;
     const lane = laneOf(agent.session);
     const text = (message.content ?? []).filter((b: any) => b.type === 'text').map((b: any) => b.text).join('\n');
     if (lane.active && text === THOROUGH_PROMPT) { lane.inputId = message.id; lane.inputArrived?.(); return; }

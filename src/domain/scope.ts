@@ -1,6 +1,7 @@
 import { NexusError, type DispatchContext, type JsonRecord, type NexusModule, type NexusServices, type NexusStore } from '../ports/contracts.js';
 import { workspaceIdentity } from './workspace-runtime.js';
 import { boundedRead } from '../shared/bounded-read.js';
+import { STEP_PAUSE_FEATURE, validateStepPauseConfig } from '../shared/step-pause.js';
 
 export type ScopeLevel = 'global' | 'workspace' | 'session';
 export const scopeLevel = (ctx?: DispatchContext): ScopeLevel => ctx?.scopeLevel ?? (ctx?.sessionId ? 'session' : 'workspace');
@@ -107,6 +108,10 @@ export function createScopeModule(services: NexusServices): NexusModule {
         && (ctx?.actorId !== 'connection-owner' || !ctx.permissions?.has(`scope.${request.action}`))) {
         throw new NexusError('PERMISSION_DENIED', '辅助模型设置仅由用户在对应范围修改');
       }
+      if (feature === STEP_PAUSE_FEATURE && ['configure', 'reset'].includes(request.action)
+        && (ctx?.actorId !== 'connection-owner' || !ctx.permissions?.has(`scope.${request.action}`))) {
+        throw new NexusError('PERMISSION_DENIED', '步骤进度设置仅由用户在对应范围修改');
+      }
       const key = `${scopeKeys(root, ctx).at(-1)}/${feature}`;
       if (request.action === 'configure') {
         const config = request.params?.config as JsonRecord;
@@ -114,6 +119,10 @@ export function createScopeModule(services: NexusServices): NexusModule {
           || config.enabled !== undefined && typeof config.enabled !== 'boolean'
           || config.defaults !== undefined && (!config.defaults || typeof config.defaults !== 'object' || Array.isArray(config.defaults))) throw new NexusError('INVALID_ARGUMENT', '配置格式无效');
         merge({}, config);
+        if (feature === STEP_PAUSE_FEATURE) {
+          const invalid = validateStepPauseConfig(config);
+          if (invalid) throw new NexusError('INVALID_ARGUMENT', invalid);
+        }
         if (feature === 'auxiliary') {
           const { auxiliarySettings, validateAuxiliaryConfig } = await import('./insights/auxiliary.js');
           // An unavailable directory must not force users to delete saved

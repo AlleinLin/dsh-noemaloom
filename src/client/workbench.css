@@ -18,6 +18,11 @@
 .nexus-workbench .nexus-field>span{font-size:12px;font-weight:500;color:var(--nexus-text)}
 .nexus-root .nexus-workbench .nexus-field input,.nexus-root .nexus-workbench .nexus-field textarea,.nexus-root .nexus-workbench .nexus-field select{width:100%;min-width:0;padding:8px 10px;font:12px/1.7 "Segoe UI","Microsoft YaHei",sans-serif;border:1px solid var(--nexus-border);border-radius:7px;background:var(--nexus-surface);color:var(--nexus-text)}
 .nexus-root .nexus-workbench textarea{resize:vertical}
+.nexus-step-progress-form fieldset{margin:18px 0 0;padding:0;border:0;min-width:0}
+.nexus-step-progress-form small{display:block;color:var(--nexus-text-muted);font-size:12px;line-height:1.7}
+.nexus-step-progress-prompt{display:flex;flex-direction:column;gap:8px;margin:16px 0 8px}
+.nexus-step-progress-prompt textarea{box-sizing:border-box;width:100%;resize:vertical;padding:12px;border:1px solid var(--nexus-border);border-radius:10px;background:var(--nexus-surface-muted);color:var(--nexus-text);font:inherit;line-height:1.6}
+.nexus-step-progress>.nexus-setting-controls{flex-wrap:wrap}
 .nexus-workbench-wide{grid-column:1/-1}
 .nexus-workbench-checks{display:flex;gap:10px 22px;flex-wrap:wrap;margin:8px 0 12px}
 .nexus-workbench-checks label,.nexus-workbench-check{display:flex;align-items:center;gap:7px;font-size:12px}

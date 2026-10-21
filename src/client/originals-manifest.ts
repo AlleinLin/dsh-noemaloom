@@ -19,7 +19,7 @@ export const ORIGINAL_PLUGINS: readonly OriginalDefinition[] = [
   { id: 'turn-rewind', packageName: '@anionex/dsh-turn-rewind', version: '0.3.10', role: 'conversation', client: true },
   // These original SPA hosts are reused by original-canvases.tsx. Their old
   // body-level overlay clients are deliberately not executed.
-  { id: 'thoughtdag', packageName: 'dsh-thoughtdag', version: '0.5.20', role: 'canvas', client: false },
+  { id: 'thoughtdag', packageName: 'dsh-thoughtdag', version: '0.5.21', role: 'canvas', client: false },
   { id: 'synapse', packageName: 'dsh-synapse', version: '0.4.2', role: 'canvas', client: false },
 ];
 

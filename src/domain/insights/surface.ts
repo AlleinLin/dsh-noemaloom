@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { isHumanInputMessage } from '../../shared/step-pause.js';
 
 export interface AnalysisLine { seq: number; kind: string; text: string; isError?: boolean }
 export interface AnalysisSurface { sessionId: string; throughSeq: number; status: string; lines: AnalysisLine[]; truncated: boolean }
@@ -20,7 +21,7 @@ export function analysisSurface(sessionId: string, events: any[], status: string
     if (!Number.isSafeInteger(seq) || seq <= sinceSeq) continue;
     const d = e.data ?? {}, message = d.message ?? d;
     let text = '';
-    if (e.type === 'user/message' && (!message.source || message.source.kind === 'user')) text = blocks(message.content);
+    if (e.type === 'user/message' && (!message.source || isHumanInputMessage(message))) text = blocks(message.content);
     else if (e.type === 'assistant/message' && !d.interrupted) text = blocks(message.content);
     else if (e.type === 'tool/call') text = `操作：${d.name ?? d.toolName ?? d.tool ?? 'unknown'}`;
     else if (e.type === 'tool/result') text = `操作回执：${d.name ?? d.toolName ?? 'tool'} · ${message.isError === true || d.error ? '失败' : '已返回（验收状态未确认）'}`;
