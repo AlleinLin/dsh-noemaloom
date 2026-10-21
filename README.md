@@ -64,6 +64,8 @@ npm run pack:delivery
 
 重新打开 Desktop，在插件管理中确认插件启用，再按需配置模型、记忆服务与工作空间。完整说明见 [构建与安装](docs/BUILDING.md)。
 
+侧栏四宫格菜单的输入边界修复与桌面交互回归见 [侧栏布局交互修复](docs/sidebar-layout-interaction.md)。
+
 > **名称兼容性**：GitHub 仓库名为 `dsh-noemaloom`。当前运行时沿用 `@local/dsh-nexus` 与现有 `nexus-*` 注册标识，保留预设、适配器和已安装配置的兼容性。宿主部分入口仍会显示旧名称 Nexus。
 
 ## 工作原理

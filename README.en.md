@@ -62,6 +62,9 @@ npm run pack:delivery
 
 Packaging audits the actual npm archive and writes a content-addressed tarball,
 installation manifest, installer and SHA-256 checksums to `build/`.
+The sidebar layout menu's input boundary and Desktop interaction regression are
+documented in [Sidebar layout interaction](docs/sidebar-layout-interaction.md).
+
 Save your work and fully exit Desktop before installing:
 
 ```powershell

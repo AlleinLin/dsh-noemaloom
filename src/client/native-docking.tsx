@@ -5,6 +5,7 @@ import {
   readDockPreferences, targetAddress, type DockLayout, type DockPreferenceScope, type DockTemplateId, type NativeDockTarget,
 } from './dock-model.js';
 import { adaptNativeDock, type NativeDockAdapter } from './dock-native-adapter.js';
+import { NativeDockPopover } from './native-dock-popover.js';
 import css from './native-docking.css';
 
 export type { NativeDockTarget, DockTemplateId, DockPreferenceScope } from './dock-model.js';
@@ -77,11 +78,10 @@ function saveTemplate(runtime: DockRuntime, template: DockTemplateId, scope: Doc
   try { localStorage.setItem(DOCK_PREFERENCES, JSON.stringify(saved)); } catch { throw new Error('无法保存布局偏好'); }
 }
 
-function DockControls({ runtime, sessionId, layout }: { runtime: DockRuntime; sessionId: string; layout: DockLayout }) {
+function DockControls({ runtime, sessionId, layout, active }: { runtime: DockRuntime; sessionId: string; layout: DockLayout; active: boolean }) {
   const revision = React.useSyncExternalStore(runtime.subscribe, runtime.revision, runtime.revision);
   const [error, setError] = React.useState('');
   const [scope, setScope] = React.useState<DockPreferenceScope>('session');
-  const details = React.useRef<HTMLDetailsElement>(null);
   const registry = runtime.ctx.uiConversation?.views;
   const viewIds = React.useSyncExternalStore(
     React.useCallback(listener => registry?.subscribe(listener) ?? (() => {}), [registry]),
@@ -101,14 +101,14 @@ function DockControls({ runtime, sessionId, layout }: { runtime: DockRuntime; se
     });
     return () => { cancelled = true; };
   }, [runtime, sessionId, layout.expanded, revision]);
-  const act = (callback: () => void) => {
-    try { callback(); setError(''); if (details.current) details.current.open = false; }
-    catch (error) { setError(error instanceof Error ? error.message : String(error)); }
-  };
   const workspace = runtime.options.workspaceForSession?.(sessionId);
-  return <details ref={details} className="nexus-native-dock-controls">
-    <summary aria-label="分栏与布局" title={`分栏与布局（${count}/${DOCK_PANE_LIMIT}）`}>⊞</summary>
-    <div className="nexus-native-dock-menu">
+  return <NativeDockPopover active={active && layout.expanded} identity={sessionId}
+    title={`分栏与布局（${count}/${DOCK_PANE_LIMIT}）`}>{dismiss => {
+    const act = (callback: () => void) => {
+      try { callback(); setError(''); dismiss(); }
+      catch (error) { setError(error instanceof Error ? error.message : String(error)); }
+    };
+    return <>
       <span className="nexus-native-dock-caption">自由分栏 · {count}/{DOCK_PANE_LIMIT}</span>
       <button type="button" disabled={!runtime.adapter.canSplit('row')} onClick={() => act(() => { runtime.adapter.split('row'); })}>向右分栏</button>
       <button type="button" disabled={!runtime.adapter.canSplit('column')} onClick={() => act(() => { runtime.adapter.split('column'); })}>向下分栏</button>
@@ -140,8 +140,8 @@ function DockControls({ runtime, sessionId, layout }: { runtime: DockRuntime; se
       })}
       <span className="nexus-native-dock-hint">工作区偏好覆盖全局偏好，会话布局优先。</span>
       {error ? <span role="alert" className="nexus-native-dock-error">{error}</span> : null}
-    </div>
-  </details>;
+    </>;
+  }}</NativeDockPopover>;
 }
 
 function DockTargetBody({ runtime, useTabInfo, sessionId }: { runtime: DockRuntime; useTabInfo(): any; sessionId: string }) {
@@ -251,7 +251,7 @@ function installDocking(ctx: any, kit: any, options: NativeDockOptions): () => v
   const cleanups: (() => void)[] = [];
   try {
     runtime.adapter = adaptNativeDock(ctx, kit, {
-      renderControls: (sessionId, layout) => <DockControls runtime={runtime} sessionId={sessionId} layout={layout} />,
+      renderControls: (sessionId, layout, active) => <DockControls runtime={runtime} sessionId={sessionId} layout={layout} active={active} />,
       changed: () => runtime.publish(),
     });
     cleanups.push(() => runtime.adapter.dispose());

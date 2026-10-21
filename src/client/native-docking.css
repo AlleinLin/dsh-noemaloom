@@ -1,8 +1,8 @@
 .nexus-native-dock-controls { position: relative; flex: none; color: var(--dsw-alias-label-secondary); font-size: 12px; }
-.nexus-native-dock-controls > summary { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: var(--dsw-radius-sm, 6px); list-style: none; cursor: pointer; font-size: 20px; }
-.nexus-native-dock-controls > summary::-webkit-details-marker { display: none; }
-.nexus-native-dock-controls > summary:hover, .nexus-native-dock-controls > summary:focus-visible { background: var(--dsw-alias-interactive-bg-hover); }
-.nexus-native-dock-menu { position: absolute; inset-inline-end: 0; top: 32px; z-index: 100; box-sizing: border-box; width: 232px; max-height: min(75vh, 720px); overflow-y: auto; display: flex; flex-direction: column; gap: 4px; padding: 10px; border: 1px solid var(--dsw-alias-border-l3); border-radius: var(--dsw-radius-lg, 12px); background: var(--dsw-alias-bg-layer-1, #f6f4ee); color: var(--dsw-alias-label-primary); box-shadow: 0 8px 24px #0002; }
+.nexus-native-dock-controls > button { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: 0; padding: 0; background: transparent; color: inherit; border-radius: var(--dsw-radius-sm, 6px); cursor: pointer; font-size: 20px; pointer-events: auto; -webkit-app-region: no-drag; }
+.nexus-native-dock-controls > button:hover, .nexus-native-dock-controls > button:focus-visible { background: var(--dsw-alias-interactive-bg-hover); }
+.nexus-native-dock-menu { position: fixed; inset: auto; left: auto; margin: 0; box-sizing: border-box; width: min(232px, calc(100vw - 16px)); overflow-y: auto; overscroll-behavior: contain; display: none; flex-direction: column; gap: 4px; padding: 10px; border: 1px solid var(--dsw-alias-border-l3); border-radius: var(--dsw-radius-lg, 12px); background: var(--dsw-alias-bg-layer-1, #f6f4ee); color: var(--dsw-alias-label-primary); box-shadow: 0 8px 24px #0002; font-size: 12px; pointer-events: auto; -webkit-app-region: no-drag; }
+.nexus-native-dock-menu:popover-open { display: flex; }
 .nexus-native-dock-menu button, .nexus-native-dock-menu select { font: inherit; color: inherit; border: 1px solid var(--dsw-alias-border-l3); border-radius: var(--dsw-radius-sm, 6px); background: var(--dsw-alias-bg-layer-2, transparent); padding: 7px 9px; }
 .nexus-native-dock-menu button { text-align: start; cursor: pointer; }
 .nexus-native-dock-menu button:hover:enabled { background: var(--dsw-alias-interactive-bg-hover); }
@@ -18,5 +18,8 @@
 .nexus-native-dock-content { display: flex; flex: 1; flex-direction: column; min-height: 0; min-width: 0; overflow: auto; }
 .nexus-native-dock-empty { margin: 0; padding: 16px; font-size: 12px; line-height: 1.6; color: var(--dsw-alias-label-tertiary); }
 .nexus-native-dock-error { margin: 0; padding: 6px 0; font-size: 12px; line-height: 1.5; color: var(--dsw-alias-error-label, #b64e43); }
-.nexus-native-dock-tree { display: flex; flex: 1; min-height: 0; min-width: 0; }
+/* rc.2 SidebarPanel intentionally has pointer-events:none. DockLayout's
+   TabHost restores auto; recursive DockSurface's pane does not. Preserve that
+   native boundary here so the entire pane, chrome and scroll areas receive input. */
+.nexus-native-dock-tree { display: flex; flex: 1; min-height: 0; min-width: 0; pointer-events: auto; }
 .nexus-native-dock-landing, .nexus-native-dock-portal { display: flex; flex: 1; flex-direction: column; min-height: 0; min-width: 0; width: 100%; height: 100%; }

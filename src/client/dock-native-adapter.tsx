@@ -7,7 +7,7 @@ import {
 import { NativeDockTree } from './dock-native-tree.js';
 
 interface AdapterOptions {
-  renderControls(sessionId: string, layout: DockLayout): React.ReactNode;
+  renderControls(sessionId: string, layout: DockLayout, active: boolean): React.ReactNode;
   changed?(): void;
 }
 export interface NativeDockAdapter {
@@ -286,7 +286,7 @@ export function adaptNativeDock(ctx: any, kit: DockKit, options: AdapterOptions)
               originalRoom?.(room);
               options.changed?.();
             }}
-            chrome={<>{options.renderControls(props.sessionId, props.surface.layout)}{childProps.chrome}</>} />;
+            chrome={<>{options.renderControls(props.sessionId, props.surface.layout, props.active !== false)}{childProps.chrome}</>} />;
         }
         return childProps.children === undefined ? node
           : React.cloneElement(element, undefined, React.Children.map(childProps.children, visit));
