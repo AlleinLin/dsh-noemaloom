@@ -1,4 +1,5 @@
 import type { ClientContext, PageId } from './types.js';
+import { createElement } from 'react';
 import { pagesForScope } from './catalog.js';
 import { originalConversationViews } from './original-surface-adapter.js';
 export const nativePanels = [
@@ -56,7 +57,7 @@ export function navigateNative(ctx: ClientContext, page: PageId, openView?: (id:
 export function openNativeSession(ctx: ClientContext, sessionId: string): void { nativeWorkspace(ctx).openSession(sessionId); }
 /** Each conversation feature uses the host's own view navigation. */
 export function registerNativePanels(ctx: ClientContext, render: {
-  panel(level: 'global' | 'workspace'): any; conversation(page: PageId): any; workflow?: any; icon(name: string): any; settings: any; theme: any; brand: any;
+  panel(level: 'global' | 'workspace'): any; conversation(page: PageId): any; workflow?: any; icon(name: string): any; settings: any; theme: any; brand: any; brandName?: any; heroBrand?: any;
 }): () => void {
   const disposers: (() => void)[] = [];
   const seat = (name: string, options: Record<string, any>, component: any) => {
@@ -78,6 +79,16 @@ export function registerNativePanels(ctx: ClientContext, render: {
   // rc.2 single slots elect the lowest priority. Keep the official registrations
   // alive underneath so removing this plugin restores them without DOM edits.
   seat('sidebar.brand.mark', { priority: -1000 }, render.brand);
-  seat('conversation.hero.brand.mark', { priority: -1000 }, render.brand);
+  if (render.brandName) {
+    const dispose = ctx.slots.inject('sidebar.brand.name', () => {
+      const native = ctx.slots.entriesOfSlot?.('sidebar.brand.name')?.[0]
+        ?? ctx.slots.entries?.('sidebar.brand.name')?.slice().sort((a, b) => (a.options?.priority ?? 0) - (b.options?.priority ?? 0))[0];
+      const NativeName = native?.component;
+      return ctx.slots.register({ name: 'sidebar.brand.name', priority: -1000 }, (props: any) =>
+        createElement(render.brandName, { ...props, nativeComponent: NativeName }));
+    });
+    if (typeof dispose === 'function') disposers.push(dispose);
+  }
+  seat('conversation.hero.brand.mark', { priority: -1000 }, render.heroBrand ?? render.brand);
   return () => { for (const dispose of disposers.reverse()) dispose(); };
 }

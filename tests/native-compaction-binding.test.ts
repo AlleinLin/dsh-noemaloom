@@ -5,6 +5,9 @@ import { Context } from '@deepseek-ai/cordis';
 import { createHostAdapter, hostAuthority } from '../src/host/host-adapter.js';
 import { nativeCompactionFor, registerNativeCompactionBinding } from '../src/host/compaction-binding.js';
 import type { HostContext } from '../src/host/types.js';
+import { registerSelfCompactionTool } from '../src/host/self-compaction-tool.js';
+import { NexusError } from '../src/ports/contracts.js';
+import { HarnessError } from '@deepseek-ai/dsh-llm';
 
 test('the production compression bridge reaches the provider isolated below the agent preset and releases it on unload', async t => {
   const root = new Context(), id = `binding-${randomUUID()}`, signal = new AbortController().signal;
@@ -59,10 +62,30 @@ test('an older provider or disposed agent cannot remove a replacement binding', 
   await Promise.all([oldOwner.await(), newOwner.await()]);
   t.after(async () => { await newOwner.dispose(); await oldOwner.dispose(); });
   oldBinding.bind(oldAgent); freshBinding.bind(newAgent);
+  assert.equal(nativeCompactionFor(oldAgent), undefined, 'same session id cannot grant a stale Agent the replacement provider');
   await (root as any).emit('agent/disposed', { agent: oldAgent });
   assert.equal(nativeCompactionFor(newAgent), second);
   await oldOwner.dispose();
   assert.equal(nativeCompactionFor(newAgent), second);
   await (root as any).emit('agent/disposed', { agent: newAgent });
   assert.equal(nativeCompactionFor(newAgent), undefined);
+});
+
+test('asynchronous self-maintenance rejection retains its native tool error identity', async t => {
+  const root = new Context(), agent = { id: `self-error-${randomUUID()}` };
+  let tool: any;
+  const tools = root.plugin({ name: 'self-maintenance-error-tools', apply(ctx: Context) {
+    ctx.provide('tools', { register(value: any) { tool = value; return () => {}; } } as any);
+  } });
+  await tools.await();
+  const owner = root.plugin({ name: 'self-maintenance-error-fixture', inject: ['tools'], apply(ctx: Context) {
+    registerNativeCompactionBinding(ctx as unknown as HostContext, {
+      async compactRanges() { return {}; },
+      async selfCompaction() { throw new NexusError('CTX_MODEL_WINDOW_UNKNOWN', 'Local metadata unavailable'); },
+    }).bind(agent);
+    registerSelfCompactionTool(ctx as unknown as HostContext);
+  } });
+  await owner.await(); t.after(async () => { await owner.dispose(); await tools.dispose(); });
+  await assert.rejects(tool.execute({ action: 'status' }, { agent, signal: new AbortController().signal }),
+    error => error instanceof HarnessError && error.code === 'CTX_MODEL_WINDOW_UNKNOWN');
 });

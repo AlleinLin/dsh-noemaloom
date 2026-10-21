@@ -89,11 +89,11 @@ export function createHostAdapter(ctx: HostContext, config: NexusConfig, workspa
       });
     },
     (code, facts) => {
-      ctx.logger?.warn('Nexus accounting observation', { code, ...facts });
+      try { ctx.logger?.warn('Nexus accounting observation', { code, ...facts }); } catch { /* Observational only. */ }
       if (typeof facts?.sessionId === 'string') void recordRecoveryDiagnostic(ctx, facts.sessionId, {
         ...facts, diagnosticCode: code === 'OBSERVATION_DEFERRED' ? 'NX_OBSERVATION_DEFERRED' : 'NX_RECOVERY_FAILED',
         phase: 'accounting-observation', stopReason: code,
-      });
+      }).catch(() => undefined);
     },
   );
   const host: NexusHost & { connect(services: NexusServices, catalog?: (domain: string) => Capability[]): void; initialize(): Promise<void>; dispose(): Promise<void> } = {
@@ -140,6 +140,18 @@ export function createHostAdapter(ctx: HostContext, config: NexusConfig, workspa
       const logicalCallId = request.logicalCallId ?? `call_${randomUUID()}`;
       const sessionId = request.sessionId ?? `nexus-aux:${logicalCallId}`;
       const prepared = await llm.prepareCall(route, signal);
+      if (request.role === 'compression-auxiliary') {
+        const window = prepared.context?.contextWindow;
+        const textSize = Buffer.byteLength(request.system ?? '', 'utf8') + (request.messages
+          ? request.messages.reduce((sum, message) => sum + Buffer.byteLength(message.content, 'utf8'), 0) : Buffer.byteLength(request.prompt, 'utf8'));
+        const reserve = request.maxTokens ?? 4096;
+        // Character-count upper allowance is deliberately conservative and
+        // checked against the actually prepared model, never a global default.
+        if (!Number.isSafeInteger(window) || window <= 0) throw new NexusError('CTX_MODEL_WINDOW_UNKNOWN', '摘要模型未声明有效窗口；未发送模型请求');
+        if (textSize + reserve + 1024 >= window) throw new NexusError('CTX_SUMMARY_INPUT_LIMIT',
+          '摘要输入超出当前有效模型的安全预算；未发送超大全量。请选更小完整范围或修正摘要模型窗口',
+          { inputUpperEstimate: textSize, outputReserveTokens: reserve, windowTokens: window });
+      }
       const purpose = ['compression-auxiliary', 'compression-inband', 'memory-extraction', 'title', 'lint-repair', 'background-index', 'diagnostic-canary'].includes(request.role)
         ? request.role : request.role === 'reviewer' ? 'review' : 'workflow-planning';
       const inputMessages = request.messages ?? [{ role: 'user' as const, content: request.prompt }];
@@ -178,9 +190,17 @@ export function createHostAdapter(ctx: HostContext, config: NexusConfig, workspa
         outputReserveTokens: request.maxTokens ?? 4096, attemptId, logicalCallId,
       }, `context-prepare:${attemptId}`);
       const options: any = {
-        ...prepared.config, messages: coreToNative(plan.messages), system: plan.system,
+        ...prepared.config, ...(request.maxTokens === undefined ? {} : { maxTokens: request.maxTokens }),
+        messages: coreToNative(plan.messages), system: plan.system,
         tools: [], signal, sessionId, purpose,
       };
+      if (request.role === 'compression-auxiliary') {
+        const inputUpperEstimate = Buffer.byteLength(JSON.stringify({ system: options.system, messages: options.messages, tools: options.tools }), 'utf8');
+        if (inputUpperEstimate + (options.maxTokens ?? 4096) + 1024 >= prepared.context.contextWindow) {
+          throw new NexusError('CTX_SUMMARY_INPUT_LIMIT', '摘要最终请求超过当前模型安全预算，未发送模型请求',
+            { inputUpperEstimate, outputReserveTokens: options.maxTokens ?? 4096, windowTokens: prepared.context.contextWindow });
+        }
+      }
       auxiliaryAttempts.set(options, { attemptId, logicalCallId, role: request.role, owner, isolated: request.independentRoute === true });
       const textBlocks = new Map<number, string>();
       let usage: JsonRecord | undefined;
@@ -217,7 +237,7 @@ export function createHostAdapter(ctx: HostContext, config: NexusConfig, workspa
           try { ctx.logger?.warn('Nexus auxiliary response incomplete', facts); } catch {}
           try { services.emit('auxiliary/diagnostic', { ...facts, sessionId }); } catch {}
           throw new NexusError(failure.code, failure.message, {
-            ...facts,
+            ...facts, provenance: 'provider', causeCodes: failure.causeCodes,
             ...(failure.providerRetryAfterMs === undefined ? {} : { providerRetryAfterMs: failure.providerRetryAfterMs }),
           });
         }
@@ -235,7 +255,8 @@ export function createHostAdapter(ctx: HostContext, config: NexusConfig, workspa
               sessionId, purpose, lane: request.role, planId: plan.planId,
             }, `context-release:${attemptId}`, AbortSignal.timeout(5000));
           } catch (error) {
-            ctx.logger?.warn('Nexus context request release requires recovery', error instanceof NexusError ? error.code : 'INTERNAL');
+            try { ctx.logger?.warn('Nexus context request release requires recovery', error instanceof NexusError ? error.code : 'INTERNAL'); }
+            catch { /* Preserve the auxiliary result/error and its release receipt. */ }
           }
         }
       }
@@ -298,7 +319,10 @@ export function createHostAdapter(ctx: HostContext, config: NexusConfig, workspa
           ? '子代理曾启动，但持久回执及精确激活回收未完成'
           : '子代理曾启动，但持久回执未完成；已请求并等待精确激活回收', { childId: activation.childId, cleanupFailed });
       }
-      const abort = () => { void dispose().catch(error => ctx.logger?.warn('Nexus child cleanup failed', error?.code ?? 'INTERNAL')); };
+      const abort = () => { void dispose().catch(error => {
+        try { ctx.logger?.warn('Nexus child cleanup failed', nativeErrorIdentity(error, 'CHILD_CLEANUP_FAILED')); }
+        catch { /* Detached cleanup diagnostics cannot reject again. */ }
+      }); };
       signal.addEventListener('abort', abort, { once: true });
       if (signal.aborted) abort();
       const result = settlement.then(async (result: any): Promise<ModelResult> => {
@@ -396,6 +420,10 @@ export function createHostAdapter(ctx: HostContext, config: NexusConfig, workspa
         case 'context.compress': {
           const agent = ctx.get('agents')?.get?.(sessionId);
           if (!agent) throw new NexusError('SESSION_NOT_LIVE', '会话没有存活的 Agent；请先打开此会话');
+          const authority = hostAuthority.getStore();
+          if (authority?.actorId === 'native-tool' && (authority.sessionId !== sessionId || authority.toolExecution?.agent !== agent)) {
+            throw new NexusError('PERMISSION_DENIED', '模型压缩必须属于准确的当前调用智能体');
+          }
           if (hostAuthority.getStore()?.actorId === 'connection-owner' && agent.status !== 'idle') {
             throw new NexusError('CTX_NATIVE_BUSY', '会话仍在执行，请在任务空闲后从页面压缩；未停止当前任务');
           }
@@ -403,6 +431,11 @@ export function createHostAdapter(ctx: HostContext, config: NexusConfig, workspa
           const compaction = typeof direct?.compactRanges === 'function' ? direct : nativeCompactionFor(agent);
           if (!compaction) throw new NexusError('DEPENDENCY_MISSING', '此会话未连接 Nexus 原生压缩 provider；请检查当前模式的插件配置');
           return compaction.compactRanges(agent, params, hostAuthority.getStore()?.signal ?? pluginSignal);
+        }
+        case 'models/info': {
+          const provider = String(params.provider ?? ''), model = String(params.model ?? '');
+          const info = await requireService(ctx, 'llm', 'resolveModelInfo').resolveModelInfo(provider, model, hostAuthority.getStore()?.signal ?? pluginSignal);
+          return { provider, model, contextWindow: info.context?.contextWindow ?? null, defaultMaxTokens: info.defaultMaxTokens ?? null };
         }
         case 'models/list': case 'models.list': {
           const llm = requireService(ctx, 'llm', 'listModels');

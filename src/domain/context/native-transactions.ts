@@ -161,6 +161,12 @@ export interface NativeOperationDiagnostic {
   traceId: string;
   code: string;
   previousCode?: string;
+  causeCodes?: string[];
+  provenance?: 'provider';
+  authorityDenied?: true;
+  status?: number;
+  requestId?: string;
+  providerRetryAfterMs?: number;
   phase: NativeLaneOwner['phase'];
   outcome: 'failed-before-official' | 'abandoned-before-official' | 'failed-before-replacement' | 'reconciliation-required' | 'reconciled';
   /** A failed auxiliary call may have been billed. It is never replayed. */

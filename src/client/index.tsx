@@ -8,7 +8,8 @@ import { getLanguage, registerDictionary, setLanguage } from './i18n.js';
 import { applyExtensionClientBridge } from './extension-bridge.js';
 import { registerNativePanels } from './native-workspace.js';
 import { NativeTheme } from './NativeTheme.js';
-import { NativeBrandMark } from './NativeBrand.js';
+import { NativeBrandMark, NativeBrandName, NativeHeroBrand } from './NativeBrand.js';
+import { installNativeAppearance } from './native-appearance.js';
 import { applyOriginalClients } from './originals.js';
 import { applyNativeCapabilities } from './native-capabilities.js';
 import { registerCanvasPanels } from './original-canvases.js';
@@ -27,6 +28,7 @@ export { NexusApp, createNexusApi };
 /** All seats and requests belong to this client effect and are withdrawn together. */
 export function apply(ctx: ClientContext) {
   const api = createNexusApi(ctx);
+  ctx.effect(() => installNativeAppearance(api), 'nexus saved native appearance');
   ctx.effect(() => applyOriginalClients(ctx), 'nexus original plugin components');
   ctx.effect(() => applyNativeCapabilities(ctx), 'nexus native procedures and dshell capabilities');
   ctx.effect(() => registerCanvasPanels(ctx), 'nexus original scoped canvases');
@@ -73,6 +75,8 @@ export function apply(ctx: ClientContext) {
       settings: () => <NexusApp api={api} ctx={ctx} level="global" initialPage="settings" />,
       theme: NativeTheme,
       brand: NativeBrandMark,
+      brandName: NativeBrandName,
+      heroBrand: NativeHeroBrand,
     }));
     const dockViews = createNativeDockViewProvider(ctx);
     disposers.push(dockViews.dispose);

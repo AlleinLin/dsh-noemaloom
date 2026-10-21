@@ -194,6 +194,29 @@ test('appearance preview is independent; apply uses CAS, rejects executable CSS 
   assert.equal((await f.services.store.list('resources')).length, 0);
 });
 
+test('native brand and home copy persist as literal text and reset independently of theme and models', async t => {
+  const f = await fixture(t);
+  const before = await f.call('themes.config');
+  const copy = { sidebarBrandText: '<script>literal brand</script> 中文 brand', sidebarBrandColor: '#12AbEf',
+    homeTitle: '长标题 '.repeat(80), homeBadgeEnabled: false, homeBadgeText: '<b>Literal badge</b>' };
+  const saved = await f.call('themes.apply', { config: copy }, before.revision);
+  const read = await f.call('themes.config');
+  for (const [key, value] of Object.entries(copy)) assert.equal(read[key], value);
+  assert.equal(read.themeId, before.themeId);
+  assert.equal(read.css.includes('<script>'), false, 'user text is never injected into CSS');
+  assert.equal(read.css.includes('Literal badge'), false);
+  for (const config of [{ sidebarBrandColor: 'red;}body{display:none' }, { homeBadgeEnabled: 'false' },
+    { sidebarBrandText: '' }, { homeTitle: 'x'.repeat(513) }]) {
+    await assert.rejects(f.call('themes.apply', { config }, saved.revision), /颜色|布尔|文本/);
+  }
+  const resetTitle = await f.call('themes.apply', { config: { homeTitle: null } }, saved.revision);
+  assert.equal(resetTitle.homeTitle, null); assert.equal(resetTitle.sidebarBrandText, copy.sidebarBrandText);
+  assert.equal(resetTitle.homeBadgeEnabled, false); assert.equal(resetTitle.sidebarBrandColor, copy.sidebarBrandColor);
+  const defaults = await f.call('themes.revert', { reset: true }, resetTitle.revision);
+  assert.equal(defaults.sidebarBrandText, 'deepseek'); assert.equal(defaults.homeBadgeEnabled, true);
+  assert.equal(defaults.homeTitle, null); assert.equal(defaults.homeBadgeText, null);
+});
+
 test('catalog validation retains full bundled K catalog and unknown metrics; rejects traversal and unpinned metadata', () => {
   const catalog = resourceValidation.normalizeK(bundledSkinCatalog, 'bundled');
   assert.equal(catalog.items.length, bundledSkinCatalog.skins.length);

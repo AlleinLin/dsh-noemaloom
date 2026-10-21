@@ -203,6 +203,10 @@ function engineFor(f: Awaited<ReturnType<typeof fixture>>) {
       deriveMessages: () => nodes.map(node => node.message) },
   };
   const engine: any = Object.create(NexusCompactionEngine.prototype);
+  engine.measurePressure = async () => ({
+    header: { config: { provider: 'fixture-provider', model }, tools: [] },
+    windowTokens, outputReserveTokens: 1000,
+  });
   engine.nativeContext = { get: (name: string) => name === 'nexus' ? { services: f.dispatcher().services }
     : name === 'llm' ? { resolveModelInfo: async () => ({ context: { contextWindow: windowTokens }, defaultMaxTokens: 1000 }) }
     : name === 'sessionProjections' ? { stateOf: (_session: unknown, key: string) => {

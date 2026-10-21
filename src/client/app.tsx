@@ -14,6 +14,10 @@ import { ResourceMedia } from './ResourceMedia.js';
 import { DesktopControls } from './DesktopControls.js';
 import { AuxiliarySettings } from './AuxiliarySettings.js';
 import { StepPauseSettings } from './StepPauseSettings.js';
+import { ContextCompactionSettings } from './ContextCompactionSettings.js';
+import { NativeAppearanceControls } from './NativeAppearanceControls.js';
+import { previewNativeAppearance, saveNativeAppearance } from './native-appearance.js';
+import { NATIVE_APPEARANCE_DEFAULTS, validateNativeAppearance } from '../shared/native-appearance.js';
 import { boundedRead } from '../shared/bounded-read.js';
 import { nativeWorkspace, navigateNative, openNativeSession as openHostSession, originalPageEntries, scopeNavigation } from './native-workspace.js';
 
@@ -106,6 +110,7 @@ export function NexusApp({ api, ctx, initialPage, fixedPage, level = 'workspace'
     api.call('resources', 'themes.config', {}, { signal: controller.signal }).then(config => {
       if (controller.signal.aborted) return;
       setThemeConfig(config);
+      saveNativeAppearance(config);
       setPreferences(old => ({ ...old, theme: 'system', density: config.density ?? old.density, fontSize: config.fontSize ?? old.fontSize, reduceMotion: config.reduceMotion ?? old.reduceMotion, reading: config.readingMode ?? old.reading }));
     }).catch(error => { if (!controller.signal.aborted) notify('外观配置读取失败', 'error', errorData(error).message); });
     return () => controller.abort();
@@ -185,16 +190,24 @@ function SettingsView({ context, preferences, setPreferences, snapshot, notify, 
   const resources = useQuery(context.api, 'resources', 'list', {}, { enabled: section === 'appearance', scope: context.scope, refresh: context.refreshToken });
   const installedResources = rows(resources.data);
   useEffect(() => { if (!dirty) { setDraft(preferences); setAppearanceDraft(themeConfig); } }, [preferences, themeConfig, dirty]);
+  useEffect(() => {
+    if (section === 'appearance' && dirty) previewNativeAppearance(appearanceDraft);
+    else previewNativeAppearance();
+    return () => previewNativeAppearance();
+  }, [section, appearanceDraft, dirty]);
   const saveAppearance = async () => {
+    const invalid = validateNativeAppearance(appearanceDraft);
+    if (invalid) { setSaveError(new Error(invalid)); return; }
     setSaving(true); setSaveError(undefined);
     try {
       const value = await context.api.call('resources', 'themes.apply', { config: { ...appearanceDraft, mode: 'host', density: draft.density, fontSize: draft.fontSize, reduceMotion: draft.reduceMotion, readingMode: draft.reading }, expectedRevision: themeConfig.revision ?? 0 }, { scope: { level: 'global' }, mutating: true, revision: themeConfig.revision ?? 0 });
-      setThemeConfig(value?.config ?? value); setPreferences(draft); setDirty(false); notify('外观偏好已由宿主保存');
+      const saved = value?.config ?? value;
+      saveNativeAppearance(saved); setThemeConfig(saved); setPreferences(draft); setDirty(false); notify('外观偏好已由宿主保存');
     } catch (cause) { setSaveError(cause); }
     finally { setSaving(false); }
   };
-  const groups = [{ id: 'appearance', label: '外观与阅读' }, { id: 'auxiliary', label: '意图识别与旁路审阅' }, { id: 'step-progress', label: '步骤进度' }, { id: 'diagnostics', label: '诊断与来源' }];
-  if (section === 'auxiliary') return <div className="nexus-page nexus-settings-page"><PageHeader title="设置" /><div className="nexus-settings-layout"><nav className="nexus-settings-nav" aria-label="设置分类">{groups.map(group => <button key={group.id} aria-current={section === group.id ? 'page' : undefined} onClick={() => setSection(group.id)}>{group.label}</button>)}</nav><section className="nexus-settings-content"><h2>意图识别与旁路审阅</h2><AuxiliarySettings api={context.api} /></section></div></div>;
+  const groups = [{ id: 'appearance', label: '外观与阅读' }, { id: 'auxiliary', label: '意图识别与旁路审阅' }, { id: 'step-progress', label: '步骤进度' }, { id: 'context-compaction', label: '上下文压缩' }, { id: 'diagnostics', label: '诊断与来源' }];
+  if (section === 'auxiliary') return <div className="nexus-page nexus-settings-page"><div className="nexus-settings-layout"><nav className="nexus-settings-nav" aria-label="设置分类">{groups.map(group => <button key={group.id} aria-current={section === group.id ? 'page' : undefined} onClick={() => setSection(group.id)}>{group.label}</button>)}</nav><section className="nexus-settings-content"><h2>意图识别与旁路审阅</h2><AuxiliarySettings api={context.api} /></section></div></div>;
   const update = (value: Partial<Preferences>) => { setDraft(old => ({ ...old, ...value })); setDirty(true); };
   const updateAppearance = (value: Data) => { setAppearanceDraft(old => ({ ...old, ...value })); setDirty(true); };
   const mediaPaths = (item?: Data) => Object.keys(item?.fileHashes ?? {}).filter(path => /\.(png|jpe?g|webp|gif|avif|mp4|webm)$/i.test(path));
@@ -205,10 +218,10 @@ function SettingsView({ context, preferences, setPreferences, snapshot, notify, 
     <div className="nexus-setting-row"><div><strong>装饰背景</strong></div><div className="nexus-setting-controls"><select aria-label="背景资源" value={appearanceDraft.backgroundAsset?.id ?? ''} onChange={event => { const item = installedResources.find(resource => resource.id === event.target.value); updateAppearance({ backgroundAsset: item ? { id: item.id, path: mediaPaths(item)[0] } : null, backgroundEnabled: item ? appearanceDraft.backgroundEnabled : false }); }}><option value="">选择背景资源…</option>{installedResources.filter(item => mediaPaths(item).length).map(item => <option key={item.id} value={item.id} data-nexus-verbatim="">{titleOf(item)}</option>)}</select>{backgroundResource && <select aria-label="背景文件" value={appearanceDraft.backgroundAsset?.path ?? ''} onChange={event => updateAppearance({ backgroundAsset: { id: backgroundResource.id, path: event.target.value } })}>{mediaPaths(backgroundResource).map(path => <option key={path} value={path} data-nexus-verbatim="">{path}</option>)}</select>}<label><input type="checkbox" checked={appearanceDraft.backgroundEnabled === true} disabled={!appearanceDraft.backgroundAsset} onChange={event => updateAppearance({ backgroundEnabled: event.target.checked })} />启用</label></div></div>
     <div className="nexus-actions"><Button onClick={() => context.action({ domain: 'resources', action: 'asset.import', params: { kind: 'background', path: '' } })}>导入本地媒体</Button><Button onClick={() => context.navigate('resources')}>管理外观资源</Button></div>
   </>;
-  return <div className="nexus-page nexus-settings-page"><PageHeader title="设置" /><div className="nexus-settings-layout">
+  return <div className="nexus-page nexus-settings-page"><div className="nexus-settings-layout">
     <nav className="nexus-settings-nav" aria-label="设置分类">{groups.map(group => <button key={group.id} aria-current={section === group.id ? 'page' : undefined} onClick={() => setSection(group.id)}>{group.label}</button>)}</nav>
     <section className="nexus-settings-content"><h2>{groups.find(group => group.id === section)?.label}</h2>
-      {section === 'step-progress' ? <StepPauseSettings api={context.api} /> : section === 'appearance' ? <>
+      {section === 'step-progress' ? <StepPauseSettings api={context.api} /> : section === 'context-compaction' ? <ContextCompactionSettings api={context.api} /> : section === 'appearance' ? <>
         {Boolean(saveError) && <ErrorMessage error={saveError} />}
         <div className="nexus-setting-row"><div><strong>界面语言</strong></div><select aria-label="界面语言" value={language} onChange={event => { setLanguage(event.target.value); try { localStorage.setItem('dsh-nexus:language', event.target.value); } catch {} }}><option value="zh">简体中文</option><option value="en">English</option><option value="ru">Русский</option></select></div>
         <div className="nexus-setting-row"><div><strong>Claude 主题</strong></div><select aria-label="全局皮肤" value={draft.skin} onChange={e => update({ skin: e.target.value as Preferences['skin'] })}><option value="claude">Claude（默认）</option><option value="host">DSH 原生</option></select></div>
@@ -217,8 +230,9 @@ function SettingsView({ context, preferences, setPreferences, snapshot, notify, 
         <div className="nexus-setting-row"><div><strong>正文字号</strong></div><select aria-label="正文字号" value={draft.fontSize} onChange={event => update({ fontSize: Number(event.target.value) })}>{[13, 14, 15, 16, 18].map(value => <option value={value} key={value}>{value}px</option>)}</select></div>
         <div className="nexus-setting-row"><div><strong>减少动效</strong></div><input type="checkbox" aria-label="减少动效" checked={draft.reduceMotion} onChange={event => update({ reduceMotion: event.target.checked })} /></div>
         <div className="nexus-setting-row"><div><strong>会话阅读视图</strong></div><input type="checkbox" aria-label="会话阅读视图" checked={draft.reading} onChange={event => update({ reading: event.target.checked })} /></div>
+        <NativeAppearanceControls draft={appearanceDraft} update={updateAppearance} />
         {appearanceResources}
-        <div className="nexus-settings-save"><span>{dirty ? '有未保存的外观草稿' : '已保存'}</span><Button onClick={() => { setDraft(defaultPreferences); setAppearanceDraft({ ...themeConfig, themeId: null, tokens: {}, petEnabled: false, petId: null, backgroundEnabled: false, backgroundAsset: null }); setDirty(true); }}>恢复外观默认</Button><Button primary busy={saving} disabled={!dirty} onClick={() => void saveAppearance()}>保存外观</Button></div>
+        <div className="nexus-settings-save"><span>{dirty ? '有未保存的外观草稿' : '已保存'}</span><Button onClick={() => { setDraft(defaultPreferences); setAppearanceDraft({ ...themeConfig, ...NATIVE_APPEARANCE_DEFAULTS, themeId: null, tokens: {}, petEnabled: false, petId: null, backgroundEnabled: false, backgroundAsset: null }); setDirty(true); }}>恢复外观默认</Button><Button primary busy={saving} disabled={!dirty} onClick={() => void saveAppearance()}>保存外观</Button></div>
       </> : <>
         <DesktopControls />
         <StorageIntegrityControls api={context.api} />

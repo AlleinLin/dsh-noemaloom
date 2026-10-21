@@ -3,6 +3,7 @@ import { clientRequestSchema } from '@deepseek-ai/dsh-client-connection';
 import { readBoundedJson } from './routes.js';
 import type { HostContext } from './types.js';
 import { commandExitCode, isCommandTool, type CommandChunk, type LiveCommand } from '../client/live-command-model.js';
+import { nativeErrorIdentity } from './native-diagnostics.js';
 
 const MAX_TAIL_BYTES = 262144;
 const MAX_COMMANDS = 60;
@@ -82,6 +83,15 @@ export function registerLiveCommands(ctx: HostContext): () => Promise<void> {
   const sessions = new Map<string, Map<string, RecordState>>();
   const cleanups: Array<() => unknown> = [];
   let disposed = false;
+  let nextDiagnosticAt = 0;
+  function observe(action: () => void) {
+    try { action(); } catch (error) {
+      if (Date.now() < nextDiagnosticAt) return;
+      nextDiagnosticAt = Date.now() + 30_000;
+      try { ctx.logger?.warn('Nexus command observation deferred', nativeErrorIdentity(error, 'COMMAND_OBSERVATION_FAILED')); }
+      catch { /* An observer and its diagnostics cannot affect execution. */ }
+    }
+  }
   function remember(exec: any): RecordState | undefined {
     const sessionId = exec.agent?.session?.id ?? exec.agent?.id;
     if (typeof sessionId !== 'string' || !isCommandTool(exec.name)) return;
@@ -139,34 +149,41 @@ export function registerLiveCommands(ctx: HostContext): () => Promise<void> {
     } catch { /* A disposed producer leaves the already captured tail readable. */ }
   }
   cleanups.push(ctx.on('tools/execute', async (exec: any, next: () => Promise<any>) => {
-    const row = disposed ? undefined : remember(exec);
+    let row: RecordState | undefined;
+    observe(() => { if (!disposed) row = remember(exec); });
     if (!row) return next();
-    return execution.run(row, async () => {
+    const observed = row;
+    return execution.run(observed, async () => {
+      let result;
       try {
-        const result = await next();
-        pull(row);
-        if (!row.job && (!row.process || row.process.handle.status !== 'running')) {
-          if (['running', 'stopping'].includes(row.command.state)) row.command.state = result?.isError ? 'failed' : 'completed';
-          row.command.finishedAt = Date.now();
-          const value = result?.value;
-          if (typeof value?.exitCode === 'number' || value?.exitCode === null) row.command.exitCode = value.exitCode;
-          if (!row.chunks.length) {
-            const text = result?.content?.filter((part: any) => part.type === 'text').map((part: any) => part.text).join('\n');
-            append(row, text ?? '', result?.isError ? 'stderr' : 'stdout');
-          }
-        }
-        return result;
+        result = await next();
       } catch (error) {
-        pull(row);
-        if (!row.usedJob) {
-          row.command.state = exec.signal?.aborted ? 'killed' : 'failed';
-          row.command.finishedAt = Date.now();
-        }
+        observe(() => {
+          pull(observed);
+          if (!observed.usedJob) {
+            observed.command.state = exec.signal?.aborted ? 'killed' : 'failed';
+            observed.command.finishedAt = Date.now();
+          }
+        });
         throw error;
       }
+      observe(() => {
+        pull(observed);
+        if (!observed.job && (!observed.process || observed.process.handle.status !== 'running')) {
+          if (['running', 'stopping'].includes(observed.command.state)) observed.command.state = result?.isError ? 'failed' : 'completed';
+          observed.command.finishedAt = Date.now();
+          const value = result?.value;
+          if (typeof value?.exitCode === 'number' || value?.exitCode === null) observed.command.exitCode = value.exitCode;
+          if (!observed.chunks.length) {
+            const text = result?.content?.filter((part: any) => part.type === 'text').map((part: any) => part.text).join('\n');
+            append(observed, text ?? '', result?.isError ? 'stderr' : 'stdout');
+          }
+        }
+      });
+      return result;
     });
   }));
-  cleanups.push(ctx.on('session/event', (session: any, event: any) => {
+  cleanups.push(ctx.on('session/event', (session: any, event: any) => observe(() => {
     if (disposed || event.type !== 'job/registered' || event.seq < session.firstLiveSeq) return;
     const data = event.data;
     if (data.owner !== session.id) return;
@@ -177,17 +194,24 @@ export function registerLiveCommands(ctx: HostContext): () => Promise<void> {
       row.usedJob = true;
       row.command.outputAvailable = true;
     }
-  }));
+  })));
   function optional(name: string, install: (service: any) => () => void) {
-    if (typeof context.inject === 'function') {
-      const fiber = context.inject([name], (child: any) => child.effect(() => install(child.get(name))));
-      cleanups.push(() => fiber.dispose());
-    } else {
-      const service = context.get(name);
-      if (service) cleanups.push(install(service));
-    }
+    const guardedInstall = (service: any) => {
+      let cleanup = () => {};
+      observe(() => { cleanup = install(service); });
+      return cleanup;
+    };
+    observe(() => {
+      if (typeof context.inject === 'function') {
+        const fiber = context.inject([name], (child: any) => child.effect(() => guardedInstall(child.get(name))));
+        cleanups.push(() => fiber.dispose());
+      } else {
+        const service = context.get(name);
+        if (service) cleanups.push(guardedInstall(service));
+      }
+    });
   }
-  optional('jobs', jobs => jobs.events.subscribe({ owners: 'all' }, (event: any) => {
+  optional('jobs', jobs => jobs.events.subscribe({ owners: 'all' }, (event: any) => observe(() => {
     if (disposed || !['settled', 'removed'].includes(event.type)) return;
     const row = [...(sessions.get(event.job.owner)?.values() ?? [])].find(value => value.job?.id === event.job.id);
     if (!row) return;
@@ -197,15 +221,15 @@ export function registerLiveCommands(ctx: HostContext): () => Promise<void> {
     row.command.detail = event.job.detail;
     row.command.exitCode = commandExitCode(event.job.detail);
     if (event.type === 'removed') row.job = undefined;
-  }));
+  })));
   optional('shell', shell => observeMethod(shell, 'execute', (_args, result) => {
     const row = execution.getStore();
     if (!row) return;
-    void Promise.resolve(result).then(handle => {
+    void Promise.resolve(result).then(handle => observe(() => {
       if (disposed || !handle) return;
       row.process = { handle, stdout: 0, stderr: 0 };
       row.command.outputAvailable = true;
-      void Promise.resolve(handle.done).then(() => {
+      void Promise.resolve(handle.done).then(() => observe(() => {
         if (disposed) return;
         pull(row);
         if (!row.usedJob) {
@@ -214,8 +238,8 @@ export function registerLiveCommands(ctx: HostContext): () => Promise<void> {
           row.command.finishedAt = Date.now();
         }
         row.process = undefined;
-      }, () => {});
-    }, () => {});
+      }), () => {});
+    }), () => {});
   }));
   optional('terminals', terminals => observeMethod(terminals, 'startSend', (args) => {
     const row = execution.getStore();

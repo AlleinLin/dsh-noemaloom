@@ -15,6 +15,7 @@ test('read-only child rejects raw shell, Nexus mutations and delegation using th
   assert.match(call('nexus_memory', 'save')!, /read-only/);
   assert.match(call('subagent')!, /delegation/);
   assert.equal(call('read_file'), undefined);
+  assert.equal(call('compact_context'), undefined, 'self maintenance does not grant file mutations');
   assert.equal(call('nexus_memory', 'search'), undefined);
   dispose();
 });
@@ -25,5 +26,6 @@ test('persistent agent execution grant applies without a transient child map and
   const agent = { id: 'persistent', ctx: { get: () => ({ allowedCapabilityIds: ['memory.search'], allowChildren: false }) } };
   assert.equal(guard({ agent, name: 'nexus_memory', arguments: { action: 'search' } }), undefined);
   assert.match(guard({ agent, name: 'nexus_memory', arguments: { action: 'read' } })!, /outside/);
+  assert.match(guard({ agent, name: 'compact_context', arguments: { action: 'status' } })!, /outside/, 'self maintenance cannot widen an explicit capability grant');
   assert.match(guard({ agent, name: 'nexus_agents', arguments: { action: 'session/spawn' } })!, /delegation/);
 });

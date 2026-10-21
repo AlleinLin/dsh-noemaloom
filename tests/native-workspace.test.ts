@@ -75,6 +75,33 @@ test('generated brand shadows official marks without replacing host registration
   assert.equal(elected('sidebar.brand.name'), 'official-wordmark');
 });
 
+test('configurable brand receives the elected original wordmark as a React component and releases only its own registration', () => {
+  const OfficialName = () => null, ConfigurableName = () => null;
+  const official = { name: 'sidebar.brand.name', options: { priority: 0 }, component: OfficialName };
+  const entries: any[] = [official];
+  const elected = () => entries.filter(entry => entry.name === 'sidebar.brand.name')
+    .sort((a, b) => (a.options.priority ?? 0) - (b.options.priority ?? 0))[0];
+  const ctx: any = { slots: {
+    inject(_name: string, callback: () => unknown) { return callback(); },
+    entriesOfSlot(name: string) { return name === 'sidebar.brand.name' ? [elected()] : []; },
+    register(options: any, component: any) {
+      const entry = { name: options.name, options, component }; entries.push(entry);
+      return () => entries.splice(entries.indexOf(entry), 1);
+    },
+  } };
+  const stop = registerNativePanels(ctx, {
+    panel: level => level, icon: name => name, settings: 'settings',
+    theme: 'theme', conversation: page => page, brand: 'generated-mark', brandName: ConfigurableName,
+  });
+  const rendered = elected().component({ nativeLabel: 'kept' });
+  assert.equal(rendered.type, ConfigurableName);
+  assert.equal(rendered.props.nativeComponent, OfficialName);
+  assert.equal(rendered.props.nativeLabel, 'kept');
+  assert.ok(entries.includes(official));
+  stop();
+  assert.deepEqual(entries, [official]);
+});
+
 test('conversation tools navigate directly to independent native views and retain original context', () => {
   const calls: string[] = [], openView = (id: string) => calls.push(id);
   const ctx: any = {};

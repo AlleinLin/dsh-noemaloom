@@ -21,6 +21,7 @@ export interface ClientContext {
     inject(name: string, callback: (...args: any[]) => any): any;
     register(options: Data, component: any): (() => void) | any;
     entries?(name: string): any[];
+    entriesOfSlot?(name: string): any[];
   };
   layout?: { selectPanel(key: string | null): void; toggleSidebar?(): void };
   uiWorkspace?: {

@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { HarnessError, LlmError, ProviderRequestId } from '@deepseek-ai/dsh-llm';
 import { isNexusError } from '../ports/contracts.js';
-import { classifyFailure, type FailureContext } from '../shared/error-codes.js';
+import { classifyFailure, failureChain, failureMetadata, type FailureContext } from '../shared/error-codes.js';
 
 
 const CODE = /^[A-Z][A-Z0-9_]{0,95}$/;
@@ -37,20 +37,20 @@ export function nativeErrorIdentity(error: unknown, fallback = 'CTX_PREPARATION_
 export function toHarnessError(error: unknown, context: FailureContext = {}): HarnessError & { traceId: string } {
   const identity = nativeErrorIdentity(error, 'INTERNAL');
   const diagnosis = classifyFailure(error, context);
-  const hardFailure = !context.signalAborted && ['NX_CONTEXT_MAINTENANCE', 'NX_PENDING_EFFECT', 'NX_POLICY_BLOCKED', 'NX_AUTH_DENIED']
+  const hardFailure = !context.signalAborted && ['NX_CONTEXT_MAINTENANCE', 'NX_CONTEXT_WINDOW_EXCEEDED', 'NX_PENDING_EFFECT', 'NX_POLICY_BLOCKED', 'NX_AUTH_DENIED']
     .includes(diagnosis.diagnosticCode);
-  const code = hardFailure ? diagnosis.canonicalCode
+  const code = hardFailure || diagnosis.retryable ? diagnosis.canonicalCode
     : isNexusError(error) || error instanceof HarnessError || identity.code === 'CANCELLED'
       ? identity.code : diagnosis.canonicalCode === 'UNKNOWN' ? identity.code : diagnosis.canonicalCode;
-  const message = `[${diagnosis.diagnosticCode}] ${diagnosis.message}；阶段=${diagnosis.phase}；traceId=${identity.traceId}`;
-  const retryAfterMs = [error, error && typeof error === 'object' && 'failure' in error ? error.failure : undefined]
-    .map(value => value && typeof value === 'object' && 'providerRetryAfterMs' in value ? value.providerRetryAfterMs : undefined)
-    .find((value): value is number => typeof value === 'number' && Number.isFinite(value) && value >= 0);
+  const metadata = failureMetadata(error);
+  const causes = metadata.causeCodes.filter(value => value !== code).slice(0, 4);
+  const message = `[${diagnosis.diagnosticCode}] ${diagnosis.message}；阶段=${diagnosis.phase}`
+    + `${causes.length ? `；原因=${causes.join(',')}` : ''}；traceId=${identity.traceId}`;
   return Object.assign(new HarnessError(message, code), {
     traceId: identity.traceId, diagnosticCode: diagnosis.diagnosticCode, phase: diagnosis.phase,
     ...(diagnosis.status ? { status: diagnosis.status } : {}),
     ...(diagnosis.requestId ? { requestId: diagnosis.requestId } : {}),
-    ...(retryAfterMs === undefined ? {} : { providerRetryAfterMs: retryAfterMs }),
+    ...metadata,
   });
 }
 
@@ -64,6 +64,7 @@ export function toNativeLlmError(error: unknown, context: FailureContext = {}): 
   };
   return Object.assign(new LlmError(wrapped.message,
     wrapped.code === 'UNKNOWN' ? 'UNCLASSIFIED_FAILURE' : wrapped.code, {
+    cause: wrapped,
     ...(wrapped.status ? { status: wrapped.status } : {}),
     ...(wrapped.requestId ? { requestId: ProviderRequestId(wrapped.requestId) } : {}),
     ...(wrapped.providerRetryAfterMs && wrapped.providerRetryAfterMs > 0
@@ -74,18 +75,7 @@ export function toNativeLlmError(error: unknown, context: FailureContext = {}): 
 /** Record call sites and cancellation identity without error bodies or paths. */
 export function nativeFailureFacts(error: unknown, signal?: AbortSignal): Record<string, unknown> {
   try {
-    const chain: any[] = [];
-    const seen = new Set<object>();
-    const visit = (value: any) => {
-      if (!value || typeof value !== 'object' || seen.has(value) || chain.length >= 6) return;
-      seen.add(value); chain.push(value);
-    };
-    visit(error);
-    for (let i = 0; i < chain.length; i++) {
-      visit(chain[i].cause); visit(chain[i].failure);
-    }
-    const causeCodes = [...new Set(chain.map(item => item.code)
-      .filter(value => typeof value === 'string' && CODE.test(value)))];
+    const chain = failureChain(error);
     const errorName = typeof chain[0]?.name === 'string' && /^[A-Za-z_$][A-Za-z0-9_$]{0,79}$/.test(chain[0].name)
       ? chain[0].name : undefined;
     const stackFrames: string[] = [];
@@ -106,7 +96,7 @@ export function nativeFailureFacts(error: unknown, signal?: AbortSignal): Record
     const kind = signal?.reason?.kind;
     const abortSource = !signal?.aborted ? 'active'
       : ['user', 'parent', 'hook', 'disposed', 'plugin'].includes(kind) ? kind : 'unattributed';
-    return { ...(errorName ? { errorName } : {}), causeCodes, stackFrames, abortSource };
+    return { ...(errorName ? { errorName } : {}), ...failureMetadata(error), stackFrames, abortSource };
   } catch { return {}; }
 }
 
@@ -119,8 +109,7 @@ export function annotateNativeFailure(failure: any, context: FailureContext = {}
     message: `[${diagnosis.diagnosticCode}] ${diagnosis.message}；阶段=${diagnosis.phase}；诊断=${traceId}`,
     ...(diagnosis.status ? { status: diagnosis.status } : {}),
     ...(diagnosis.requestId ? { requestId: diagnosis.requestId } : {}),
-    ...(Number.isFinite(failure?.providerRetryAfterMs) && failure.providerRetryAfterMs >= 0
-      ? { providerRetryAfterMs: failure.providerRetryAfterMs } : {}),
+    ...failureMetadata(failure),
     ...(Number.isSafeInteger(failure?.offloadImages) && failure.offloadImages >= 0 ? { offloadImages: failure.offloadImages } : {}),
   };
 }

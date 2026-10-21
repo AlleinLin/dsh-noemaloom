@@ -4,7 +4,7 @@ import { ClientError } from './transport.js';
 
 /** Only these context operations return before the domain resolves a session. */
 export function contextActionRequiresSession(action: string): boolean {
-  return action !== 'overview' && action !== 'list';
+  return action !== 'overview' && action !== 'list' && action !== 'models/list';
 }
 
 export function contextViewPrerequisites(value: string | undefined, tab: string) {

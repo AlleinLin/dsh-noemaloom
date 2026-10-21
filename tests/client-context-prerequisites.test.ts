@@ -20,6 +20,7 @@ async function fixture(t: TestContext, overlap = false) {
   if (!overlap) await mkdir(workspace);
   let dispatcher: Dispatcher;
   const calls: Array<{ domain: string; action: string; params: Data }> = [];
+  const hostSessionCalls: Array<{ action: string; params: Data }> = [];
   const services: NexusServices = {
     store: createAtomicStore(join(root, 'store')), workspaceRoot: workspace, dataDir: join(root, 'data'),
     executor: { async run() { throw new Error('This client contract must not execute external programs'); } },
@@ -28,6 +29,12 @@ async function fixture(t: TestContext, overlap = false) {
       async model() { throw new Error('This client contract must not call a provider'); },
       async spawn() { throw new Error('This client contract must not spawn a model'); },
       async sessions(action, params) {
+        hostSessionCalls.push({ action, params });
+        if (action === 'models/list') return { items: [{
+          ref: { providerRouteId: 'local-directory', modelId: 'summary-large', endpointIdentity: 'host-route:local-directory', protocol: 'host-adapter' },
+          provider: 'local-directory', model: 'summary-large', name: 'Local summary model', code: 'local-directory/summary-large',
+          capabilities: { contextWindow: { state: 'declared', value: 1000000, source: 'official-provider-model-metadata' } },
+        }], inheritance: 'live-parent-request-header', credentialVerification: 'upstream-on-call' };
         if (action !== 'snapshot') throw new Error('This client contract must not change host sessions');
         return { id: params.sessionId, sessionId: params.sessionId, events: [
           { seq: 0, type: 'user/message', directUser: true, content: [{ type: 'text', text: 'First recovery preview boundary' }] },
@@ -72,7 +79,7 @@ async function fixture(t: TestContext, overlap = false) {
       await rm(root, { recursive: true, force: true });
     }
   });
-  return { context, api, calls };
+  return { context, api, calls, hostSessionCalls };
 }
 
 test('every empty-session context tab requests only the real workspace overview', async t => {
@@ -104,9 +111,15 @@ test('the operation prerequisite matches the real domain session boundary and ke
     } else {
       assert.equal(selected, draft);
       const result = await f.api.call<Data>(draft.domain, draft.action);
-      assert.ok(Array.isArray(result.sessions));
+      if (draft.action === 'models/list') {
+        assert.ok(Array.isArray(result.items));
+        assert.equal(result.items[0].provider, 'local-directory');
+        assert.equal(result.items[0].model, 'summary-large');
+        assert.equal(result.items[0].capabilities.contextWindow.value, 1000000);
+      } else assert.ok(Array.isArray(result.sessions));
     }
   }
+  assert.deepEqual(f.hostSessionCalls, [{ action: 'models/list', params: {} }], 'Sessionless directory reads never create, generate, or open a session');
   const usage: ActionDraft = { domain: 'usage', action: 'summary' };
   assert.equal(contextActionDraft(usage, ''), usage, 'Global usage remains available without a context session');
 });

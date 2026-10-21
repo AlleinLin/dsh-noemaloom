@@ -76,7 +76,12 @@ async function fixture() {
     Object.assign(instance, {
       nativeContext: context, runningLanes: sharedRunning ? localRunning : new Map(),
       pendingSummaries: new WeakMap(), officialOwners: new WeakMap(), nativeOverflowRetries: new WeakMap(),
+      admissions: new WeakMap(), requestRoutes: new WeakMap(), assemblies: new WeakMap(), lastResults: new WeakMap(),
       synchronize: async () => ({ nudge: { shouldInject: nudge } }),
+      measurePressure: async () => ({ automaticEnabled: true, compressionAllowed: true, enabled: true,
+        occupiedTokens: nudge ? 9000 : 100, thresholdTokens: 8000, windowTokens: 10000 }),
+      summaryPolicy: async () => ({}),
+      proposalBoundaries: () => ({}),
     });
     return instance;
   }
@@ -314,14 +319,15 @@ test('manual compactRegion and compactRanges pass through legacy preparation rec
   }
 });
 
-test('wait is a successful non-mutating result and does not retain the lane', async () => {
+test('wait ends automatic maintenance with a cooldown and permits the still-fitting request', async () => {
   const h = await fixture();
   try {
     assert.equal(await h.first.compactIfNeeded(h.agent, 'pressure', h.signal()), null);
     const owner = await h.owner();
     assert.equal(owner.value.status, 'released');
-    assert.equal(owner.value.phase, 'preparing');
-    assert.deepEqual(owner.value.diagnostics, []);
+    assert.equal(owner.value.phase, 'preparation-failed');
+    assert.equal(owner.value.errorCode, 'CTX_NO_SAFE_RANGE');
+    assert.equal(owner.value.diagnostics?.at(-1)?.officialEffect, 'not-started');
     assert.equal(await h.first.compactIfNeeded(h.agent, 'pressure', h.signal()), null);
     assert.equal(h.calls.length, 1);
   } finally { await h.close(); }

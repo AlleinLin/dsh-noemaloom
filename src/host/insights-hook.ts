@@ -28,7 +28,10 @@ export function registerInsightsHook(ctx: HostContext, services: NexusServices, 
           const follow = setTimeout(() => run(true), Math.min(300000, result.retryAfterMs + 100));
           follow.unref?.(); queued.set(session.id, follow);
         }
-      }).catch(error => ctx.logger?.warn('Nexus task analysis deferred', error?.code ?? 'INTERNAL'));
+      }).catch(error => {
+        try { ctx.logger?.warn('Nexus task analysis deferred', error?.code ?? 'INTERNAL'); }
+        catch { /* Detached diagnostics cannot reject again. */ }
+      });
     };
     const timer = setTimeout(() => run(), event.type === 'turn/end' ? 1500 : 8000);
     timer.unref?.();

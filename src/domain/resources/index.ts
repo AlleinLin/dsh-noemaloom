@@ -6,6 +6,7 @@ import { safeRequest, publicUrl } from '../../adapters/search/network.js';
 import { within, workspacePath } from '../files/paths.js';
 import { bundledSkinCatalog } from './market-catalog.js';
 import { createSkillResources } from './skills.js';
+import { NATIVE_APPEARANCE_DEFAULTS, validateNativeAppearance, type NativeAppearance } from '../../shared/native-appearance.js';
 
 const MARKET_ORIGIN = 'https://dsh-market.com';
 const K_CATALOG = 'https://raw.githubusercontent.com/kingOfSoySauce/dsh-skin-market/main/data/catalog.json';
@@ -26,12 +27,13 @@ interface MarketItem extends JsonRecord {
   files?: string[]; manifestHash: string;
 }
 interface CatalogSnapshot { items: MarketItem[]; source: string; checkedAt: string | null; updatedAt: string | null; warnings: string[]; manifestHash: string }
-interface Appearance extends JsonRecord {
+interface Appearance extends JsonRecord, NativeAppearance {
   themeId: string | null; mode: string; density: string; fontSize: number;
   reduceMotion: boolean; readingMode: boolean; glass: boolean; backgroundEnabled: boolean;
   petEnabled: boolean; petId: string | null; backgroundAsset: JsonRecord | null; tokens: Record<string, string>;
 }
 const DEFAULT_APPEARANCE: Appearance = {
+  ...NATIVE_APPEARANCE_DEFAULTS,
   themeId: null, mode: 'host', density: 'comfortable', fontSize: 14,
   reduceMotion: true, readingMode: false, glass: false, backgroundEnabled: false,
   petEnabled: false, petId: null, backgroundAsset: null, tokens: {},
@@ -204,7 +206,10 @@ function stylesheetTokens(input: string, mode: string) {
 }
 function appearance(value: JsonRecord, prior: Appearance = DEFAULT_APPEARANCE): Appearance {
   const next = { ...DEFAULT_APPEARANCE, tokens: { ...prior.tokens } } as Appearance;
-  for (const key of Object.keys(DEFAULT_APPEARANCE)) next[key] = prior[key];
+  for (const key of Object.keys(DEFAULT_APPEARANCE)) next[key] = prior[key] === undefined ? DEFAULT_APPEARANCE[key] : prior[key];
+  const invalidBranding = validateNativeAppearance(value);
+  if (invalidBranding) throw new NexusError('INVALID_ARGUMENT', invalidBranding);
+  for (const key of Object.keys(NATIVE_APPEARANCE_DEFAULTS)) if (value[key] !== undefined) next[key] = value[key];
   for (const key of ['themeId', 'petId']) if (value[key] !== undefined) {
     if (value[key] !== null && typeof value[key] !== 'string') throw new NexusError('INVALID_ARGUMENT', `${key} 必须为资源 id 或 null`);
     next[key] = value[key];
@@ -458,7 +463,7 @@ export function createResourcesModule(services: NexusServices): NexusModule {
   }
   async function appearanceConfig() {
     const saved = await services.store.get<Appearance>('appearance', 'current');
-    const value = saved?.value ?? DEFAULT_APPEARANCE;
+    const value = { ...DEFAULT_APPEARANCE, ...saved?.value };
     return { ...value, revision: saved?.revision ?? 0, css: themeCss(value), scope: 'nexus-plugin', defaultExtrasOff: true };
   }
   async function importMedia(request: NexusRequest, context?: DispatchContext) {

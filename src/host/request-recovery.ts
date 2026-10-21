@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { classifyFailure, ERROR_CODES, type FailureDiagnosis } from '../shared/error-codes.js';
 import { nativeErrorIdentity } from './native-diagnostics.js';
 import type { HostContext } from './types.js';
+import { nativeCompactionFor } from './compaction-binding.js';
 
 const RECORD = 'plugin:nexus/request-recovery';
 const STATE = 'nexusRequestRecovery';
@@ -23,6 +24,7 @@ const STOP_REASONS = new Set([
   'agent-disposed', 'plugin-disposed', 'authorization-denied', 'quota-denied',
   'budget-denied', 'session-deleted', 'recovery-handler-failed',
   'recovery-state-unavailable', 'recovery-record-failed', 'native-retry-stopped',
+  'context-compactor-unavailable', 'context-compacted', 'no-proven-context-reduction', 'no-safe-bounded-range', 'summary-model-declined-safe-range',
 ]);
 const ABORT_RETRIES = 3;
 const ALWAYS_FALLBACK_RETRIES = 5;
@@ -58,6 +60,11 @@ export interface RequestRecoveryDiagnostic {
   terminalKind?: 'stop' | 'tool-calls' | 'max-tokens' | 'error' | 'aborted';
   terminalObserved?: boolean;
   tailElapsedMs?: number;
+  beforeTokens?: number;
+  afterTokens?: number;
+  hostCompactionId?: string;
+  maintenanceCode?: string;
+  providerRetryAfterMs?: number;
 }
 declare module '@deepseek-ai/dsh-session/types' {
   interface PluginRecordMap {
@@ -132,8 +139,17 @@ function sanitize(sessionId: string, facts: Record<string, unknown>): RequestRec
     if (count(value, key === 'maxRetries' ? 10_000 : Number.MAX_SAFE_INTEGER)) data[key] = value;
   }
   if (count(facts.delayMs, 2_147_483_647)) data.delayMs = facts.delayMs;
+  if (typeof facts.providerRetryAfterMs === 'number' && Number.isFinite(facts.providerRetryAfterMs)
+      && facts.providerRetryAfterMs >= 0 && facts.providerRetryAfterMs <= 86_400_000) data.providerRetryAfterMs = facts.providerRetryAfterMs;
+  for (const key of ['beforeTokens', 'afterTokens'] as const) {
+    if (count(facts[key], Number.MAX_SAFE_INTEGER)) data[key] = facts[key] as number;
+  }
+  const hostCompactionId = token(facts.hostCompactionId);
+  if (hostCompactionId) data.hostCompactionId = hostCompactionId;
+  const maintenanceCode = token(facts.maintenanceCode, CODE);
+  if (maintenanceCode) data.maintenanceCode = maintenanceCode;
   if (typeof facts.stopReason === 'string' && (STOP_REASONS.has(facts.stopReason)
-    || /^OBSERVATION_[A-Z0-9_]{1,64}$/.test(facts.stopReason))) data.stopReason = facts.stopReason;
+    || /^(?:OBSERVATION_|CTX_)[A-Z0-9_]{1,64}$/.test(facts.stopReason))) data.stopReason = facts.stopReason;
   if (Number.isInteger(facts.status) && Number(facts.status) >= 100 && Number(facts.status) <= 599) data.status = Number(facts.status);
   for (const key of ['requestId', 'provider', 'attemptId', 'logicalCallId', 'model'] as const) {
     const value = token(facts[key]);
@@ -318,6 +334,13 @@ export function registerRequestRecovery(ctx: HostContext): () => void {
     try {
       const initialStop = stopped();
       if (initialStop) return await stop(initialStop, 'NX_CANCELLED');
+      if (diagnosis.canonicalCode === 'CONTEXT_WINDOW_EXCEEDED') {
+        // Do not delegate to an "always" transport retry policy. Only the
+        // exact live compactor can prove and retry a changed same-step request.
+        const compactor = nativeCompactionFor(agent);
+        if (!compactor?.recoverOverflow) return await stop('context-compactor-unavailable', 'NX_CONTEXT_WINDOW_EXCEEDED');
+        return await compactor.recoverOverflow(payload);
+      }
       const terminal = hardStop(payload.failure);
       if (terminal) {
         await diagnostic(payload, diagnosis, { ...terminal, outcome: 'stopped', retry: currentRetry(payload) });

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="native-chrome.css">
+  <link rel="stylesheet" href="theme.css">
+  <style>
+    body { margin: 0; padding: 20px; font: 14px Arial, sans-serif; }
+    .host_headline { display: flex; gap: 12px; }
+    .host_fishHitbox { display: inline-flex; }
+    .host_titleGroup { display: flex; gap: 8px; }
+    [data-slot] { display: contents; }
+    .fixture-pane { display: flex; flex-direction: column; height: 180px; width: 420px; margin-block: 16px; }
+    .fixture-pane > [data-phase] { display: flex; flex-direction: column; flex: 1; min-height: auto; }
+    .fixture-pane header { padding: 10px; }
+    [data-conversation-content] { display: flex; flex: 1; flex-direction: column; overflow: hidden; }
+    [data-conversation-scroll] { display: flex; flex: 1; flex-direction: column; min-height: 0; overflow-y: auto; }
+    [data-conversation-scroll] > [data-slot="conversation.session"] > .host_viewArea { flex: 1; }
+    [data-nexus-subagent-views] { display: flex; gap: 8px; padding: 8px; }
+    .fixture-history { flex: none; min-height: 1000px; }
+    #settings-shell { width: 820px; }
+    #settings-shell > .nexus-settings-page { width: 100%; }
+  </style>
+</head>
+<body>
+  <style data-nexus-native-appearance=""></style>
+  <div class="host_headline" id="unrelated-headline"><div class="host_titleGroup"><span>Unrelated native title</span><span class="host_previewBadge">Unrelated badge</span></div></div>
+  <div class="host_headline" id="hero-headline">
+    <span class="host_fishHitbox"><div data-slot="conversation.hero.brand.mark" id="hero-mark"></div></span>
+    <div class="host_titleGroup"><span id="original-title">Original native title</span><span class="host_previewBadge" id="original-badge">Original badge</span></div>
+  </div>
+  <div id="sidebar-wordmark"></div>
+
+  <div class="fixture-pane" id="direct-header-pane">
+    <div data-phase="active">
+      <header data-window-drag="">Direct title and view strip</header>
+      <div data-conversation-content=""><div data-conversation-scroll=""><div class="fixture-history">Main history</div></div></div>
+    </div>
+  </div>
+  <div class="fixture-pane" id="wrapped-header-pane">
+    <div data-phase="active">
+      <div data-slot="conversation.header"><header data-window-drag="">Wrapped title and view strip</header></div>
+      <div data-conversation-content=""><div data-conversation-scroll=""><div class="fixture-history">Main history</div></div></div>
+    </div>
+  </div>
+  <div class="fixture-pane" data-sidebar-chat="" id="direct-child-pane">
+    <div data-conversation-content=""><div data-conversation-scroll="">
+      <nav data-nexus-subagent-views="direct-child">Chat / Trajectory / Context</nav>
+      <div class="host_viewArea fixture-history">Direct child history</div>
+      <div data-composer-seat="">Child composer</div>
+    </div></div>
+  </div>
+  <div class="fixture-pane" data-sidebar-chat="" id="wrapped-child-pane">
+    <div data-conversation-content=""><div data-conversation-scroll="">
+      <div data-slot="conversation.session">
+        <nav data-nexus-subagent-views="wrapped-child">Chat / Trajectory / Context</nav>
+        <div class="host_viewArea fixture-history">Wrapped child history</div>
+      </div>
+      <div data-composer-seat="">Child composer</div>
+    </div></div>
+  </div>
+  <div class="nexus-root" id="settings-shell">
+    <section class="nexus-page nexus-settings-page">
+      <div class="nexus-settings-layout">
+        <nav class="nexus-settings-nav"><button>Appearance</button><button>Context compression</button></nav>
+        <div class="nexus-settings-content"><h2>Appearance</h2><div id="appearance-settings"></div><div id="compression-settings"></div></div>
+      </div>
+    </section>
+  </div>
+  <script src="fixture.js"></script>
+</body>
+</html>

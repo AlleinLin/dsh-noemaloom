@@ -1,3 +1,5 @@
+import { isNexusError } from '../ports/contracts.js';
+
 /** Stable public diagnostics. Provider retry routing continues to use canonicalCode. */
 export const ERROR_CODES = {
   NX_NETWORK_TRANSPORT: '网络连接失败',
@@ -12,6 +14,7 @@ export const ERROR_CODES = {
   NX_CANCELLED: '请求取消信号已触发',
   NX_ABORT_UNATTRIBUTED: '取消来源未识别',
   NX_CONTEXT_MAINTENANCE: '上下文维护未完成',
+  NX_CONTEXT_WINDOW_EXCEEDED: '当前模型请求超出有效上下文窗口；仅在正式压缩并核实缩减后重试',
   NX_PENDING_EFFECT: '已有操作结果待核实',
   NX_POLICY_BLOCKED: '权限或预算策略阻止执行',
   NX_INTERNAL_FAILURE: '内部操作失败',
@@ -35,7 +38,15 @@ export interface FailureDiagnosis {
   status?: number;
   requestId?: string;
 }
-export interface FailureContext { phase?: string; signalAborted?: boolean }
+export interface FailureContext { phase?: string; signalAborted?: boolean; provenance?: 'provider' | 'local-admission' }
+export interface FailureMetadata {
+  causeCodes: string[];
+  provenance?: 'provider';
+  authorityDenied?: true;
+  status?: number;
+  requestId?: string;
+  providerRetryAfterMs?: number;
+}
 const CODE = /^[A-Z][A-Z0-9_]{0,95}$/;
 const TRANSPORT = new Set(['TRANSPORT', 'ECONNRESET', 'ECONNREFUSED', 'EPIPE', 'ENOTFOUND', 'EAI_AGAIN',
   'ENETUNREACH', 'EHOSTUNREACH', 'UND_ERR_SOCKET', 'UND_ERR_CONNECT', 'ERR_NETWORK', 'NETWORK_ERROR']);
@@ -45,23 +56,53 @@ const AUTH = new Set(['AUTH', 'INVALID_CREDENTIAL', 'PERMISSION_DENIED', 'UNAUTH
 const contextFailure = (code: string) => code.startsWith('CTX_') || code === 'SESSION_DURABILITY_UNVERIFIED';
 const pendingEffect = (code: string) => code === 'PARTIAL_EFFECT' || code.includes('PENDING_OPERATION') || code.endsWith('_EFFECT_UNVERIFIED');
 const policyFailure = (code: string) => code.includes('BUDGET') || code.endsWith('APPROVAL_REQUIRED') || code === 'POLICY_DENIED';
+const OVERFLOW = new Set(['CONTEXT_WINDOW_EXCEEDED', 'CONTEXT_LENGTH_EXCEEDED', 'MAX_CONTEXT_LENGTH_EXCEEDED', 'PROMPT_TOO_LONG']);
+const RATE_LIMIT = new Set(['RATE_LIMIT', 'RATE_LIMITED', 'RATE_LIMIT_EXCEEDED', 'TOO_MANY_REQUESTS']);
 
-function record(value: unknown): Record<string, any> {
-  return value !== null && typeof value === 'object' ? value as Record<string, any> : {};
-}
-/** Inspect bounded cause metadata, never serialize exception text or provider bodies. */
-export function classifyFailure(error: unknown, context: FailureContext = {}): FailureDiagnosis {
-  const root = record(error);
-  const chain = [root];
-  const seen = new Set<object>(chain);
-  for (let i = 0; i < chain.length && chain.length < 6; i++) {
-    for (const candidate of [chain[i]!.cause, chain[i]!.failure]) {
-      if (candidate && typeof candidate === 'object' && !seen.has(candidate)) {
+/** Bounded provider metadata traversal; never expose response bodies. */
+export function failureChain(error: unknown): Record<string, any>[] {
+  const chain = [record(error)], seen = new Set<object>(chain);
+  for (let i = 0; i < chain.length && i < 12; i++) {
+    for (let candidate of [chain[i]!.cause, chain[i]!.failure, chain[i]!.error, chain[i]!.body, chain[i]!.response, chain[i]!.data, chain[i]!.details]) {
+      if (typeof candidate === 'string' && candidate.length <= 32768 && candidate.trimStart().startsWith('{')) {
+        try { candidate = JSON.parse(candidate); } catch { continue; }
+      }
+      if (candidate && typeof candidate === 'object' && !seen.has(candidate) && chain.length < 12) {
         seen.add(candidate); chain.push(candidate);
       }
     }
   }
-  const codes = chain.map(item => typeof item.code === 'string' && CODE.test(item.code) ? item.code : '').filter(Boolean);
+  return chain;
+}
+
+function record(value: unknown): Record<string, any> {
+  return value !== null && typeof value === 'object' ? value as Record<string, any> : {};
+}
+/** Copy only bounded public causal fields, including across bundled Nexus wrappers. */
+export function failureMetadata(error: unknown): FailureMetadata {
+  const chain = failureChain(error);
+  const causeCodes = [...new Set(chain.flatMap(item => [item.code, ...(Array.isArray(item.causeCodes) ? item.causeCodes.slice(0, 12) : [])])
+    .filter((value): value is string => typeof value === 'string' && CODE.test(value)))].slice(0, 12);
+  const status = chain.map(item => item.status ?? item.statusCode).find(value => Number.isInteger(value) && value >= 100 && value <= 599);
+  const requestId = chain.map(item => item.requestId).find(value => typeof value === 'string' && /^[a-zA-Z0-9._:-]{1,160}$/.test(value));
+  const providerRetryAfterMs = chain.map(item => item.providerRetryAfterMs)
+    .find((value): value is number => typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 86_400_000);
+  const provenance = chain.some(item => item.provenance === 'provider' || item.name === 'LlmError'
+    || isNexusError(item) && record(item.details).provenance === 'provider') ? 'provider' as const : undefined;
+  const authorityDenied = chain.some(item => item.authorityDenied === true
+    || isNexusError(item) && item.code === 'PERMISSION_DENIED' && record(item.details).provenance !== 'provider');
+  return { causeCodes, ...(status === undefined ? {} : { status }), ...(requestId ? { requestId } : {}),
+    ...(provenance ? { provenance } : {}), ...(authorityDenied ? { authorityDenied: true as const } : {}),
+    ...(providerRetryAfterMs === undefined ? {} : { providerRetryAfterMs }) };
+}
+/** Inspect bounded cause metadata, never serialize exception text or provider bodies. */
+export function classifyFailure(error: unknown, context: FailureContext = {}): FailureDiagnosis {
+  const chain = failureChain(error);
+  const metadata = failureMetadata(error);
+  const codes = chain.flatMap(item => [item.code, ...(Array.isArray(item.causeCodes) ? item.causeCodes.slice(0, 12) : [])])
+    .filter((value): value is string => typeof value === 'string' && CODE.test(value));
+  const overflow = chain.some(item => [item.code, item.type].some(value =>
+    typeof value === 'string' && value.length <= 96 && OVERFLOW.has(value.toUpperCase())));
   // Some adapters have already reduced a socket Error to a released failure
   // snapshot. Recognize exact platform markers without retaining its body.
   for (const item of chain) {
@@ -73,10 +114,16 @@ export function classifyFailure(error: unknown, context: FailureContext = {}): F
   // Wrappers may report ABORTED/TRANSPORT while their cause records a hard
   // policy failure. Those failures must keep their identity and must never
   // become a retry or successful-tail recovery just because of the wrapper.
-  const hardCode = codes.find(code => contextFailure(code) || pendingEffect(code) || policyFailure(code));
+  const hardCode = codes.find(code => contextFailure(code) || pendingEffect(code) || policyFailure(code))
+    ?? (overflow ? 'CONTEXT_WINDOW_EXCEEDED' : undefined);
   const raw = hardCode ?? codes.find(code => code !== 'UNKNOWN') ?? 'UNKNOWN';
-  const status = chain.map(item => item.status ?? item.statusCode).find(value => Number.isInteger(value) && value >= 100 && value <= 599);
-  const requestId = chain.map(item => item.requestId).find(value => typeof value === 'string' && /^[a-zA-Z0-9._:-]{1,160}$/.test(value));
+  const { status, requestId } = metadata;
+  // RATE_LIMITED is also the local lease admission contract. A branded local
+  // error is not evidence of a provider request or permission to retry it.
+  const localAdmission = context.provenance === 'local-admission'
+    || chain.some(item => item.code === 'RATE_LIMITED' && isNexusError(item) && record(item.details).provenance !== 'provider');
+  const providerRateLimit = status === 429 || context.provenance === 'provider'
+    || !localAdmission && codes.some(code => RATE_LIMIT.has(code));
   let canonicalCode = raw;
   let diagnosticCode: DiagnosticCode;
   let category: FailureDiagnosis['category'];
@@ -96,6 +143,8 @@ export function classifyFailure(error: unknown, context: FailureContext = {}): F
     diagnosticCode = 'NX_PENDING_EFFECT'; category = 'internal';
   } else if (policyFailure(raw)) {
     diagnosticCode = 'NX_POLICY_BLOCKED'; category = 'internal';
+  } else if (raw === 'CONTEXT_WINDOW_EXCEEDED') {
+    diagnosticCode = 'NX_CONTEXT_WINDOW_EXCEEDED'; category = 'provider';
   } else if (quota) {
     diagnosticCode = 'NX_AUTH_DENIED'; category = 'authorization'; canonicalCode = 'QUOTA_EXCEEDED';
   } else if (codes.some(code => AUTH.has(code)) || subscription || status === 401 || status === 403) {
@@ -106,7 +155,7 @@ export function classifyFailure(error: unknown, context: FailureContext = {}): F
     diagnosticCode = 'NX_NETWORK_TIMEOUT'; category = 'network'; canonicalCode = 'TIMEOUT'; retryable = true;
   } else if (codes.some(code => TRANSPORT.has(code))) {
     diagnosticCode = 'NX_NETWORK_TRANSPORT'; category = 'network'; canonicalCode = 'TRANSPORT'; retryable = true;
-  } else if (raw === 'RATE_LIMIT' || status === 429) {
+  } else if (providerRateLimit && (codes.some(code => RATE_LIMIT.has(code)) || status === 429)) {
     diagnosticCode = 'NX_GATEWAY_RATE_LIMIT'; category = 'gateway'; canonicalCode = 'RATE_LIMIT'; retryable = true;
   } else if (raw === 'SERVER' || (status !== undefined && status >= 500)) {
     diagnosticCode = 'NX_GATEWAY_UNAVAILABLE'; category = 'gateway'; canonicalCode = 'SERVER'; retryable = true;
@@ -123,6 +172,21 @@ export function classifyFailure(error: unknown, context: FailureContext = {}): F
   }
   return { diagnosticCode, canonicalCode, category, retryable, message: ERROR_CODES[diagnosticCode],
     phase: context.phase ?? 'operation', ...(status !== undefined ? { status } : {}), ...(requestId ? { requestId } : {}) };
+}
+
+/** Optional preparation may fail open only before an authoritative stop/effect boundary. */
+export function mustStopAfterAuxiliaryFailure(error: unknown, signal?: AbortSignal): boolean {
+  if (signal?.aborted) return true;
+  const chain = failureChain(error);
+  const codes = chain.flatMap(item => [item.code, ...(Array.isArray(item.causeCodes) ? item.causeCodes.slice(0, 12) : [])])
+    .filter((value): value is string => typeof value === 'string' && CODE.test(value));
+  const metadata = failureMetadata(error);
+  return metadata.authorityDenied === true
+    || codes.includes('PERMISSION_DENIED') && metadata.provenance !== 'provider'
+    || codes.some(code => pendingEffect(code) || policyFailure(code)
+    || ['ABORTED', 'CANCELLED', 'CTX_NATIVE_RECONCILIATION_REQUIRED', 'SESSION_DURABILITY_UNVERIFIED'].includes(code))
+    || chain.some(item => item.name === 'AbortError' || item.officialEffect === 'unknown'
+      || item.effect === 'unknown-or-pending');
 }
 
 /** A successful terminal permits only connection/iterator cleanup recovery, never policy recovery. */

@@ -21,6 +21,8 @@ import { registerCompanionHook } from './companion-hook.js';
 import { registerLiveCommands } from './live-commands.js';
 import { registerAutonomyHook } from './autonomy-hook.js';
 import { registerStepPauseHook } from './step-pause-hook.js';
+import { registerSelfCompactionTool } from './self-compaction-tool.js';
+import { createEventObserver } from './event-observer.js';
 import type { HostContext, NexusConfig } from './types.js';
 export { hostAuthority } from './host-adapter.js';
 
@@ -96,14 +98,12 @@ export async function createNexusRuntime(ctx: HostContext, config: NexusConfig =
   initializationCleanup.push(() => executor.dispose());
   const remoteBridges: any[] = [];
   const remoteDisposers: Array<() => unknown> = [];
+  const emit = createEventObserver(ctx, remoteBridges);
   initializationCleanup.push(async () => { for (const dispose of remoteDisposers.reverse()) await dispose(); });
   const base: Omit<NexusServices, 'invoke'> = {
     dataDir, workspaceRoot, packageRoot,
     store, host, executor, signal: controller.controller.signal,
-    emit(event, data) {
-      ctx.emit?.('nexus/event', { event, data });
-      for (const remote of remoteBridges) remote.publish(event, data);
-    },
+    emit,
   };
   const dispatcher = createDispatcher(base);
   initializationCleanup.push(() => dispatcher.dispose(), () => controller.dispose());
@@ -136,6 +136,8 @@ export async function createNexusRuntime(ctx: HostContext, config: NexusConfig =
   initializationCleanup.push(stopAutonomy);
   const stopStepPause = registerStepPauseHook(ctx, dispatcher.services);
   initializationCleanup.push(stopStepPause);
+  const stopSelfCompaction = registerSelfCompactionTool(ctx);
+  initializationCleanup.push(stopSelfCompaction);
   const stopLiveCommands = registerLiveCommands(registrationContext);
   initializationCleanup.push(stopLiveCommands);
   controller.setRouteDisposer(registerRpcRoute(ctx, dispatcher, controller, config.maxRequestBytes ?? 1048576));
@@ -192,7 +194,7 @@ export async function createNexusRuntime(ctx: HostContext, config: NexusConfig =
       return disposal ??= (async () => {
         const failures: unknown[] = [];
         for (const cleanup of [
-          stopLiveCommands, stopStepPause, stopAutonomy, stopCompanion, stopInsights, ...remoteDisposers.slice().reverse(), () => controller.dispose(), () => host.dispose(),
+          stopLiveCommands, stopSelfCompaction, stopStepPause, stopAutonomy, stopCompanion, stopInsights, ...remoteDisposers.slice().reverse(), () => controller.dispose(), () => host.dispose(),
           () => executor.dispose(), ...disposers.slice().reverse(), () => dispatcher.dispose(), () => store.close(),
         ]) {
           try { await cleanup(); } catch (error) { failures.push(error); }

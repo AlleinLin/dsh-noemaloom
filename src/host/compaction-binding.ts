@@ -2,6 +2,8 @@ import type { HostContext } from './types.js';
 
 interface NativeCompactor {
   compactRanges(agent: any, params: Record<string, unknown>, signal: AbortSignal): Promise<any>;
+  recoverOverflow?(payload: any): Promise<{ kind: 'retry' } | undefined>;
+  selfCompaction?(agent: any, args: any, signal: AbortSignal): Promise<any>;
 }
 type Binding = { provider: NativeCompactor; owner: symbol; agent: any };
 // The host adapter and compactor are separate bundle entries. Share only
@@ -42,5 +44,6 @@ export function registerNativeCompactionBinding(ctx: HostContext, provider: Nati
 }
 
 export function nativeCompactionFor(agent: any): NativeCompactor | undefined {
-  return typeof agent?.id === 'string' ? bindings().get(agent.id)?.provider : undefined;
+  const entry = typeof agent?.id === 'string' ? bindings().get(agent.id) : undefined;
+  return entry?.agent === agent ? entry?.provider : undefined;
 }

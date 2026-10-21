@@ -1,8 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { classifyFailure, isRecoverableStreamTail } from '../src/shared/error-codes.js';
-import { annotateNativeFailure, toHarnessError } from '../src/host/native-diagnostics.js';
+import { classifyFailure, failureMetadata, isRecoverableStreamTail, mustStopAfterAuxiliaryFailure } from '../src/shared/error-codes.js';
+import { annotateNativeFailure, toHarnessError, toNativeLlmError } from '../src/host/native-diagnostics.js';
 import { NexusError } from '../src/ports/contracts.js';
+import { LlmError } from '@deepseek-ai/dsh-llm';
 
 test('network causes survive reduced provider failures without leaking raw bodies', () => {
   for (const error of [
@@ -32,6 +33,55 @@ test('authorization wins over nested overload; timeout and retry hints retain pu
   assert.equal(snapshot.status, 504);
   assert.equal(snapshot.requestId, 'req_123');
   assert.equal(snapshot.providerRetryAfterMs, 12000);
+});
+
+test('exact provider rate aliases normalize without treating local lease admission as a gateway retry', () => {
+  for (const code of ['RATE_LIMITED', 'RATE_LIMIT_EXCEEDED', 'TOO_MANY_REQUESTS']) {
+    const error = new LlmError('private provider response', code);
+    assert.equal(classifyFailure(error).canonicalCode, 'RATE_LIMIT');
+    assert.equal(classifyFailure(error).diagnosticCode, 'NX_GATEWAY_RATE_LIMIT');
+    assert.equal(classifyFailure(error).retryable, true);
+    assert.equal(toHarnessError(error).code, 'RATE_LIMIT');
+    assert.equal(toNativeLlmError(error).failure.code, 'RATE_LIMIT');
+  }
+  const local = new NexusError('RATE_LIMITED', 'Local lease unavailable', { retryAfterMs: 1000 });
+  assert.equal(classifyFailure(local).retryable, false);
+  assert.equal(classifyFailure(local).diagnosticCode, 'NX_INTERNAL_FAILURE');
+  assert.equal(toHarnessError(local).code, 'RATE_LIMITED');
+  assert.equal(classifyFailure({ code: 'RATE_LIMITED', status: 429 }).canonicalCode, 'RATE_LIMIT');
+  assert.equal(classifyFailure({ code: 'RATE_LIMITED' }, { provenance: 'local-admission' }).retryable, false);
+});
+
+test('sanitized auxiliary causes cross context wrappers while authority and unknown effects still stop', () => {
+  const error = new NexusError('CTX_SUMMARY_MODEL_UNAVAILABLE', 'safe wrapper', {
+    failure: { code: 'RATE_LIMIT', causeCodes: ['RATE_LIMITED'], status: 429,
+      requestId: 'req_public', providerRetryAfterMs: 75000, body: 'private api_key' },
+  });
+  const metadata = failureMetadata(error), native = toNativeLlmError(error);
+  assert.equal(classifyFailure(error).canonicalCode, 'CTX_SUMMARY_MODEL_UNAVAILABLE');
+  assert.equal(native.failure.code, 'CTX_SUMMARY_MODEL_UNAVAILABLE');
+  assert.equal(native.failure.status, 429);
+  assert.equal(native.failure.providerRetryAfterMs, 75000);
+  assert.ok(metadata.causeCodes.includes('RATE_LIMITED'));
+  assert.equal(JSON.stringify(metadata).includes('private'), false);
+  assert.equal(mustStopAfterAuxiliaryFailure(error), false);
+  for (const code of ['BUDGET_EXCEEDED', 'PERMISSION_DENIED', 'PARTIAL_EFFECT', 'ABORTED']) {
+    assert.equal(mustStopAfterAuxiliaryFailure(new NexusError('CTX_SUMMARY_MODEL_UNAVAILABLE', 'safe', {
+      failure: { code },
+    })), true, code);
+  }
+  for (const code of ['AUTH', 'QUOTA_EXCEEDED']) {
+    assert.equal(mustStopAfterAuxiliaryFailure(new LlmError('Local optional provider failure', code, { status: 403 })), false);
+  }
+  const providerDenied = new NexusError('PERMISSION_DENIED', 'Local provider denial', { provenance: 'provider', status: 403 });
+  assert.equal(mustStopAfterAuxiliaryFailure(providerDenied), false);
+  const authorityDenied = new NexusError('PERMISSION_DENIED', 'Native permission denial');
+  assert.equal(mustStopAfterAuxiliaryFailure(new NexusError('CTX_PREPARATION_FAILED', 'safe', failureMetadata(authorityDenied))), true);
+  assert.equal(mustStopAfterAuxiliaryFailure(new NexusError('CTX_NATIVE_OPERATION_FAILED', 'safe', { officialEffect: 'unknown' })), true);
+  const controller = new AbortController(); controller.abort({ kind: 'user' });
+  assert.equal(mustStopAfterAuxiliaryFailure(error, controller.signal), true);
+  assert.equal(toNativeLlmError(error, { signalAborted: true }).failure.code, 'CTX_SUMMARY_MODEL_UNAVAILABLE');
+  assert.equal(toNativeLlmError(new Error('Unknown cancellation source'), { signalAborted: true }).failure.code, 'ABORTED');
 });
 
 test('an unrequested abort is never mislabeled as user cancellation or transport', () => {
@@ -77,4 +127,24 @@ test('nested policy and uncertain-effect causes survive abort and transport wrap
       assert.equal(classifyFailure(error, { signalAborted: true }).diagnosticCode, 'NX_CANCELLED');
     }
   }
+});
+
+test('provider overflow codes survive nested causes and JSON bodies without generic transport retry', () => {
+  for (const cause of [
+    { cause: { code: 'CONTEXT_WINDOW_EXCEEDED' } },
+    { response: { body: JSON.stringify({ error: { code: 'context_length_exceeded', message: 'private body' } }) } },
+    { error: { data: { type: 'max_context_length_exceeded' } } },
+    { body: { error: { type: 'prompt_too_long' } } },
+  ]) {
+    const failure = { code: 'TRANSPORT', ...cause };
+    const diagnosis = classifyFailure(failure);
+    assert.equal(diagnosis.canonicalCode, 'CONTEXT_WINDOW_EXCEEDED');
+    assert.equal(diagnosis.diagnosticCode, 'NX_CONTEXT_WINDOW_EXCEEDED');
+    assert.equal(diagnosis.retryable, false);
+    assert.equal(isRecoverableStreamTail(failure), false);
+    assert.equal(annotateNativeFailure(failure).code, 'CONTEXT_WINDOW_EXCEEDED');
+    assert.equal(JSON.stringify(annotateNativeFailure(failure)).includes('private body'), false);
+  }
+  assert.equal(classifyFailure({ code: 'CTX_NATIVE_RECONCILIATION_REQUIRED',
+    cause: { code: 'CONTEXT_WINDOW_EXCEEDED' } }).canonicalCode, 'CTX_NATIVE_RECONCILIATION_REQUIRED');
 });

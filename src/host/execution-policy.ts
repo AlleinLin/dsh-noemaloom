@@ -1,6 +1,7 @@
 import { scopeOf } from '@deepseek-ai/dsh-scope';
 import type { Capability, ModelRequest } from '../ports/contracts.js';
 import type { HostContext } from './types.js';
+import { SELF_COMPACTION_TOOL } from '../shared/context-compaction.js';
 
 export type ExecutionPolicy = Pick<ModelRequest, 'readOnly' | 'allowChildren' | 'maxDepth' | 'actorRole' | 'allowedCapabilityIds'>;
 const readTools = new Set(['read', 'read_file', 'read_files', 'ls', 'list', 'list_directory', 'glob', 'grep', 'search', 'search_files', 'web_search', 'web_fetch']);
@@ -28,7 +29,7 @@ export function installExecutionPolicy(
       if (domain) {
         const capability = capabilities(domain).find(item => item.action === action);
         if (!capability || capability.mutating || domain === 'runtime' && /(?:shell|exec|run)/i.test(action)) return 'Nexus reviewer is read-only';
-      } else if (!readTools.has(exec.name)) return 'Unclassified host tool is unavailable to a read-only activation';
+      } else if (exec.name !== SELF_COMPACTION_TOOL && !readTools.has(exec.name)) return 'Unclassified host tool is unavailable to a read-only activation';
     }
   });
   const created = ctx.on('agent/created', ({ agent }: any) => {
@@ -39,7 +40,7 @@ export function installExecutionPolicy(
     const tools = agent.ctx?.get?.('tools');
     if (!tools?.restrict || !tools?.schemas) return;
     const visible = tools.schemas(scopeOf(agent.ctx)).map((item: any) => item.name);
-    const denied = visible.filter((name: string) => !name.startsWith('nexus_') && !readTools.has(name));
+    const denied = visible.filter((name: string) => !name.startsWith('nexus_') && name !== SELF_COMPACTION_TOOL && !readTools.has(name));
     if (denied.length) {
       const dispose = tools.restrict({ deny: denied });
       agent.ctx.effect(() => dispose, 'Nexus read-only activation tool mask');

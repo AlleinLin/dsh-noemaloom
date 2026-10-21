@@ -196,3 +196,22 @@ test('persistent terminal captures its baseline before synchronous command outpu
   assert.equal(consumed, 0);
   assert.equal(cancelled, 0);
 });
+
+test('command observer setup and postprocessing never replace a tool result or its native failure', async () => {
+  const h = fixture();
+  let calls = 0;
+  const official = { content: [{ type: 'text', text: 'completed once' }] };
+  const brokenArguments = { name: 'bash', callId: 'observer-setup', agent: { id: 'session-one' },
+    get arguments(): never { throw new Error('Read-only label unavailable'); } };
+  const execute = h.hooks.get('tools/execute')!;
+  assert.equal(await execute(brokenArguments, async () => { calls++; return official; }), official);
+  const brokenPresentation = { isError: false,
+    get value(): never { throw new Error('Read-only result presentation unavailable'); } };
+  assert.equal(await h.execute(async () => { calls++; return brokenPresentation; }, 'observer-post'), brokenPresentation);
+  const native = new Error('Official tool cancellation or authority failure');
+  const brokenSignal = { name: 'bash', callId: 'observer-native-error', agent: { id: 'session-one' }, arguments: {},
+    get signal(): never { throw new Error('Read-only status unavailable'); } };
+  await assert.rejects(execute(brokenSignal, async () => { calls++; throw native; }), error => error === native);
+  assert.equal(calls, 3, 'each official execution is called exactly once');
+  await h.dispose();
+});

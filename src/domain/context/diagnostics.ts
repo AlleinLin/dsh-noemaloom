@@ -1,5 +1,6 @@
 import type { NexusServices } from '../../ports/contracts.js';
 import { NATIVE_DIAGNOSTIC_LIMIT, NATIVE_OWNER_COLLECTION, type NativeLaneOwner, type NativeOperationDiagnostic } from './native-transactions.js';
+import { failureMetadata } from '../../shared/error-codes.js';
 
 const CODE = /^[A-Z][A-Z0-9_]{0,95}$/;
 const TRACE = /^trace_[a-zA-Z0-9_-]{1,96}$/;
@@ -23,6 +24,7 @@ function diagnostic(value: NativeOperationDiagnostic): NativeOperationDiagnostic
     ...(typeof value.previousCode === 'string' && CODE.test(value.previousCode) ? { previousCode: value.previousCode } : {}),
     phase: value.phase, outcome: value.outcome,
     auxiliaryEffect: value.auxiliaryEffect, officialEffect: value.officialEffect,
+    ...failureMetadata(value),
   };
 }
 

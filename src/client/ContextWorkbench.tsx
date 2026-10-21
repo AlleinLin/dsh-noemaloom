@@ -5,6 +5,7 @@ import { Button, PageHeader, QueryState, SearchField, StateMessage, Tabs, Time, 
 import { contextViewPrerequisites } from './context-prerequisites.js';
 import { EvidenceDisclosure, useWorkbenchOperation } from './workbench.js';
 import { pathLines } from './QualityWorkbench.js';
+import { ContextCompactionSettings } from './ContextCompactionSettings.js';
 
 const modes: Data = { auto: '自动压缩', observe: '仅观察', disabled: '已停用' };
 export function compressionBlockState(block: Data) {
@@ -89,7 +90,7 @@ function ContextWorkbenchContent({ context, prerequisites, tab }: { context: Vie
       </article>; })}</div> : <StateMessage title={search ? '没有匹配的压缩块' : '尚无压缩记录'}>{search ? '调整搜索词或清除搜索。' : '可自动分析当前上下文，或指定消息引用手动压缩。'}</StateMessage>}
       <details className="nexus-workbench-evidence"><summary>状态与压缩证据</summary><pre data-nexus-verbatim="">{data.text ?? ''}</pre><EvidenceDisclosure title="会话状态、压缩块与引用" value={data} /><ContextAdvancedEvidence context={context} params={params} /></details>
     </QueryState>}
-    {tab === 'policy' && <QueryState query={detail}><ContextPolicyEditor key={JSON.stringify(detail.data)} context={context} params={params} policy={detail.data ?? {}} inFlight={inFlight} reload={detail.reload} /></QueryState>}
+    {tab === 'policy' && <><ContextCompactionSettings api={context.api} scope={context.scope} /><QueryState query={detail}><ContextPolicyEditor key={JSON.stringify(detail.data)} context={context} params={params} policy={detail.data ?? {}} inFlight={inFlight} reload={detail.reload} /></QueryState></>}
     {tab === 'cache' && <QueryState query={detail}><CacheEvidence data={detail.data ?? {}} /></QueryState>}
     {tab === 'epochs' || tab === 'prefix' ? <QueryState query={detail}><EvidenceDisclosure value={detail.data} /></QueryState> : null}
   </>;

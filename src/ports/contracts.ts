@@ -210,6 +210,8 @@ export interface DispatchContext {
   workspaceRoot?: string;
   /** Runtime permission evidence supplied by the host, never accepted from RPC params. */
   permissions?: ReadonlySet<string>;
+  /** Native identity evidence; never accepted from model/RPC arguments. */
+  toolExecution?: { agent?: any };
 }
 
 export interface Capability {
