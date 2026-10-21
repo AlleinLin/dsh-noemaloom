@@ -17,28 +17,28 @@ export async function workspacePath(root: string, requested: unknown, allowMissi
   if (typeof requested !== 'string' || requested.includes('\0') || requested.length > 32700) {
     throw new NexusError('INVALID_ARGUMENT', '文件路径无效');
   }
-  if (/^(?:\\\\[?.]\\|[A-Za-z]:[^\\/])/.test(requested) || /(^|[\\/])(?:CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:[.]|[\\/]|$)/i.test(requested)) {
+  if (/^(?:\\\\[?.]\\|[A-Za-z]:[^\\/])/.test(requested) || requested.replace(/^[A-Za-z]:/, '').includes(':')
+    || /(^|[\\/])(?:CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:[.]|[\\/]|$)/i.test(requested)) {
     throw new NexusError('SCOPE_MISMATCH', '拒绝设备路径');
   }
   const canonicalRoot = await realpath(root);
-  // Windows temp roots may use an 8.3 spelling; workspace roots may also be
-  // junctions. Rebase paths under that supplied root onto its canonical root
-  // before checking scope. Every existing descendant still needs realpath.
   const suppliedRoot = resolve(root), suppliedCandidate = resolve(suppliedRoot, requested);
-  const candidate = within(suppliedRoot, suppliedCandidate)
-    ? resolve(canonicalRoot, relative(suppliedRoot, suppliedCandidate))
-    : resolve(canonicalRoot, requested);
-  if (!within(canonicalRoot, candidate) || relative(canonicalRoot, candidate).includes(':')) {
+  if (!isAbsolute(requested) && !within(suppliedRoot, suppliedCandidate)) {
     throw new NexusError('SCOPE_MISMATCH', '文件路径超出工作区');
   }
+  // A caller may already have canonicalized the root while the file still
+  // uses a Windows short path or junction. Authorize the actual destination,
+  // including the nearest existing ancestor when creating a file.
+  const candidate = suppliedCandidate;
   let ancestor = candidate;
   for (;;) {
     try {
       const canonical = await realpath(ancestor);
-      if (!within(canonicalRoot, canonical)) throw new NexusError('SCOPE_MISMATCH', '链接目标超出工作区');
+      const destination = resolve(canonical, relative(ancestor, candidate));
+      if (!within(canonicalRoot, destination)) throw new NexusError('SCOPE_MISMATCH', '链接目标超出工作区');
       if (ancestor !== candidate && !(await stat(canonical)).isDirectory()) throw new NexusError('INVALID_ARGUMENT', '父路径不是目录');
       if (!allowMissing && ancestor !== candidate) throw new NexusError('NOT_FOUND', '文件不存在');
-      return candidate;
+      return destination;
     } catch (error) {
       if (error instanceof NexusError) throw error;
       if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;

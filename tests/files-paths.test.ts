@@ -19,15 +19,17 @@ test('editor and debugger paths accept workspace aliases and retain canonical co
   const linkType = process.platform === 'win32' ? 'junction' : 'dir';
   await symlink(root, alias, linkType);
   await symlink(outside, join(root, 'escape'), linkType);
-  for (const path of ['main.py', join(alias, 'main.py'), join(root, 'main.py')]) {
-    assert.equal(await workspacePath(alias, path), join(root, 'main.py'));
-  }
-  for (const path of ['new.py', join(alias, 'new.py'), join(root, 'new.py')]) {
-    assert.equal(await workspacePath(alias, path, true), join(root, 'new.py'));
-  }
-  for (const path of ['../workspace-sibling/secret.py', join(outside, 'secret.py'), 'escape/secret.py', 'escape/new.py']) {
-    await assert.rejects(workspacePath(alias, path, true), (error: unknown) =>
-      error instanceof NexusError && error.code === 'SCOPE_MISMATCH');
+  for (const workspace of [root, alias]) {
+    for (const path of ['main.py', join(alias, 'main.py'), join(root, 'main.py')]) {
+      assert.equal(await workspacePath(workspace, path), join(root, 'main.py'));
+    }
+    for (const path of ['new.py', join(alias, 'new.py'), join(root, 'new.py')]) {
+      assert.equal(await workspacePath(workspace, path, true), join(root, 'new.py'));
+    }
+    for (const path of ['../workspace-sibling/secret.py', join(outside, 'secret.py'), 'escape/secret.py', 'escape/new.py']) {
+      await assert.rejects(workspacePath(workspace, path, true), (error: unknown) =>
+        error instanceof NexusError && error.code === 'SCOPE_MISMATCH');
+    }
   }
   await assert.rejects(workspacePath(alias, 'new.py'), (error: unknown) =>
     error instanceof NexusError && error.code === 'NOT_FOUND');
