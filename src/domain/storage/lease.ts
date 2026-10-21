@@ -280,7 +280,16 @@ export function createLeaseManager(root: string, options: LeaseOptions = {}): Le
               }
             }
             if (!contended) throw error;
-            await recover(directory, leaseMs);
+            try {
+              await recover(directory, leaseMs);
+            } catch (recoveryError) {
+              // A competing writer may delete owner.json/the directory while
+              // recovery reads it. Windows reports delete-pending opens as
+              // permission errors too. Waiting never grants ownership; only a
+              // later successful mkdir + owner write can enter the operation.
+              if (process.platform !== 'win32' || !['EPERM', 'EACCES'].includes(errno(recoveryError) ?? '')) throw recoveryError;
+              if (Date.now() - beganAt >= timeoutMs) throw recoveryError;
+            }
             if (Date.now() - beganAt >= timeoutMs) {
               throw new NexusError('RATE_LIMITED', '资源正在被另一项操作使用，请稍后重试。', { retryAfterMs: retryMs });
             }

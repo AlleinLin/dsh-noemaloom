@@ -4,7 +4,9 @@ import fs from 'node:fs/promises';
 import { syncBuiltinESMExports } from 'node:module';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { hostname } from 'node:os';
 import { createLeaseManager } from '../src/domain/storage/lease.js';
+import { sha256 } from '../src/domain/storage/canonical.js';
 
 test('Windows lease directory teardown permission races retry without replaying work', { skip: process.platform !== 'win32' }, async t => {
   const root = await fs.mkdtemp(join(tmpdir(), 'nexus-lease-windows-race-'));
@@ -49,6 +51,43 @@ test('Windows owner-file permission errors fail without treating them as another
     assert.equal(attempts, 1);
     assert.equal(writes, 0);
   } finally {
+    t.mock.restoreAll();
+    syncBuiltinESMExports();
+    await fs.rm(root, { recursive: true, force: true });
+  }
+});
+
+test('Windows recovery waits through delete-pending owner reads and enters only after the other owner releases', { skip: process.platform !== 'win32' }, async t => {
+  const root = await fs.mkdtemp(join(tmpdir(), 'nexus-lease-windows-owner-race-'));
+  const directory = join(await fs.realpath(root), `${sha256('record')}.lock`);
+  await fs.mkdir(directory);
+  await fs.writeFile(join(directory, 'owner.json'), JSON.stringify({
+    schemaVersion: 1, token: 'other-owner', pid: process.pid, host: hostname(), createdAt: new Date().toISOString(),
+  }));
+  const original = fs.readFile;
+  let denied = 0, writes = 0;
+  t.mock.method(fs, 'readFile', async (...args: Parameters<typeof fs.readFile>) => {
+    if (String(args[0]) === join(directory, 'owner.json') && denied < 2) {
+      denied++;
+      throw Object.assign(new Error('owner is pending deletion'), { code: denied === 1 ? 'EPERM' : 'EACCES' });
+    }
+    return original(...args);
+  });
+  syncBuiltinESMExports();
+  const contender = createLeaseManager(root, { retryMs: 2, lockTimeoutMs: 1000 }).withLease('record', async lease => {
+    writes++;
+    await lease.assertOwned();
+  });
+  try {
+    await new Promise(resolve => setTimeout(resolve, 40));
+    assert.equal(writes, 0, 'a permission error never grants or steals ownership');
+    await fs.unlink(join(directory, 'owner.json'));
+    await fs.rmdir(directory);
+    await contender;
+    assert.equal(denied, 2);
+    assert.equal(writes, 1);
+  } finally {
+    await contender.catch(() => {});
     t.mock.restoreAll();
     syncBuiltinESMExports();
     await fs.rm(root, { recursive: true, force: true });
