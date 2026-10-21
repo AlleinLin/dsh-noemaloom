@@ -2,9 +2,9 @@
 
 Repository: https://github.com/ranxianglei/billion-context
 
-Pinned source commit: `6deb4547e57af6203bcedd3739fdc63b75443aec`
+Pinned source commit: `7790bea9178884e70a32bdf7629fd65314b0773e`
 
-Upstream path: `kernel/`; package version: `acp-kernel 0.0.136`; license: MIT.
+Upstream path: `kernel/`; package version: `acp-kernel 0.0.147`; license: MIT.
 
 The complete kernel `src/`, upstream `tests/` and fixtures are retained. The
 wire/bili-message.ts self-package type import is changed to ../types.js so the
@@ -18,3 +18,10 @@ Upstream test mapping: every `kernel/tests/*.test.ts` maps to the identically
 named `vendor/acp-kernel/tests/*.test.ts`. Integration tests live in
 `tests/context/`. Tests are written during implementation and run in the
 project's coordinated validation stage. This record does not claim a test pass.
+
+Nexus-local indexed-runtime.ts/indexed-types.ts and their integration points
+are retained and rebased from the previous Nexus checkout onto 0.0.147. They
+are an indexed archive extension, not files published by upstream. Rebase
+retains upstream orphan cleanup, stable reference migration, view/truncation
+latches and all-or-nothing compression, together with fail-closed archive
+lookups and bounded delta persistence.

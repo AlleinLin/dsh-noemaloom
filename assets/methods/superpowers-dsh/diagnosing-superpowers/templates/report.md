@@ -1,6 +1,6 @@
 # Session diagnosis: <session-id>
 
-Report path: $DSH_HOME/diagnosing-superpowers/<session-id>/report.md
+Report path: ~/.superpowers/diagnosing-superpowers/<session-id>/report.md
 Written: <ISO timestamp>
 
 ## 1. Problem statement (REQUIRED)

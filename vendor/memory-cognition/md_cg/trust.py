@@ -717,7 +717,9 @@ def dependents_index(cg, refresh: bool = False) -> dict:
 def _record(cg, rec: dict) -> None:
     """台账追加（best-effort：失败静默，**绝不阻断写路径**）。"""
     try:
-        append_jsonl(os.path.join(cg.root, AUDIT_FILE), rec)
+        # issue #547：本模块的审计台账（`_trust.jsonl`）此前声明「失败静默」；按 #549
+        # 对审计账本的口径（不能丢 ⇒ durable=True）统一，丢行不再静默。
+        append_jsonl(os.path.join(cg.root, AUDIT_FILE), rec, durable=True)
     except Exception:                                  # noqa: BLE001
         pass
 

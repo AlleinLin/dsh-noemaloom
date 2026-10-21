@@ -10,4 +10,5 @@ export const ORIGINAL_HOST_IDS = [
   'better-sidebar', 'context', 'better-display', 'mnemon',
   'task-board', 'git-graph', 'usage', 'agency-agents',
   'agency-agents-remote', 'turn-rewind', 'codinput', 'thoughtdag', 'synapse',
+  'superpowers', 'ponytail', 'openspec', 'karpathy',
 ] as const;

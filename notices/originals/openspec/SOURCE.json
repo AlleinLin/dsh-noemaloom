@@ -1,0 +1,10 @@
+{
+  "packageName": "@dragon-talon/dsh-openspec",
+  "version": "0.4.0",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dragonTalon/dsh-openspec.git"
+  },
+  "upstreamLicenseFile": true
+}

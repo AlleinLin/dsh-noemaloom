@@ -1,7 +1,5 @@
 # Root Cause Tracing
 
-> Local adaptation: the example workspace path is generic. Imported provenance is retained; see `docs/patches/template-sanitization.md`.
-
 ## Overview
 
 Bugs often manifest deep in the call stack (git init in wrong directory, file created in wrong location, database opened with wrong path). Your instinct is to fix where the error appears, but that's treating a symptom.
@@ -35,7 +33,7 @@ digraph when_to_use {
 
 ### 1. Observe the Symptom
 ```
-Error: git init failed in /workspace/project/packages/core
+Error: git init failed in /Users/jesse/project/packages/core
 ```
 
 ### 2. Find Immediate Cause

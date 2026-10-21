@@ -72,7 +72,7 @@ FAIL = 0
 FAILS = []
 CASES = (
     ("AWS AKIA", "AKIAIOSFODNN7EXAMPLE"),
-    ("GitHub ghp_", "ghp_" + "0" * 32),
+    ("GitHub ghp_", "ghp_dummy0123456789abcdefghijklmnop"),
     ("URL 内嵌凭据", "postgres://admin:Hunter2Secret@db.example.com:5432/app"),
     ("PEM 私钥块", "-----BEGIN " + "RSA PRIVATE KEY-----\nMIIEowIBAAKCAQEA\n-----END RSA PRIVATE KEY-----"),
 )

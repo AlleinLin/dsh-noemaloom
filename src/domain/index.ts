@@ -20,6 +20,7 @@ import { createScopeModule, withScopePolicy } from './scope.js';
 import { createInsightsModule } from './insights/index.js';
 import { createAutonomyModule } from './autonomy/index.js';
 import { createCompanionModule } from './insights/companion.js';
+import { createDebugModule } from './debug/index.js';
 
 /** One composition root; every UI/tool/remote request shares these instances. */
 export async function registerDomainModules(services: NexusServices, register: (module: NexusModule) => void): Promise<void> {
@@ -31,6 +32,6 @@ export async function registerDomainModules(services: NexusServices, register: (
   ])) register(withScopePolicy(module, services));
   for (const factory of [
     createMemoryModule, createContextModule, createExtensionsModule,
-    createFilesModule, createUsageModule, createResourcesModule, createInsightsModule, createAutonomyModule, createCompanionModule,
+    createFilesModule, createUsageModule, createResourcesModule, createInsightsModule, createAutonomyModule, createCompanionModule, createDebugModule,
   ]) register(withScopePolicy(await factory(services), services));
 }

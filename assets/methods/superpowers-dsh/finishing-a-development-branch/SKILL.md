@@ -1,7 +1,9 @@
 ---
 name: finishing-a-development-branch
-description: Use when implementation is complete, all tests pass, and you need to decide how to integrate the work
+description: "Superpower Skill: Use when implementation is complete, all tests pass, and you need to decide how to integrate the work"
+description_zh: "Superpower Skill：实现完成且全部测试通过后，用于决定分支集成方式，支持本地合并、创建 PR 或保留分支等完整收尾流程。"
 ---
+
 
 # Finishing a Development Branch
 

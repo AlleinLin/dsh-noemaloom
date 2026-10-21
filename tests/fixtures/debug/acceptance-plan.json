@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "cases": [
+    {"language":"typescript","type":"pwa-node","source":"ts/main.ts","line":3},
+    {"language":"python","type":"debugpy","source":"py/main.py","line":2},
+    {"language":"java","type":"java","source":"java/Main.java","line":3},
+    {"language":"csharp","type":"coreclr","source":"cs/Program.cs","line":5}
+  ],
+  "variable": "value",
+  "expectedValue": "21",
+  "expectedOutput": "answer=42"
+}

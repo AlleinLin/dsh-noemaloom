@@ -38,7 +38,7 @@ test('production domain composition registers every domain and exposes files.dif
 
   const productionDomains = dispatcher.capabilities().filter(item => item.domain !== 'catalog');
   assert.deepEqual([...new Set(productionDomains.map(item => item.domain))].sort(), [
-    'agents', 'artifact', 'autonomy', 'companion', 'connections', 'context', 'extensions', 'files', 'graph', 'insights', 'memory',
+    'agents', 'artifact', 'autonomy', 'companion', 'connections', 'context', 'debug', 'extensions', 'files', 'graph', 'insights', 'memory',
     'presets', 'quality', 'recovery', 'resources', 'review', 'runtime', 'scope', 'search', 'usage', 'workflow',
   ]);
   const diff = dispatcher.capabilities('files').filter(item => item.action === 'diff');

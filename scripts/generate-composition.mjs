@@ -25,7 +25,7 @@ manifest.exports['./native/*'] = './lib/native/*.js';
 const prerequisites = new Set(manifest.dsh.client.inject);
 prerequisites.add('@deepseek-ai/dsh-client-modules');
 for (const name of Object.keys(manifest.dependencies)) {
-  if (!/^(?:dsh-|@(?:anionex|linxin666|michengai)\/dsh-)/.test(name) || name === 'dsh-skin-market') continue;
+  if (!/^(?:dsh-|@(?:anionex|linxin666|michengai|wenaixi|dragon-talon)\/dsh-)/.test(name) || name === 'dsh-skin-market') continue;
   for (const prerequisite of packageRoot(name).pkg.dsh?.client?.inject ?? []) {
     // Mnemon's client SDK is shared inside our factory bridge, not loaded a
     // second time as an independent browser plugin.
@@ -47,6 +47,8 @@ const entries = [
   ['agency-agents-remote', 'agency-agents-remote'], ['agency-agents', 'agency-agents'],
   ['turn-rewind', 'turn-rewind'], ['dsh-codinput', 'codinput'],
   ['thoughtdag', 'thoughtdag'], ['synapse', 'synapse'],
+  ['superpowers', 'superpowers'], ['ponytail', 'ponytail'],
+  ['dsh-openspec', 'openspec'], ['dsh-karpathy-methodology', 'karpathy'],
 ];
 let patch = "# Unified desktop composition. Original host entries retain their native IDs.\n- insert:\n    - id: nexus\n      name: '@local/dsh-nexus'\n";
 for (const [id, name] of entries) {
@@ -61,5 +63,7 @@ const memoryPatch = (await readFile(join(mnemon.root, 'cordis.patch.yml'), 'utf8
   .replace(/\bname: dsh-mnemon\b/g, 'name: @local/dsh-nexus/original/mnemon')
   .replace(/\b(name|use): (@local\/[^\r\n]+)/g, "$1: '$2'");
 patch += '\n' + memoryPatch;
+// Retain the original components, defaults and opt-in UI of dsh-ops.
+patch += '\n' + await readFile(join(packageRoot('dsh-ops').root, 'cordis.patch.yml'), 'utf8');
 patch += '\n' + await nativeComposition();
 await writeFile(new URL('cordis.patch.yml', root), patch);

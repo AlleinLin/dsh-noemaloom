@@ -15,7 +15,7 @@ it up.
 
 Deliverables:
 
-- `/home/wpp/nexus/Nexus-Shell/` initialized as a pnpm workspace.
+- the repository root (`<repo-root>`) initialized as a pnpm workspace.
 - A workspace `package.json` that references `dsh/` as a local workspace
   root or pulls dsh packages via npm `@deepseek-ai/dsh-*` ranges.
 - One placeholder `packages/dshell-meta/` package with an empty plugin
@@ -24,7 +24,7 @@ Deliverables:
 Acceptance check:
 
 ```
-cd /home/wpp/nexus/Nexus-Shell
+cd <repo-root>
 pnpm install
 pnpm -F @deepseek-ai/dsh-* run build
 # (dsh's bundled CLI runs against this workspace)
@@ -1562,7 +1562,7 @@ Acceptance check — `pnpm typecheck`, `pnpm build`, browser, `pnpm package:linu
 - Browser against rc.2: ten of ten plugins load; the ws carrier reports
   `open`/`ready` with `attempt: 0`; `useTransport('stream')` rebinds to the stream
   carrier with `attempt: 0` and `echo rc2-stream-ok` returns over it; the files
-  panel lists `/home/wpp/nexus` with a `ui-primitives` icon on every row.
+  panel lists the workspace root (`<workspace-root>`) with a `ui-primitives` icon on every row.
 - Host routes, after the cookie handshake: `/api/dshell/buffer` 200,
   `/api/dshell/files` 200 for a POST naming a live session (404 on GET is correct —
   the route registers POST only), `/api/dshell/stream` 200
@@ -2507,8 +2507,8 @@ are not localized** — they are the agent's interface, and a per-language varia
 would make the model's data depend on the UI language.
 
 Verified against a live harness: route refusals in both languages
-(`未知操作` → `Unknown action`), the SSH Test result in both (`已连接 wpp@wpp（Linux
-7.0.0-31-generic） · 336ms` → `Connected wpp@wpp (Linux 7.0.0-31-generic) ·
+(`未知操作` → `Unknown action`), the SSH Test result in both (`已连接 reader@box（Linux
+7.0.0-31-generic） · 336ms` → `Connected reader@box (Linux 7.0.0-31-generic) ·
 402ms`, host-key line included), and the framework-carried `/new` result
 (`New session created: session-a410b363-…`) — with the language switched back to
 Chinese afterwards.
@@ -2533,7 +2533,7 @@ down as its contract (architecture § 11) — the previous shape was a chain of
 `replace` calls that read as if they stripped separators and did not.
 
 Verified by running the real service over the live grant: the reported call
-resolves to `/home/wpp/nexus/Nexus-Study/dist-artifacts/SHA256SUMS-artifacts` and
+resolves to `<workspace-root>/Nexus-Study/dist-artifacts/SHA256SUMS-artifacts` and
 reads the checksum list, as does a nested `read /lab/sub/deep.txt` over a lab
 grant; `ls` on the mapped root is unchanged. The only case that still fails is a
 filename the model had invented — a genuine `ENOENT`, not a scope refusal.
@@ -2915,7 +2915,7 @@ What was built:
   spawns, file listings) needs no ordering at all.
 
 Verified live, on this machine, with the user's own data: picked
-`/home/wpp/.dshell-move-test` through the picker, restarted → the registry, keys,
+`/home/reader/.dshell-move-test` through the picker, restarted → the registry, keys,
 buffer state, tags and all 72 transcripts moved (checksums unchanged for
 `devices.json` and `state.json`), `dshell/mnt` and `ctl` stayed, the log said so,
 and the moved root's devices were visible in the UI. Then 恢复默认, restarted →
@@ -3714,7 +3714,7 @@ Three reasons, each checkable:
 A helper of ours, importing their framing class, plus a client of ours:
 
 ```
-hello in 144ms -> {"protocol":1,"platform":"linux","node":"…v24.21.0/bin/node","root":"/home/wpp"}
+hello in 144ms -> {"protocol":1,"platform":"linux","node":"…v24.21.0/bin/node","root":"/home/reader"}
 dshell.ping -> {"pong":"DSHELL","at":…}                    ← our own op, same connection
 dshell.list -> {"entries":[{"name":"…","size":89,"dir":false},…]}   ← structured, not parsed text
 unknown method -> Unknown SSH helper operation: dshell.nope         ← same boundary as theirs
@@ -3950,12 +3950,12 @@ helper deployed as `~/.dshell/helper/helper-<sha256>.js`:
 ```
 artifact hash: 84d72c09ad105311571d6a74c84023fe6282c31603ad674a9eb665d4c3d0e33c
 hello in 153ms -> {"protocol":1,"hash":"84d72c09…","platform":"linux",
-                   "node":"…/v24.21.0/bin/node","nodeVersion":"v24.21.0","root":"/home/wpp"}
-dshell.echo -> {"label":"dshell","upper":"DSHELL","pid":86034,"cwd":"/home/wpp"}
+                   "node":"…/v24.21.0/bin/node","nodeVersion":"v24.21.0","root":"/home/reader"}
+dshell.echo -> {"label":"dshell","upper":"DSHELL","pid":86034,"cwd":"/home/reader"}
 echo pid differs from the host pid: 86018
 disposed cleanly
 MISMATCH -> the device's dshell SSH helper differs from this build (device 84d72c09ad10…, expected ffffffffffff…)
-ABSENT   -> the dshell SSH helper did not start on the device: … Cannot find module '/home/wpp/.dshell/helper/does-not-exist.js'
+ABSENT   -> the dshell SSH helper did not start on the device: … Cannot find module '/home/reader/.dshell/helper/does-not-exist.js'
 ```
 
 The echo's pid differing from the host's is the part that matters: the rig is the

@@ -1,7 +1,9 @@
 ---
 name: subagent-driven-development
-description: Use when executing implementation plans with independent tasks in the current session
+description: "Superpower Skill: Use when executing implementation plans with independent tasks in the current session"
+description_zh: "Superpower Skill：在当前会话内执行包含独立任务的实现计划时使用，基于 subagent 分发与逐任务评审保障质量。"
 ---
+
 
 # Subagent-Driven Development
 
@@ -69,7 +71,7 @@ digraph process {
         "Answer questions, provide context" [shape=box];
         "Implementer implements, tests, commits, self-reviews" [shape=box];
         "Generate review package, dispatch task reviewer (./task-reviewer-prompt.md)" [shape=box];
-        "Spec ✅ and quality approved?" [shape=diamond];
+        "Spec [OK] and quality approved?" [shape=diamond];
         "Finding conflicts with plan text?" [shape=diamond];
         "Rule on the conflict, ledger the ruling" [shape=box];
         "Fix round R of 5: R≤3 resume implementer; R≥4 fresh implementer, more capable model" [shape=box];
@@ -88,7 +90,7 @@ digraph process {
     "Dispatch final code reviewer (../requesting-code-review/code-reviewer.md)" [shape=box];
     "Final findings? ONE fix dispatch, one scoped re-review, adjudicate residuals" [shape=box];
     "Final review clean: delete this plan's workspace" [shape=box];
-    "Use finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
+    "Use superpowers:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
 
     "Setup: worktree, ledger check, read plan, pre-flight review" -> "Dispatch implementer subagent (./implementer-prompt.md)";
     "Dispatch implementer subagent (./implementer-prompt.md)" -> "Implementer asks questions?";
@@ -96,9 +98,9 @@ digraph process {
     "Answer questions, provide context" -> "Implementer implements, tests, commits, self-reviews";
     "Implementer asks questions?" -> "Implementer implements, tests, commits, self-reviews" [label="no"];
     "Implementer implements, tests, commits, self-reviews" -> "Generate review package, dispatch task reviewer (./task-reviewer-prompt.md)";
-    "Generate review package, dispatch task reviewer (./task-reviewer-prompt.md)" -> "Spec ✅ and quality approved?";
-    "Spec ✅ and quality approved?" -> "Append completion to ledger, mark todo complete" [label="yes"];
-    "Spec ✅ and quality approved?" -> "Finding conflicts with plan text?" [label="no"];
+    "Generate review package, dispatch task reviewer (./task-reviewer-prompt.md)" -> "Spec [OK] and quality approved?";
+    "Spec [OK] and quality approved?" -> "Append completion to ledger, mark todo complete" [label="yes"];
+    "Spec [OK] and quality approved?" -> "Finding conflicts with plan text?" [label="no"];
     "Finding conflicts with plan text?" -> "Rule on the conflict, ledger the ruling" [label="yes"];
     "Rule on the conflict, ledger the ruling" -> "Fix round R of 5: R≤3 resume implementer; R≥4 fresh implementer, more capable model";
     "Finding conflicts with plan text?" -> "Fix round R of 5: R≤3 resume implementer; R≥4 fresh implementer, more capable model" [label="no"];
@@ -117,14 +119,14 @@ digraph process {
     "More tasks remain?" -> "Dispatch final code reviewer (../requesting-code-review/code-reviewer.md)" [label="no"];
     "Dispatch final code reviewer (../requesting-code-review/code-reviewer.md)" -> "Final findings? ONE fix dispatch, one scoped re-review, adjudicate residuals";
     "Final findings? ONE fix dispatch, one scoped re-review, adjudicate residuals" -> "Final review clean: delete this plan's workspace";
-    "Final review clean: delete this plan's workspace" -> "Use finishing-a-development-branch";
+    "Final review clean: delete this plan's workspace" -> "Use superpowers:finishing-a-development-branch";
 }
 ```
 
 ## Setup
 
 Ensure the work happens in an isolated workspace: use
-using-git-worktrees to create one or verify the existing one.
+superpowers:using-git-worktrees to create one or verify the existing one.
 Never start implementation on a main/master branch without your human
 partner's explicit consent.
 
@@ -217,6 +219,14 @@ that implementer. Single-file mechanical fixes also take the cheapest tier.
 - Touches 1-2 files with a complete spec → cheap model
 - Touches multiple files with integration concerns → standard model
 - Requires design judgment or broad codebase understanding → most capable model
+
+### Optional: Drop the Controller a Level (Nested Subagents)
+
+The controller session is the most expensive seat in this skill: it reads every dispatch result and every report, and usually runs on the session's strongest model. If the host supports nested subagents (opening further layers under the main conversation), the whole loop can run one level down; measured cost and wall-clock time roughly halve.
+
+This is an opt-in your human partner explicitly asks for, and it changes nothing else in this skill. When they ask, or when the session model is too expensive to coordinate with: dispatch ONE orchestrator subagent on a mid-tier model, hand it the plan path, and require it to use subagent-driven-development end to end. The orchestrator dispatches implementers and reviewers per this skill's model-selection rules; the workspace and ledger live on disk, so the extra layer loses nothing. Its final message must carry the "my rulings" list verbatim — that list is the channel by which decisions reach your human partner; you relay it, not summarize it.
+
+Only do this for the whole plan. Nesting single-task dispatch adds nothing and just occupies another seat.
 
 ## The Task Loop
 
@@ -342,7 +352,7 @@ needed.
   loop. If the prompt you are writing contains "do not flag," "don't treat X
   as a defect," "at most Minor," or "the plan chose" — stop: you are
   pre-judging, usually to spare yourself a review loop.
-The task reviewer may report "⚠️ Cannot verify from diff" items — requirements
+The task reviewer may report "[WARN] Cannot verify from diff" items — requirements
 that live in unchanged code or span tasks. These do not block the rest of the
 review, but you must resolve each one yourself before marking the task
 complete: you hold the plan and cross-task context the reviewer
@@ -353,8 +363,8 @@ Template: [task-reviewer-prompt.md](task-reviewer-prompt.md)
 
 ### 4. The fix loop
 
-The loop triggers when the review reports spec ❌, any Critical or Important
-finding, or a ⚠️ item you confirmed as a real gap.
+The loop triggers when the review reports spec [FAIL], any Critical or Important
+finding, or a [WARN] item you confirmed as a real gap.
 
 Before the loop starts, two routes leave it immediately:
 
@@ -450,7 +460,7 @@ branch started from, e.g. `git merge-base main HEAD`) and include the
 printed path in the final review dispatch, so the final reviewer reads
 one file instead of re-deriving the branch diff with git commands. Dispatch
 on the most capable available model (see Model Selection), using
-requesting-code-review's
+superpowers:requesting-code-review's
 [code-reviewer.md](../requesting-code-review/code-reviewer.md). Point it at
 the ledger's deferred-minor and parked lines so it can triage which must be
 fixed before merge.
@@ -484,7 +494,7 @@ delete this plan's workspace (`rm -rf <workspace>`) — the git history is
 the record now. Sibling directories belong to other plans; leave them
 alone.
 
-Use finishing-a-development-branch.
+Use superpowers:finishing-a-development-branch.
 
 ## Common Rationalizations
 
@@ -516,7 +526,7 @@ Task 1: Hook installation script
 
 Implementer: "Before I begin - should the hook be installed at user or system level?"
 
-You: "Install the hook at the user level ($DSH_HOME)"
+You: "User level (~/.config/superpowers/hooks/)"
 
 Implementer: [Later]
   - Implemented install-hook command
@@ -525,7 +535,7 @@ Implementer: [Later]
   - Committed
 
 [Run review-package PLAN_FILE BASE HEAD; dispatch task reviewer with the printed path]
-Task reviewer: Spec ✅ - all requirements met, nothing extra.
+Task reviewer: Spec [OK] - all requirements met, nothing extra.
   Strengths: Good test coverage, clean. Issues: None. Task quality: Approved.
 
 [Ledger: Task 1: complete (commits a1b2c3d..d4e5f6a, review clean)]
@@ -540,7 +550,7 @@ Implementer: [No questions]
   - Committed
 
 [Run review-package PLAN_FILE BASE HEAD; dispatch task reviewer with the printed path]
-Task reviewer: Spec ❌:
+Task reviewer: Spec [FAIL]:
   - Missing: Progress reporting (spec says "report every 100 items")
   Issues (Important): Magic number (100)
 
@@ -564,5 +574,5 @@ Final reviewer: All requirements met. Deferred minors triaged: none block merge.
 
 [Delete this plan's workspace — the record now lives in git]
 
-Done! Using finishing-a-development-branch.
+Done! Using superpowers:finishing-a-development-branch.
 ```

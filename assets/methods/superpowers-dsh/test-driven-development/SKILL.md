@@ -1,7 +1,9 @@
 ---
 name: test-driven-development
-description: Use when implementing any feature or bugfix, before writing implementation code
+description: "Superpower Skill: Use when implementing any feature or bugfix, before writing implementation code"
+description_zh: "Superpower Skill：实现新功能或修复缺陷时，编写实现代码前先写测试的测试驱动开发完整指南与流程约束规范。"
 ---
+
 
 # Test-Driven Development (TDD)
 

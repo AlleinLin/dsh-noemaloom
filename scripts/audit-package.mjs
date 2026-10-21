@@ -17,7 +17,7 @@ const maxArchiveBytes = 256 * 1024 * 1024;
 const maxTarBytes = 768 * 1024 * 1024;
 const maxEntries = 30_000;
 const hostModules = new Set([...builtinModules.map(name => name.replace(/^node:/u, '')), 'electron']);
-const rootFiles = new Set(['package.json', 'README.md', 'README.en.md', 'LICENSE', 'LICENSE-ORIGINAL', 'NOTICE', 'THIRD-PARTY-NOTICES.md', 'sources.lock.json', 'cordis.patch.yml', 'cordis.presets.patch.yml']);
+const rootFiles = new Set(['package.json', 'README.md', 'README.en.md', 'LICENSE', 'LICENSE-ORIGINAL', 'NOTICE', 'THIRD-PARTY-NOTICES.md', 'sources.lock.json', 'upstreams.json', 'cordis.patch.yml', 'cordis.presets.patch.yml']);
 for (const directory of ['agent-instructions', 'tool-subagent', 'agent-procedures', 'nexus-terminal', 'compaction-basic']) {
   for (const file of ['LICENSE', 'SOURCE.json']) rootFiles.add(`vendor/${directory}/${file}`);
 }
@@ -36,6 +36,9 @@ const requiredFiles = [
   'vendor/compaction-basic/LICENSE', 'vendor/compaction-basic/SOURCE.json',
   'lib/workers/storage-worker.js', 'lib/workers/file-memory-parser.mjs', 'lib/workers/isolated-extension.js',
   'lib/build-info.json', 'cordis.patch.yml', 'cordis.presets.patch.yml',
+  'lib/editor/manifest.json', 'assets/debug-adapters.json',
+  'notices/editor/SOURCE.json', 'notices/editor/monaco-editor/LICENSE', 'notices/editor/monaco-editor/ThirdPartyNotices.txt',
+  'notices/editor/tar/LICENSE.md',
   'locale/zh-CN.json', 'locale/en.json', 'locale/ru.json', 'assets/icon.svg',
   'LICENSE', 'NOTICE', 'THIRD-PARTY-NOTICES.md', 'sources.lock.json',
   'notices/step-pause/LICENSE', 'notices/step-pause/SOURCE.json',
@@ -61,6 +64,24 @@ const requiredFiles = [
 // to this rule, package-relative source path and complete unchanged source line.
 // It never exempts a file, vendor tree, credential value or another path.
 const reviewedSourceLines = [
+  {
+    id: 'aegis-root-cause-generic-example',
+    file: 'assets/methods/aegis/systematic-debugging/root-cause-tracing.md', rule: 'absolute-user-path',
+    text: 'Error: git init failed in /Users/jesse/project/packages/core',
+    reason: 'Unmodified upstream debugging tutorial uses its author’s generic example; no local profile data.',
+  },
+  {
+    id: 'monaco-intl-minimum-fraction-iso-url',
+    file: 'lib/editor/worker-typescript-KABZJSPK.js', rule: 'absolute-user-path',
+    text: "     * The minimum number of fraction digits to use. Possible values are from 0 to 20; the default for plain number and percent formatting is 0; the default for currency formatting is the number of minor unit digits provided by the {@link http://www.currency-iso.org/en/home/tables/table-a1.html ISO 4217 currency codes list} (2 if the list doesn't provide that information).",
+    reason: 'Pinned Monaco TypeScript lib declaration links to the ISO website; /en/home/tables is an HTTP URL path.',
+  },
+  {
+    id: 'monaco-intl-maximum-fraction-iso-url',
+    file: 'lib/editor/worker-typescript-KABZJSPK.js', rule: 'absolute-user-path',
+    text: "     * The maximum number of fraction digits to use. Possible values are from 0 to 20; the default for plain number formatting is the larger of minimumFractionDigits and 3; the default for currency formatting is the larger of minimumFractionDigits and the number of minor unit digits provided by the {@link http://www.currency-iso.org/en/home/tables/table-a1.html ISO 4217 currency codes list} (2 if the list doesn't provide that information); the default for percent formatting is the larger of minimumFractionDigits and 0.",
+    reason: 'Pinned Monaco TypeScript lib declaration links to the ISO website; /en/home/tables is an HTTP URL path.',
+  },
   {
     id: 'memsearch-cli-embedding-key-reference',
     file: 'vendor/memsearch/src/memsearch/cli.py', rule: 'literal-credential-value',
@@ -581,11 +602,41 @@ export async function auditPackage({ packagePath, outputPath = resolve(root, 'ev
       if (info.package !== manifest?.name || info.version !== manifest?.version || info.dsh !== '0.2.1-rc.2') throw new Error('Build identity does not match the tarball manifest');
       for (const path of ['lib/index.js', 'lib/client.js']) if (info[path] !== sha256(files.get(path)?.data ?? Buffer.alloc(0))) fail('localeAndBuildIdentity', path, 'Build identity SHA does not match actual packaged bytes');
     });
+    check('localEditorAssets', () => {
+      const editor = JSON.parse(decoder.decode(files.get('lib/editor/manifest.json')?.data ?? Buffer.alloc(0)));
+      if (editor.schema !== 1 || editor.monaco !== '0.57.0' || !Array.isArray(editor.assets) || editor.assets.length > 512) throw new Error('Invalid pinned editor manifest');
+      if (JSON.stringify(Object.keys(editor.workers ?? {}).sort()) !== JSON.stringify(['core', 'css', 'html', 'json', 'typescript'])) throw new Error('Missing local language workers');
+      const allowlist = new Set(['lib/editor/manifest.json']);
+      for (const asset of editor.assets) {
+        if (typeof asset.file !== 'string' || asset.file.includes('..') || !/^[A-Za-z0-9_./-]+$/u.test(asset.file) || !/^[a-f0-9]{64}$/u.test(asset.sha256)) throw new Error('Unsafe editor asset identity');
+        const path = `lib/editor/${asset.file}`; allowlist.add(path);
+        if (sha256(files.get(path)?.data ?? Buffer.alloc(0)) !== asset.sha256) throw new Error(`Editor asset changed: ${path}`);
+      }
+      for (const file of [editor.entry, editor.css, ...Object.values(editor.workers)]) if (!allowlist.has(`lib/editor/${file}`)) throw new Error('Editor entry point is not allowlisted');
+      for (const path of files.keys()) if (path.startsWith('lib/editor/') && !allowlist.has(path)) throw new Error(`Unlisted editor asset: ${path}`);
+      const adapters = JSON.parse(decoder.decode(files.get('assets/debug-adapters.json')?.data ?? Buffer.alloc(0)));
+      if (adapters.schema !== 1 || adapters.platform !== 'win32-x64' || adapters.artifacts?.length !== 10) throw new Error('Missing pinned debugger assets');
+      for (const asset of adapters.artifacts) if (!/^[a-f0-9]{64}$/u.test(asset.sha256) || !asset.url.startsWith('https://') || !asset.license) throw new Error('Debugger artifact lacks immutable identity/license');
+      const dependencies = JSON.parse(decoder.decode(files.get('notices/editor/SOURCE.json')?.data ?? Buffer.alloc(0)));
+      for (const pkg of dependencies.packages ?? []) {
+        if (!pkg.integrity || !pkg.version || !pkg.license) throw new Error('Incomplete editor dependency provenance');
+        const folder = pkg.resolved.includes('/monaco-editor/') ? 'monaco-editor'
+          : ['dompurify', 'marked'].includes(pkg.name) ? `monaco-editor__node_modules__${pkg.name}` : pkg.name.replaceAll('/', '__');
+        for (const [name, expected] of Object.entries(pkg.files)) {
+          if (sha256(files.get(`notices/editor/${folder}/${name}`)?.data ?? Buffer.alloc(0)) !== expected) throw new Error('Editor dependency license hash mismatch');
+        }
+      }
+      report.editor = { monaco: editor.monaco, assets: editor.assets.length, workers: Object.keys(editor.workers), adapters: adapters.artifacts.length };
+    });
     check('provenance', () => {
       const lock = JSON.parse(decoder.decode(files.get('sources.lock.json')?.data ?? Buffer.alloc(0)));
-      if (lock.sourceCount !== 38 || lock.dshWebSubpackageCount !== 19 || lock.host?.release !== '0.2.1-rc.2'
+      if (lock.sourceCount !== 44 || lock.dshWebSubpackageCount !== 19 || lock.host?.release !== '0.2.1-rc.2'
         || lock.acceptance?.count !== 769 || lock.acceptance?.sha256 !== '113bc7b9b60b4bf44d3645dc07209a3c65148ecddf54ac5dd7cba696b8049e1a') throw new Error('Packaged source identity or frozen acceptance provenance is incomplete');
-      if (!Array.isArray(lock.units) || lock.units.length !== 38 || new Set(lock.units.map(unit => unit.id)).size !== 38) throw new Error('Packaged source provenance must identify all 38 sources');
+      if (!Array.isArray(lock.units) || lock.units.length !== 44 || new Set(lock.units.map(unit => unit.id)).size !== 44) throw new Error('Packaged source provenance must identify all 44 sources');
+      const maintenance = JSON.parse(decoder.decode(files.get('upstreams.json')?.data ?? Buffer.alloc(0)));
+      if (maintenance.policy?.independentUpdateUi !== false
+        || lock.units.some(unit => !maintenance.sources?.some(source => source.id === unit.id)))
+        throw new Error('Weekly maintenance inventory is incomplete');
       const progress = JSON.parse(decoder.decode(files.get('notices/step-pause/SOURCE.json')?.data ?? Buffer.alloc(0)));
       if (progress.revision !== 'eeb93a7ff027e4beba94b8089dfb72dfe45b2550' || progress.license !== 'MIT') throw new Error('Step progress source identity is missing');
       for (const [name, identity] of Object.entries(progress.files ?? {})) {

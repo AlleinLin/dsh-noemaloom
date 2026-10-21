@@ -8,6 +8,9 @@ import { adaptAgentClient } from './adapt-agent-client.mjs';
 import { adaptReaderClient } from './adapt-reader-client.mjs';
 import { parseFactory } from './original-factory.mjs';
 import { vendoredOriginal } from './vendored-original.mjs';
+import { suppressManagedUpdateUi } from './managed-updates.mjs';
+import { workflowNotices } from './workflow-notices.mjs';
+import { nativeEditorExtensions } from '../src/shared/editor-extensions.ts';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const require = createRequire(join(root, 'package.json'));
@@ -15,6 +18,7 @@ const output = join(root, 'lib', 'original-client');
 const hostOutput = join(root, 'lib', 'original');
 await mkdir(output, { recursive: true });
 await mkdir(hostOutput, { recursive: true });
+await workflowNotices(root);
 
 // Read the literal manifest without executing repository source or published
 // client code. TypeScript's parser is already a pinned project dependency.
@@ -73,7 +77,12 @@ function replaceOnce(source, anchor, replacement, label) {
 
 function adaptSidebar(factory) {
   const anchor = 'ctx.effect(() => registerBuiltins(ctx, service), "dsh-better-sidebar: register built-in tabs and viewers");';
-  return adaptAgentClient(replaceOnce(factory, anchor, `${anchor}
+  // Route new supported resources to documentPreviews. The upstream editor
+  // remains available for existing tabs and file formats it alone supports.
+  const routed = replaceOnce(factory, 'return file !== void 0 && !hostOwnedPath(file.path);',
+    `return file !== void 0 && !hostOwnedPath(file.path) && !${JSON.stringify(nativeEditorExtensions)}.includes(file.path.split(/[\\\\/]/).pop().split(".").pop().toLowerCase());`,
+    'Better Sidebar yields supported files to the native Monaco renderer');
+  return adaptAgentClient(replaceOnce(routed, anchor, `${anchor}
       // Nexus integration: the original full tree/graph and the native right
       // sidebar share the original store, service, telemetry and context.
       ctx.slots.inject("conversation.view", () => ctx.slots.register({
@@ -91,20 +100,20 @@ function adaptContext(factory) {
   let source = replaceOnce(factory, 'var t={exports:{}}',
     'const nexusNativeNavigation=e("@local/dsh-nexus/original-navigation");var t={exports:{}}',
     'Context native navigation module');
-  source = replaceOnce(source, 'function cu(e){return e.defaultPlacement()!==`sidebar`}',
-    'function cu(e){return true}', 'Context fixed conversation placement gate');
-  source = replaceOnce(source, 'let s=cu(e),c=o!==`tab`;',
+  source = replaceOnce(source, 'function _u(e){return e.defaultPlacement()!==`sidebar`}',
+    'function _u(e){return true}', 'Context fixed conversation placement gate');
+  source = replaceOnce(source, 'let s=_u(e),c=o!==`tab`;',
     'let s=true,c=false;', 'Context single conversation surface');
-  source = replaceOnce(source, 'Ml(e)||Nl(n(`tab.context`))',
+  source = replaceOnce(source, 'Vl(e)||Hl(n(`tab.context`))',
     'nexusNativeNavigation.openView(r,"context",a===null?"":String(a))',
     'Context message jump uses native session view action');
-  source = replaceOnce(source, 'Nl(i(`tab.fleet`))||Ml(e)',
+  source = replaceOnce(source, 'Hl(i(`tab.fleet`))||Vl(e)',
     'nexusNativeNavigation.openView(o,"fleet","")',
     'Context fleet jump uses native session view action');
-  const oldChromeClick = 'function Nl(e){let t=document.querySelectorAll(`button[role="tab"]`);for(let n of t)if(n.textContent.trim()===e)return n.getAttribute(`aria-selected`)!==`true`&&n.click(),!0;return!1}';
-  source = replaceOnce(source, oldChromeClick, 'function Nl(){return false}',
+  const oldChromeClick = 'function Hl(e){let t=document.querySelectorAll(`button[role="tab"]`);for(let n of t)if(n.textContent.trim()===e)return n.getAttribute(`aria-selected`)!==`true`&&n.click(),!0;return!1}';
+  source = replaceOnce(source, oldChromeClick, 'function Hl(){return false}',
     'Context remove obsolete chrome-click helper');
-  const placementChoice = '(0,d.jsx)(qs,{label:t(`settings.placement`),value:n.placement,disabled:i,options:[{id:`all`,label:t(`placement.all`)},{id:`tab`,label:t(`placement.tab`)},{id:`sidebar`,label:t(`placement.sidebar`)}],onPick:e=>{r?.(`defaultPlacement`,e)}}),';
+  const placementChoice = '(0,d.jsx)($s,{label:t(`settings.placement`),value:n.placement,disabled:i,options:[{id:`all`,label:t(`placement.all`)},{id:`tab`,label:t(`placement.tab`)},{id:`sidebar`,label:t(`placement.sidebar`)}],onPick:e=>{r?.(`defaultPlacement`,e)}}),';
   source = replaceOnce(source, placementChoice, '', 'Context remove inactive placement preference');
   return source;
 }
@@ -137,6 +146,41 @@ async function addHost(id, packageName, version, subpath = '.', installed) {
       `// Original ${packageName}@${version}, commit ${installed.source.revision}.\n`
       + `import original from ${JSON.stringify(specifier)};\n`
       + 'export const { name, inject, apply } = original;\nexport default original;\n');
+  } else if (id === 'openspec') {
+    await writeFile(join(hostOutput, filename),
+      `// Original ${packageName}@${version}; canonical skills with the packaged Windows-safe CLI path.\n`
+      + `import * as original from ${JSON.stringify(specifier)};\n`
+      + `import { fileURLToPath } from "node:url";\n`
+      + `export * from ${JSON.stringify(specifier)};\n`
+      + `const cli = fileURLToPath(new URL('../bin/openspec.js', import.meta.resolve('@fission-ai/openspec')));\n`
+      + `const path = cli.replaceAll(String.fromCharCode(92), '/');\n`
+      + `const quote = process.platform === 'win32' ? "'" + path.replaceAll("'", "''") + "'" : "'" + path.replaceAll("'", "'\\\\''") + "'";\n`
+      + `const command = 'node ' + quote;\n`
+      + `export function apply(ctx, config) {\n`
+      + `  const registry = ctx.skills;\n`
+      + `  const skills = new Proxy(registry, { get(target, key) {\n`
+      + `    if (key === "register") return definition => registry.register({ ...definition, content: definition.content.replace(/\\bopenspec(?=\\s+(?:(?:store|new|status|instructions|list|show|validate|archive|doctor|context|schemas|view|init|update|config|completion|feedback|telemetry)\\b|--(?:version|help)\\b))/g, () => command) });\n`
+      + `    const value = Reflect.get(target, key); return typeof value === "function" ? value.bind(target) : value;\n`
+      + `  } });\n`
+      + `  return original.apply(new Proxy(ctx, { get(target, key) { return key === "skills" ? skills : Reflect.get(target, key); } }), config);\n`
+      + `}\n`);
+  } else if (id === 'ponytail') {
+    await writeFile(join(hostOutput, filename),
+      `// Original ${packageName}@${version}; optional services use the public scoped lookup.\n`
+      + `import * as original from ${JSON.stringify(specifier)};\n`
+      + `export * from ${JSON.stringify(specifier)};\n`
+      + `export function apply(ctx, config) {\n`
+      + `  return original.apply(new Proxy(ctx, { get(target, key) {\n`
+      + `    if (key === 'settings' || key === 'profileContext') return target.get(key, false);\n`
+      + `    return Reflect.get(target, key);\n`
+      + `  } }), config);\n`
+      + `}\n`);
+  } else if (id === 'karpathy') {
+    const original = await readFile(join((await packageRoot(packageName)).directory, 'index.js'), 'utf8');
+    const adapted = replaceOnce(original, "new URL('./skills/', import.meta.url)",
+      "new URL('../../assets/methods/karpathy/skills/', import.meta.url)",
+      'Karpathy original skill provider asset root');
+    await writeFile(join(hostOutput, filename), adapted);
   } else if (id === 'thoughtdag' || id === 'synapse') {
     const applyName = id === 'thoughtdag' ? 'applyThoughtdag' : 'applySynapse';
     await writeFile(join(hostOutput, filename),
@@ -194,6 +238,9 @@ async function addClient(definition, installed) {
     adaptations.push('rc2-SessionInputResolver-for-scoped-context', 'remove-obsolete-composer-DOM-fallback',
       'reader-enhancements-in-native-assistant-step', 'single-native-chat-view-with-reader-selection-migration');
   }
+  const managed = suppressManagedUpdateUi(manifest.name, factory);
+  factory = managed.source;
+  adaptations.push(...managed.changes);
   const filename = `${definition.id}.js`;
   await writeFile(join(output, filename),
     `// Original published client: ${manifest.name}@${manifest.version}\n`
@@ -244,7 +291,7 @@ for (const definition of originals) {
 
 const mnemon = await packageRoot('dsh-mnemon');
 await addHost('mnemon-bundle', 'dsh-mnemon', mnemon.manifest.version, './bundle');
-await addHost('agency-agents-remote', '@michengai/dsh-agency-agents', '1.2.7', './remote');
+await addHost('agency-agents-remote', '@michengai/dsh-agency-agents', '1.2.9', './remote');
 
 // The original Starter's full source/strategy/provider closure is fixed by its
 // own exact dependency versions. Each host remains a formal Loader entry.

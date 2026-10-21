@@ -198,7 +198,7 @@ hard load failure outside the dsh dev workflow.
 
 ## Common pitfalls
 
-- **`Cannot find package '@nexus-aethra/dshell-...' imported from /home/wpp/.dsh/profiles/web/`** — the dshell packages have
+- **`Cannot find package '@nexus-aethra/dshell-...' imported from /home/reader/.dsh/profiles/web/`** — the dshell packages have
   not been installed into the profile. Run
   `./scripts/install-into-dsh-profile.sh`.
 - **`Cannot find module '...lib/index.js'`** — the dshell package was

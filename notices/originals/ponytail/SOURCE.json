@@ -1,0 +1,10 @@
+{
+  "packageName": "@wenaixi/dsh-ponytail",
+  "version": "5.6.1",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Wenaixi/dsh-ponytail.git"
+  },
+  "upstreamLicenseFile": true
+}

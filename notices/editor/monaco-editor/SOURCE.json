@@ -1,0 +1,11 @@
+{
+  "name": "monaco-editor",
+  "version": "0.57.0",
+  "license": "MIT",
+  "resolved": "https://registry.npmjs.org/monaco-editor/-/monaco-editor-0.57.0.tgz",
+  "integrity": "sha512-5BkI9KGoqrNvBGUe15/QlZq3OooZ8WLg1AxTpaqHRCP3HNpzPPZKE2EDz8M7c+VRmCeUw1Brp4cx/PWm3kI/5A==",
+  "files": {
+    "LICENSE": "33e4ff1a06ef62ba21788ea162564ee8165269a24a9ce6ef301837447eab0ac6",
+    "ThirdPartyNotices.txt": "790537262fc78a764e121e6b92b959bcd3f5c310b47d9d9b9e92e17fe0af5336"
+  }
+}

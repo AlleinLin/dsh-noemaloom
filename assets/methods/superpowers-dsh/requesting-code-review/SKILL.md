@@ -1,7 +1,9 @@
 ---
 name: requesting-code-review
-description: Use when completing tasks, implementing major features, or before merging to verify work meets requirements
+description: "Superpower Skill: Use when completing tasks, implementing major features, or before merging to verify work meets requirements"
+description_zh: "Superpower Skill：在任务完成、重大功能实现或准备合并到主分支时发起，用于校验实现是否符合需求与质量标准，建议定期执行。"
 ---
+
 
 # Requesting Code Review
 
@@ -52,7 +54,7 @@ Dispatch a `general-purpose` subagent, filling the template at [code-reviewer.md
 
 You: Let me request code review before proceeding.
 
-BASE_SHA=$(git log --oneline | grep "Task 1" | head -1 | cut -d' ' -f1)
+BASE_SHA=$(git log --oneline | grep "Task 1" | head -1 | awk '{print $1}')
 HEAD_SHA=$(git rev-parse HEAD)
 
 [Dispatch code reviewer subagent]

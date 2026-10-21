@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "platform": "win32-x64",
+  "artifacts": [
+    {"id":"node","version":"1.140.0","name":"js-debug-dap-v1.140.0.tar.gz","url":"https://github.com/microsoft/vscode-js-debug/releases/download/v1.140.0/js-debug-dap-v1.140.0.tar.gz","sha256":"27dab92937ec1ab35821ae955aac867544fe06a1b6307229049f2d789af10968","license":"MIT"},
+    {"id":"csharp","version":"3.2.0-1092","name":"netcoredbg-win64.zip","url":"https://github.com/Samsung/netcoredbg/releases/download/3.2.0-1092/netcoredbg-win64.zip","sha256":"3c410a45fa502415203a94fcb88654af65bf8e3dac158a5527a722e7a6b9274a","license":"MIT"},
+    {"id":"java-debug","version":"0.60.0 (server jar 0.53.2)","name":"vscjava.vscode-java-debug-0.60.0.vsix","url":"https://open-vsx.org/api/vscjava/vscode-java-debug/0.60.0/file/vscjava.vscode-java-debug-0.60.0.vsix","sha256":"f09ebe358a7b08b3c17b21b8d8207b0649acad120eb6f1604dc4f15379f59d66","license":"EPL-1.0"},
+    {"id":"jdtls","version":"1.63.0-202610191322","name":"jdt-language-server-1.63.0-202610191322.tar.gz","url":"https://download.eclipse.org/jdtls/milestones/1.63.0/jdt-language-server-1.63.0-202610191322.tar.gz","sha256":"b1f2abe0b3cccb462cf64fb4a5587c7d09df60cf8be7748b152cbd89d018bdc4","license":"EPL-2.0"},
+    {"id":"java-runtime","version":"25.0.4.1+1","name":"OpenJDK25U-jdk_x64_windows_hotspot_25.0.4.1_1.zip","url":"https://github.com/adoptium/temurin25-binaries/releases/download/jdk-25.0.4.1%2B1/OpenJDK25U-jdk_x64_windows_hotspot_25.0.4.1_1.zip","sha256":"00c847d804f4a78e9f04f2683faf14fed898535b177b7fc704486cb0284e9283","license":"GPL-2.0 WITH Classpath-exception-2.0"},
+    {"id":"python-310","version":"1.8.22","name":"debugpy-1.8.22-cp310-cp310-win_amd64.whl","url":"https://files.pythonhosted.org/packages/82/7f/633160132b80b424c6816391f239682435c6b77cdd58288d04b3443b9f80/debugpy-1.8.22-cp310-cp310-win_amd64.whl","sha256":"1bd0c6df3c68c0a3f71db8baa3780a953abb65537ec4b3bc6b935ad5b3b3d45c","license":"MIT"},
+    {"id":"python-311","version":"1.8.22","name":"debugpy-1.8.22-cp311-cp311-win_amd64.whl","url":"https://files.pythonhosted.org/packages/32/1a/c086b883a4561017bfdd83c1bc70bf2b05ab6540ff767dedf207cadab938/debugpy-1.8.22-cp311-cp311-win_amd64.whl","sha256":"1e76339d5510bc17e9181dba9577508afcb21aad5728f1a55ef74d7d97d255f3","license":"MIT"},
+    {"id":"python-312","version":"1.8.22","name":"debugpy-1.8.22-cp312-cp312-win_amd64.whl","url":"https://files.pythonhosted.org/packages/4b/fe/e7d3b72874cdd327bda295d1995a01e426857ae9cbaaba74fd997bc3afbc/debugpy-1.8.22-cp312-cp312-win_amd64.whl","sha256":"371a4ba4a5975eb958393903f3254cf983da7b1c7c178b3f987ee427f42515e3","license":"MIT"},
+    {"id":"python-313","version":"1.8.22","name":"debugpy-1.8.22-cp313-cp313-win_amd64.whl","url":"https://files.pythonhosted.org/packages/d0/f5/c2b3e8260388d7b76bc4e5a3a29648a0ca47dca6a2721d6549ff2d944eee/debugpy-1.8.22-cp313-cp313-win_amd64.whl","sha256":"f49b1d6cecf326b63c06d7f517e4a6642777f758c58cb799e7bc5a6dd74721c2","license":"MIT"},
+    {"id":"python-314","version":"1.8.22","name":"debugpy-1.8.22-cp314-cp314-win_amd64.whl","url":"https://files.pythonhosted.org/packages/94/53/5b4d91f7fffb9393ac907133201d1da0c070d57e463ee8e2ec1db3cb63b6/debugpy-1.8.22-cp314-cp314-win_amd64.whl","sha256":"d593a330297332ec435f3965c448b6d500e03f33675cf2063178bc76377a788e","license":"MIT"}
+  ]
+}

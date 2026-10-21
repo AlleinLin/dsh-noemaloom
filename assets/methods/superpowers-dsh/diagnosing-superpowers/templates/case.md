@@ -1,6 +1,6 @@
 # Case: <session-id>
 
-Workspace: $DSH_HOME/diagnosing-superpowers/<session-id>/
+Workspace: ~/.superpowers/diagnosing-superpowers/<session-id>/
 Created: <ISO timestamp>
 
 ## Problem statement (agreed with your human partner)

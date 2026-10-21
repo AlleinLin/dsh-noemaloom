@@ -72,6 +72,39 @@ test('Codinput keeps every upstream slot option and component unchanged', () => 
   }
 });
 
+test('bundled workflow settings keep their original controller and component in native settings', () => {
+  for (const packageName of ['@wenaixi/dsh-superpower', '@wenaixi/dsh-ponytail']) {
+    const entries: any[] = [], dependencies: string[] = [];
+    const ctx: any = {
+      slots: {
+        inject(name: string, callback: () => unknown) { dependencies.push(name); return callback(); },
+        register(options: unknown, component: unknown) {
+          const entry = { options, component }; entries.push(entry);
+          return () => entries.splice(entries.indexOf(entry), 1);
+        },
+      },
+      extend(meta: unknown) { return Object.assign(Object.create(this), meta); },
+    };
+    const controller = { mutate: () => {} };
+    const inject = () => ({ actions: controller });
+    const component = () => null;
+    const adapted = adaptOriginalClientContext(ctx, packageName);
+    const stop = adapted.slots.inject('plugins.bundle.config', () => adapted.slots.register({
+      name: 'plugins.bundle.config', key: packageName, locale: packageName, inject,
+    }, component));
+    assert.deepEqual(dependencies, ['settings.section']);
+    assert.equal(entries[0].options.name, 'settings.section');
+    assert.ok(entries[0].options.id);
+    assert.equal(entries[0].options.key, undefined);
+    assert.equal(entries[0].options.locale, packageName);
+    assert.equal(entries[0].options.inject, inject);
+    assert.equal(entries[0].component, component);
+    assert.equal(entries[0].options.inject().actions, controller);
+    stop();
+    assert.equal(entries.length, 0);
+  }
+});
+
 test('feature navigation uses the native owning entry instead of another copy of a feature', () => {
   const calls: unknown[][] = [];
   const ctx: any = {

@@ -66,7 +66,7 @@ def main():
             ("3c prompt 字段拦截",
              {**v, "prompt": "你是一个…"}),
             ("3d API key 拦截",
-             {**v, "details": [{"env": "sk-" + "0" * 32}]}),
+             {**v, "details": [{"env": "sk-dummy0abcdefghijklmnop"}]}),
             ("3e unix 家目录拦截",
              {**v, "suite_origin": "/Users/test/worktree"}),
         ]:

@@ -171,6 +171,7 @@ export function withScopePolicy(module: NexusModule, services: NexusServices): N
     if (request.action.startsWith('native/') || ctx?.actorId?.startsWith('native-') || request.action === 'prompt/on-turn') return module.dispatch(request, ctx);
     const config = await effectiveSettings(services.store, ctx?.workspaceRoot ?? services.workspaceRoot, ctx, module.id);
     if (config.effective.enabled === false
+      && !(module.id === 'debug' && ['stop', 'snapshot', 'draft.get', 'draft.put', 'draft.remove'].includes(request.action))
       && !(module.id === 'autonomy' && ['settings', 'get', 'list', 'pause', 'reconcile'].includes(request.action))) {
       throw new NexusError('PERMISSION_DENIED', '此范围已停用该功能');
     }

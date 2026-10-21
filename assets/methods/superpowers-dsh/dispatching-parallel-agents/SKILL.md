@@ -1,7 +1,9 @@
 ---
 name: dispatching-parallel-agents
-description: Use when facing 2+ independent tasks that can be worked on without shared state or sequential dependencies
+description: "Superpower Skill: Use when facing 2+ independent tasks that can be worked on without shared state or sequential dependencies"
+description_zh: "Superpower Skill：面向 2 个以上无共享状态、无前后依赖的独立任务，并行委派多个 subagent 协同处理的高效分发模式。"
 ---
+
 
 # Dispatching Parallel Agents
 
@@ -114,17 +116,17 @@ Return: Summary of what you found and what you fixed.
 
 ## Common Mistakes
 
-**❌ Too broad:** "Fix all the tests" - agent gets lost
-**✅ Specific:** "Fix agent-tool-abort.test.ts" - focused scope
+**[FAIL] Too broad:** "Fix all the tests" - agent gets lost
+**[OK] Specific:** "Fix agent-tool-abort.test.ts" - focused scope
 
-**❌ No context:** "Fix the race condition" - agent doesn't know where
-**✅ Context:** Paste the error messages and test names
+**[FAIL] No context:** "Fix the race condition" - agent doesn't know where
+**[OK] Context:** Paste the error messages and test names
 
-**❌ No constraints:** Agent might refactor everything
-**✅ Constraints:** "Do NOT change production code" or "Fix tests only"
+**[FAIL] No constraints:** Agent might refactor everything
+**[OK] Constraints:** "Do NOT change production code" or "Fix tests only"
 
-**❌ Vague output:** "Fix it" - you don't know what changed
-**✅ Specific:** "Return summary of root cause and changes"
+**[FAIL] Vague output:** "Fix it" - you don't know what changed
+**[OK] Specific:** "Return summary of root cause and changes"
 
 ## When NOT to Use
 

@@ -7,6 +7,13 @@
   "archiveEntries": 375,
   "license": "MIT",
   "dshellPackageVersion": "0.1.14",
-  "preserved": "All original archive members, with the common archive root removed; no original source files edited.",
-  "adaptations": "nexus-adapter/ holds explicit fail-closed build transformations and Windows platform support."
+  "preserved": "Latest pinned upstream tree; archive identity retained as acquisition history. Runtime source is identical to the supplied archive; documentation and lockfile refreshed.",
+  "adaptations": "nexus-adapter/ holds explicit fail-closed build transformations and Windows platform support.",
+  "revision": "cdf0e31d51c3abf550b949f2dcc41f02264cdc3b",
+  "sourceKind": "git-snapshot",
+  "snapshot": {
+    "repo": "https://github.com/Nexus-Aethra/Nexus-Terminal",
+    "revision": "cdf0e31d51c3abf550b949f2dcc41f02264cdc3b",
+    "sha256": "65af254c77e66f70d76521c7dc45fd2abfbb559cb84cab91be5d663d2c603fbe"
+  }
 }

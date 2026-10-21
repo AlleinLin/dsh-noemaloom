@@ -1,0 +1,10 @@
+{
+  "packageName": "dsh-ops",
+  "version": "0.4.1",
+  "license": "MIT AND Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/T-Auto/dsh-ops.git"
+  },
+  "upstreamLicenseFile": true
+}

@@ -14,8 +14,18 @@ type OriginalContext = ClientContext & {
   extend?(meta: Record<string, unknown>): OriginalContext;
 };
 
+const workflowSettings: Record<string, { id: string; label: string; order: number }> = {
+  '@wenaixi/dsh-superpower': { id: 'superpowers', label: 'Superpowers', order: 105 },
+  '@wenaixi/dsh-ponytail': { id: 'ponytail', label: 'Ponytail', order: 106 },
+};
+
 /** Narrowly changes placement, retaining the original component and injector. */
 export function originalSlotOptions(originalId: string, options: Data): Data | undefined {
+  const settings = workflowSettings[originalId];
+  if (settings && options.name === 'plugins.bundle.config' && options.key === originalId) {
+    const { key: _key, ...rest } = options;
+    return { ...rest, name: 'settings.section', id: settings.id, order: settings.order, label: () => settings.label };
+  }
   if (originalId === 'dsh-better-display' && options.name === 'conversation.view' && options.id === 'reader') return undefined;
   if (originalId === 'dsh-context'
     && (options.name === 'sidebar.right.pane.tab' || options.name === 'sidebar.right.pane.tab.title')
@@ -39,6 +49,8 @@ export function adaptOriginalClientContext<T extends ClientContext>(ctx: T, orig
   if (cached) return cached as T;
   const slots = new Proxy(original.slots, {
     get(target, key) {
+      if (key === 'inject') return (name: string, callback: (...args: any[]) => any) =>
+        target.inject(workflowSettings[originalId] && name === 'plugins.bundle.config' ? 'settings.section' : name, callback);
       if (key === 'register') return (options: Data, component: unknown) => {
         const adapted = originalSlotOptions(originalId, options);
         if (!adapted) return noop;

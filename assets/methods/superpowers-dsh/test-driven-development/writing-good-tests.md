@@ -30,11 +30,11 @@ shape. An expectation computed by the code under test — or its helpers —
 passes no matter what that code does:
 
 ```typescript
-// ❌ Mirror assertion: the same builder computes both sides — always true
+// [FAIL] Mirror assertion: the same builder computes both sides — always true
 const expected = buildSearchQuery({ tag: 'urgent' });
 expect(buildSearchQuery({ tag: 'urgent' })).toBe(expected);
 
-// ✅ Hand-derived literal
+// [OK] Hand-derived literal
 expect(buildSearchQuery({ tag: 'urgent' })).toBe('tag:"urgent"');
 ```
 
@@ -48,7 +48,7 @@ retried 5 times and the 6th attempt never happens."
 contains an exact line proves only that the source is the source. Run
 scripts against controlled inputs and assert outputs, side effects, or
 exit codes. Documents that instruct agents are tested by the consuming
-agent's behavior (writing-skills); prose for humans earns no
+agent's behavior (superpowers:writing-skills); prose for humans earns no
 test at all.
 
 **Your code, not the framework.** Test the contract your code makes at
@@ -86,10 +86,10 @@ component. Assert the real component's behavior; if the mock is what you
 are checking, unmock it or delete the assertion.
 
 ```typescript
-// ✅ Real behavior
+// [OK] Real behavior
 expect(screen.getByRole('navigation')).toBeInTheDocument();
 
-// ❌ Mock existence
+// [FAIL] Mock existence
 expect(screen.getByTestId('sidebar-mock')).toBeInTheDocument();
 ```
 
@@ -102,12 +102,12 @@ the test depends on real. When unsure, run the test against the real
 implementation first and observe what actually needs to happen.
 
 ```typescript
-// ❌ The mock swallows the config write that duplicate detection reads
+// [FAIL] The mock swallows the config write that duplicate detection reads
 vi.mock('ToolCatalog', () => ({
   discoverAndCacheTools: vi.fn().mockResolvedValue(undefined)
 }));
 
-// ✅ Mock only the slow server startup; the config write stays real
+// [OK] Mock only the slow server startup; the config write stays real
 vi.mock('MCPServerManager');
 ```
 

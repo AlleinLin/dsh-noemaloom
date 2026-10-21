@@ -41,3 +41,18 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .tmp/
+
+# Local state that belongs to a machine, not to the repository. A profile, a
+# data root, a credential file or a scratch directory is the reader's own, and
+# one of these is a secret: the device store keeps a vault group's material.
+# The repository's rule is that a tracked file may describe a machine but never
+# be one - `scripts/tests/repo-hygiene.spec.ts` enforces the text half.
+.env
+.env.*
+*.local
+*.pem
+*.key
+credentials.json
+vault.json
+.scratch/
+.packs/

@@ -116,12 +116,17 @@ function normalizeK(value: unknown, source: 'remote' | 'cache' | 'bundled'): Cat
   if (!plain(value) || value.schemaVersion !== 1 || typeof value.generatedAt !== 'string' || !Number.isFinite(Date.parse(value.generatedAt)) || !Array.isArray(value.skins) || value.skins.length > 5000) throw new NexusError('FORMAT_UNSUPPORTED', 'K 皮肤目录格式无效');
   const manifestHash = hash(JSON.stringify(value)), seen = new Set<string>();
   const items = value.skins.map((raw: unknown): MarketItem => {
-    if (!plain(raw) || typeof raw.id !== 'string' || typeof raw.package !== 'string' || !NPM_SPEC.test(raw.package) || typeof raw.repo !== 'string'
+    if (!plain(raw) || typeof raw.id !== 'string' || typeof raw.package !== 'string' || !/^(?:@[A-Za-z0-9][A-Za-z0-9._-]*\/)?[A-Za-z0-9][A-Za-z0-9._-]*$/.test(raw.package) || typeof raw.repo !== 'string'
       || !/^https:\/\/github\.com\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+\/?$/.test(raw.repo) || !plain(raw.install)
       || typeof raw.install.commit !== 'string' || !/^[a-f0-9]{40}$/.test(raw.install.commit) || typeof raw.install.target !== 'string') throw new NexusError('FORMAT_UNSUPPORTED', 'K 目录条目或固定版本无效');
     const repo = raw.repo.replace(/^https:\/\/github\.com\//, '').replace(/\/$/, '');
     const suffix = typeof raw.subpath === 'string' ? `&path:${safeRel(raw.subpath)}` : '';
-    if (raw.install.target !== `github:${repo}#${raw.install.commit}${suffix}` || seen.has(raw.id)) throw new NexusError('FORMAT_UNSUPPORTED', 'K 目录固定提交不匹配或 id 重复');
+    const target = `github:${repo}#${raw.install.commit}`;
+    const allowed = [target + suffix];
+    // New catalogs use pnpm's root-relative &path:/ form. Both spellings
+    // resolve the same separately validated safe repository subpath.
+    if (typeof raw.subpath === 'string') allowed.push(`${target}&path:/${safeRel(raw.subpath)}`);
+    if (!allowed.includes(raw.install.target) || seen.has(raw.id)) throw new NexusError('FORMAT_UNSUPPORTED', 'K 目录固定提交不匹配或 id 重复');
     seen.add(raw.id);
     return {
       ...raw, id: `K:skin:${raw.id}`, marketId: raw.id, kind: 'skin', name: textName(raw.name, raw.id),

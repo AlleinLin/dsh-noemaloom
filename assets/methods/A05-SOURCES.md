@@ -8,6 +8,6 @@
 
 feng0531/dsh-code-review 为自定义非商业源码公开许可证，禁止无授权的公司内部商业用途。本交付未复制其受限源码；Git/SVN 捕获、两阶段固定快照审查、证据校验、独立角色复核是依据产品规格独立实现。没有声称得到该项目商业授权。
 
-Aegis 的完整 skills 直接复制到 `aegis/`，保留 Jesse Vincent 与 Ganyuan Ran MIT 通知，包括风险分流、根因调试、ADR、反熵、续接和单一 closeout。Superpowers DSH 完整 skills 复制到 `superpowers-dsh/`，上游 MIT 通知与实际包元数据并列，保留 DSH 工具适配文本作为方法数据，不注册旧接口。J-Space 分阶段问题构造与各认知模块由 `j-space/METHODS.md` 提供自有等效方法，不转载受排除第三方思维轨迹引文，保留 Apache 来源边界。统一工作流调度器拥有执行权，quality/artifact 不建立第二调度器。
+Aegis 的完整 skills 直接复制到 `aegis/`，保留 Jesse Vincent 与 Ganyuan Ran MIT 通知，包括风险分流、根因调试、ADR、反熵、续接和单一 closeout。Superpowers 由 @wenaixi/dsh-superpower 8.0.0 原生 provider 注册15个技能，Ponytail 由 @wenaixi/dsh-ponytail 5.6.1 注册6个技能和会话模式；各自保留原设置。`superpowers-dsh/` 和 `ponytail/` 保留适配包技能及真正上游来源。OpenSpec 原生注册12个技能与12个命令别名，CLI来自固定的 @fission-ai/openspec 1.14.3。Karpathy 使用原 provider 解析 canonical `karpathy-guidelines`。J-Space 分阶段问题构造与各认知模块由 `j-space/METHODS.md` 提供自有等效方法，不转载受排除第三方思维轨迹引文，保留 Apache 来源边界。统一工作流调度器拥有执行权，quality/artifact 不建立第二调度器。
 
 文件操作撤销只存操作自身的 inverse delta 和 hash，用于产品内冲突保护；本次部署不创建 profile 副本、`.bak`、本机恢复快照或机器配置归档。

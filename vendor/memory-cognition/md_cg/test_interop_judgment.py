@@ -85,7 +85,7 @@ def main():
         # 拦截断言不变；同时 scripts/check_publish_artifact.py 的 R1 会把它
         # 记为 NOTE 而非 FAIL（否则出货门禁对「测试夹具里的假值」恒红——
         # 红着等于没门禁）。见 FAKE_TOKEN_MARKERS。
-        ("ghp_ token", "ghp_" + "0" * 32),
+        ("ghp_ token", "ghp_dummyABCDEFGHIJKLMNOPQRSTUVWXYZ1234"),
         ("AIza key", "AIzaSyABCDEFGHIJKLMNOPQRSTUVWXYZ1234567"),
         ("AKIA key", "AKIAIOSFODNN7EXAMPLE"),
         ("Bearer", "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.payload.sig"),

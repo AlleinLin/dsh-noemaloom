@@ -367,10 +367,12 @@ def set_state(cg, node_id: str, dst: str, reason: str = None,
     from . import chain as _chain
     _chain.invalidate_cache(cg)
     try:
+        # issue #547：`_lifecycle.jsonl` 是审计台账（状态迁移留痕），按 #549 的口径
+        # 走 durable=True（原为缺省 + `except: pass`，丢行静默）。
         append_jsonl(os.path.join(cg.root, AUDIT_FILE), {
             "t": at, "action": "set_state", "node_id": node_id,
             "from": src, "to": dst, "reason": reason, "actor": actor,
-            "override": bool(override)})
+            "override": bool(override)}, durable=True)
     except Exception:                    # 审计失败不阻断状态推进
         pass
     return {**base, "ok": True, "changed": True, "reason": why, "at": at}

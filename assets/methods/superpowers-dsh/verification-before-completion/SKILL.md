@@ -1,7 +1,9 @@
 ---
 name: verification-before-completion
-description: Use when about to claim work is complete, fixed, or passing, before committing or creating PRs - requires running verification commands and confirming output before making any success claims; evidence before assertions always
+description: "Superpower Skill: Use when about to claim work is complete, fixed, or passing, before committing or creating PRs - requires running verification commands and confirming output before making any success claims; evidence before assertions always"
+description_zh: "Superpower Skill：在声称完成、修复或通过前强制执行校验，用于提交或创建 PR 前必须运行验证命令并确认输出，始终以证据为准而非断言。"
 ---
+
 
 # Verification Before Completion
 
@@ -75,32 +77,32 @@ Skip any step = lying, not verifying
 
 **Tests:**
 ```
-✅ [Run test command] [See: 34/34 pass] "All tests pass"
-❌ "Should pass now" / "Looks correct"
+[OK] [Run test command] [See: 34/34 pass] "All tests pass"
+[FAIL] "Should pass now" / "Looks correct"
 ```
 
 **Regression tests (TDD Red-Green):**
 ```
-✅ Write → Run (pass) → Revert fix → Run (MUST FAIL) → Restore → Run (pass)
-❌ "I've written a regression test" (without red-green verification)
+[OK] Write → Run (pass) → Revert fix → Run (MUST FAIL) → Restore → Run (pass)
+[FAIL] "I've written a regression test" (without red-green verification)
 ```
 
 **Build:**
 ```
-✅ [Run build] [See: exit 0] "Build passes"
-❌ "Linter passed" (linter doesn't check compilation)
+[OK] [Run build] [See: exit 0] "Build passes"
+[FAIL] "Linter passed" (linter doesn't check compilation)
 ```
 
 **Requirements:**
 ```
-✅ Re-read plan → Create checklist → Verify each → Report gaps or completion
-❌ "Tests pass, phase complete"
+[OK] Re-read plan → Create checklist → Verify each → Report gaps or completion
+[FAIL] "Tests pass, phase complete"
 ```
 
 **Agent delegation:**
 ```
-✅ Agent reports success → Check VCS diff → Verify changes → Report actual state
-❌ Trust agent report
+[OK] Agent reports success → Check VCS diff → Verify changes → Report actual state
+[FAIL] Trust agent report
 ```
 
 ## When To Apply

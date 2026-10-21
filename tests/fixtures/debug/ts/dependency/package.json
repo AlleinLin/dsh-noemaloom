@@ -1,0 +1,6 @@
+{
+  "name": "nexus-debug-fixture",
+  "private": true,
+  "type": "module",
+  "exports": "./index.js"
+}

@@ -77,3 +77,14 @@ Codinput uses its pinned, verbatim vendored client factory and CommonJS host;
 the build checks `vendor/codinput/SOURCE.json` before generating the bridge.
 See [the integration notes](codinput-upstream.md) for its original surfaces and
 Desktop validation targets.
+# Native editor assets and debugger acceptance
+
+The normal build also writes `lib/editor/manifest.json` and separately bundled,
+local ESM Monaco/worker assets. The main client includes only its native renderer
+registration and lazy loader. The build retains exact dependency licenses in
+`notices/editor/`; artifact and actual-package audits verify every whitelisted
+editor asset hash. Debugger binaries remain an on-demand, SHA-256-pinned cache.
+See [NATIVE-EDITOR.md](NATIVE-EDITOR.md) for toolchain prerequisites, supported
+launch.json features, recovery limits and the real four-language acceptance
+command. Run that acceptance only after the complete source batch is frozen.
+

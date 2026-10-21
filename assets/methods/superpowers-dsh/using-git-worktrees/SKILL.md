@@ -1,7 +1,9 @@
 ---
 name: using-git-worktrees
-description: Use when starting feature work that needs isolation from current workspace or before executing implementation plans - ensures an isolated workspace exists via native tools or git worktree fallback
+description: "Superpower Skill: Use when starting feature work that needs isolation from current workspace or before executing implementation plans - ensures an isolated workspace exists via native tools or git worktree fallback"
+description_zh: "Superpower Skill：适用于需与当前 worktree 隔离的功能开发或执行实现计划前，通过原生工具优先、git worktree 兜底的方式确保独立 worktree 就绪。"
 ---
+
 
 # Using Git Worktrees
 

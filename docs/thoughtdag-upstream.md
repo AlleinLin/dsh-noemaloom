@@ -1,6 +1,6 @@
 # ThoughtDAG 上游适配
 
-Noemaloom 固定使用 npm 发布的 `dsh-thoughtdag@0.5.21`，来源为
+Noemaloom 固定使用 npm 发布的 `dsh-thoughtdag@0.5.22`，来源为
 [chenxiachan/thoughtdag](https://github.com/chenxiachan/thoughtdag/tree/main/dsh)，
 沿用 MIT 许可。依赖与归档完整性记录在 `package-lock.json` 和
 `sources.lock.json`，发布包许可保留于 `notices/originals/thoughtdag/`。

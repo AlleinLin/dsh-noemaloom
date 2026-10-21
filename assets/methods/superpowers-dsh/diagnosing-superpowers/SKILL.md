@@ -1,7 +1,9 @@
 ---
 name: diagnosing-superpowers
-description: Use when a superpowers session went wrong and your human partner wants to know why — repeated work, ignored plans, stumbles, poor results, a skill that didn't fire, "it took too long", "why is it so expensive", "what is it doing" — or wants to build a bug report for the superpowers maintainers, for the current session or a past one identified by id or path, on any harness.
+description: "Superpower Skill: Use when a superpowers session went wrong and your human partner wants to know why - repeated work, ignored plans, stumbles, poor results, a skill that didn't fire, it took too long, why is it so expensive, what is it doing - or wants to build a bug report for the superpowers maintainers, for the current session or a past one identified by id or path, on any harness."
+description_zh: "Superpower Skill：当 superpowers 会话出错、human partner 想查原因（重复工作、忽略计划、技能未触发、耗时过长、成本过高、结果不佳）或想为维护者建缺陷报告时，适用当前或历史会话。"
 ---
+
 
 # Diagnosing Superpowers
 
@@ -30,7 +32,7 @@ Create a todo per step. Steps 5–7 run only on their stated condition.
    `references/session-discovery.md`. Confirm a past session by quoting its
    first prompt and timestamp, and list every candidate you rejected with the
    reason, or "none". Enumerate subagent transcripts. Create
-   `$DSH_HOME/diagnosing-superpowers/<session-id>/`, tell your
+   `~/.superpowers/diagnosing-superpowers/<session-id>/`, tell your
    partner the path, and fill `templates/case.md` there, following its
    provenance rules for environment and skill observations.
 3. **Triage.** Read the region around the reported problem yourself. Then

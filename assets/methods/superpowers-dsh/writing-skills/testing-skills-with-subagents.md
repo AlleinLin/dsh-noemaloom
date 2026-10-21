@@ -10,9 +10,9 @@ You run scenarios without the skill (RED - watch agent fail), write skill addres
 
 **Core principle:** If you didn't watch an agent fail without the skill, you don't know if the skill prevents the right failures.
 
-**REQUIRED BACKGROUND:** You MUST understand test-driven-development before using this skill. That skill defines the fundamental RED-GREEN-REFACTOR cycle. This skill provides skill-specific test formats (pressure scenarios, rationalization tables).
+**REQUIRED BACKGROUND:** You MUST understand superpowers:test-driven-development before using this skill. That skill defines the fundamental RED-GREEN-REFACTOR cycle. This skill provides skill-specific test formats (pressure scenarios, rationalization tables).
 
-**Complete worked example:** See examples/CLAUDE_MD_TESTING.md for a full test campaign testing CLAUDE.md documentation variants.
+**Complete worked example:** Run the TDD mapping above against a DSH instruction file (`AGENTS.md` / `an instruction file`) to verify skill discovery and compliance under pressure scenarios.
 
 ## When to Use
 
@@ -331,29 +331,29 @@ Before deploying skill, verify you followed RED-GREEN-REFACTOR:
 
 ## Common Mistakes (Same as TDD)
 
-**❌ Writing skill before testing (skipping RED)**
+**[FAIL] Writing skill before testing (skipping RED)**
 Reveals what YOU think needs preventing, not what ACTUALLY needs preventing.
-✅ Fix: Always run baseline scenarios first.
+[OK] Fix: Always run baseline scenarios first.
 
-**❌ Not watching test fail properly**
+**[FAIL] Not watching test fail properly**
 Running only academic tests, not real pressure scenarios.
-✅ Fix: Use pressure scenarios that make agent WANT to violate.
+[OK] Fix: Use pressure scenarios that make agent WANT to violate.
 
-**❌ Weak test cases (single pressure)**
+**[FAIL] Weak test cases (single pressure)**
 Agents resist single pressure, break under multiple.
-✅ Fix: Combine 3+ pressures (time + sunk cost + exhaustion).
+[OK] Fix: Combine 3+ pressures (time + sunk cost + exhaustion).
 
-**❌ Not capturing exact failures**
+**[FAIL] Not capturing exact failures**
 "Agent was wrong" doesn't tell you what to prevent.
-✅ Fix: Document exact rationalizations verbatim.
+[OK] Fix: Document exact rationalizations verbatim.
 
-**❌ Vague fixes (adding generic counters)**
+**[FAIL] Vague fixes (adding generic counters)**
 "Don't cheat" doesn't work. "Don't keep as reference" does.
-✅ Fix: Add explicit negations for each specific rationalization.
+[OK] Fix: Add explicit negations for each specific rationalization.
 
-**❌ Stopping after first pass**
+**[FAIL] Stopping after first pass**
 Tests pass once ≠ bulletproof.
-✅ Fix: Continue REFACTOR cycle until no new rationalizations.
+[OK] Fix: Continue REFACTOR cycle until no new rationalizations.
 
 ## Quick Reference (TDD Cycle)
 

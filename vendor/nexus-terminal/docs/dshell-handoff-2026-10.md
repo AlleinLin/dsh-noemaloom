@@ -4,7 +4,7 @@
 [`dshell-architecture.md`](./dshell-architecture.md)、[`dshell-packages.md`](./dshell-packages.md)，
 上手顺序看 [`README.md`](./README.md)。
 
-本文里的每条读数都是 2026-10-19 在本机（Linux，`/home/wpp/nexus/Nexus-Shell`）复跑或复扫得到的，
+本文里的每条读数都是 2026-10-19 在本机（Linux，`<repo-root>`）复跑或复扫得到的，
 命令一起写出来了，可以直接推翻我。
 
 > 2026-10-20 在 Windows 上复跑并修正过一轮：§0 的状态、§1 的版本/测试/工作区/npm 三行、
@@ -214,7 +214,7 @@ spawn 重置时 `handle.truncate(0)` 直接抛 `EPERM`；而 dsh 宿主把**未�
 
 设备的 helper 协议只收**绝对 POSIX 路径**（"always absolute: the caller translates, the
 device does not guess"），而 seam 的 `toRemotePath` 对「不在会话树里的路径」是**原样透传**的
-——那段推理假设模型说的是 POSIX 拼法，可 Windows 宿主上模型的 cwd 是 `C:\Users\hp`，它说
+——那段推理假设模型说的是 POSIX 拼法，可 Windows 宿主上模型的 cwd 是 `C:\Users\reader`，它说
 的也是 Windows 拼法。于是：
 
 - dsh 在**回合开始前、模型还没被调用时**，会从会话目录**往上爬**找项目标记
@@ -236,7 +236,7 @@ device does not guess"），而 seam 的 `toRemotePath` 对「不在会话树里
 设备绑定的会话里，**命令确实跑在设备上**（seam 把 argv 换成 `bash -c`，设备回的是
 `Linux VM-0-6-ubuntu ... /root`），但**模型看到的还是宿主那套**——一个叫 `pwsh` 的工具，
 描述里写死了 PowerShell、`C:\...` 路径、`$env:NAME`，运行时上下文还报着宿主的
-`Current working directory: "C:\Users\hp"`。于是模型写 PowerShell，设备答
+`Current working directory: "C:\Users\reader"`。于是模型写 PowerShell，设备答
 `command not found`（127），agent 自己都察觉了："the pwsh tool actually runs on
 Linux VM-0-6-ubuntu — it's bash, not pwsh"。
 
@@ -304,10 +304,10 @@ provider），而**同名的作用域贡献会遮蔽全局的那一个**。所�
 **第五个坑（2026-10-20 桌面版实测）：设备会话的文件面板，把宿主的目录树拼到了设备的根下面。**
 
 设备绑定会话的右侧「文件」面板报的是「读取失败：目录不存在：`/root/.dsh/profiles/desktop/~/`」，
-面包屑却是 `C:\Users\hp`——**两个命名空间被拼在了一起**：设备根 `/root` 底下挂着宿主 profile
+面包屑却是 `C:\Users\reader`——**两个命名空间被拼在了一起**：设备根 `/root` 底下挂着宿主 profile
 目录的树，末尾还挂着一个 `~`。用真实的 `mount.js` 复现，能凑出这个串的拼法只有一种：
 **`node:path` 的 `relative()` 拿一个相对路径去比一个绝对根时，会把那个相对路径解析到"本进程的
-工作目录"**——Windows 上 dsh 宿主进程的工作目录正是 `C:\Users\hp\.dsh\profiles\desktop`，于是
+工作目录"**——Windows 上 dsh 宿主进程的工作目录正是 `C:\Users\reader\.dsh\profiles\desktop`，于是
 宿主自己的目录树被原样拼到了设备的 `/root` 下面。
 
 触发它还有半个前提：会话的根在绑定里存的是读者敲的 `~`，而它**展开成绝对路径靠的是 helper 握手的
@@ -359,21 +359,35 @@ desktop/~/` 恰好就是宿主自己的目录树。**拼路径之前先问"这�
 2. **11 个包都没有 `prepack`** ⇒ `lib/` 不在版本控制里，`pnpm publish` 会**直接打包磁盘上那一份**
    （可能半旧）而没有任何钩子失败。现在每个包发布前自己重建一次。
 3. `scripts/dshell-ui-order-acceptance.mjs` 写死了作者 Linux 机的 playwright 与 Chrome 绝对路径
-   （换机必崩）；`scripts/linux-desktop.mjs` 的 `.deb` Maintainer 字段写着 `wpp@localhost`。
+   （换机必崩）；`scripts/linux-desktop.mjs` 的 `.deb` Maintainer 字段写着 一个本地账号。
 4. ssh 的 `drop-intermediates.mjs` 只删 `.js` 不删 `.map` ⇒ tarball 里躺着两个没有对应脚本的孤儿 map。
+5. **`scripts/tests/repo-hygiene.spec.ts`（新增）**：把上面的三条规则做成测试——已跟踪文件里不许出现
+   **公网地址**、**不是本仓虚构用户的家目录**、**绝对路径的 link/file**；并且**把跟踪的图片按名字钉住**
+   （`docs/images/**`），因为**没有文字规则能看进 PNG**，而新截图必须被"有意地"加进那张表——那正是
+   该有人看一眼它的时刻。**牙齿检查**：把这三种泄漏放回去，恰好那三条规则变红。
 
-**没有动的**：`pnpm-lock.yaml` 里那 30 条 `link:/home/wpp/nexus/Nexus-Shell/dsh/...`。
+★ 配合 `.gitignore` 新增的一段（profile / 数据根 / 凭据文件 / scratch 目录）——**文字规则管"描述"，
+ignore 管"本身"**。缺了 ignore，一个 profile 或凭据文件会在某次 `git add -A` 里跟上来；
+缺了规则，机器身份会随着每一次读数渗进文档。
+
+**后来还是动了的**：`pnpm-lock.yaml` 里那 30 条指向一台机器家目录的 link。
 它是 pnpm 自己写的元数据（`packages:` 段记录 registry 包的 peer 被解析到了哪儿），
-**建软链走的是 `overrides:` / `importers:` 里的相对路径**——本机实测：锁文件写着 `/home/wpp/...`，
-而 `node_modules` 里的软链指向的是本机路径 ⇒ 那 30 条**不影响别人 `pnpm install`**。
-手改它反而可能让 `--frozen-lockfile` 对不上。**留着，但在这一节记账。**
+**建软链走的是 `overrides:` / `importers:` 里的相对路径**——本机实测：锁文件写着 `/home/<user>/...`，
+而 `node_modules` 里的软链指向的是本机路径 ⇒ 那 30 条**本来就不影响别人 `pnpm install`**。
+所以最初的判断是"留着、只记账"。**但它是公开仓里一处不必要的机器身份**，于是改成
+`link:./dsh/...`（与根 `overrides` 里那 49 条同形），并**实测**：把整个仓库复制到
+**另一个绝对路径**下跑 `pnpm install --frozen-lockfile` ⇒ **exit 0**，软链落到新路径，
+**pnpm 没有把它改回绝对形式** ⇒ 相对写法是被 pnpm 接受的，不是硬改。
+
+★ 教训：**"不影响安装"与"该不该留"是两件事。** 前者回答"会不会坏"，后者回答"该不该公开"。
+一个公开仓里，一台机器的家目录没有位置。
 
 ## 6. 交接纪律（先读这条再看代码）
 
 - **绝不 `git add -A`**。工作区的 `??` 有 8 个成片 mp4，只按路径 add；未跟踪文件不删。
 - **不直接提交 main**；合 main、发版、打 tag、推分支——先问 wpplight。本次已获授权推
   `feat/dshell-device-metrics`，**仅此一次**，不代表以后可以自己推。
-- **凭据**：npm 发布 token 在 `~/.npmrc.publish`（只有 `NPM_CONFIG_USERCONFIG=/home/wpp/.npmrc.publish`
+- **凭据**：npm 发布 token 在 `~/.npmrc.publish`（只有 `NPM_CONFIG_USERCONFIG=$HOME/.npmrc.publish`
   时才生效；默认 `~/.npmrc` 里那枚**已失效**，别被骗）。`~/.bashrc` 把 registry 导成 npmmirror，
   所以发布/查版本要显式 `--registry=https://registry.npmjs.org/`。
   **SSH 设备（`root@43.138.••.•••`）的口令不在仓库里、也不要打印内容**；要用来真机验收时
@@ -391,7 +405,7 @@ desktop/~/` 恰好就是宿主自己的目录树。**拼路径之前先问"这�
 ## 7. 接手第一步
 
 ```sh
-cd /home/wpp/nexus/Nexus-Shell
+cd <repo-root>
 git status -sb                 # 应显示与 origin/feat/dshell-device-metrics 同步
 pnpm i
 pnpm run test && pnpm run typecheck     # 期望 584/584 + 干净

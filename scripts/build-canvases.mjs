@@ -51,7 +51,7 @@ async function buildThoughtdag() {
   const entry = require.resolve('dsh-thoughtdag');
   const root = dirname(dirname(entry));
   const manifest = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
-  if (manifest.version !== '0.5.21') throw new Error('ThoughtDAG adapter requires reviewed version 0.5.21');
+  if (manifest.version !== '0.5.22') throw new Error('ThoughtDAG adapter requires reviewed version 0.5.22');
   const original = await readFile(entry, 'utf8');
   const adapted = adaptThoughtdagHost(original);
   const output = join(project, 'lib/canvas-original/thoughtdag');

@@ -184,6 +184,8 @@ export interface NexusHost {
 }
 
 export interface NexusServices {
+  /** Session-owned debugger; deliberately never tied to the current tool signal. */
+  debug?: import('../host/debug/runtime.js').DebugRuntime;
   store: NexusStore;
   executor: NexusExecutor;
   host: NexusHost;

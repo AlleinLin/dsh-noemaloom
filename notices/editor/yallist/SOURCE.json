@@ -1,0 +1,10 @@
+{
+  "name": "yallist",
+  "version": "5.0.0",
+  "license": "BlueOak-1.0.0",
+  "resolved": "https://registry.npmjs.org/yallist/-/yallist-5.0.0.tgz",
+  "integrity": "sha512-YgvUTfwqyc7UXVMrB+SImsVYSmTS8X/tSrtdNZMImM+n7+QTriRXyXim0mBrTXNeqzVF0KWGgHPeiyViFFrNDw==",
+  "files": {
+    "LICENSE.md": "a49c9ba464796f65b59fca3f1e6ca40912df1e859f575383223f7ec6c5baae09"
+  }
+}

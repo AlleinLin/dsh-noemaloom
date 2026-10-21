@@ -19,6 +19,7 @@ import { registerLiveCommandMonitor } from './LiveCommands.js';
 import { registerRecoveryDiagnostics } from './RecoveryDiagnostics.js';
 import { registerAutonomyConversation } from './AutonomyPlan.js';
 import { registerCompanionConversation } from './Companion.js';
+import { registerEditor } from './editor/register.js';
 const WorkflowEditor = React.lazy(() => import('./WorkflowEditor.js').then(module => ({ default: module.WorkflowEditor })));
 
 export const name = 'dsh-nexus-client';
@@ -91,6 +92,7 @@ export function apply(ctx: ClientContext) {
     disposers.push(registerRecoveryDiagnostics(ctx));
     disposers.push(registerAutonomyConversation(ctx));
     disposers.push(registerCompanionConversation(ctx));
+    disposers.push(registerEditor(ctx, api));
     return () => { for (const disposer of disposers.reverse()) disposer(); api.dispose(); };
   }, 'nexus: native workspace, settings, navigation and authenticated connection');
 }

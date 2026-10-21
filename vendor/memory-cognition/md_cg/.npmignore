@@ -1,5 +1,5 @@
-# Runtime Python modules and knowledge assets remain packaged. The complete
-# upstream regression suite is retained in the separately delivered source ZIP.
+# Nexus packaging overlay: retain the upstream tests in source control, but
+# ship only runtime Python modules and knowledge assets in the npm package.
 /test_*.py
 /whitebox_kb/wisdom/test_*.py
 /__pycache__/

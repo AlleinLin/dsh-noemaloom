@@ -33,7 +33,7 @@ versions, copyright notices, source identities, and modifications.
 - ThoughtDAG and Synapse — MIT; the full copied license text and specific selected
   source provenance are retained in `assets/notices/thoughtdag/` and
   `assets/notices/synapse/`, including their original copyright statements.
-  The published ThoughtDAG runtime is pinned to 0.5.21; its package provenance
+  The published ThoughtDAG runtime is pinned to 0.5.22; its package provenance
   and license are in `notices/originals/thoughtdag/`. Reviewed host/client
   adaptations retain its search, question forms, permission modes and release
   history, while suppressing the standalone plugin installation reminder.
@@ -71,3 +71,34 @@ Restricted code-review source is not copied. Its user capabilities are independe
 implemented. External OpenViking service licensing is distinct from adapter licensing.
 No private sessions, credentials, machine profiles, or deployment recovery backups
 are intended distribution contents.
+
+The native file editor uses Monaco Editor 0.57.0 (MIT), including its original
+third-party notices, marked 14.0.0 (MIT) and DOMPurify 3.4.15 (Apache-2.0
+selected; the alternate MPL-2.0 text is also retained). Archive installation uses
+tar 7.5.22 (BlueOak-1.0.0), @isaacs/fs-minipass 4.0.1 (ISC), chownr 3.0.0,
+minipass 7.1.3 and yallist 5.0.0 (BlueOak-1.0.0), and minizlib 3.1.0 (MIT).
+Exact installed license texts, npm integrity values and per-file hashes are
+copied to `notices/editor/` by the build.
+
+Debugger/SDK archives are not included in the distribution. The immutable
+on-demand manifest `assets/debug-adapters.json` identifies Microsoft js-debug
+1.140.0 (MIT), debugpy 1.8.22 (MIT), Samsung netcoredbg 3.2.0-1092 (MIT),
+Microsoft Java Debug extension 0.60.0 / server 0.53.2 (EPL-1.0), Eclipse JDTLS
+1.63.0 (EPL-2.0), and Eclipse Temurin JRE21.0.12.1+1 (GPL-2.0 with
+Classpath Exception). Their original licenses and notices stay inside the
+verified local installations. This feature does not distribute or install a
+VS Code extension host.
+
+- Wenaixi DSH Superpower 8.0.0 and Ponytail 5.6.1 — MIT. Original DSH skill
+  providers, native settings clients and packaged skills are reused. Original
+  upstreams are obra/superpowers 7.0.0 and DietrichGebert/ponytail 5.3.2; adapter
+  versions are separate. Notices: `notices/originals/` and `assets/methods/`.
+- @dragon-talon/dsh-openspec 0.4.0 and @fission-ai/openspec 1.14.3 — MIT.
+  Canonical skills and aliases are retained; CLI paths are adapted for the
+  packaged installation. Dependency notices: `notices/workflows/`.
+- dsh-karpathy-methodology 0.1.0 — MIT provider. Canonical
+  multica-ai/andrej-karpathy-skills 1.0.0 by forrestchang is inspired by Karpathy,
+  not an official Karpathy plugin. Upstream metadata declares MIT but has no
+  separate LICENSE. Original metadata: `assets/methods/karpathy/`.
+- dsh-ops 0.4.1 — MIT AND Apache-2.0. Native shell/file/PTC/discovery and optional original
+  panel/TUI are composed once using upstream defaults.

@@ -5,12 +5,14 @@ import { resolve } from 'node:path';
 import { buildCanvases } from './build-canvases.mjs';
 import { buildNativeCapabilities } from './build-native-capabilities.mjs';
 import { canonicalizeSourceMapFile } from './canonicalize-sourcemap.mjs';
+import { buildEditor } from './build-editor.mjs';
 
 const manifest = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'));
 await mkdir(new URL('../lib/', import.meta.url), { recursive: true });
 await import('./build-originals.mjs');
 await buildNativeCapabilities();
 await buildCanvases();
+const editorBuild = await buildEditor();
 const shared = [
   'react', 'react/jsx-runtime', 'react-dom', 'react-dom/client',
   '@deepseek-ai/cordis', 'zod', '@tanstack/react-virtual',
@@ -89,6 +91,7 @@ const buildInfo = {
   node: process.version, builtAt: new Date().toISOString(),
   hostInputs: Object.keys(host.metafile.inputs).sort(),
   clientInputs: Object.keys(client.metafile.inputs).sort(),
+  editor: editorBuild,
 };
 for (const path of ['lib/index.js', 'lib/client.js']) {
   buildInfo[path] = createHash('sha256').update(await readFile(path)).digest('hex');

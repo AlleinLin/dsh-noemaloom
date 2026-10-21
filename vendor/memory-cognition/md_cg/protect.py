@@ -255,7 +255,11 @@ def _audit(cg, action, node_id, reason, actor=None, snapshot=None):
     rec = {"t": time.time(), "action": action, "node_id": node_id,
            "reason": reason, "actor": _actor_of(cg, actor), "snapshot": snapshot}
     try:
-        append_jsonl(os.path.join(cg.root, AUDIT_FILE), rec)
+        # issue #547：本模块的审计台账（`_protected_audit.jsonl`）此前走 append_jsonl
+        # 缺省路（可静默丢行）。#549 已把同一类账本（`_audit.jsonl`）切到 durable=True，
+        # 判据是「审计属不能丢面」而不是「必须与别的模块同一个文件」——各模块各有台账，
+        # 但标准一致：丢一行审计会让「发生过」与「没发生过」不可区分（T0 ③）。
+        append_jsonl(os.path.join(cg.root, AUDIT_FILE), rec, durable=True)
     except Exception:
         pass
     return rec

@@ -68,6 +68,16 @@ if (isWorkbench) {
 }
 await copyFile('docs/BUILDING.md', join(output, 'BUILDING.md'));
 deliverables.push(packageFile, 'BUILDING.md');
+if (isWorkbench) {
+  for (const [source, destination] of [
+    ['docs/WORKFLOWS.md', 'WORKFLOWS.md'],
+    ['docs/upstream-maintenance.md', 'UPSTREAM-MAINTENANCE.md'],
+    ['upstreams.json', 'upstreams.json'],
+  ]) {
+    await copyFile(source, join(output, destination));
+    deliverables.push(destination);
+  }
+}
 const checksums = [];
 for (const file of deliverables.sort())
   checksums.push(`${sha256(await readFile(join(output, file)))}  ${file}`);

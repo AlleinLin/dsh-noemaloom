@@ -29,23 +29,3 @@ associated sessions, rejected plausible candidates, and unresolved information
 in the case file. Subsequent readers use that record rather than repeating
 discovery. If history is missing, inaccessible, or ambiguous, state the specific
 limitation and ask for the missing path, export, or identifying detail.
-
-## DeepSeek Harness
-
-Verified in this environment; confirm it against the records you actually read.
-
-- Transcripts: `$DSH_HOME/sessions/<slugified-cwd>/session-<uuid>/session*.jsonl.zstd`
-  (`$DSH_HOME` defaults to `~/.dsh`). The slug is the working directory with
-  separators and non-alphanumeric characters folded to `-`, wrapped in `--`.
-- Child sessions — work dispatched through `subagent` / `subagent_fork` — are
-  peer directories under the same slug whose header record carries
-  `delegationDepth: 1`.
-- The schema version is in the filename (`session.v4.jsonl.zstd`; older files
-  are `session.v3.jsonl.zstd` or `session.jsonl.zstd`). Read the header
-  record's `version` instead of guessing from the name.
-- Each file is a concatenation of independent zstd frames, and the `zstd` CLI
-  is usually absent. See `../using-superpowers/references/dsh-tools.md` for the
-  frame-by-frame Node decompression command.
-- Records are JSON lines carrying `type`, `seq`, `time`, and `data`. Establish
-  what each type means from the records themselves — never import a meaning
-  from another harness.

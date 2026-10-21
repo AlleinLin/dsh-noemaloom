@@ -696,71 +696,71 @@ packages:
   '@deepseek-ai/dsh-brand@0.1.6-alpha.2':
     resolution: {integrity: sha512-Fx+GKwkTjTVf6drn888j7vF5ak0/6mxHDF1bYH4FBsRI+h/8UmPAgIV5fAfT63GqBSXdgmVe/hdzdmXS2nq6Eg==}
     peerDependencies:
-      '@deepseek-ai/cordis': link:/home/wpp/nexus/Nexus-Shell/dsh/vendor/cordis
+      '@deepseek-ai/cordis': link:./dsh/vendor/cordis
 
   '@deepseek-ai/dsh-compaction-image-offload@0.1.6-alpha.2':
     resolution: {integrity: sha512-mYJjxjbq48nHeExbvdsDuXlxG9FnA8wtS4zqH2TP/d6AiMYIZOVkEpVA6Fk94Vcr310XcALPwv4pl5PU0GHE3w==}
     peerDependencies:
-      '@deepseek-ai/cordis': link:/home/wpp/nexus/Nexus-Shell/dsh/vendor/cordis
-      '@deepseek-ai/dsh-agent': link:/home/wpp/nexus/Nexus-Shell/dsh/packages/core/agent
+      '@deepseek-ai/cordis': link:./dsh/vendor/cordis
+      '@deepseek-ai/dsh-agent': link:./dsh/packages/core/agent
       '@deepseek-ai/dsh-compaction': ^0.1.6-alpha.2
-      '@deepseek-ai/dsh-llm': link:/home/wpp/nexus/Nexus-Shell/dsh/packages/llm/llm
-      '@deepseek-ai/dsh-session': link:/home/wpp/nexus/Nexus-Shell/dsh/packages/core/session
+      '@deepseek-ai/dsh-llm': link:./dsh/packages/llm/llm
+      '@deepseek-ai/dsh-session': link:./dsh/packages/core/session
 
   '@deepseek-ai/dsh-compaction@0.1.6-alpha.2':
     resolution: {integrity: sha512-jS580ZgaBOX9XjcEXetcSowuUeNK249HUuxJMpNL7JjPz2q+IwQYE4UDRNjAyBaArMp24rc2RhGJYdfse8k1ZA==}
     peerDependencies:
-      '@deepseek-ai/cordis': link:/home/wpp/nexus/Nexus-Shell/dsh/vendor/cordis
+      '@deepseek-ai/cordis': link:./dsh/vendor/cordis
       '@deepseek-ai/dsh-brand': ^0.1.6-alpha.2
-      '@deepseek-ai/dsh-commands': link:/home/wpp/nexus/Nexus-Shell/dsh/packages/interaction/commands
+      '@deepseek-ai/dsh-commands': link:./dsh/packages/interaction/commands
       '@deepseek-ai/dsh-invariants': ^0.1.6-alpha.2
-      '@deepseek-ai/dsh-llm': link:/home/wpp/nexus/Nexus-Shell/dsh/packages/llm/llm
-      '@deepseek-ai/dsh-session': link:/home/wpp/nexus/Nexus-Shell/dsh/packages/core/session
+      '@deepseek-ai/dsh-llm': link:./dsh/packages/llm/llm
+      '@deepseek-ai/dsh-session': link:./dsh/packages/core/session
 
   '@deepseek-ai/dsh-invariants@0.1.6-alpha.2':
     resolution: {integrity: sha512-YS4DysoPqwFx02istRp2FHN8XmJPRoPDc+pu56b/UtHovqIFzcX4QepQ4yRESDQ4SOO44KZBg72RxXma/9ziVw==}
     peerDependencies:
-      '@deepseek-ai/cordis': link:/home/wpp/nexus/Nexus-Shell/dsh/vendor/cordis
+      '@deepseek-ai/cordis': link:./dsh/vendor/cordis
 
   '@deepseek-ai/dsh-session-format-catalog@0.1.6-alpha.2':
     resolution: {integrity: sha512-+++F17ZVq1FaH/vMlAUfs2P0eQHvBpntrCbfTcjkUd6wt6bmgXwtLS3rJhtyOeZ/+9yaBg5kJF7nn2Rm3PdNDA==}
     peerDependencies:
-      '@deepseek-ai/cordis': link:/home/wpp/nexus/Nexus-Shell/dsh/vendor/cordis
-      '@deepseek-ai/dsh-session': link:/home/wpp/nexus/Nexus-Shell/dsh/packages/core/session
+      '@deepseek-ai/cordis': link:./dsh/vendor/cordis
+      '@deepseek-ai/dsh-session': link:./dsh/packages/core/session
 
   '@deepseek-ai/dsh-session-format-v0-to-v1@0.1.6-alpha.2':
     resolution: {integrity: sha512-ICKbie7Db+FgjYkdUTx8gD0M4UjDMXdrvxIyIEbxggfG9s92bMEG9m6l9vd+yCeKWiguJNsL21fZfAAU8aeRcw==}
     peerDependencies:
-      '@deepseek-ai/cordis': link:/home/wpp/nexus/Nexus-Shell/dsh/vendor/cordis
+      '@deepseek-ai/cordis': link:./dsh/vendor/cordis
 
   '@deepseek-ai/dsh-session-format-v1-to-v2@0.1.6-alpha.2':
     resolution: {integrity: sha512-Gx4ucbohIyFsdtXvKofN8hBe1Wp7nL2L7BeUH9JA4U6k417MhFTCu7fx3cTEbGl7keVLz2vjnshjNqhhotpLbg==}
     peerDependencies:
-      '@deepseek-ai/cordis': link:/home/wpp/nexus/Nexus-Shell/dsh/vendor/cordis
+      '@deepseek-ai/cordis': link:./dsh/vendor/cordis
 
   '@deepseek-ai/dsh-session-format-v2-to-v3@0.1.6-alpha.2':
     resolution: {integrity: sha512-eLpl5/mBOBsF6iIUQgegr5wLx50BdST31fDPlf1FwelqTVcIPybQftsjrz2Ezb0JSVRscVwvh2gqI6Pn3Qb2IA==}
     peerDependencies:
-      '@deepseek-ai/cordis': link:/home/wpp/nexus/Nexus-Shell/dsh/vendor/cordis
+      '@deepseek-ai/cordis': link:./dsh/vendor/cordis
 
   '@deepseek-ai/dsh-session-format@0.1.6-alpha.2':
     resolution: {integrity: sha512-KM1VvrasXgi3Hs5Y1d2NhIVetUnP9wzaecghsXTsGH1NfZ12bYvMB5nmtVgqp2vYrnqZVn8IuOJHSR8AlBa7yQ==}
     peerDependencies:
-      '@deepseek-ai/cordis': link:/home/wpp/nexus/Nexus-Shell/dsh/vendor/cordis
+      '@deepseek-ai/cordis': link:./dsh/vendor/cordis
 
   '@deepseek-ai/dsh-session-projection@0.1.6-alpha.2':
     resolution: {integrity: sha512-ig+XpRxv5N+gSpfy3IajvG5AlFm2UKfTKqqtem4DXwxCHIPoRbZnYWgwd/qFIl1bNNJHL6z1zjnOGGNeO640GA==}
     peerDependencies:
-      '@deepseek-ai/cordis': link:/home/wpp/nexus/Nexus-Shell/dsh/vendor/cordis
-      '@deepseek-ai/dsh-session': link:/home/wpp/nexus/Nexus-Shell/dsh/packages/core/session
+      '@deepseek-ai/cordis': link:./dsh/vendor/cordis
+      '@deepseek-ai/dsh-session': link:./dsh/packages/core/session
 
   '@deepseek-ai/dsh-session-query@0.1.6-alpha.2':
     resolution: {integrity: sha512-rB/Kss4VtN4H+MZx1n/nToppl95+0lihrnJw3cJqN8mRz9ytqcpHPhoQh7P6LQlM6R9nI5ou6XUr79hsDPkqog==}
     peerDependencies:
-      '@deepseek-ai/cordis': link:/home/wpp/nexus/Nexus-Shell/dsh/vendor/cordis
+      '@deepseek-ai/cordis': link:./dsh/vendor/cordis
       '@deepseek-ai/dsh-brand': ^0.1.6-alpha.2
-      '@deepseek-ai/dsh-llm': link:/home/wpp/nexus/Nexus-Shell/dsh/packages/llm/llm
-      '@deepseek-ai/dsh-session': link:/home/wpp/nexus/Nexus-Shell/dsh/packages/core/session
+      '@deepseek-ai/dsh-llm': link:./dsh/packages/llm/llm
+      '@deepseek-ai/dsh-session': link:./dsh/packages/core/session
       '@deepseek-ai/dsh-session-persistence': ^0.1.6-alpha.2
       '@deepseek-ai/dsh-session-projection': ^0.1.6-alpha.2
       '@deepseek-ai/dsh-session-projection-cache': ^0.1.6-alpha.2
@@ -777,28 +777,28 @@ packages:
   '@deepseek-ai/dsh-session-title@0.1.6-alpha.2':
     resolution: {integrity: sha512-NZnEDIAUBEn8CFYFtZ+vB7SruoCAaLrZ9Xhqpbl8e/6/glx3jm7ZOlwdwVh9FhM/69yfOgfscuT4a+mV4dqG7g==}
     peerDependencies:
-      '@deepseek-ai/cordis': link:/home/wpp/nexus/Nexus-Shell/dsh/vendor/cordis
-      '@deepseek-ai/dsh-agent': link:/home/wpp/nexus/Nexus-Shell/dsh/packages/core/agent
+      '@deepseek-ai/cordis': link:./dsh/vendor/cordis
+      '@deepseek-ai/dsh-agent': link:./dsh/packages/core/agent
       '@deepseek-ai/dsh-brand': ^0.1.6-alpha.2
       '@deepseek-ai/dsh-invariants': ^0.1.6-alpha.2
-      '@deepseek-ai/dsh-llm': link:/home/wpp/nexus/Nexus-Shell/dsh/packages/llm/llm
-      '@deepseek-ai/dsh-session': link:/home/wpp/nexus/Nexus-Shell/dsh/packages/core/session
+      '@deepseek-ai/dsh-llm': link:./dsh/packages/llm/llm
+      '@deepseek-ai/dsh-session': link:./dsh/packages/core/session
       '@deepseek-ai/dsh-session-projection': ^0.1.6-alpha.2
 
   '@deepseek-ai/dsh-tool-todo@0.1.6-alpha.2':
     resolution: {integrity: sha512-iPQW6ahvKzDKwTrPUNb0qqZ2Gxzp2hfT9yErIdTPVMyh/njBeT0Zv/PML0Iul5uieYhr8lFqksNlvphXMfyMzQ==}
     peerDependencies:
-      '@deepseek-ai/cordis': link:/home/wpp/nexus/Nexus-Shell/dsh/vendor/cordis
-      '@deepseek-ai/dsh-agent': link:/home/wpp/nexus/Nexus-Shell/dsh/packages/core/agent
+      '@deepseek-ai/cordis': link:./dsh/vendor/cordis
+      '@deepseek-ai/dsh-agent': link:./dsh/packages/core/agent
       '@deepseek-ai/dsh-invariants': ^0.1.6-alpha.2
-      '@deepseek-ai/dsh-session': link:/home/wpp/nexus/Nexus-Shell/dsh/packages/core/session
+      '@deepseek-ai/dsh-session': link:./dsh/packages/core/session
       '@deepseek-ai/dsh-session-projection': ^0.1.6-alpha.2
-      '@deepseek-ai/dsh-tools': link:/home/wpp/nexus/Nexus-Shell/dsh/packages/core/tools
+      '@deepseek-ai/dsh-tools': link:./dsh/packages/core/tools
 
   '@deepseek-ai/dsh-util-values@0.1.6-alpha.2':
     resolution: {integrity: sha512-9p+4ffFjq7OIeYqvHlIhKs85MZrirdu9QYi+vknOwkgszZXAgoRbPnX0ZzhsTneFSqQgLEfBXtUHUtOI1iiB/Q==}
     peerDependencies:
-      '@deepseek-ai/cordis': link:/home/wpp/nexus/Nexus-Shell/dsh/vendor/cordis
+      '@deepseek-ai/cordis': link:./dsh/vendor/cordis
 
   '@esbuild/aix-ppc64@0.28.2':
     resolution: {integrity: sha512-XExcO+dvLKvVtNTibSTBej1NCAbaGhWn9Ww1ZPx80qsahhPFe/8jgWP0IchNe0F3HwkU7n8ejhH8bjonqht8mQ==}

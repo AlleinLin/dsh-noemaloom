@@ -1,7 +1,13 @@
 ---
 name: using-superpowers
-description: Use when starting any conversation - establishes how to find and use skills, requiring skill invocation before ANY response including clarifying questions
+description: "Superpower Skill: Use when starting any conversation - establishes how to find and use skills, requiring skill invocation before ANY response including clarifying questions"
+description_zh: "Superpower Skill：适用于任何对话开始前，建立技能查找与调用规范，要求在任何回复前优先调用相关技能，包括澄清问题。"
 ---
+
+
+<SUBAGENT-STOP>
+If you were dispatched as a subagent to execute a specific task, ignore this skill.
+</SUBAGENT-STOP>
 
 <EXTREMELY-IMPORTANT>
 If you think there is even a 1% chance a skill might apply to what you are doing, you ABSOLUTELY MUST invoke the skill.
@@ -23,8 +29,8 @@ Then announce "Using [skill] to [purpose]" and follow the skill exactly. If it h
 
 When multiple skills apply, process skills come first — they set the approach, then implementation skills (frontend-design, etc.) carry it out. Brainstorming and systematic-debugging are Superpowers' most common process skills, but the rule holds for any of them.
 
-- "Let's build X" → brainstorming first, then implementation skills.
-- "Fix this bug" → systematic-debugging first, then domain skills.
+- "Let's build X" → superpowers:brainstorming first, then implementation skills.
+- "Fix this bug" → superpowers:systematic-debugging first, then domain skills.
 
 ## Red Flags
 
@@ -45,24 +51,20 @@ These thoughts mean STOP—you're rationalizing:
 | "This feels productive" | Undisciplined action wastes time. Skills prevent this. |
 | "I know what that means" | Knowing the concept ≠ using the skill. Invoke it. |
 
+## Skill Switches
+
+Each of the 15 skills in this bundle has one switch on the detail page of the `@wenaixi/dsh-superpower` card in the DSH Web GUI plugin manager:
+
+- **Model invocable:** when off, the skill no longer appears in the model's available skill catalog and `skill` tool calls are rejected.
+- **User invocable:** when off, the skill no longer appears in slash-command completion or the CLI skill list.
+
+Toggles take effect immediately; the current turn is unaffected, and the next turn sees the new catalog. State is stored in the profile's `cordis.patch.yml` under the `disabled` table.
+
 ## Platform Adaptation
 
-This package is the DeepSeek Harness port. Its platform reference is
-`references/dsh-tools.md`: the Claude-Code → DSH tool mapping plus the
-DSH-specific mechanisms these skills rely on (`skill`, `subagent` /
-`subagent_fork`, `workflow`, `goal`, and the Windows `pwsh` notes).
+This bundle is designed natively for **DSH (DeepSeek Harness)** and supports only the DSH platform:
 
-## Invoking skills on DSH
-
-Call the `skill` tool with the exact skill name from the catalog before
-acting on a task that names or clearly matches that skill:
-
-- Load applicable skills FIRST, then follow their full instructions.
-- Skills are addressable by bare name: `brainstorming`, `writing-plans`,
-  `systematic-debugging`, `test-driven-development`, `using-git-worktrees`,
-  `subagent-driven-development`, `dispatching-parallel-agents`, and the rest.
-- `using-superpowers` itself is discoverable the same way.
-
+- DSH tool mapping: `references/dsh-tools.md` — every skill in this bundle assumes DSH tools (Bash -> pwsh, Read/Write/Edit -> fs, Glob/Grep -> fs-search, Task/Subagent -> subagent/subagent_fork, TodoWrite -> todo_write, AskUserQuestion -> ask_user_question, Skill -> skill, WebSearch/WebFetch -> web_search/web_fetch). The `workflow` tool is not part of the default assembly; use `subagent` fan-out or enable the workflow row explicitly.
 ## User Instructions
 
 User instructions (CLAUDE.md, AGENTS.md, GEMINI.md, etc, direct requests) take precedence over skills, which in turn override default behavior. Only skip skill workflows or instructions when your human partner has explicitly told you to.

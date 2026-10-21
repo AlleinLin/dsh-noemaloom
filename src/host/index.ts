@@ -24,6 +24,11 @@ import { registerStepPauseHook } from './step-pause-hook.js';
 import { registerSelfCompactionTool } from './self-compaction-tool.js';
 import { createEventObserver } from './event-observer.js';
 import type { HostContext, NexusConfig } from './types.js';
+import { AdapterCache } from './debug/cache.js';
+import { createDebugBroker } from './debug/process.js';
+import { DebugRuntime } from './debug/runtime.js';
+import { registerEditorAssets } from './editor-assets.js';
+import { registerAgentCommunications } from './communications/index.js';
 export { hostAuthority } from './host-adapter.js';
 
 export const name = 'dsh-nexus';
@@ -87,9 +92,22 @@ export async function createNexusRuntime(ctx: HostContext, config: NexusConfig =
   const initializationCleanup: Array<() => unknown | Promise<unknown>> = [() => store.close()];
   try {
   if (!Context.is(ctx)) throw new NexusError('HOST_CONTRACT_UNSUPPORTED', 'Connection 注册需要正式 Cordis Context');
+  const communications = registerAgentCommunications(ctx, store);
+  const stopCommunications = () => communications.dispose();
+  initializationCleanup.push(stopCommunications);
   const registrationContext = createConnectionRegistrationContext(ctx);
   const host = createHostAdapter(registrationContext, config, workspaceRoot, controller.controller.signal);
   initializationCleanup.push(() => host.dispose());
+  const debugRoot = join(dataDir, 'debug-cache');
+  await mkdir(debugRoot, { recursive: true });
+  const adapters = JSON.parse(await readFile(join(packageRoot, 'assets/debug-adapters.json'), 'utf8'));
+  const debug = new DebugRuntime({ broker: createDebugBroker(ctx, host, debugRoot),
+    cache: new AdapterCache(join(debugRoot, 'adapters'), adapters.artifacts), workRoot: join(debugRoot, 'runs') });
+  initializationCleanup.push(() => debug.dispose());
+  const stopEditorAssets = await registerEditorAssets(ctx, packageRoot);
+  initializationCleanup.push(stopEditorAssets);
+  const stopDebugSessions = ctx.on('session/disposed', (session: any) => { void debug.removeSession(session.id).catch(() => ctx.logger?.warn('Owned debugger cleanup failed')); });
+  initializationCleanup.push(stopDebugSessions);
   const executor = createHostExecutor(ctx, host, workspaceRoot, controller.controller.signal, () => {
     const authority = hostAuthority.getStore();
     return { workspaceRoot: authority?.workspaceRoot, sessionId: authority?.sessionId,
@@ -102,7 +120,7 @@ export async function createNexusRuntime(ctx: HostContext, config: NexusConfig =
   initializationCleanup.push(async () => { for (const dispose of remoteDisposers.reverse()) await dispose(); });
   const base: Omit<NexusServices, 'invoke'> = {
     dataDir, workspaceRoot, packageRoot,
-    store, host, executor, signal: controller.controller.signal,
+    store, host, executor, debug, signal: controller.controller.signal,
     emit,
   };
   const dispatcher = createDispatcher(base);
@@ -146,6 +164,8 @@ export async function createNexusRuntime(ctx: HostContext, config: NexusConfig =
   const disposers: Array<() => unknown> = [];
   initializationCleanup.push(async () => { for (const dispose of disposers.reverse()) await dispose(); });
   for (const domain of domains) {
+    // Editor controls are authenticated UI effects, never model tools.
+    if (domain === 'debug') continue;
     const tool = defineTool({
       name: `nexus_${domain}`,
       description: `DSH Nexus ${domain} 统一操作。先用 nexus_catalog 查询动作合同；写操作必须 requestId，文件与执行权限由宿主核验。`
@@ -194,7 +214,7 @@ export async function createNexusRuntime(ctx: HostContext, config: NexusConfig =
       return disposal ??= (async () => {
         const failures: unknown[] = [];
         for (const cleanup of [
-          stopLiveCommands, stopSelfCompaction, stopStepPause, stopAutonomy, stopCompanion, stopInsights, ...remoteDisposers.slice().reverse(), () => controller.dispose(), () => host.dispose(),
+          stopLiveCommands, stopSelfCompaction, stopStepPause, stopAutonomy, stopCompanion, stopInsights, stopDebugSessions, stopEditorAssets, () => debug.dispose(), stopCommunications, ...remoteDisposers.slice().reverse(), () => controller.dispose(), () => host.dispose(),
           () => executor.dispose(), ...disposers.slice().reverse(), () => dispatcher.dispose(), () => store.close(),
         ]) {
           try { await cleanup(); } catch (error) { failures.push(error); }

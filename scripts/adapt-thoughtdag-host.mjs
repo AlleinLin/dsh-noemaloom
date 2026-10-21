@@ -26,7 +26,7 @@ function replaceFunction(source, name, replacement) {
 /** Reviewed package adaptation only; never executes the original plugin. */
 export function adaptThoughtdagHost(original) {
   if (createHash('sha256').update(original).digest('hex') !== REVIEWED_HOST_SHA256) {
-    throw new Error('ThoughtDAG host adapter requires the reviewed 0.5.21 host SHA256');
+    throw new Error('ThoughtDAG host adapter requires the reviewed 0.5.22 host SHA256');
   }
   let adapted = original;
   const change = (anchor, replacement, label) => {
