@@ -66,9 +66,12 @@ test('Windows recovery waits through delete-pending owner reads and enters only 
   }));
   const original = fs.readFile;
   let denied = 0, writes = 0;
+  let observed!: () => void;
+  const observedBothDenials = new Promise<void>(resolve => { observed = resolve; });
   t.mock.method(fs, 'readFile', async (...args: Parameters<typeof fs.readFile>) => {
     if (String(args[0]) === join(directory, 'owner.json') && denied < 2) {
       denied++;
+      if (denied === 2) observed();
       throw Object.assign(new Error('owner is pending deletion'), { code: denied === 1 ? 'EPERM' : 'EACCES' });
     }
     return original(...args);
@@ -79,7 +82,10 @@ test('Windows recovery waits through delete-pending owner reads and enters only 
     await lease.assertOwned();
   });
   try {
-    await new Promise(resolve => setTimeout(resolve, 40));
+    await Promise.race([
+      observedBothDenials,
+      contender.then(() => { throw new Error('writer entered before both contention observations'); }),
+    ]);
     assert.equal(writes, 0, 'a permission error never grants or steals ownership');
     await fs.unlink(join(directory, 'owner.json'));
     await fs.rmdir(directory);
