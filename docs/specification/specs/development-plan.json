@@ -1,0 +1,780 @@
+{
+  "schemaVersion": 2,
+  "planVersion": "1.1.0-draft.2",
+  "baselineDate": "2026-10-19",
+  "scope": "Eight reuse-first execution packages; complete unchanged scope; not executed",
+  "authorizationBoundary": "Current task is research/specification/planning only",
+  "host": {
+    "release": "0.2.1-rc.2",
+    "commit": "687f282e8625c6b8d11ff58211a90524be2e4317"
+  },
+  "metis": {
+    "version": "2.0.2",
+    "commit": "8b1eda95afea3592e08a315e29dc7746ee57ca25"
+  },
+  "sourceCount": 36,
+  "taskCount": 8,
+  "checkpointCount": 62,
+  "checkpointCatalog": "specs/development-checkpoints.json",
+  "acceptanceBaseline": {
+    "count": 769,
+    "sha256": "113bc7b9b60b4bf44d3645dc07209a3c65148ecddf54ac5dd7cba696b8049e1a",
+    "path": "research/acceptance-baseline.json"
+  },
+  "dependencySemantics": {
+    "dependsOn": "Required completed before starting this package",
+    "completionRequires": "Package may start concurrently, but cannot be declared completed until these packages and the actual connecting features are verified",
+    "checkpointLegacyDependencies": "Historical only; replaced by package dependencies and concrete interface readiness, not copied into a new over-constrained schedule"
+  },
+  "executionPolicy": {
+    "default": "Direct source composition plus shared DSH adapters and unified UI",
+    "sharedImplementation": "HostAdapter, storage, dispatcher, ExecutionBroker, usage, component library and Run are implemented once",
+    "preserve": "All functions, behaviors, original 769 acceptance definitions and 62 checkpoints retained",
+    "rewriteTrigger": "Only a demonstrated compilation/contract/license/behavior conflict with source evidence permits replacing that component; keep equivalent or better behavior",
+    "parallelism": "After A01, A02-A07 may proceed in parallel within owned modules; shared files have one integration owner",
+    "validationReuse": "One real run/receipt may satisfy several checks; every required assertion remains enforced",
+    "effort": "No guaranteed timeline or reuse percentage before the first actual build"
+  },
+  "userRequirements": [
+    {
+      "id": "USER-R01",
+      "title": "文件作为记忆与Claude Code工程快速接手",
+      "tasks": [
+        "A02",
+        "A08"
+      ],
+      "checkpoints": [
+        "P21",
+        "P26",
+        "P28",
+        "P56",
+        "P59"
+      ],
+      "contract": "specs/02-memory.md",
+      "acceptanceIds": [
+        "MEM-079",
+        "MEM-080",
+        "MEM-081",
+        "MEM-082",
+        "MEM-083",
+        "MEM-084",
+        "MEM-085",
+        "MEM-086",
+        "MEM-087",
+        "MEM-088",
+        "MEM-089",
+        "MEM-090",
+        "MEM-091",
+        "MEM-092",
+        "MEM-093",
+        "MEM-094",
+        "MEM-095",
+        "MEM-096"
+      ]
+    }
+  ],
+  "statuses": [
+    "planned",
+    "ready",
+    "running",
+    "verifying",
+    "completed",
+    "repairing",
+    "blocked_dependency",
+    "needs_authorized_resource",
+    "revalidation_required"
+  ],
+  "tasks": [
+    {
+      "id": "A01",
+      "title": "单包宿主适配、公共底座与Claude界面骨架",
+      "owner": "集成负责人",
+      "status": "planned",
+      "implementationMode": "reuse-first",
+      "dependsOn": [],
+      "completionRequires": [],
+      "checkpointIds": [
+        "P01",
+        "P02",
+        "P03",
+        "P04",
+        "P05",
+        "P06",
+        "P07",
+        "P08",
+        "P09",
+        "P10",
+        "P11",
+        "P12",
+        "P13",
+        "P14",
+        "P27",
+        "P41"
+      ],
+      "ownedPaths": [
+        "sources.lock.json",
+        "notices/",
+        "docs/decisions/sources.md",
+        "package.json",
+        "pnpm-lock.yaml",
+        "tools/build/",
+        "tools/doctor/runtime.ts",
+        "src/host/index.ts",
+        "src/client/entry.ts",
+        "cordis.patch.yml",
+        "assets/icon.svg",
+        "locale/",
+        "src/host/connection/",
+        "src/client/connection.ts",
+        "tests/host/connection/",
+        "src/domain/storage/",
+        "src/workers/storage.ts",
+        "tests/domain/storage/",
+        "docs/decisions/storage.md",
+        "src/host/config.ts",
+        "src/host/resources.ts",
+        "schemas/config/",
+        "src/ports/",
+        "src/host/tools/probe.ts",
+        "tests/integration/first-slice/",
+        "tests/desktop/first-slice/",
+        "tools/pack/",
+        "evidence/gates/G0/",
+        "src/domain/operations/",
+        "src/ports/permissions.ts",
+        "tests/domain/operations/",
+        "src/host/adapter-rc2/sessions.ts",
+        "src/domain/sessions/",
+        "src/client/projections/",
+        "src/host/tools/",
+        "src/domain/catalog/",
+        "schemas/capabilities/",
+        "src/domain/context/plan/",
+        "src/domain/context/epochs/",
+        "src/domain/usage/ledger/",
+        "src/adapters/models/usage/",
+        "src/client/theme/",
+        "src/client/shell/",
+        "src/client/components/",
+        "src/adapters/upstream/ops/",
+        "src/domain/files/",
+        "src/workers/document.ts",
+        "src/domain/runtime/execution/",
+        "src/adapters/platforms/windows/"
+      ],
+      "sourceUnits": [
+        "SRC-27",
+        "SRC-29",
+        "SRC-33",
+        "SRC-09",
+        "SRC-18",
+        "SRC-22",
+        "SRC-23",
+        "SRC-13"
+      ],
+      "contractDocuments": [
+        "specs/10-reuse-and-coverage.md",
+        "specs/01-host-contract.md",
+        "specs/12-multimodel-orchestration.md",
+        "specs/13-desktop-development-plan.md",
+        "specs/09-system-architecture.md",
+        "specs/02-memory.md",
+        "specs/11-verification-and-delivery.md",
+        "specs/04-workflow-tools.md",
+        "specs/06-runtime-recovery.md",
+        "specs/05-context-graph-observability.md",
+        "specs/07-cache-economics.md",
+        "specs/03-experience-design.md"
+      ],
+      "reuseFirst": [
+        "沿用现有来源锁/许可研究，不重新研究36个来源",
+        "直接复用OPS文件/文档执行内核、Shell诊断与Codec、已有存储/事件/用量纯逻辑",
+        "会话、权限、PTY、模型连接与插件安装使用DSH已有服务",
+        "复用侧栏工程已有组件和服务，统一Claude样式骨架"
+      ],
+      "integrationWork": [
+        "一个可安装主包和正式Host/Client入口",
+        "一套HostAdapter、认证Connection、共享存储/操作收据/固定dispatcher/usage",
+        "一个ExecutionBroker和可供领域模块直接接入的Claude组件/投影"
+      ],
+      "deliverables": [
+        "一个可安装主包和正式Host/Client入口",
+        "一套HostAdapter、认证Connection、共享存储/操作收据/固定dispatcher/usage",
+        "一个ExecutionBroker和可供领域模块直接接入的Claude组件/投影"
+      ],
+      "definitionOfDone": "单包真实装载、UI到Host到文件/存储可用，停用/重启/版本更新正确；共用能力一次实现，各领域不重造",
+      "verification": [
+        "共享底座按同一组真实Desktop链路验证",
+        "权限/幂等/取消/物理attempt/编码与固定工具面相关验收",
+        "全部指定检查点仍需证据"
+      ],
+      "evidencePath": "evidence/packages/A01/",
+      "acceptance": "All assigned checkpoints plus all applicable unchanged domain acceptance definitions",
+      "checkReuse": "One actual receipt may satisfy several checkpoints; do not rerun identical checks for each checkpoint"
+    },
+    {
+      "id": "A02",
+      "title": "统一记忆与Claude Code工程接手",
+      "owner": "记忆负责人",
+      "status": "planned",
+      "implementationMode": "reuse-first",
+      "dependsOn": [
+        "A01"
+      ],
+      "completionRequires": [],
+      "checkpointIds": [
+        "P21",
+        "P22",
+        "P23",
+        "P24",
+        "P25",
+        "P26",
+        "P28"
+      ],
+      "ownedPaths": [
+        "src/domain/memory/local/",
+        "src/adapters/memory/file/",
+        "src/adapters/memory/file-memory/",
+        "src/adapters/memory/ccg/",
+        "src/domain/memory/rules/",
+        "src/adapters/memory/evolve/",
+        "src/domain/memory/evolution/",
+        "src/adapters/memory/openviking/",
+        "src/adapters/memory/memsearch/",
+        "src/adapters/memory/hindsight/",
+        "src/adapters/memory/veyra/",
+        "src/domain/memory/orchestrator/",
+        "src/domain/memory/capture/",
+        "src/client/views/memory/",
+        "src/client/views/knowledge/"
+      ],
+      "sourceUnits": [
+        "SRC-01",
+        "SRC-04",
+        "SRC-02",
+        "SRC-03",
+        "SRC-05",
+        "SRC-06",
+        "SRC-07",
+        "SRC-08"
+      ],
+      "contractDocuments": [
+        "specs/02-memory.md",
+        "specs/09-system-architecture.md",
+        "specs/07-cache-economics.md",
+        "specs/04-workflow-tools.md",
+        "specs/03-experience-design.md"
+      ],
+      "reuseFirst": [
+        "以Mnemon式编排和现有文件记忆为主基底，直接保留各Provider适配器",
+        "复用CCG高级op、evolve、OpenViking/Memsearch/Hindsight/Veyra独特能力",
+        "项目MEMORY.md/MEMORY目录直接作为文件Source，不另造导入格式"
+      ],
+      "integrationWork": [
+        "统一Source×Strategy×Provider与全部记忆操作",
+        "项目文件绑定/增量检索/接手快照与原文引用",
+        "接入共享Claude记忆页面、审核/信任/同步/备份"
+      ],
+      "deliverables": [
+        "统一Source×Strategy×Provider与全部记忆操作",
+        "项目文件绑定/增量检索/接手快照与原文引用",
+        "接入共享Claude记忆页面、审核/信任/同步/备份"
+      ],
+      "definitionOfDone": "全部记忆能力和MEM-079至096可用，唯一capture/注入器、原文件真源、固定快照与作用域正确",
+      "verification": [
+        "现有Provider/迁移fixture优先复用",
+        "只对新Source/Host接缝和多引擎交互补必要检查",
+        "记忆UI连真实backend"
+      ],
+      "evidencePath": "evidence/packages/A02/",
+      "acceptance": "All assigned checkpoints plus all applicable unchanged domain acceptance definitions",
+      "checkReuse": "One actual receipt may satisfy several checkpoints; do not rerun identical checks for each checkpoint"
+    },
+    {
+      "id": "A03",
+      "title": "论文压缩、缓存优化与观测",
+      "owner": "上下文负责人",
+      "status": "planned",
+      "implementationMode": "reuse-first",
+      "dependsOn": [
+        "A01"
+      ],
+      "completionRequires": [],
+      "checkpointIds": [
+        "P15",
+        "P16",
+        "P17",
+        "P18",
+        "P19",
+        "P20"
+      ],
+      "ownedPaths": [
+        "vendor/acp-kernel/",
+        "src/adapters/upstream/billion/",
+        "src/domain/context/controller/",
+        "src/domain/context/fold/",
+        "src/domain/context/retrieval/",
+        "src/domain/context/tiers/",
+        "src/adapters/upstream/billion/migrations/",
+        "src/domain/context/transactions/",
+        "tests/faults/compression/",
+        "src/domain/context/wire/",
+        "src/domain/context/cache-planner/",
+        "tests/wire/",
+        "src/client/views/context/",
+        "src/client/views/cache/"
+      ],
+      "sourceUnits": [
+        "SRC-30",
+        "SRC-29"
+      ],
+      "contractDocuments": [
+        "specs/05-context-graph-observability.md",
+        "specs/07-cache-economics.md",
+        "specs/01-host-contract.md",
+        "specs/09-system-architecture.md",
+        "specs/03-experience-design.md"
+      ],
+      "reuseFirst": [
+        "直接移植billion/acp-kernel完整T1/T2/T3与检索/解压能力",
+        "复用context/live usage已有投影与统计逻辑",
+        "保留内核成熟行为，缓存优化放在锚点/序列化/快照和计划接缝"
+      ],
+      "integrationWork": [
+        "唯一压缩控制器与可逆事务适配",
+        "稳定wire/epoch、direct锚点、收益与缓存观测",
+        "共享Claude样式下的压缩/原文/缓存界面"
+      ],
+      "deliverables": [
+        "唯一压缩控制器与可逆事务适配",
+        "稳定wire/epoch、direct锚点、收益与缓存观测",
+        "共享Claude样式下的压缩/原文/缓存界面"
+      ],
+      "definitionOfDone": "论文自治增量可逆路线完整保留，原文精确可恢复，缓存统计真实且不引入无效前缀变化",
+      "verification": [
+        "复用上游内核golden与相关用例",
+        "针对Nexus新增接缝、故障窗口和cache前缀补验证",
+        "在线成本实验由A08统一安排"
+      ],
+      "evidencePath": "evidence/packages/A03/",
+      "acceptance": "All assigned checkpoints plus all applicable unchanged domain acceptance definitions",
+      "checkReuse": "One actual receipt may satisfy several checkpoints; do not rerun identical checks for each checkpoint"
+    },
+    {
+      "id": "A04",
+      "title": "任务、专家与Metis多模型编排",
+      "owner": "编排负责人",
+      "status": "planned",
+      "implementationMode": "reuse-first",
+      "dependsOn": [
+        "A01"
+      ],
+      "completionRequires": [
+        "A03"
+      ],
+      "checkpointIds": [
+        "P29",
+        "P30",
+        "P31",
+        "P32",
+        "P33",
+        "P34",
+        "P35",
+        "P36"
+      ],
+      "ownedPaths": [
+        "src/domain/workflow/",
+        "src/domain/workflow/scheduler/",
+        "src/domain/resources/agents/",
+        "src/domain/workflow/teams/",
+        "src/domain/orchestration/routes/",
+        "src/host/adapter-rc2/subagents.ts",
+        "src/domain/orchestration/blueprints/",
+        "src/domain/orchestration/tiers/",
+        "src/domain/orchestration/gates/",
+        "src/domain/orchestration/evidence/",
+        "src/domain/orchestration/handoff/",
+        "src/domain/orchestration/affinity/",
+        "src/domain/integrations/cli/",
+        "src/domain/workflow/rooms/",
+        "src/domain/workflow/advisors/",
+        "src/client/views/orchestration/",
+        "src/domain/orchestration/adaptations/"
+      ],
+      "sourceUnits": [
+        "SRC-03",
+        "SRC-13",
+        "SRC-17",
+        "SRC-19",
+        "SRC-11",
+        "SRC-36"
+      ],
+      "contractDocuments": [
+        "specs/04-workflow-tools.md",
+        "specs/09-system-architecture.md",
+        "specs/12-multimodel-orchestration.md",
+        "specs/07-cache-economics.md",
+        "specs/01-host-contract.md",
+        "specs/08-engineering-quality.md",
+        "specs/03-experience-design.md"
+      ],
+      "reuseFirst": [
+        "直接复用任务板/Agency专家资产/CLI与房间协议",
+        "抽取Metis角色、框架、路由/门禁纯policy与harness编辑逻辑",
+        "实际子代理继续使用DSH正式spawn/AgentOptions，不启动第二Metis runtime"
+      ],
+      "integrationWork": [
+        "一套TaskPlan/Run与角色routes/预算/取消",
+        "分档/有限层级/独立验证与harness/适应性",
+        "稳定角色lane、有界Brief/ArtifactRef和编排界面"
+      ],
+      "deliverables": [
+        "一套TaskPlan/Run与角色routes/预算/取消",
+        "分档/有限层级/独立验证与harness/适应性",
+        "稳定角色lane、有界Brief/ArtifactRef和编排界面"
+      ],
+      "definitionOfDone": "全部任务/专家/CLI/Metis能力接入同一调度器，真实实现/审查/验证；接A03后完整验证handoff与预算/费用",
+      "verification": [
+        "现有任务/Metis合同fixture直接复用",
+        "正式Host多角色真实链、取消/恢复与跨模型handoff",
+        "不得移植fixed PASS桥"
+      ],
+      "evidencePath": "evidence/packages/A04/",
+      "acceptance": "All assigned checkpoints plus all applicable unchanged domain acceptance definitions",
+      "checkReuse": "One actual receipt may satisfy several checkpoints; do not rerun identical checks for each checkpoint"
+    },
+    {
+      "id": "A05",
+      "title": "工程流程、Lint、审查与文档产物",
+      "owner": "质量负责人",
+      "status": "planned",
+      "implementationMode": "reuse-first",
+      "dependsOn": [
+        "A01"
+      ],
+      "completionRequires": [
+        "A04"
+      ],
+      "checkpointIds": [
+        "P37",
+        "P38",
+        "P39",
+        "P40",
+        "P47"
+      ],
+      "ownedPaths": [
+        "src/domain/quality/lint/",
+        "assets/methods/how-to-lint/",
+        "src/domain/quality/processes/",
+        "assets/methods/engineering/",
+        "src/domain/review/",
+        "src/adapters/vcs/",
+        "src/client/views/quality/",
+        "src/client/views/review/",
+        "src/domain/artifacts/",
+        "src/adapters/upstream/archify/",
+        "assets/diagrams/"
+      ],
+      "sourceUnits": [
+        "SRC-34",
+        "SRC-35",
+        "SRC-16",
+        "SRC-19",
+        "SRC-11",
+        "SRC-15",
+        "SRC-20"
+      ],
+      "contractDocuments": [
+        "specs/08-engineering-quality.md",
+        "specs/04-workflow-tools.md",
+        "specs/10-reuse-and-coverage.md",
+        "specs/03-experience-design.md",
+        "specs/05-context-graph-observability.md"
+      ],
+      "reuseFirst": [
+        "直接纳入how-to-lint及software-engineering-workflow资产和模板",
+        "复用Aegis/Superpowers/J-Space方法、审查capture/evidence与Archify图表能力",
+        "调用项目已有lint/test工具，复用统一执行器与产物存储"
+      ],
+      "integrationWork": [
+        "方法编译到同一工作流及lint/finding/fix",
+        "Git/SVN审查与证据、文档/SVG/图表/安全预览/导出",
+        "统一质量与审查界面"
+      ],
+      "deliverables": [
+        "方法编译到同一工作流及lint/finding/fix",
+        "Git/SVN审查与证据、文档/SVG/图表/安全预览/导出",
+        "统一质量与审查界面"
+      ],
+      "definitionOfDone": "两qiudeng仓和全部原工程方法/审查/产物效果保持，真实执行、可审查修复与来源完整",
+      "verification": [
+        "优先运行已有lint/review/diagram fixture",
+        "补方法互操作、Host执行/产物接缝和修复冲突验证",
+        "完整对齐QLT/WF验收"
+      ],
+      "evidencePath": "evidence/packages/A05/",
+      "acceptance": "All assigned checkpoints plus all applicable unchanged domain acceptance definitions",
+      "checkReuse": "One actual receipt may satisfy several checkpoints; do not rerun identical checks for each checkpoint"
+    },
+    {
+      "id": "A06",
+      "title": "预设复活、恢复、图谱与插件开发台",
+      "owner": "平台负责人",
+      "status": "planned",
+      "implementationMode": "reuse-first",
+      "dependsOn": [
+        "A01"
+      ],
+      "completionRequires": [
+        "A02",
+        "A04"
+      ],
+      "checkpointIds": [
+        "P42",
+        "P43",
+        "P44",
+        "P45",
+        "P46"
+      ],
+      "ownedPaths": [
+        "src/domain/runtime/presets/",
+        "assets/presets/",
+        "cordis.presets.patch.yml",
+        "src/domain/recovery/files/",
+        "src/domain/recovery/transactions/",
+        "src/domain/recovery/sessions/",
+        "tests/faults/recovery/",
+        "src/domain/extensions/",
+        "src/workers/isolated-extension.ts",
+        "src/domain/graph/",
+        "src/adapters/upstream/thoughtdag/",
+        "src/adapters/upstream/synapse/"
+      ],
+      "sourceUnits": [
+        "SRC-24",
+        "SRC-25",
+        "SRC-27",
+        "SRC-11",
+        "SRC-28",
+        "SRC-26",
+        "SRC-21",
+        "SRC-32"
+      ],
+      "contractDocuments": [
+        "specs/06-runtime-recovery.md",
+        "specs/01-host-contract.md",
+        "specs/07-cache-economics.md",
+        "specs/09-system-architecture.md",
+        "specs/05-context-graph-observability.md"
+      ],
+      "reuseFirst": [
+        "直接复用turn-rewind账本/救援/补偿核心",
+        "复用ThoughtDAG/Synapse图领域与super-injector开发能力",
+        "旧preset只迁移为当前正式bundle，集中更换旧Host接口"
+      ],
+      "integrationWork": [
+        "正式运行预设和可恢复文件/会话回退",
+        "图谱/Atlas/why/画布引用",
+        "可信同进程/隔离开发、热换失败保旧与generation清理"
+      ],
+      "deliverables": [
+        "正式运行预设和可恢复文件/会话回退",
+        "图谱/Atlas/why/画布引用",
+        "可信同进程/隔离开发、热换失败保旧与generation清理"
+      ],
+      "definitionOfDone": "所有对应复活能力完整可用，恢复不覆盖新编辑、不重复fork；图与开发台使用同一公共服务",
+      "verification": [
+        "成熟恢复/图谱/扩展用例优先复用",
+        "只针对Host变更、并发/故障/所有权接缝补测",
+        "关联记忆/Run完成后联合验证"
+      ],
+      "evidencePath": "evidence/packages/A06/",
+      "acceptance": "All assigned checkpoints plus all applicable unchanged domain acceptance definitions",
+      "checkReuse": "One actual receipt may satisfy several checkpoints; do not rerun identical checks for each checkpoint"
+    },
+    {
+      "id": "A07",
+      "title": "完整桌面体验、连接与剩余功能接线",
+      "owner": "UI与集成负责人",
+      "status": "planned",
+      "implementationMode": "reuse-first",
+      "dependsOn": [
+        "A01"
+      ],
+      "completionRequires": [
+        "A02",
+        "A03",
+        "A04",
+        "A05",
+        "A06"
+      ],
+      "checkpointIds": [
+        "P48",
+        "P49",
+        "P50",
+        "P51",
+        "P52",
+        "P53",
+        "P54",
+        "P55"
+      ],
+      "ownedPaths": [
+        "src/client/views/project/",
+        "src/client/views/git/",
+        "src/client/views/terminal/",
+        "src/client/views/conversation/",
+        "src/client/components/live-usage/",
+        "src/domain/resources/catalog/",
+        "src/domain/resources/market/",
+        "src/client/views/resources/",
+        "src/domain/integrations/ssh/",
+        "src/client/views/connections/",
+        "src/domain/integrations/remote/",
+        "src/client/views/remote/",
+        "src/domain/integrations/github/",
+        "src/domain/integrations/channels/",
+        "src/adapters/models/accounts/",
+        "src/adapters/search/",
+        "src/client/views/usage/",
+        "src/client/routes.tsx",
+        "src/client/views/graph/",
+        "src/client/views/recovery/",
+        "src/client/views/extensions/"
+      ],
+      "sourceUnits": [
+        "SRC-09",
+        "SRC-13",
+        "SRC-10",
+        "SRC-14",
+        "SRC-12",
+        "SRC-03",
+        "SRC-33",
+        "SRC-31",
+        "SRC-29",
+        "SRC-21",
+        "SRC-26",
+        "SRC-28",
+        "SRC-32"
+      ],
+      "contractDocuments": [
+        "specs/03-experience-design.md",
+        "specs/06-runtime-recovery.md",
+        "specs/04-workflow-tools.md",
+        "specs/05-context-graph-observability.md",
+        "specs/07-cache-economics.md",
+        "specs/01-host-contract.md",
+        "specs/08-engineering-quality.md",
+        "specs/10-reuse-and-coverage.md",
+        "specs/13-desktop-development-plan.md"
+      ],
+      "reuseFirst": [
+        "直接复用better-sidebar/dsh-web子包的文件/Git/终端/SSH/远程/资源管理服务",
+        "复用reading/live-stats/usage/search/account适配器",
+        "各模块沿用A01的Claude组件，避免逐页面重造框架"
+      ],
+      "integrationWork": [
+        "全部页面与19子包功能完整接线",
+        "阅读/实时统计、资源/manager、SSH/手机/Web/GitHub/渠道",
+        "全导航/Inspector/Fleet/账户/搜索与Claude统一体验"
+      ],
+      "deliverables": [
+        "全部页面与19子包功能完整接线",
+        "阅读/实时统计、资源/manager、SSH/手机/Web/GitHub/渠道",
+        "全导航/Inspector/Fleet/账户/搜索与Claude统一体验"
+      ],
+      "definitionOfDone": "全部用户入口和后端真实连接，Claude视觉覆盖所有可控区域；无空壳页面，无遗漏19子包能力",
+      "verification": [
+        "按同一用户旅程合并UI/工具/权限验证",
+        "连接器复用已有协议fixture，实际配置服务按适用范围实测",
+        "所有页面状态/无障碍/性能仍需通过"
+      ],
+      "evidencePath": "evidence/packages/A07/",
+      "acceptance": "All assigned checkpoints plus all applicable unchanged domain acceptance definitions",
+      "checkReuse": "One actual receipt may satisfy several checkpoints; do not rerun identical checks for each checkpoint"
+    },
+    {
+      "id": "A08",
+      "title": "统一迁移、联合验收与完整交付",
+      "owner": "验证与集成负责人",
+      "status": "planned",
+      "implementationMode": "reuse-first",
+      "dependsOn": [
+        "A02",
+        "A03",
+        "A04",
+        "A05",
+        "A06",
+        "A07"
+      ],
+      "completionRequires": [],
+      "checkpointIds": [
+        "P56",
+        "P57",
+        "P58",
+        "P59",
+        "P60",
+        "P61",
+        "P62"
+      ],
+      "ownedPaths": [
+        "src/domain/migrations/",
+        "migrations/",
+        "tests/integration/migrations/",
+        "tests/faults/",
+        "tests/integration/lifecycle/",
+        "tests/desktop/visual/",
+        "tests/desktop/accessibility/",
+        "tests/desktop/performance/",
+        "tests/cost/",
+        "tools/benchmark/",
+        "evidence/benchmarks/",
+        "tools/coverage/",
+        "tools/pack/",
+        "artifacts/",
+        "notices/THIRD_PARTY_NOTICES.md",
+        "docs/user/",
+        "docs/operations/",
+        "artifacts/release-notes.md",
+        "artifacts/DELIVERY.md",
+        "evidence/release/",
+        "docs/execution-ledger.md"
+      ],
+      "sourceUnits": [],
+      "contractDocuments": [
+        "specs/11-verification-and-delivery.md",
+        "specs/10-reuse-and-coverage.md",
+        "specs/09-system-architecture.md",
+        "specs/06-runtime-recovery.md",
+        "specs/07-cache-economics.md",
+        "specs/12-multimodel-orchestration.md",
+        "specs/03-experience-design.md",
+        "specs/13-desktop-development-plan.md",
+        "specs/01-host-contract.md"
+      ],
+      "reuseFirst": [
+        "复用全部已有迁移/测试/基准/打包脚本与可重放证据",
+        "把重复Desktop安装/启停/升级、故障和用户旅程合并为共享测试运行",
+        "只给受变化影响的既有证据重新验证，不无理由反复付费"
+      ],
+      "integrationWork": [
+        "全部旧数据/Claude项目接手与回滚",
+        "全功能/长程/故障/缓存费用/视觉联合验收",
+        "单包tarball、来源许可、兼容/操作文档与完整证据"
+      ],
+      "deliverables": [
+        "全部旧数据/Claude项目接手与回滚",
+        "全功能/长程/故障/缓存费用/视觉联合验收",
+        "单包tarball、来源许可、兼容/操作文档与完整证据"
+      ],
+      "definitionOfDone": "769项既有验收定义保持原文、36来源和62检查点全部有去向且实证通过，内容与效果不降低才交完整构件",
+      "verification": [
+        "全量适用强制验收/来源/UI/action对账",
+        "共享运行可覆盖多个检查点但不得省略断言或账户实测状态",
+        "构件/迁移/长程真实费用/精确恢复/视觉与回滚证据"
+      ],
+      "evidencePath": "evidence/packages/A08/",
+      "acceptance": "All assigned checkpoints plus all applicable unchanged domain acceptance definitions",
+      "checkReuse": "One actual receipt may satisfy several checkpoints; do not rerun identical checks for each checkpoint"
+    }
+  ]
+}

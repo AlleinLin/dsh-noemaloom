@@ -1,0 +1,129 @@
+# dshell bundle patch — applied on top of the dsh `web` profile.
+#
+# Normally applied by the PROFILE: the bundle is installed into one
+# (`dsh plugin --profile <name> add -w @nexus-aethra/dshell-bundle@<version>`,
+# see the README) and the loader reads this file from it. A checkout run may
+# also pass it directly — `dsh --patch <this file> web` — with the flag BEFORE
+# the app name, since anything after `web` is forwarded to the app itself.
+#
+# Each dshell-* package below is a Cordis row the bundle brings into the
+# active composition. The patch ADDS rows; it disables exactly two stock ones,
+# both for a stated single-provider reason, and leaves every other stock row —
+# the conversation view, the workspace sidebar, the header jobs dropdown —
+# running. dshell's own surfaces are per-session: a session opts into the
+# integrated terminal at creation (the blank-session switch), and every dshell
+# client registration exists only while the current session carries that flag,
+# so a stock session sees none of it.
+
+# ── host half: terminal capability ─────────────────────────────────────
+# dsh ships the `web` profile with bash + sandbox already configured, so
+# dshell reuses the existing sandbox row and inserts one dsh row besides its
+# own packages: the PTY service, which the stock web surface does not mount in
+# the host plane (see below). Each row uses a fresh id so it cannot collide
+# with a shipped tooling id.
+
+- insert:
+    # The one dsh package dshell must name: `ctx.terminals`, the PTY service and
+    # backend registry. dshell's bridge registers its backend into it and reads
+    # its types, and dsh's own web surface does NOT mount it in the host plane
+    # (only inside the minimal preset's isolated `terminals` realm), so the row
+    # that provides it is ours to add. The id is fresh so it cannot collide with
+    # a shipped one.
+    - id: dshell-terminal
+      name: '@deepseek-ai/dsh-terminal'
+
+    # NOTE: no terminal-bash row and no tool-terminal row on purpose.
+    #
+    # terminal-bash would race the bridge: dshell's bridge registers its raw PTY
+    # backend under the type `shell` — the name dsh's persistent shell tools
+    # resolve by default (`backendType` defaults to `'shell'`) — so any
+    # composition whose persistent shell group does NOT isolate the terminals
+    # realm resolves the bridge's backend and its bash lands on the agent's
+    # watched terminal. Two backends for that name fail loud at boot
+    # (DUPLICATE_BACKEND).
+    #
+    # tool-terminal supplies dsh's six model-facing `terminal_*` tools, and no
+    # dshell code uses it: the agent's view of its own shell is dshell-commands'
+    # three tools, and dsh's web surface deliberately leaves agent-plane tool
+    # rows out of the host plane for presets to mount. Naming it here would put
+    # those tools in front of every session, stock ones included.
+    #
+    # Only opted-in sessions ever open the PTY this service carries: the browser
+    # half asks for the stream only while the session carries the terminal-mode
+    # flag.
+
+    # Browser half of the `terminal` Conversation target.
+    - id: dshell-conversation
+      name: '@nexus-aethra/dshell-conversation'
+
+    # Browser↔host PTY wire bridge.
+    - id: dshell-terminal-bridge
+      name: '@nexus-aethra/dshell-terminal-bridge'
+
+    # The per-session terminal-mode flag, its blank-session switch, and the
+    # integrated terminal view (an additive `conversation.view` entry that
+    # exists only for opted-in sessions).
+    - id: dshell-mode
+      name: '@nexus-aethra/dshell-mode'
+
+    # /new on ctx.commands, plus the agent-terminal model tools
+    # (dshell_get_agent_terminal, dshell_terminal_read, dshell_terminal_output).
+    - id: dshell-commands
+      name: '@nexus-aethra/dshell-commands'
+
+    # SSH devices: durable device/key registry, per-session assignment through
+    # the stock session row's hover strip, and routing of a bound session's
+    # shell commands to that device.
+    - id: dshell-ssh
+      name: '@nexus-aethra/dshell-ssh'
+
+    # Cross-session pipe: user-established links between sessions, deferred
+    # requests one agent hands to another, scoped revocable folder grants, and
+    # the watchdog that guarantees the requester is always woken.
+    - id: dshell-buffer
+      name: '@nexus-aethra/dshell-buffer'
+
+    # Right-sidebar file navigator: takes over the `files` tab kind (dsh's
+    # registry keeps one builtin and one extension per kind, and the extension
+    # is the one in force) — but only while the current session opted in, so a
+    # stock session keeps the shipped pane.
+    - id: dshell-files
+      name: '@nexus-aethra/dshell-files'
+
+    # Token usage: a durable per-model index over every session's reported
+    # usage, and the settings page that charts it. Host half only — the page
+    # joins the client roster through the same package's `./client` face, which
+    # the client bundle loader picks up from this row like every other dshell
+    # plugin's.
+    - id: dshell-usage
+      name: '@nexus-aethra/dshell-usage'
+
+# ── the one stock row dshell must own ──────────────────────────────────
+# `ctx.fs` has exactly one provider, and a session bound to an SSH device needs
+# its file operations — read, write, edit, list — to run on that device instead
+# of this machine, so dshell-ssh's provider takes the stock backend's place
+# (extending it; the local half of every call is the stock implementation
+# verbatim, see packages/dshell/ssh/src/fs-routing.ts). Two providers for one
+# service name is a cordis error, hence the disable. This is host-side and
+# invisible: a stock session's file tools still resolve to the stock code path.
+- id: fs-sandbox
+  disabled: true
+
+# ── default agent preset ───────────────────────────────────────────────
+# No override and no dshell preset. The stock presets own their shell stacks
+# behind deliberate isolation (tool-bash via the single-provider `ctx.shell`,
+# persistent-bash inside an `isolate: terminals` realm), so no plugin can — or
+# should — rewire them. New sessions follow dsh's default (standard); the
+# terminal-mode flag is orthogonal to the preset the reader picks.
+
+# ── dev-only hot reload (skip in non-dev sessions) ─────────────────────
+# dsh's web profile mounts @deepseek-ai/dsh-client-hmr as a client
+# roster row that stays idle until a `pnpm run dev:web` rebuild watcher
+# rewrites client bundles. The row stays in the roster even when no
+# watcher runs, which makes the client bundle loader look up `/plugins/
+# ...dsh-client-hmr/client.js` at boot; without a rebuild watcher the
+# file may not exist, blocking the entire client bundle. Disabling the
+# row by re-asserting it with `disabled: true` removes it from the
+# client roster without touching dsh source.
+- id: client-hmr
+  disabled: true

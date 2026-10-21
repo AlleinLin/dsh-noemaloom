@@ -1,0 +1,28 @@
+:is([data-nexus-conversation-graph-page], [data-nexus-conversation-canvas], [data-nexus-canvas-panel], [data-nexus-original-canvas]) button,
+button.nexus-canvas-header-action {
+  appearance: none;
+  border: 1px solid var(--dsw-alias-border-l3, #4d4c48);
+  border-radius: var(--dsw-radius-md, 9px);
+  background: var(--dsw-alias-bg-layer-1, #30302e);
+  color: var(--dsw-alias-label-secondary, #d6d3c9);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.35;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+:is([data-nexus-conversation-graph-page], [data-nexus-conversation-canvas], [data-nexus-canvas-panel], [data-nexus-original-canvas]) button:hover,
+button.nexus-canvas-header-action:hover {
+  color: var(--dsw-alias-label-primary, #f0eee6);
+  background: var(--dsw-alias-interactive-bg-hover, #3b3a36);
+}
+:is([data-nexus-conversation-graph-page], [data-nexus-conversation-canvas], [data-nexus-canvas-panel]) button[aria-pressed="true"] {
+  background: var(--dsw-alias-accent-soft, #463a32);
+  border-color: var(--dsw-alias-state-business-primary, #de977a);
+  color: var(--dsw-alias-state-business-primary, #de977a);
+}
+:is([data-nexus-conversation-graph-page], [data-nexus-conversation-canvas], [data-nexus-canvas-panel], [data-nexus-original-canvas]) button:focus-visible,
+button.nexus-canvas-header-action:focus-visible {
+  outline: 2px solid var(--dsw-alias-state-business-primary, #de977a);
+  outline-offset: 2px;
+}

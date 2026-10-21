@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" fill="none">
+  <!--
+    dshell's application icon: a prompt that answers back.
+
+    The chevron and the block cursor are the shell's own vocabulary — the two
+    glyphs every terminal shows while it waits for you. The spark above the
+    cursor is the other half of the idea: this shell writes back.
+
+    Source of truth. `linux/*.png` is rasterized from this file and from
+    `icon-small.svg` (sizes 32 and below drop the spark and thicken the prompt,
+    which is what keeps the mark legible in a 16 px launcher row).
+    See docs/dshell-setup.md for the regeneration command.
+  -->
+  <defs>
+    <linearGradient id="tile" x1="96" y1="16" x2="416" y2="496" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5B8CFF"/>
+      <stop offset="1" stop-color="#2E4CC0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" rx="112" fill="url(#tile)"/>
+
+  <!-- The prompt: chevron + block cursor, on one baseline. -->
+  <path d="M112 186 L250 267 L112 348" stroke="#fff" stroke-width="46" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="300" y="304" width="124" height="46" rx="23" fill="#fff"/>
+
+  <!-- The answer: a spark where the next line of output would start. -->
+  <path d="M386 96 Q395 143 442 152 Q395 161 386 208 Q377 161 330 152 Q377 143 386 96 Z" fill="#fff"/>
+</svg>

@@ -1,0 +1,10 @@
+{
+  "packageName": "dsh-context",
+  "version": "0.73.3",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bowenliang123/dsh-context.git"
+  },
+  "upstreamLicenseFile": true
+}

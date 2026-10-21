@@ -1,0 +1,112 @@
+.nexus-session-dock{position:relative;flex:none;min-height:280px;max-height:calc(100% - 70px);min-width:0;display:flex;flex-direction:column;border-top:1px solid var(--nexus-border);background:var(--nexus-surface);font-size:12px}
+.nexus-dock-resize{position:absolute;top:-4px;left:0;right:0;height:7px;cursor:ns-resize;touch-action:none;z-index:2}
+.nexus-dock-resize:hover,.nexus-dock-resize:focus-visible{background:var(--nexus-accent-soft)}
+.nexus-dock-heading{display:flex;align-items:center;gap:18px;min-height:43px;padding:5px 16px;border-bottom:1px solid var(--nexus-border)}
+.nexus-dock-heading>strong{font-weight:500;font-size:12px;white-space:nowrap}
+.nexus-dock-heading>nav{display:flex;gap:5px}
+.nexus-dock-heading>nav>button{display:flex;gap:6px;align-items:center;border-radius:6px;padding:5px 9px;color:var(--nexus-text-muted);font-size:11px}
+.nexus-dock-heading>nav>button[aria-pressed=true]{background:var(--nexus-selected);color:var(--nexus-text)}
+.nexus-dock-heading>span{margin-left:auto;max-width:45%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;color:var(--nexus-text-faint)}
+.nexus-dock-page,.nexus-dock-workspace,.nexus-dock-panel{flex:1;min-height:0;min-width:0;display:flex;flex-direction:column}
+.nexus-session-dock [hidden]{display:none!important}
+.nexus-dock-tabbar{display:flex;align-items:center;gap:4px;min-height:37px;flex:none;border-bottom:1px solid var(--nexus-border);padding:0 8px;background:var(--nexus-surface-muted)}
+.nexus-dock-tabstrip{flex:1;min-width:0;display:flex;align-items:stretch;overflow-x:auto;scrollbar-width:thin}
+.nexus-dock-tab{display:flex;align-items:center;gap:1px;max-width:240px;min-width:100px;border-bottom:2px solid transparent;margin-top:2px}
+.nexus-dock-tab.is-active{border-color:var(--nexus-accent);background:var(--nexus-surface)}
+.nexus-dock-tab>button[role=tab]{display:flex;align-items:center;gap:7px;min-width:0;padding:8px 7px;font-size:11px;color:var(--nexus-text-muted)}
+.nexus-dock-tab>button[role=tab]>span{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.nexus-dock-tab.is-active>button[role=tab]{color:var(--nexus-text)}
+.nexus-dock-tab>.nexus-icon-button{width:24px;height:25px}
+.nexus-dock-tab>.nexus-icon-button svg{width:12px;height:12px}
+.nexus-dock-tabbar>select{max-width:180px;font-size:10px;padding:4px 7px}
+.nexus-dock-tabbar>.nexus-button{font-size:10px!important;min-height:27px;padding:3px 8px;margin:3px}
+.nexus-child-chat{display:flex;flex-direction:column;flex:1;min-height:0}
+.nexus-child-toolbar{display:flex;align-items:center;gap:9px;padding:9px 16px 7px;min-height:50px;flex:none}
+.nexus-child-toolbar>div:first-child{flex:1;min-width:70px}
+.nexus-child-toolbar strong{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
+.nexus-child-toolbar small{display:block;color:var(--nexus-text-faint);font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:400px}
+.nexus-dock-pending-count{font-size:10px;color:var(--nexus-text-faint);white-space:nowrap}
+.nexus-child-transcript{flex:1;min-height:60px;overflow:auto;scrollbar-width:thin;padding:8px max(20px,calc((100% - 940px)/2)) 14px;overscroll-behavior:contain}
+.nexus-child-transcript>.nexus-state{padding:19px 20px}
+.nexus-child-transcript>.nexus-state>h3{font-family:Georgia,"Songti SC",serif;font-size:20px;font-weight:400;margin-top:8px}
+.nexus-child-transcript>.nexus-state>p{font-size:11px}
+.nexus-dock-message{padding:7px 0 15px;max-width:94%;overflow-wrap:anywhere}
+.nexus-dock-message>small{display:block;font-size:9px;color:var(--nexus-text-faint);margin-bottom:5px}
+.nexus-dock-message>div,.nexus-dock-message details>div{white-space:pre-wrap;line-height:1.85;font-size:13px}
+.nexus-dock-message.is-user{margin-left:auto;background:var(--nexus-surface-muted);border-radius:10px;padding:9px 13px;margin-bottom:12px}
+.nexus-dock-message.is-tool{font:11px/1.7 Consolas,monospace;border-left:2px solid var(--nexus-border);padding-left:12px}
+.nexus-dock-message.is-tool>div{font:inherit}
+.nexus-dock-message details{border-left:2px solid var(--nexus-border);padding-left:11px;margin:8px 0;color:var(--nexus-text-muted)}
+.nexus-dock-message summary{font-size:10px;cursor:pointer;margin-bottom:5px}
+.nexus-dock-block{display:flex;align-items:center;gap:8px;border:1px solid var(--nexus-border)!important;border-radius:6px;padding:7px 10px;margin:5px 0;font-size:11px}
+.nexus-dock-block>span{color:var(--nexus-text-faint);font-size:9px}
+.nexus-child-receipts{border-top:1px dashed var(--nexus-border);padding-top:8px;margin-top:5px}
+.nexus-dock-input-state{display:flex;gap:7px;align-items:center;min-height:25px;color:var(--nexus-text-faint);font-size:10px}
+.nexus-dock-input-state>span:not(.nexus-status){flex:1;min-width:0;max-width:420px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap}
+.nexus-dock-input-state .nexus-icon-button{width:22px;height:22px}
+.nexus-dock-input-state .nexus-status{font-size:9px}
+.nexus-child-composer{padding:8px 16px 10px;flex:none;border-top:1px solid var(--nexus-border);background:var(--nexus-surface)}
+.nexus-dock-models{display:flex;align-items:center;gap:7px;margin-bottom:7px}
+.nexus-dock-models>select{max-width:360px;padding:4px 7px;font-size:10px}
+.nexus-dock-models .nexus-button{min-height:25px;padding:3px 7px;font-size:10px!important}
+.nexus-child-composer>textarea{width:100%;min-height:44px;max-height:130px;font-size:12px;border-radius:8px;line-height:1.6;resize:vertical}
+.nexus-dock-composer-actions{display:flex;align-items:center;gap:7px;margin-top:6px}
+.nexus-dock-composer-actions>span{flex:1}
+.nexus-dock-composer-actions>.nexus-button{min-height:28px;font-size:10px!important;padding:4px 9px}
+.nexus-dock-checkbox{display:flex;align-items:center;gap:5px;font-size:9px;color:var(--nexus-text-faint)}
+.nexus-dock-checkbox>input[type=checkbox]{height:12px;width:12px}
+.nexus-dock-uncertain{padding:6px 0;font-size:10px;color:var(--nexus-warning)}
+.nexus-session-dock .nexus-error{padding:9px 11px;margin:5px 0;font-size:11px}
+.nexus-session-dock .nexus-error strong{font-size:11px}
+.nexus-session-dock .nexus-error p{font-size:10px}
+.nexus-session-dock .nexus-error code{font-size:9px}
+.nexus-dock-inline-error{max-height:95px;overflow:auto;padding:0 12px}
+.nexus-terminal-jobs{flex:1;min-height:0;min-width:0;display:grid;grid-template-columns:205px minmax(0,1fr)}
+.nexus-dock-job-list{border-right:1px solid var(--nexus-border);overflow:auto;scrollbar-width:thin;min-height:0;background:var(--nexus-surface-muted)}
+.nexus-dock-job-list>header{display:flex;align-items:center;justify-content:space-between;padding:5px 10px;border-bottom:1px solid var(--nexus-border);height:37px}
+.nexus-dock-job-list>header strong{font-size:10px;font-weight:500}
+.nexus-dock-job-list>button{display:flex;align-items:flex-start;gap:9px;padding:10px 11px;text-align:left;width:100%;border-bottom:1px solid var(--nexus-border)!important}
+.nexus-dock-job-list>button:hover,.nexus-dock-job-list>button.is-selected{background:var(--nexus-selected)}
+.nexus-dock-job-list>button>svg{margin-top:3px;color:var(--nexus-text-faint)}
+.nexus-dock-job-list>button>span{min-width:0;flex:1}
+.nexus-dock-job-list>button strong{display:block;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;font:10px/1.7 Consolas,monospace}
+.nexus-dock-job-list>button small{display:flex;gap:6px;align-items:center;flex-wrap:wrap;color:var(--nexus-text-faint);font-size:9px}
+.nexus-dock-job-list .nexus-status{font-size:9px}
+.nexus-dock-job-list>p{padding:18px 12px;font-size:10px}
+.nexus-dock-job-main{display:flex;flex-direction:column;min-width:0;min-height:0}
+.nexus-dock-job-output{flex:1;min-height:50px;overflow:auto;scrollbar-width:thin;padding:10px 15px;overscroll-behavior:contain}
+.nexus-dock-job-output>.nexus-state{padding:20px}
+.nexus-dock-job-output>.nexus-state>h3{font:400 20px/1.6 Georgia,"Songti SC",serif}
+.nexus-dock-job-output>.nexus-state>p{font-size:11px}
+.nexus-dock-job-meta{display:flex;align-items:center;gap:9px;font-size:10px;color:var(--nexus-text-faint);flex-wrap:wrap;padding-bottom:10px}
+.nexus-dock-job-meta>code{max-width:200px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:10px}
+.nexus-dock-job-meta>span:not(.nexus-status){margin-right:auto}
+.nexus-dock-job-meta>.nexus-button{min-height:26px;padding:3px 8px;font-size:10px!important}
+.nexus-dock-console{font:11px/1.7 Consolas,"SFMono-Regular",monospace;white-space:pre-wrap;overflow-wrap:anywhere;margin:0;padding:10px 0;color:var(--nexus-text);tab-size:4}
+.nexus-dock-console.is-stderr{color:var(--nexus-danger);border-top:1px dashed var(--nexus-border)}
+.nexus-dock-output-note{font-size:10px;color:var(--nexus-warning)}
+.nexus-dock-command{border-top:1px solid var(--nexus-border);padding:9px 12px;flex:none}
+.nexus-dock-command-options{display:flex;align-items:center;gap:10px;margin-bottom:7px;flex-wrap:wrap}
+.nexus-dock-command-options>select{font-size:10px;padding:4px 7px;max-width:180px}
+.nexus-dock-command-options>label{display:flex;align-items:center;gap:6px;font-size:9px;color:var(--nexus-text-faint)}
+.nexus-dock-command-options>label>input{font:10px/1.5 Consolas,monospace;max-width:170px;padding:4px 7px}
+.nexus-dock-command-options input[type=number]{width:73px}
+.nexus-dock-command-options>span{margin-left:auto;color:var(--nexus-text-faint);font-size:9px}
+.nexus-dock-command-line{display:flex;align-items:flex-start;gap:8px}
+.nexus-dock-command-line>span{font:20px/1.5 Consolas,monospace;color:var(--nexus-accent)}
+.nexus-dock-command-line>textarea{flex:1;min-height:34px;max-height:100px;font:11px/1.7 Consolas,monospace;resize:vertical;border-radius:6px;padding:6px 9px}
+.nexus-dock-command-line>.nexus-button{font-size:10px!important;min-height:34px}
+.nexus-dock-terminal-receipt{border:1px solid var(--nexus-border);border-radius:6px;padding:10px;font-size:10px;margin-bottom:10px;max-height:160px;overflow:auto}
+.nexus-dock-terminal-receipt>p{font-size:10px;color:var(--nexus-text-muted)}
+.nexus-dock-pty-panel,.nexus-host-terminal{flex:1;min-height:0;display:flex;flex-direction:column}
+.nexus-host-terminal-status{display:flex;align-items:center;gap:8px;padding:6px 12px;font-size:10px;border-bottom:1px solid var(--nexus-border);flex-wrap:wrap}
+.nexus-host-terminal-status>strong{font-size:10px;font-weight:500}
+.nexus-host-terminal-status>code{font-size:9px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nexus-host-terminal-status>span:not(.nexus-status){margin-right:auto;color:var(--nexus-text-faint);font-size:9px}
+.nexus-host-terminal-status>.nexus-button{min-height:25px;font-size:10px!important;padding:3px 7px}
+.nexus-host-terminal-screen{flex:1;min-height:50px;overflow:hidden;background:var(--nexus-surface);color:var(--nexus-text);padding:8px 10px}
+.nexus-host-terminal-screen>.xterm{height:100%}
+.nexus-host-terminal-screen .xterm-viewport{scrollbar-width:thin}
+.nexus-host-terminal-error{padding:6px 12px;font-size:10px;color:var(--nexus-danger)}
+@media(max-width:1050px){.nexus-dock-heading>span{max-width:28%}.nexus-terminal-jobs{grid-template-columns:155px minmax(0,1fr)}.nexus-dock-command-options>span{display:none}.nexus-dock-command-options>label>input{max-width:115px}.nexus-dock-pending-count{display:none}.nexus-child-toolbar{padding-left:12px;padding-right:12px}}
+@media(max-width:760px){.nexus-session-dock{max-height:calc(100% - 55px)}.nexus-dock-heading{gap:10px;padding:5px 9px}.nexus-dock-heading>strong{display:none}.nexus-dock-heading>span{font-size:8px;max-width:30%}.nexus-dock-heading>nav>button{font-size:10px}.nexus-dock-tabbar>select{max-width:115px}.nexus-dock-tab{max-width:175px;min-width:85px}.nexus-child-toolbar{gap:5px;padding:7px 10px}.nexus-child-toolbar small{max-width:180px}.nexus-child-toolbar>.nexus-status{font-size:9px}.nexus-child-toolbar>.nexus-button{font-size:9px!important;padding:3px 6px;min-height:25px}.nexus-child-transcript{padding:7px 12px 12px}.nexus-child-composer{padding:7px 10px}.nexus-dock-models>select{max-width:210px}.nexus-dock-checkbox{font-size:8px}.nexus-dock-composer-actions{gap:5px;flex-wrap:wrap}.nexus-terminal-jobs{grid-template-columns:110px minmax(0,1fr)}.nexus-dock-job-list>button{padding:8px;gap:5px}.nexus-dock-job-list>button>svg{display:none}.nexus-dock-job-list time{display:none}.nexus-dock-job-output{padding:8px 10px}.nexus-dock-job-main>.nexus-dock-tabbar{flex-wrap:wrap;padding:3px}.nexus-dock-job-main .nexus-dock-tabstrip{width:100%;flex:auto}.nexus-dock-job-main .nexus-dock-tabbar>.nexus-button{margin-left:auto}.nexus-dock-command{padding:7px}.nexus-dock-command-options{gap:5px}.nexus-dock-command-options>select{max-width:130px}.nexus-dock-command-options>label{font-size:8px}.nexus-dock-command-options>label>input{max-width:95px}.nexus-dock-command-options input[type=number]{width:55px}.nexus-dock-job-meta{gap:6px}.nexus-dock-job-meta>span:not(.nexus-status){width:100%;font-size:9px}.nexus-dock-command-line{gap:5px}.nexus-dock-console{font-size:10px}}

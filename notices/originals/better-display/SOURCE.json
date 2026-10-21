@@ -1,0 +1,10 @@
+{
+  "packageName": "dsh-better-display",
+  "version": "0.3.8",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aa2246740/dsh-better-display.git"
+  },
+  "upstreamLicenseFile": true
+}

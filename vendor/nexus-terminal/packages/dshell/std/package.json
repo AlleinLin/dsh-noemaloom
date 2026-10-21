@@ -1,0 +1,36 @@
+{
+  "name": "@nexus-aethra/dshell-std",
+  "version": "0.1.14",
+  "description": "dshell standard layer: the wire contracts every plugin shares (paths + shapes), with no dependency on dsh and no feature code — the single place a dsh interface change is absorbed.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nexus-Aethra/Nexus-Terminal.git",
+    "directory": "packages/dshell/std"
+  },
+  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/types/index.d.ts",
+      "default": "./lib/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json --emitDeclarationOnly false",
+    "prepack": "corepack pnpm run build",
+    "build:host": "tsc -p tsconfig.json --emitDeclarationOnly false"
+  },
+  "files": [
+    "lib"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {},
+  "peerDependencies": {},
+  "devDependencies": {
+    "typescript": "^6.0.3"
+  }
+}

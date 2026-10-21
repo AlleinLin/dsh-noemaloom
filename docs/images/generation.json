@@ -1,0 +1,70 @@
+[
+  {
+    "project": "dsh-noemaloom",
+    "asset": "hero.webp",
+    "status": "generated",
+    "provider": "Fushengyun",
+    "model": "gpt-image-2.5-sunburst",
+    "sourceSize": [
+      1774,
+      887
+    ],
+    "size": [
+      1774,
+      788
+    ],
+    "bytes": 200994,
+    "prompt": "Create polished original editorial artwork for a GitHub open source plugin README. Premium visual design, carefully controlled composition, crisp silhouettes, subtle grain, no stock imagery, no watermark, no letters, no typography, no numbers, no UI screenshot, no company logos. This is a conceptual illustration, not an actual product screen. Palette: deep ink violet #110e25, luminous lavender #b9a4ff, muted rose gold #e9bda5, soft pearl #f5f0ff. Central visual language: a sculptural orbital loom weaving luminous strands into a coherent constellation, a metaphor for connected context and memory. A cinematic abstract orbital loom on the right: delicate rose-gold elliptical rings weave lavender filaments through pearl memory beads into one coherent luminous fabric. Subtle small constellations suggest graph reasoning. The left is calm violet negative space with faint lines. Keep every important object inside the middle 65 percent of image height; top and bottom are quiet dark background for a later horizontal crop."
+  },
+  {
+    "project": "dsh-noemaloom",
+    "asset": "mark.webp",
+    "status": "generated",
+    "provider": "Fushengyun",
+    "model": "gpt-image-2.5-sunburst",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "size": [
+      512,
+      512
+    ],
+    "bytes": 32970,
+    "prompt": "Create polished original editorial artwork for a GitHub open source plugin README. Premium visual design, carefully controlled composition, crisp silhouettes, subtle grain, no stock imagery, no watermark, no letters, no typography, no numbers, no UI screenshot, no company logos. This is a conceptual illustration, not an actual product screen. Palette: deep ink violet #110e25, luminous lavender #b9a4ff, muted rose gold #e9bda5, soft pearl #f5f0ff. Central visual language: a sculptural orbital loom weaving luminous strands into a coherent constellation, a metaphor for connected context and memory. Square iconic emblem: one sculptural rose-gold elliptical loom encircling a lavender luminous woven knot, like a small intelligent constellation, isolated in the center with generous padding, distinctive elegant app-icon silhouette, deep violet background, no enclosing rounded square."
+  },
+  {
+    "project": "dsh-noemaloom",
+    "asset": "capabilities.webp",
+    "status": "generated",
+    "provider": "Fushengyun",
+    "model": "gpt-image-2.5-sunburst",
+    "sourceSize": [
+      1774,
+      887
+    ],
+    "size": [
+      1774,
+      788
+    ],
+    "bytes": 131640,
+    "prompt": "Create polished original editorial artwork for a GitHub open source plugin README. Premium visual design, carefully controlled composition, crisp silhouettes, subtle grain, no stock imagery, no watermark, no letters, no typography, no numbers, no UI screenshot, no company logos. This is a conceptual illustration, not an actual product screen. Palette: deep ink violet #110e25, luminous lavender #b9a4ff, muted rose gold #e9bda5, soft pearl #f5f0ff. Central visual language: a sculptural orbital loom weaving luminous strands into a coherent constellation, a metaphor for connected context and memory. A precise isometric triptych occupying the middle horizontal band: on the left pearl memory beads and stacked translucent pages; in the center three rose-gold orbital rings weaving lavender threads; on the right a branching constellation of pearl nodes connecting to a translucent workbench plane. A single luminous thread joins all three, deep ink violet background, refined spatial rhythm, no text or UI. Important objects stay in middle 65 percent vertically."
+  },
+  {
+    "project": "dsh-noemaloom",
+    "asset": "workflow.webp",
+    "status": "generated",
+    "provider": "Fushengyun",
+    "model": "gpt-image-2.5-sunburst",
+    "sourceSize": [
+      1942,
+      809
+    ],
+    "size": [
+      1942,
+      809
+    ],
+    "bytes": 217876,
+    "prompt": "Create polished original editorial artwork for a GitHub open source plugin README. Premium visual design, carefully controlled composition, crisp silhouettes, subtle grain, no stock imagery, no watermark, no letters, no typography, no numbers, no UI screenshot, no company logos. This is a conceptual illustration, not an actual product screen. Palette: deep ink violet #110e25, luminous lavender #b9a4ff, muted rose gold #e9bda5, soft pearl #f5f0ff. Central visual language: a sculptural orbital loom weaving luminous strands into a coherent constellation, a metaphor for connected context and memory. A panoramic conceptual journey from left to right, connected by a fine lavender filament: loose pearl memory beads; then a sculptural orbital loom that organizes the filaments; then a branching constellation; finally a softly glowing woven pearl fabric. This expresses context flowing through memory and orchestration into a connected workbench. Elegant scientific-art aesthetic, deep violet and rose gold, balanced negative space. All objects in the middle 65 percent vertically."
+  }
+]

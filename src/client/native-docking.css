@@ -1,0 +1,22 @@
+.nexus-native-dock-controls { position: relative; flex: none; color: var(--dsw-alias-label-secondary); font-size: 12px; }
+.nexus-native-dock-controls > summary { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: var(--dsw-radius-sm, 6px); list-style: none; cursor: pointer; font-size: 20px; }
+.nexus-native-dock-controls > summary::-webkit-details-marker { display: none; }
+.nexus-native-dock-controls > summary:hover, .nexus-native-dock-controls > summary:focus-visible { background: var(--dsw-alias-interactive-bg-hover); }
+.nexus-native-dock-menu { position: absolute; inset-inline-end: 0; top: 32px; z-index: 100; box-sizing: border-box; width: 232px; max-height: min(75vh, 720px); overflow-y: auto; display: flex; flex-direction: column; gap: 4px; padding: 10px; border: 1px solid var(--dsw-alias-border-l3); border-radius: var(--dsw-radius-lg, 12px); background: var(--dsw-alias-bg-layer-1, #f6f4ee); color: var(--dsw-alias-label-primary); box-shadow: 0 8px 24px #0002; }
+.nexus-native-dock-menu button, .nexus-native-dock-menu select { font: inherit; color: inherit; border: 1px solid var(--dsw-alias-border-l3); border-radius: var(--dsw-radius-sm, 6px); background: var(--dsw-alias-bg-layer-2, transparent); padding: 7px 9px; }
+.nexus-native-dock-menu button { text-align: start; cursor: pointer; }
+.nexus-native-dock-menu button:hover:enabled { background: var(--dsw-alias-interactive-bg-hover); }
+.nexus-native-dock-menu button:disabled { opacity: .45; cursor: default; }
+.nexus-native-dock-menu label { display: flex; flex-direction: column; gap: 6px; padding: 6px 0; }
+.nexus-native-dock-caption { padding: 2px 0 5px; font-weight: 600; }
+.nexus-native-dock-hint { color: var(--dsw-alias-label-tertiary); font-size: 11px; line-height: 1.5; padding: 4px 0; }
+.nexus-native-dock-target { display: flex; flex-direction: column; min-height: 0; height: 100%; min-width: 0; }
+.nexus-native-dock-target > header { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 30px; padding: 3px 10px; border-bottom: 1px solid var(--dsw-alias-border-l3); font-size: 11px; color: var(--dsw-alias-label-tertiary); }
+.nexus-native-dock-target > header > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nexus-native-dock-target > header > button { flex: none; font: inherit; color: var(--dsw-alias-label-secondary); background: transparent; border: 1px solid var(--dsw-alias-border-l3); border-radius: var(--dsw-radius-sm, 6px); padding: 3px 7px; cursor: pointer; }
+.nexus-native-dock-target > header > button[aria-pressed=true] { color: var(--nexus-brand-color, #b55d39); }
+.nexus-native-dock-content { display: flex; flex: 1; flex-direction: column; min-height: 0; min-width: 0; overflow: auto; }
+.nexus-native-dock-empty { margin: 0; padding: 16px; font-size: 12px; line-height: 1.6; color: var(--dsw-alias-label-tertiary); }
+.nexus-native-dock-error { margin: 0; padding: 6px 0; font-size: 12px; line-height: 1.5; color: var(--dsw-alias-error-label, #b64e43); }
+.nexus-native-dock-tree { display: flex; flex: 1; min-height: 0; min-width: 0; }
+.nexus-native-dock-landing, .nexus-native-dock-portal { display: flex; flex: 1; flex-direction: column; min-height: 0; min-width: 0; width: 100%; height: 100%; }

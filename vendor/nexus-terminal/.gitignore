@@ -1,0 +1,43 @@
+# dsh upstream checkout — never track this directory.
+# It is a local source mirror used for reference while developing dshell
+# plugins. Updating it is done by pulling the upstream repo separately.
+dsh/
+
+# Node / pnpm artifacts
+node_modules/
+.pnpm-store/
+
+# Build outputs (per-package lib/ is under packages/*/lib/, root lib/
+# is incremental build cache; nested src/*.js / *.map come from tsc
+# emitting into the same rootDir when outDir is unset)
+lib/
+packages/*/lib/
+packages/*/dist/
+packages/*/src/*.js
+packages/*/src/*.js.map
+packages/*/src/*.d.ts
+packages/*/src/*.d.ts.map
+*.tsbuildinfo
+
+# GUI test artifacts (screenshots saved during browser-based verification)
+gui-test-screenshots/
+
+# Agent harness scratch (plan files and other per-session tool state)
+.zcode/
+
+# Linux desktop packaging scratch (upstream-path probe, Electron download cache)
+.linux-pack/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Logs and tmp
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.tmp/

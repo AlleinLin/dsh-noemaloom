@@ -1,0 +1,11 @@
+{
+  "packageName": "dsh-mnemon-source-documents",
+  "version": "0.5.11",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/omdsh-dev/dsh-mnemon.git",
+    "directory": "plugins/dsh-mnemon-source-documents"
+  },
+  "upstreamLicenseFile": true
+}

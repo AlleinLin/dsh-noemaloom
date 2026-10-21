@@ -1,0 +1,2511 @@
+{
+  "schemaVersion": 1,
+  "kind": "acceptance_checkpoint_catalog",
+  "checkpointCount": 62,
+  "scheduling": "Original P01-P62 dependency graph is historical traceability only; schedule A01-A08 in development-plan.json",
+  "checkpoints": [
+    {
+      "id": "P01",
+      "title": "来源、功能与许可冻结",
+      "owner": "来源负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "sources.lock.json",
+        "notices/",
+        "docs/decisions/sources.md"
+      ],
+      "sourceUnits": [],
+      "contractDocuments": [
+        "specs/10-reuse-and-coverage.md",
+        "specs/01-host-contract.md",
+        "specs/12-multimodel-orchestration.md"
+      ],
+      "deliverables": [
+        "36来源锁",
+        "联合action manifest",
+        "组件license及patch台账"
+      ],
+      "definitionOfDone": "所有来源具有确切身份与去向；未知许可有保留功能的合法替代路线，未以根许可证覆盖嵌套组件",
+      "verification": [
+        "来源hash/版本核对",
+        "33目录+3追加仓覆盖",
+        "实际license文本复核"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A01",
+      "legacyStage": "G0",
+      "legacyDependsOn": [],
+      "evidencePath": "evidence/packages/A01/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P02",
+      "title": "工具链与运行时探针",
+      "owner": "平台负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "tools/build/",
+        "tools/doctor/runtime.ts"
+      ],
+      "sourceUnits": [],
+      "contractDocuments": [
+        "specs/01-host-contract.md",
+        "specs/13-desktop-development-plan.md"
+      ],
+      "deliverables": [
+        "开发Node/pnpm精确锁",
+        "首次解析/复核lockfile",
+        "待执行Host runtime探针代码/DTO",
+        "构建external清单"
+      ],
+      "definitionOfDone": "首次先解析生成/复核lock，再冻结安装；只准备Host runtime探针，实际Node/ABI结果在P04取证，未执行未经允许的install脚本",
+      "verification": [
+        "冻结锁安装",
+        "探针schema检查（非实际Host结果）",
+        "manifest与exports审计"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A01",
+      "legacyStage": "G0",
+      "legacyDependsOn": [
+        "P01"
+      ],
+      "evidencePath": "evidence/packages/A01/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P03",
+      "title": "单包Host和Client装载骨架",
+      "owner": "Host负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/host/index.ts",
+        "src/client/entry.ts",
+        "cordis.patch.yml",
+        "assets/icon.svg",
+        "locale/"
+      ],
+      "sourceUnits": [],
+      "contractDocuments": [
+        "specs/01-host-contract.md",
+        "specs/09-system-architecture.md"
+      ],
+      "deliverables": [
+        "apply/inject/config",
+        "module loader factory",
+        "正式bundle",
+        "元数据"
+      ],
+      "definitionOfDone": "精确rc.2可打包加载；Host和Client显示相同build身份，React从宿主共享",
+      "verification": [
+        "Host导出检查",
+        "Client loader检查",
+        "单包临时profile装载"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A01",
+      "legacyStage": "G0",
+      "legacyDependsOn": [
+        "P02"
+      ],
+      "evidencePath": "evidence/packages/A01/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P04",
+      "title": "认证连接与slot真实探针",
+      "owner": "Host负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/host/connection/",
+        "src/client/connection.ts",
+        "tests/host/connection/"
+      ],
+      "sourceUnits": [],
+      "contractDocuments": [
+        "specs/01-host-contract.md",
+        "specs/09-system-architecture.md",
+        "specs/13-desktop-development-plan.md"
+      ],
+      "deliverables": [
+        "exact POST路由",
+        "官方RPC信封",
+        "实际Host Node/ABI/runtime DTO",
+        "真实slot树",
+        "abort/error协议"
+      ],
+      "definitionOfDone": "不抢Gateway共享interceptor；Client通过正式Connection收到实际Host runtime probe，owner-only与业务权限均通过",
+      "verification": [
+        "真实Desktop RPC",
+        "未认证/非owner拒绝",
+        "abort与错版schema",
+        "dispose"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A01",
+      "legacyStage": "G0",
+      "legacyDependsOn": [
+        "P03"
+      ],
+      "evidencePath": "evidence/packages/A01/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P05",
+      "title": "持久化选型与崩溃探针",
+      "owner": "存储负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/domain/storage/",
+        "src/workers/storage.ts",
+        "tests/domain/storage/",
+        "docs/decisions/storage.md"
+      ],
+      "sourceUnits": [],
+      "contractDocuments": [
+        "specs/09-system-architecture.md",
+        "specs/02-memory.md",
+        "specs/13-desktop-development-plan.md"
+      ],
+      "deliverables": [
+        "内置SQLite探针",
+        "纯WASM备选",
+        "Markdown/blob/journal事务",
+        "schema"
+      ],
+      "definitionOfDone": "锁定一种通过实际运行时与性能探针的引擎；单写者、原子快照、重放、备份和10万记录可验证",
+      "verification": [
+        "任意提交窗口中止",
+        "索引重建",
+        "磁盘不足",
+        "兼容性和性能报告"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A01",
+      "legacyStage": "G0",
+      "legacyDependsOn": [
+        "P02",
+        "P04"
+      ],
+      "evidencePath": "evidence/packages/A01/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P06",
+      "title": "配置schema与资源生命周期",
+      "owner": "Host负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/host/config.ts",
+        "src/host/resources.ts",
+        "schemas/config/"
+      ],
+      "sourceUnits": [],
+      "contractDocuments": [
+        "specs/01-host-contract.md",
+        "specs/09-system-architecture.md"
+      ],
+      "deliverables": [
+        "完整配置合并规则",
+        "owner/generation/disposer",
+        "启动停用事务"
+      ],
+      "definitionOfDone": "override整份配置的语义正确，注册失败可回收，停用保留持久数据且无孤儿资源",
+      "verification": [
+        "重复启停",
+        "中途失败",
+        "新旧generation并存与清理"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A01",
+      "legacyStage": "G0",
+      "legacyDependsOn": [
+        "P03",
+        "P05"
+      ],
+      "evidencePath": "evidence/packages/A01/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P07",
+      "title": "公共DTO与垂直CRUD",
+      "owner": "集成负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/ports/",
+        "src/host/tools/probe.ts",
+        "tests/integration/first-slice/"
+      ],
+      "sourceUnits": [],
+      "contractDocuments": [
+        "specs/09-system-architecture.md",
+        "specs/02-memory.md",
+        "specs/01-host-contract.md"
+      ],
+      "deliverables": [
+        "公共包络",
+        "临时MemoryRecord CRUD",
+        "UI与工具同源查询"
+      ],
+      "definitionOfDone": "真实UI到Host到持久化到工具链打通；CAS冲突与同request重放正确，版本不匹配拒绝",
+      "verification": [
+        "真实Desktop创建读回",
+        "并发CAS",
+        "重放",
+        "断线重启"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A01",
+      "legacyStage": "G0",
+      "legacyDependsOn": [
+        "P04",
+        "P05",
+        "P06"
+      ],
+      "evidencePath": "evidence/packages/A01/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P08",
+      "title": "首包安装更新停用证据",
+      "owner": "验证负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "tests/desktop/first-slice/",
+        "tools/pack/",
+        "evidence/gates/G0/"
+      ],
+      "sourceUnits": [],
+      "contractDocuments": [
+        "specs/11-verification-and-delivery.md",
+        "specs/13-desktop-development-plan.md"
+      ],
+      "deliverables": [
+        "本地tarball",
+        "正向files检查",
+        "临时profile安装/更新/停用报告"
+      ],
+      "definitionOfDone": "确认实际Host/Client新build而非旧缓存；停用清理后重新启用仍可读原数据",
+      "verification": [
+        "pack内容审计",
+        "实际Plugin Manager操作",
+        "资源泄漏对照"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A01",
+      "legacyStage": "G0",
+      "legacyDependsOn": [
+        "P07"
+      ],
+      "evidencePath": "evidence/packages/A01/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P09",
+      "title": "命令协调、幂等与权限",
+      "owner": "平台负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/domain/operations/",
+        "src/ports/permissions.ts",
+        "tests/domain/operations/"
+      ],
+      "sourceUnits": [],
+      "contractDocuments": [
+        "specs/09-system-architecture.md",
+        "specs/04-workflow-tools.md",
+        "specs/06-runtime-recovery.md"
+      ],
+      "deliverables": [
+        "intent/operation/receipt",
+        "effect状态机",
+        "权限投影",
+        "cancel"
+      ],
+      "definitionOfDone": "未知外部effect先对账；查询/写入权限分离；UI Native PTC同一策略",
+      "verification": [
+        "重试/重连",
+        "重复意图",
+        "权限撤销",
+        "partial effect"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A01",
+      "legacyStage": "G1",
+      "legacyDependsOn": [
+        "P08"
+      ],
+      "evidencePath": "evidence/packages/A01/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P10",
+      "title": "会话绑定、投影与重连",
+      "owner": "Host负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/host/adapter-rc2/sessions.ts",
+        "src/domain/sessions/",
+        "src/client/projections/"
+      ],
+      "sourceUnits": [],
+      "contractDocuments": [
+        "specs/01-host-contract.md",
+        "specs/09-system-architecture.md",
+        "specs/05-context-graph-observability.md"
+      ],
+      "deliverables": [
+        "正式session ports",
+        "sequence/cursor快照",
+        "fork lineage索引"
+      ],
+      "definitionOfDone": "不用私有自定义session事件或直接改日志；断线可重放，历史继承不触发新effect",
+      "verification": [
+        "projection乱序/丢包",
+        "fork重启",
+        "inject不唤醒语义"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A01",
+      "legacyStage": "G1",
+      "legacyDependsOn": [
+        "P09"
+      ],
+      "evidencePath": "evidence/packages/A01/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P11",
+      "title": "固定dispatcher与能力目录",
+      "owner": "工具负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/host/tools/",
+        "src/domain/catalog/",
+        "schemas/capabilities/"
+      ],
+      "sourceUnits": [
+        "SRC-27"
+      ],
+      "contractDocuments": [
+        "specs/09-system-architecture.md",
+        "specs/06-runtime-recovery.md",
+        "specs/07-cache-economics.md"
+      ],
+      "deliverables": [
+        "14个公共工具同源schema",
+        "目录分页",
+        "Native/PTC投影",
+        "权限元数据"
+      ],
+      "definitionOfDone": "epoch内工具字节/顺序固定，重功能均可发现，不通过只读dispatcher执行写动作",
+      "verification": [
+        "wire schema golden",
+        "目录解锁",
+        "未配置/权限拒绝",
+        "包络兼容"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A01",
+      "legacyStage": "G1",
+      "legacyDependsOn": [
+        "P09"
+      ],
+      "evidencePath": "evidence/packages/A01/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P12",
+      "title": "epoch与不可变ContextPlan",
+      "owner": "上下文负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/domain/context/plan/",
+        "src/domain/context/epochs/"
+      ],
+      "sourceUnits": [],
+      "contractDocuments": [
+        "specs/09-system-architecture.md",
+        "specs/05-context-graph-observability.md",
+        "specs/07-cache-economics.md"
+      ],
+      "deliverables": [
+        "canonical epoch",
+        "pinned/live来源",
+        "send前权限与完整性核验"
+      ],
+      "definitionOfDone": "后台记忆/价格/UI变化不改已固定前缀；撤权和安全删除仍阻止发送",
+      "verification": [
+        "pinned旧版可读",
+        "live stale",
+        "主题/时钟无wire差异",
+        "撤权"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A01",
+      "legacyStage": "G1",
+      "legacyDependsOn": [
+        "P10",
+        "P11"
+      ],
+      "evidencePath": "evidence/packages/A01/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P13",
+      "title": "physical usage与定价账本",
+      "owner": "观测负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/domain/usage/ledger/",
+        "src/adapters/models/usage/"
+      ],
+      "sourceUnits": [
+        "SRC-29",
+        "SRC-33"
+      ],
+      "contractDocuments": [
+        "specs/05-context-graph-observability.md",
+        "specs/07-cache-economics.md",
+        "specs/09-system-architecture.md"
+      ],
+      "deliverables": [
+        "call+attempt账本",
+        "stream/retry去重",
+        "reported/estimated/unknown",
+        "价格版本"
+      ],
+      "definitionOfDone": "一个意图多模型与重试逐笔入账，父子汇总不双计，未知不填0",
+      "verification": [
+        "usage乱序/缺失",
+        "三attempt fixture",
+        "不同币种",
+        "取消已收费"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A01",
+      "legacyStage": "G1",
+      "legacyDependsOn": [
+        "P09",
+        "P10"
+      ],
+      "evidencePath": "evidence/packages/A01/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P14",
+      "title": "Claude桌面基础shell",
+      "owner": "UI负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/client/theme/",
+        "src/client/shell/",
+        "src/client/components/"
+      ],
+      "sourceUnits": [
+        "SRC-09"
+      ],
+      "contractDocuments": [
+        "specs/03-experience-design.md",
+        "specs/13-desktop-development-plan.md"
+      ],
+      "deliverables": [
+        "暖白/石墨tokens",
+        "Sidebar/Main/Composer/ArtifactPane",
+        "响应式与状态组件"
+      ],
+      "definitionOfDone": "真实slot内按Claude参考布局工作；Nexus身份清楚，不捏造已替换Host原生标题栏",
+      "verification": [
+        "亮暗色/125%缩放",
+        "键盘/窄屏",
+        "断线/错误状态",
+        "官方参考复核"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A01",
+      "legacyStage": "G1",
+      "legacyDependsOn": [
+        "P04",
+        "P07",
+        "P10"
+      ],
+      "evidencePath": "evidence/packages/A01/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P15",
+      "title": "锁定论文内核与单控制器",
+      "owner": "上下文负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "vendor/acp-kernel/",
+        "src/adapters/upstream/billion/",
+        "src/domain/context/controller/"
+      ],
+      "sourceUnits": [
+        "SRC-30"
+      ],
+      "contractDocuments": [
+        "specs/05-context-graph-observability.md",
+        "specs/07-cache-economics.md",
+        "specs/01-host-contract.md"
+      ],
+      "deliverables": [
+        "源码锁/notice",
+        "原生接缝",
+        "单压缩owner",
+        "基础服务手动路径"
+      ],
+      "definitionOfDone": "保留模型自治与原文；与宿主basic无双自动监听，关闭插件可正确归还owner",
+      "verification": [
+        "上游fixture对照",
+        "控制器切换",
+        "dispose",
+        "手动summarize"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A03",
+      "legacyStage": "G2",
+      "legacyDependsOn": [
+        "P05",
+        "P11",
+        "P12",
+        "P13"
+      ],
+      "evidencePath": "evidence/packages/A03/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P16",
+      "title": "T1增量折叠与精确恢复",
+      "owner": "上下文负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/domain/context/fold/",
+        "src/domain/context/retrieval/"
+      ],
+      "sourceUnits": [
+        "SRC-30"
+      ],
+      "contractDocuments": [
+        "specs/05-context-graph-observability.md",
+        "specs/07-cache-economics.md"
+      ],
+      "deliverables": [
+        "directMessageIds锚点",
+        "compress/decompress/search/cache",
+        "原文blob"
+      ],
+      "definitionOfDone": "新摘要锚点不被effective祖先前移；已呈现块稳定；工具配对完整、精确值可恢复",
+      "verification": [
+        "T1 wire golden",
+        "search/decompress roundtrip",
+        "来源校验"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A03",
+      "legacyStage": "G2",
+      "legacyDependsOn": [
+        "P15"
+      ],
+      "evidencePath": "evidence/packages/A03/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P17",
+      "title": "T2/T3层级与历史兼容",
+      "owner": "上下文负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/domain/context/tiers/",
+        "src/adapters/upstream/billion/migrations/"
+      ],
+      "sourceUnits": [
+        "SRC-30"
+      ],
+      "contractDocuments": [
+        "specs/05-context-graph-observability.md",
+        "specs/07-cache-economics.md"
+      ],
+      "deliverables": [
+        "有向lineage",
+        "分层再折叠",
+        "legacy anchor迁移",
+        "双模式"
+      ],
+      "definitionOfDone": "层级与自治完整，不每轮重写全部祖先；损坏/循环来源拒绝且原文不丢",
+      "verification": [
+        "T2/T3递归恢复",
+        "循环/重复ID",
+        "legacy fixture",
+        "批量refold"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A03",
+      "legacyStage": "G2",
+      "legacyDependsOn": [
+        "P16"
+      ],
+      "evidencePath": "evidence/packages/A03/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P18",
+      "title": "压缩事务与故障恢复",
+      "owner": "存储负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/domain/context/transactions/",
+        "tests/faults/compression/"
+      ],
+      "sourceUnits": [
+        "SRC-30"
+      ],
+      "contractDocuments": [
+        "specs/05-context-graph-observability.md",
+        "specs/07-cache-economics.md",
+        "specs/09-system-architecture.md"
+      ],
+      "deliverables": [
+        "prepared/commit/index协议",
+        "reconcile",
+        "不可变原件GC保护"
+      ],
+      "definitionOfDone": "所有持久窗口中止后无已隐藏却不可恢复原文；单控制器lease可恢复",
+      "verification": [
+        "逐持久边界kill",
+        "磁盘不足",
+        "索引损坏重建",
+        "重复commit"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A03",
+      "legacyStage": "G2",
+      "legacyDependsOn": [
+        "P17",
+        "P09"
+      ],
+      "evidencePath": "evidence/packages/A03/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P19",
+      "title": "wire审计与缓存计划器",
+      "owner": "缓存负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/domain/context/wire/",
+        "src/domain/context/cache-planner/",
+        "tests/wire/"
+      ],
+      "sourceUnits": [
+        "SRC-29",
+        "SRC-30"
+      ],
+      "contractDocuments": [
+        "specs/07-cache-economics.md",
+        "specs/05-context-graph-observability.md"
+      ],
+      "deliverables": [
+        "最早差异分析",
+        "收益估计",
+        "供应商能力矩阵",
+        "固定前缀golden"
+      ],
+      "definitionOfDone": "本地hash与供应商hit分层，压缩时机比较冷重算/输出/检索成本，不填padding",
+      "verification": [
+        "第07章golden",
+        "完整prefix unit",
+        "多轮warming",
+        "TTL unknown"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A03",
+      "legacyStage": "G2",
+      "legacyDependsOn": [
+        "P12",
+        "P13",
+        "P17"
+      ],
+      "evidencePath": "evidence/packages/A03/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P20",
+      "title": "压缩缓存原生界面",
+      "owner": "UI负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/client/views/context/",
+        "src/client/views/cache/"
+      ],
+      "sourceUnits": [
+        "SRC-29",
+        "SRC-30"
+      ],
+      "contractDocuments": [
+        "specs/03-experience-design.md",
+        "specs/05-context-graph-observability.md",
+        "specs/07-cache-economics.md"
+      ],
+      "deliverables": [
+        "分层块/原文检索",
+        "压缩预览",
+        "reported指标与边界解释"
+      ],
+      "definitionOfDone": "真实压缩/解压操作可追证据，缓存未实测不显示伪hit百分比",
+      "verification": [
+        "UI工具同receipt",
+        "exact恢复",
+        "unknown展示",
+        "大历史虚拟化"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A03",
+      "legacyStage": "G2",
+      "legacyDependsOn": [
+        "P14",
+        "P18",
+        "P19"
+      ],
+      "evidencePath": "evidence/packages/A03/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P21",
+      "title": "LOCAL记忆与作用域",
+      "owner": "记忆负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/domain/memory/local/",
+        "src/adapters/memory/file/",
+        "src/adapters/memory/file-memory/"
+      ],
+      "sourceUnits": [
+        "SRC-01",
+        "SRC-04"
+      ],
+      "contractDocuments": [
+        "specs/02-memory.md",
+        "specs/09-system-architecture.md",
+        "specs/07-cache-economics.md"
+      ],
+      "deliverables": [
+        "Markdown真源",
+        "触碰激活",
+        "Source×Strategy×Provider",
+        "MEMORY.md与MEMORY目录原文件Source",
+        "去重"
+      ],
+      "definitionOfDone": "无外部服务可写读召回；Claude Code项目文件不改原格式即能增量检索，原文件真源、scope/密钥拒绝正确，注入只有一套",
+      "verification": [
+        "scope边界",
+        "MEM079-086/093-095",
+        "原子文件",
+        "重复capture",
+        "无结果零注入"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A02",
+      "legacyStage": "G3",
+      "legacyDependsOn": [
+        "P09",
+        "P12"
+      ],
+      "evidencePath": "evidence/packages/A02/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P22",
+      "title": "规则图与38高级操作",
+      "owner": "记忆负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/adapters/memory/ccg/",
+        "src/domain/memory/rules/"
+      ],
+      "sourceUnits": [
+        "SRC-02"
+      ],
+      "contractDocuments": [
+        "specs/02-memory.md"
+      ],
+      "deliverables": [
+        "CCG/五层/负记忆",
+        "38 op manifest",
+        "路由回退",
+        "Python协议"
+      ],
+      "definitionOfDone": "高级操作逐项映射公共包络、权限、UI与fixture，不能仅实现基础tool list",
+      "verification": [
+        "38操作覆盖",
+        "进程换代",
+        "Python缺失",
+        "token授权与时间线"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A02",
+      "legacyStage": "G3",
+      "legacyDependsOn": [
+        "P21"
+      ],
+      "evidencePath": "evidence/packages/A02/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P23",
+      "title": "演化记忆与经验审核同步",
+      "owner": "记忆负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/adapters/memory/evolve/",
+        "src/domain/memory/evolution/"
+      ],
+      "sourceUnits": [
+        "SRC-03"
+      ],
+      "contractDocuments": [
+        "specs/02-memory.md",
+        "specs/04-workflow-tools.md"
+      ],
+      "deliverables": [
+        "五轨/分支",
+        "建议审核",
+        "git同步",
+        "去重capture"
+      ],
+      "definitionOfDone": "旧数据迁移可回滚；分支和审核不覆盖正文；同步冲突可解释",
+      "verification": [
+        "旧fixture导入",
+        "CAS冲突",
+        "离线重连",
+        "fork无重复付费沉淀"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A02",
+      "legacyStage": "G3",
+      "legacyDependsOn": [
+        "P21"
+      ],
+      "evidencePath": "evidence/packages/A02/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P24",
+      "title": "知识VFS与语义检索Provider",
+      "owner": "集成负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/adapters/memory/openviking/",
+        "src/adapters/memory/memsearch/"
+      ],
+      "sourceUnits": [
+        "SRC-05",
+        "SRC-06"
+      ],
+      "contractDocuments": [
+        "specs/02-memory.md"
+      ],
+      "deliverables": [
+        "OpenViking VFS/L0-L2",
+        "Milvus dense/sparse/RRF",
+        "search/expand/transcript"
+      ],
+      "definitionOfDone": "各自真源/许可分开，capture去重；服务未配与adapter未实现状态分开",
+      "verification": [
+        "本地协议fixture",
+        "实际可用服务",
+        "失败/cancel/分页",
+        "无结果"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A02",
+      "legacyStage": "G3",
+      "legacyDependsOn": [
+        "P21"
+      ],
+      "evidencePath": "evidence/packages/A02/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P25",
+      "title": "反思与工程信任Provider",
+      "owner": "集成负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/adapters/memory/hindsight/",
+        "src/adapters/memory/veyra/"
+      ],
+      "sourceUnits": [
+        "SRC-07",
+        "SRC-08"
+      ],
+      "contractDocuments": [
+        "specs/02-memory.md",
+        "specs/07-cache-economics.md"
+      ],
+      "deliverables": [
+        "retain/recall/reflect/pages",
+        "工程/信任记忆",
+        "反馈和健康"
+      ],
+      "definitionOfDone": "预算受控，trust是读时投影；外部故障保留LOCAL原件与可重试状态",
+      "verification": [
+        "Provider协议",
+        "reflect预算",
+        "不同代码hash trust",
+        "授权撤回"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A02",
+      "legacyStage": "G3",
+      "legacyDependsOn": [
+        "P21"
+      ],
+      "evidencePath": "evidence/packages/A02/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P26",
+      "title": "统一捕获、注入与备份",
+      "owner": "记忆负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/domain/memory/orchestrator/",
+        "src/domain/memory/capture/"
+      ],
+      "sourceUnits": [
+        "SRC-04"
+      ],
+      "contractDocuments": [
+        "specs/02-memory.md",
+        "specs/07-cache-economics.md",
+        "specs/09-system-architecture.md"
+      ],
+      "deliverables": [
+        "唯一注入/capture协调",
+        "快照审核",
+        "备份/和解",
+        "guided recall/writeback",
+        "项目文件接手包"
+      ],
+      "definitionOfDone": "后台文件/记忆更新不改变active快照；ProjectHandoffPacket有界且来源可恢复，继承历史不重复capture，各Provider结果可归因",
+      "verification": [
+        "跨Provider/文件去重",
+        "MEM087-092",
+        "fork lineage",
+        "epoch stable",
+        "备份恢复"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A02",
+      "legacyStage": "G3",
+      "legacyDependsOn": [
+        "P22",
+        "P23",
+        "P24",
+        "P25",
+        "P12"
+      ],
+      "evidencePath": "evidence/packages/A02/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P27",
+      "title": "OPS文件、批处理与文档",
+      "owner": "工具负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/adapters/upstream/ops/",
+        "src/domain/files/",
+        "src/workers/document.ts"
+      ],
+      "sourceUnits": [
+        "SRC-18"
+      ],
+      "contractDocuments": [
+        "specs/04-workflow-tools.md",
+        "specs/09-system-architecture.md"
+      ],
+      "deliverables": [
+        "16类工具",
+        "Rust可选核",
+        "Native/PTC",
+        "结果引用",
+        "平台搜索"
+      ],
+      "definitionOfDone": "权限路径一致，输出有界且可继续，命令与文档不绕Host执行/文件端口",
+      "verification": [
+        "中文/UNC/junction",
+        "大输出",
+        "批处理partial",
+        "二进制/文档fixture"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A01",
+      "legacyStage": "G3",
+      "legacyDependsOn": [
+        "P11",
+        "P09"
+      ],
+      "evidencePath": "evidence/packages/A01/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P28",
+      "title": "记忆与知识工作台",
+      "owner": "UI负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/client/views/memory/",
+        "src/client/views/knowledge/"
+      ],
+      "sourceUnits": [
+        "SRC-01",
+        "SRC-02",
+        "SRC-03",
+        "SRC-04",
+        "SRC-05",
+        "SRC-06",
+        "SRC-07",
+        "SRC-08"
+      ],
+      "contractDocuments": [
+        "specs/03-experience-design.md",
+        "specs/02-memory.md"
+      ],
+      "deliverables": [
+        "搜索/编辑/审核/关系",
+        "Provider健康",
+        "项目文件Source/接手预览",
+        "证据和时间线",
+        "作用域/备份"
+      ],
+      "definitionOfDone": "全部高级op及MEMORY文件入口可达且权限相同，文件覆盖/固定版本/后台新版本可查，trust/正文版本分离",
+      "verification": [
+        "全部操作入口矩阵",
+        "MEM096",
+        "跨scope拒绝",
+        "大列表",
+        "空/错/冲突状态"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A02",
+      "legacyStage": "G3",
+      "legacyDependsOn": [
+        "P14",
+        "P26",
+        "P27"
+      ],
+      "evidencePath": "evidence/packages/A02/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P29",
+      "title": "TaskPlan/Run统一调度",
+      "owner": "工作流负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/domain/workflow/",
+        "src/domain/workflow/scheduler/"
+      ],
+      "sourceUnits": [
+        "SRC-03",
+        "SRC-13"
+      ],
+      "contractDocuments": [
+        "specs/04-workflow-tools.md",
+        "specs/09-system-architecture.md"
+      ],
+      "deliverables": [
+        "DAG/leases/预算",
+        "队列/取消/重试",
+        "checkpoint",
+        "goal/todo"
+      ],
+      "definitionOfDone": "单一调度权威，副作用unknown先对账，恢复不重新执行已完成节点",
+      "verification": [
+        "依赖/循环拒绝",
+        "lease并发",
+        "预算保留",
+        "restart/cancel"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A04",
+      "legacyStage": "G4",
+      "legacyDependsOn": [
+        "P09",
+        "P10",
+        "P13"
+      ],
+      "evidencePath": "evidence/packages/A04/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P30",
+      "title": "专家、团队与方法资产",
+      "owner": "工作流负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/domain/resources/agents/",
+        "src/domain/workflow/teams/"
+      ],
+      "sourceUnits": [
+        "SRC-17",
+        "SRC-19",
+        "SRC-11"
+      ],
+      "contractDocuments": [
+        "specs/04-workflow-tools.md",
+        "specs/12-multimodel-orchestration.md"
+      ],
+      "deliverables": [
+        "专家/团队目录与草稿",
+        "版本化persona/skill",
+        "明确递归策略"
+      ],
+      "definitionOfDone": "全部角色可发现且按需加载；普通专家默认不可递归，受控层级必须显式授权",
+      "verification": [
+        "目录/路由/草稿CAS",
+        "禁用/软删",
+        "permission/recursion"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A04",
+      "legacyStage": "G4",
+      "legacyDependsOn": [
+        "P11",
+        "P29"
+      ],
+      "evidencePath": "evidence/packages/A04/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P31",
+      "title": "多模型route与Host子任务",
+      "owner": "编排负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/domain/orchestration/routes/",
+        "src/host/adapter-rc2/subagents.ts"
+      ],
+      "sourceUnits": [
+        "SRC-36"
+      ],
+      "contractDocuments": [
+        "specs/12-multimodel-orchestration.md",
+        "specs/07-cache-economics.md",
+        "specs/01-host-contract.md"
+      ],
+      "deliverables": [
+        "ModelRef/RoutePlan/Lease",
+        "AgentOptions映射",
+        "spawn/fork capability"
+      ],
+      "definitionOfDone": "角色模型选择真实生效，主会话不变；凭据映射Host route；发布后取消调用exact handle.dispose并等待后代，不仅abort启动signal",
+      "verification": [
+        "两个模型真实spawn",
+        "strictPool",
+        "observed route",
+        "unknown price",
+        "发布前/后取消",
+        "单次许可缺口"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A04",
+      "legacyStage": "G4",
+      "legacyDependsOn": [
+        "P29",
+        "P30",
+        "P13",
+        "P10"
+      ],
+      "evidencePath": "evidence/packages/A04/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P32",
+      "title": "tiers、框架与harness编译",
+      "owner": "编排负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/domain/orchestration/blueprints/",
+        "src/domain/orchestration/tiers/"
+      ],
+      "sourceUnits": [
+        "SRC-36"
+      ],
+      "contractDocuments": [
+        "specs/12-multimodel-orchestration.md",
+        "specs/04-workflow-tools.md"
+      ],
+      "deliverables": [
+        "T0-T3",
+        "16框架/26角色资产映射",
+        "高级层级模板",
+        "ownership compiler"
+      ],
+      "definitionOfDone": "运行快照不可变，重叠目录/共享schema降串行，高级递归与全局预算受限",
+      "verification": [
+        "tier矩阵",
+        "路径重叠",
+        "深度/节点/调用上限",
+        "蓝图revision"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A04",
+      "legacyStage": "G4",
+      "legacyDependsOn": [
+        "P31"
+      ],
+      "evidencePath": "evidence/packages/A04/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P33",
+      "title": "独立门禁与真实验证",
+      "owner": "编排负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/domain/orchestration/gates/",
+        "src/domain/orchestration/evidence/"
+      ],
+      "sourceUnits": [
+        "SRC-36"
+      ],
+      "contractDocuments": [
+        "specs/12-multimodel-orchestration.md",
+        "specs/08-engineering-quality.md"
+      ],
+      "deliverables": [
+        "DeliveryContract",
+        "独立actor",
+        "failure fingerprint",
+        "有限repair"
+      ],
+      "definitionOfDone": "无checks不能PASS；作者不自证review/verify；排除Metis fixed PASS桥并真正执行任务",
+      "verification": [
+        "实现→review→verify实链",
+        "盲评",
+        "无进展停止",
+        "假的receipt拒绝"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A04",
+      "legacyStage": "G4",
+      "legacyDependsOn": [
+        "P32",
+        "P27",
+        "P41"
+      ],
+      "evidencePath": "evidence/packages/A04/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P34",
+      "title": "角色缓存与handoff",
+      "owner": "缓存负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/domain/orchestration/handoff/",
+        "src/domain/orchestration/affinity/"
+      ],
+      "sourceUnits": [
+        "SRC-36"
+      ],
+      "contractDocuments": [
+        "specs/07-cache-economics.md",
+        "specs/12-multimodel-orchestration.md"
+      ],
+      "deliverables": [
+        "sticky lanes",
+        "typed Brief/ArtifactRefs",
+        "签名隔离",
+        "fallback/hedge账本"
+      ],
+      "definitionOfDone": "不全量跨模型重放thinking/历史，父只追加一次小结果；唯一commit owner，loser费用保留",
+      "verification": [
+        "CCH051-080相关fixture",
+        "冷启动/ttl",
+        "多层预算",
+        "late结果"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A04",
+      "legacyStage": "G4",
+      "legacyDependsOn": [
+        "P31",
+        "P19",
+        "P18"
+      ],
+      "evidencePath": "evidence/packages/A04/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P35",
+      "title": "会话CLI房间与旁观",
+      "owner": "工作流负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/domain/integrations/cli/",
+        "src/domain/workflow/rooms/",
+        "src/domain/workflow/advisors/"
+      ],
+      "sourceUnits": [
+        "SRC-03"
+      ],
+      "contractDocuments": [
+        "specs/04-workflow-tools.md",
+        "specs/07-cache-economics.md"
+      ],
+      "deliverables": [
+        "独立会话/CLI引擎",
+        "广播房间",
+        "claim",
+        "通知receipt",
+        "旁观建议"
+      ],
+      "definitionOfDone": "外部输出带来源，不以user身份注入；inject与wake分开，外部effect和费用可归因",
+      "verification": [
+        "CLI取消/进程树",
+        "重复通知",
+        "房间ACL",
+        "暂停/恢复",
+        "不自动发送"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A04",
+      "legacyStage": "G4",
+      "legacyDependsOn": [
+        "P29",
+        "P31",
+        "P27"
+      ],
+      "evidencePath": "evidence/packages/A04/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P36",
+      "title": "编排与适应性桌面界面",
+      "owner": "UI负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/client/views/orchestration/",
+        "src/domain/orchestration/adaptations/"
+      ],
+      "sourceUnits": [
+        "SRC-36",
+        "SRC-17"
+      ],
+      "contractDocuments": [
+        "specs/12-multimodel-orchestration.md",
+        "specs/03-experience-design.md",
+        "specs/07-cache-economics.md"
+      ],
+      "deliverables": [
+        "Claude右栏运行树",
+        "角色选模",
+        "harness编辑",
+        "未来run适应性提案"
+      ],
+      "definitionOfDone": "界面真实驱动统一Run；gate/evidence/预算可见；编辑/自学习不改变active快照",
+      "verification": [
+        "真实三actor工作",
+        "保存冲突",
+        "键盘图编辑",
+        "future-only adaptation"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A04",
+      "legacyStage": "G4",
+      "legacyDependsOn": [
+        "P14",
+        "P32",
+        "P33",
+        "P34",
+        "P35"
+      ],
+      "evidencePath": "evidence/packages/A04/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P37",
+      "title": "lint方法与确定性runner",
+      "owner": "质量负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/domain/quality/lint/",
+        "assets/methods/how-to-lint/"
+      ],
+      "sourceUnits": [
+        "SRC-34"
+      ],
+      "contractDocuments": [
+        "specs/08-engineering-quality.md",
+        "specs/04-workflow-tools.md"
+      ],
+      "deliverables": [
+        "配置识别",
+        "分层增量lint",
+        "规则指南/单测",
+        "finding与fix计划"
+      ],
+      "definitionOfDone": "先用项目现有配置，规则有语义与来源，自动修复可审阅且不覆盖新编辑",
+      "verification": [
+        "TS/Vue/Python/Go fixture",
+        "增量/全量",
+        "baseline",
+        "fix冲突"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A05",
+      "legacyStage": "G5",
+      "legacyDependsOn": [
+        "P27",
+        "P29",
+        "P41"
+      ],
+      "evidencePath": "evidence/packages/A05/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P38",
+      "title": "完整工程方法与文档流程",
+      "owner": "质量负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/domain/quality/processes/",
+        "assets/methods/engineering/"
+      ],
+      "sourceUnits": [
+        "SRC-35",
+        "SRC-16",
+        "SRC-19",
+        "SRC-11"
+      ],
+      "contractDocuments": [
+        "specs/08-engineering-quality.md",
+        "specs/04-workflow-tools.md"
+      ],
+      "deliverables": [
+        "需求/Issue/PR/设计/技术写作",
+        "Aegis/Superpowers/J-Space去重编译"
+      ],
+      "definitionOfDone": "方法变成统一TaskPlan/资料/门禁能力，非数份常驻prompt或第二调度器",
+      "verification": [
+        "方法路由",
+        "文档审阅",
+        "保留用户规则",
+        "no自动发布/通知"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A05",
+      "legacyStage": "G5",
+      "legacyDependsOn": [
+        "P30",
+        "P37",
+        "P47"
+      ],
+      "evidencePath": "evidence/packages/A05/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P39",
+      "title": "Git/SVN审查与证据",
+      "owner": "审查负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/domain/review/",
+        "src/adapters/vcs/"
+      ],
+      "sourceUnits": [
+        "SRC-15"
+      ],
+      "contractDocuments": [
+        "specs/04-workflow-tools.md",
+        "specs/08-engineering-quality.md",
+        "specs/10-reuse-and-coverage.md"
+      ],
+      "deliverables": [
+        "capture与身份",
+        "二阶段审查",
+        "coverage/evidence",
+        "许可合规实现"
+      ],
+      "definitionOfDone": "只读capture可复现，二阶段有源证据，SVN mergeinfo不伪证已审；受限源码分发可控",
+      "verification": [
+        "Git/SVN dirty/history",
+        "bounded retrieval",
+        "多轮去重",
+        "真实验证"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A05",
+      "legacyStage": "G5",
+      "legacyDependsOn": [
+        "P27",
+        "P29",
+        "P33"
+      ],
+      "evidencePath": "evidence/packages/A05/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P40",
+      "title": "质量、审查与文档界面",
+      "owner": "UI负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/client/views/quality/",
+        "src/client/views/review/"
+      ],
+      "sourceUnits": [
+        "SRC-34",
+        "SRC-35",
+        "SRC-15"
+      ],
+      "contractDocuments": [
+        "specs/03-experience-design.md",
+        "specs/08-engineering-quality.md",
+        "specs/04-workflow-tools.md"
+      ],
+      "deliverables": [
+        "计划/运行/发现/修复diff",
+        "覆盖/receipt",
+        "文档流程/导出"
+      ],
+      "definitionOfDone": "每项动作连真实runner，失败/未验证不伪绿，issue/PR动作有精确授权",
+      "verification": [
+        "UI权限",
+        "取消",
+        "大报告",
+        "diff安全预览",
+        "未配置工具"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A05",
+      "legacyStage": "G5",
+      "legacyDependsOn": [
+        "P14",
+        "P37",
+        "P38",
+        "P39"
+      ],
+      "evidencePath": "evidence/packages/A05/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P41",
+      "title": "Shell执行与编码统一",
+      "owner": "平台负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/domain/runtime/execution/",
+        "src/adapters/platforms/windows/"
+      ],
+      "sourceUnits": [
+        "SRC-22",
+        "SRC-23",
+        "SRC-13"
+      ],
+      "contractDocuments": [
+        "specs/06-runtime-recovery.md"
+      ],
+      "deliverables": [
+        "17条PowerShell诊断",
+        "Codec",
+        "前后台exit",
+        "持久会话/任务"
+      ],
+      "definitionOfDone": "Unicode/原生混合字节及exit语义正确，集中包装可卸载，后台取消终止进程树",
+      "verification": [
+        "17规则",
+        "中文/emoji",
+        "Write-Host/exit",
+        "大输出",
+        "cancel"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A01",
+      "legacyStage": "G6",
+      "legacyDependsOn": [
+        "P09",
+        "P27"
+      ],
+      "evidencePath": "evidence/packages/A01/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P42",
+      "title": "正式预设与自适应复活",
+      "owner": "平台负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/domain/runtime/presets/",
+        "assets/presets/",
+        "cordis.presets.patch.yml"
+      ],
+      "sourceUnits": [
+        "SRC-24",
+        "SRC-25",
+        "SRC-27",
+        "SRC-11"
+      ],
+      "contractDocuments": [
+        "specs/06-runtime-recovery.md",
+        "specs/01-host-contract.md",
+        "specs/07-cache-economics.md"
+      ],
+      "deliverables": [
+        "Git Bash/持久pwsh/自适应/J-Space正式bundle",
+        "权限与环境"
+      ],
+      "definitionOfDone": "不写废弃.agent-presets；实际创建会话执行并保留状态；窄工具不漂移schema",
+      "verification": [
+        "REV02/03/04/06",
+        "cwd/env/functions",
+        "无WSL误认",
+        "停用"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A06",
+      "legacyStage": "G6",
+      "legacyDependsOn": [
+        "P41",
+        "P11"
+      ],
+      "evidencePath": "evidence/packages/A06/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P43",
+      "title": "文件账本救援与事务恢复",
+      "owner": "恢复负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/domain/recovery/files/",
+        "src/domain/recovery/transactions/"
+      ],
+      "sourceUnits": [
+        "SRC-28"
+      ],
+      "contractDocuments": [
+        "specs/06-runtime-recovery.md",
+        "specs/09-system-architecture.md"
+      ],
+      "deliverables": [
+        "change ledger",
+        "plan/preview/rescue/apply/undo/gc",
+        "reparse处理"
+      ],
+      "definitionOfDone": "恢复先救援、逐路径核验；补偿只改仍等于本次postimage的文件，保留外部新编辑",
+      "verification": [
+        "每持久窗口kill",
+        "junction/symlink",
+        "大仓",
+        "磁盘不足/锁文件"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A06",
+      "legacyStage": "G6",
+      "legacyDependsOn": [
+        "P05",
+        "P09",
+        "P27"
+      ],
+      "evidencePath": "evidence/packages/A06/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P44",
+      "title": "会话fork与恢复协调",
+      "owner": "恢复负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/domain/recovery/sessions/",
+        "tests/faults/recovery/"
+      ],
+      "sourceUnits": [
+        "SRC-28"
+      ],
+      "contractDocuments": [
+        "specs/06-runtime-recovery.md",
+        "specs/09-system-architecture.md"
+      ],
+      "deliverables": [
+        "durable fork-intent",
+        "child link before flush",
+        "三模式回退"
+      ],
+      "definitionOfDone": "fork/flush未知先对账不重复创建；原日志不截断，普通fork文件仍共享",
+      "verification": [
+        "fork已生效未返回",
+        "未flush/失败",
+        "重启",
+        "不重复capture"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A06",
+      "legacyStage": "G6",
+      "legacyDependsOn": [
+        "P43",
+        "P10"
+      ],
+      "evidencePath": "evidence/packages/A06/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P45",
+      "title": "开发注入与扩展generation",
+      "owner": "平台负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/domain/extensions/",
+        "src/workers/isolated-extension.ts"
+      ],
+      "sourceUnits": [
+        "SRC-26"
+      ],
+      "contractDocuments": [
+        "specs/06-runtime-recovery.md",
+        "specs/01-host-contract.md"
+      ],
+      "deliverables": [
+        "stage/test/inject/watch/reload/promote/release",
+        "可信同进程与隔离桥"
+      ],
+      "definitionOfDone": "EXT全部操作有真实实现；失败保旧，无孤儿resource；worker不冒充共享service",
+      "verification": [
+        "真实service消费",
+        "watch竞态",
+        "旧代dispose失败",
+        "发布前可审构件"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A06",
+      "legacyStage": "G6",
+      "legacyDependsOn": [
+        "P06",
+        "P09",
+        "P41"
+      ],
+      "evidencePath": "evidence/packages/A06/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P46",
+      "title": "会话画布、Atlas与图谱",
+      "owner": "图谱负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/domain/graph/",
+        "src/adapters/upstream/thoughtdag/",
+        "src/adapters/upstream/synapse/"
+      ],
+      "sourceUnits": [
+        "SRC-21",
+        "SRC-32"
+      ],
+      "contractDocuments": [
+        "specs/05-context-graph-observability.md",
+        "specs/09-system-architecture.md"
+      ],
+      "deliverables": [
+        "wire/context版本",
+        "condense/weave",
+        "Atlas/why/recall/dossier",
+        "Synapse"
+      ],
+      "definitionOfDone": "四种graphKind写入正确，UI连线不改Host日志；pinned来源与stale显式，分享权限可撤销",
+      "verification": [
+        "全操作fixture",
+        "fork与画布分支区分",
+        "重建索引",
+        "陈旧依赖"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A06",
+      "legacyStage": "G6",
+      "legacyDependsOn": [
+        "P10",
+        "P12",
+        "P29",
+        "P26"
+      ],
+      "evidencePath": "evidence/packages/A06/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P47",
+      "title": "图表、HTML与安全产物",
+      "owner": "工具负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/domain/artifacts/",
+        "src/adapters/upstream/archify/",
+        "assets/diagrams/"
+      ],
+      "sourceUnits": [
+        "SRC-20",
+        "SRC-35"
+      ],
+      "contractDocuments": [
+        "specs/04-workflow-tools.md",
+        "specs/08-engineering-quality.md",
+        "specs/05-context-graph-observability.md"
+      ],
+      "deliverables": [
+        "十类图表/explainer",
+        "Mermaid/SVG",
+        "交互HTML",
+        "导出与个人skill"
+      ],
+      "definitionOfDone": "安全预览与原生设置隔离，个人/内置skill均可发现；SVG许可不清用等效自有实现",
+      "verification": [
+        "artifact sandbox",
+        "导出roundtrip",
+        "个人skill遮蔽",
+        "脚本/URL限制"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A05",
+      "legacyStage": "G6",
+      "legacyDependsOn": [
+        "P27",
+        "P46"
+      ],
+      "evidencePath": "evidence/packages/A05/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P48",
+      "title": "文件Git侧栏与终端",
+      "owner": "UI负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/client/views/project/",
+        "src/client/views/git/",
+        "src/client/views/terminal/"
+      ],
+      "sourceUnits": [
+        "SRC-09",
+        "SRC-13"
+      ],
+      "contractDocuments": [
+        "specs/03-experience-design.md",
+        "specs/06-runtime-recovery.md",
+        "specs/04-workflow-tools.md"
+      ],
+      "deliverables": [
+        "文件树/编辑搜索",
+        "Git图/worktree",
+        "底部tab",
+        "Side Chat",
+        "PTY"
+      ],
+      "definitionOfDone": "Claude导航内完整工作台，Git写动作授权/可恢复，fork不伪装隔离文件",
+      "verification": [
+        "真实Git操作",
+        "20k/100k树",
+        "中文路径",
+        "终端cancel",
+        "编辑冲突"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A07",
+      "legacyStage": "G7",
+      "legacyDependsOn": [
+        "P14",
+        "P27",
+        "P41",
+        "P44"
+      ],
+      "evidencePath": "evidence/packages/A07/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P49",
+      "title": "阅读视图复活与实时统计",
+      "owner": "UI负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/client/views/conversation/",
+        "src/client/components/live-usage/"
+      ],
+      "sourceUnits": [
+        "SRC-10",
+        "SRC-14"
+      ],
+      "contractDocuments": [
+        "specs/03-experience-design.md",
+        "specs/05-context-graph-observability.md",
+        "specs/07-cache-economics.md"
+      ],
+      "deliverables": [
+        "成功轮折叠",
+        "原block保真",
+        "选择/滚动",
+        "stream估计到reported"
+      ],
+      "definitionOfDone": "失败/取消轮不误折，未知block fallback；retry/断线usage不翻倍",
+      "verification": [
+        "REV01/08",
+        "选择文本",
+        "长会话",
+        "stream未完/usage晚到"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A07",
+      "legacyStage": "G7",
+      "legacyDependsOn": [
+        "P14",
+        "P10",
+        "P13"
+      ],
+      "evidencePath": "evidence/packages/A07/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P50",
+      "title": "资源市场与正式管理器",
+      "owner": "资源负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/domain/resources/catalog/",
+        "src/domain/resources/market/",
+        "src/client/views/resources/"
+      ],
+      "sourceUnits": [
+        "SRC-12",
+        "SRC-13"
+      ],
+      "contractDocuments": [
+        "specs/03-experience-design.md",
+        "specs/06-runtime-recovery.md",
+        "specs/04-workflow-tools.md"
+      ],
+      "deliverables": [
+        "皮肤/宠物/插件/preset/skills目录",
+        "try-on",
+        "正式manager更新/回滚"
+      ],
+      "definitionOfDone": "版本锁/来源/许可明确，Desktop profile仅官方writer；客户端更新identity可核验",
+      "verification": [
+        "离线缓存",
+        "试用撤销",
+        "安装失败",
+        "pending builds",
+        "重启提示"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A07",
+      "legacyStage": "G7",
+      "legacyDependsOn": [
+        "P30",
+        "P45",
+        "P06"
+      ],
+      "evidencePath": "evidence/packages/A07/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P51",
+      "title": "SSH与远程工作区",
+      "owner": "集成负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/domain/integrations/ssh/",
+        "src/client/views/connections/"
+      ],
+      "sourceUnits": [
+        "SRC-13"
+      ],
+      "contractDocuments": [
+        "specs/03-experience-design.md",
+        "specs/06-runtime-recovery.md"
+      ],
+      "deliverables": [
+        "密码/key/agent/passphrase",
+        "跳板/连接池",
+        "SFTP/PTY/转发/集群"
+      ],
+      "definitionOfDone": "秘密留Host；取消和设备/连接撤销有效，远端路径不误当本地root",
+      "verification": [
+        "各认证fixture",
+        "真实SSH测试机",
+        "断线/重连",
+        "端口/进程回收"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A07",
+      "legacyStage": "G7",
+      "legacyDependsOn": [
+        "P41",
+        "P09"
+      ],
+      "evidencePath": "evidence/packages/A07/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P52",
+      "title": "手机Web桥与授权设备",
+      "owner": "集成负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/domain/integrations/remote/",
+        "src/client/views/remote/"
+      ],
+      "sourceUnits": [
+        "SRC-13"
+      ],
+      "contractDocuments": [
+        "specs/03-experience-design.md",
+        "specs/01-host-contract.md",
+        "specs/04-workflow-tools.md"
+      ],
+      "deliverables": [
+        "QR/P256",
+        "设备撤销",
+        "窄屏",
+        "任务/审批/历史/队列",
+        "LAN/隧道"
+      ],
+      "definitionOfDone": "同账本revision与ACL，远程本机受限动作具名转交，不绕Desktop认证",
+      "verification": [
+        "真实设备配对/撤销",
+        "过期QR",
+        "重放攻击",
+        "离线重连"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A07",
+      "legacyStage": "G7",
+      "legacyDependsOn": [
+        "P04",
+        "P09",
+        "P29"
+      ],
+      "evidencePath": "evidence/packages/A07/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P53",
+      "title": "GitHub任务、通知与渠道",
+      "owner": "集成负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/domain/integrations/github/",
+        "src/domain/integrations/channels/"
+      ],
+      "sourceUnits": [
+        "SRC-13",
+        "SRC-03"
+      ],
+      "contractDocuments": [
+        "specs/04-workflow-tools.md",
+        "specs/03-experience-design.md",
+        "specs/08-engineering-quality.md"
+      ],
+      "deliverables": [
+        "Issue纳入/分析审核",
+        "冻结prompt",
+        "PR/comment/close receipt",
+        "通知渠道"
+      ],
+      "definitionOfDone": "读取与外发权限区分，只有明确授权才发送；请求重放不重复外部消息",
+      "verification": [
+        "合成API fixture",
+        "授权测试仓/渠道",
+        "timeout未知",
+        "revision冲突"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A07",
+      "legacyStage": "G7",
+      "legacyDependsOn": [
+        "P29",
+        "P35",
+        "P52"
+      ],
+      "evidencePath": "evidence/packages/A07/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P54",
+      "title": "账户用量与多源搜索",
+      "owner": "观测负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/adapters/models/accounts/",
+        "src/adapters/search/",
+        "src/client/views/usage/"
+      ],
+      "sourceUnits": [
+        "SRC-33",
+        "SRC-31",
+        "SRC-29"
+      ],
+      "contractDocuments": [
+        "specs/05-context-graph-observability.md",
+        "specs/07-cache-economics.md",
+        "specs/03-experience-design.md"
+      ],
+      "deliverables": [
+        "13账户adapter",
+        "余额/计划/热图",
+        "三源search/fetch",
+        "成本分区"
+      ],
+      "definitionOfDone": "真实/估计/未知分层、无缓存双计；搜索fallback有来源、预算/取消、不改system",
+      "verification": [
+        "13协议fixture",
+        "公开搜索/授权账户实测",
+        "重定向/限流",
+        "分币种"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A07",
+      "legacyStage": "G7",
+      "legacyDependsOn": [
+        "P13",
+        "P19",
+        "P27"
+      ],
+      "evidencePath": "evidence/packages/A07/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P55",
+      "title": "图谱恢复开发与全导航收口",
+      "owner": "UI负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/client/routes.tsx",
+        "src/client/views/graph/",
+        "src/client/views/recovery/",
+        "src/client/views/extensions/"
+      ],
+      "sourceUnits": [
+        "SRC-09",
+        "SRC-13",
+        "SRC-21",
+        "SRC-26",
+        "SRC-28",
+        "SRC-32"
+      ],
+      "contractDocuments": [
+        "specs/03-experience-design.md",
+        "specs/10-reuse-and-coverage.md",
+        "specs/13-desktop-development-plan.md"
+      ],
+      "deliverables": [
+        "全页面/设置/命令索引",
+        "Inspector",
+        "Fleet",
+        "19子包action覆盖"
+      ],
+      "definitionOfDone": "全部用户能力有真实入口与backend，Claude视觉贯通；不存在只有演示按钮的页面",
+      "verification": [
+        "UI/action/fixture双向表",
+        "空/加载/错误/权限状态",
+        "键盘全旅程"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A07",
+      "legacyStage": "G7",
+      "legacyDependsOn": [
+        "P28",
+        "P36",
+        "P40",
+        "P46",
+        "P47",
+        "P48",
+        "P49",
+        "P50",
+        "P51",
+        "P52",
+        "P53",
+        "P54",
+        "P45"
+      ],
+      "evidencePath": "evidence/packages/A07/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P56",
+      "title": "旧数据发现迁移与退回",
+      "owner": "存储负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "src/domain/migrations/",
+        "migrations/",
+        "tests/integration/migrations/"
+      ],
+      "sourceUnits": [],
+      "contractDocuments": [
+        "specs/11-verification-and-delivery.md",
+        "specs/10-reuse-and-coverage.md",
+        "specs/09-system-architecture.md"
+      ],
+      "deliverables": [
+        "discover/plan/preview/backup/import/verify/activate/monitor",
+        "Claude Code工程文件直接绑定",
+        "回滚映射"
+      ],
+      "definitionOfDone": "原件不删；MEMORY.md/MEMORY目录可直接只读接手而非强制转库；按能力唯一接管，断点续迁可核验，shadow不双写/双收费",
+      "verification": [
+        "全部旧schema及Claude遗留文件fixture",
+        "MEM079-096",
+        "大数据中止",
+        "权限丢失",
+        "退回旧插件"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A08",
+      "legacyStage": "G8",
+      "legacyDependsOn": [
+        "P26",
+        "P42",
+        "P44",
+        "P50",
+        "P55"
+      ],
+      "evidencePath": "evidence/packages/A08/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P57",
+      "title": "全系统故障与生命周期",
+      "owner": "验证负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "tests/faults/",
+        "tests/integration/lifecycle/"
+      ],
+      "sourceUnits": [],
+      "contractDocuments": [
+        "specs/11-verification-and-delivery.md",
+        "specs/06-runtime-recovery.md",
+        "specs/07-cache-economics.md",
+        "specs/12-multimodel-orchestration.md"
+      ],
+      "deliverables": [
+        "全持久窗口/网络/worker/generation故障矩阵",
+        "重启恢复"
+      ],
+      "definitionOfDone": "无丢原文/越权/重复写/fork/收费；无法判定的effect明确待对账",
+      "verification": [
+        "故障矩阵",
+        "dispose与资源快照",
+        "usage/receipt对账"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A08",
+      "legacyStage": "G8",
+      "legacyDependsOn": [
+        "P18",
+        "P33",
+        "P34",
+        "P44",
+        "P45",
+        "P56"
+      ],
+      "evidencePath": "evidence/packages/A08/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P58",
+      "title": "Claude视觉、无障碍与性能",
+      "owner": "验证负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "tests/desktop/visual/",
+        "tests/desktop/accessibility/",
+        "tests/desktop/performance/"
+      ],
+      "sourceUnits": [],
+      "contractDocuments": [
+        "specs/03-experience-design.md",
+        "specs/13-desktop-development-plan.md"
+      ],
+      "deliverables": [
+        "官方参考对比",
+        "亮暗/缩放",
+        "键盘/读屏",
+        "长列表/长会话性能"
+      ],
+      "definitionOfDone": "所有owned区域按Claude合同复核，Host壳差异准确记录，无真实功能被视觉简化吞掉",
+      "verification": [
+        "Windows截图/交互",
+        "125/150%缩放",
+        "高对比/减弱动画",
+        "100k树"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A08",
+      "legacyStage": "G8",
+      "legacyDependsOn": [
+        "P55"
+      ],
+      "evidencePath": "evidence/packages/A08/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P59",
+      "title": "长程压缩缓存多模型实验",
+      "owner": "缓存负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "tests/cost/",
+        "tools/benchmark/",
+        "evidence/benchmarks/"
+      ],
+      "sourceUnits": [],
+      "contractDocuments": [
+        "specs/07-cache-economics.md",
+        "specs/12-multimodel-orchestration.md",
+        "specs/11-verification-and-delivery.md"
+      ],
+      "deliverables": [
+        "500+轮配对协议",
+        "单模型/role lanes/切换对照",
+        "真实费用与质量"
+      ],
+      "definitionOfDone": "在已授权预算内执行，全部attempt与失败入账；报告命中覆盖率、不确定性和质量，不许拿论文数值冒充",
+      "verification": [
+        "离线协议预检",
+        "真实Provider配对",
+        "warming/TTL",
+        "总费/TTFT/质量报告"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A08",
+      "legacyStage": "G8",
+      "legacyDependsOn": [
+        "P19",
+        "P20",
+        "P34",
+        "P54",
+        "P57"
+      ],
+      "evidencePath": "evidence/packages/A08/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P60",
+      "title": "单包全量覆盖与构件审计",
+      "owner": "验证负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "tools/coverage/",
+        "tools/pack/",
+        "artifacts/",
+        "notices/THIRD_PARTY_NOTICES.md"
+      ],
+      "sourceUnits": [],
+      "contractDocuments": [
+        "specs/10-reuse-and-coverage.md",
+        "specs/11-verification-and-delivery.md",
+        "specs/13-desktop-development-plan.md"
+      ],
+      "deliverables": [
+        "来源/action/UI/验收/receipt联合manifest",
+        "tarball",
+        "SBOM/hash/notice"
+      ],
+      "definitionOfDone": "36来源、19子包与REV全覆盖，所有强制验收有证据；包不含research整仓/secret/用户数据",
+      "verification": [
+        "双向覆盖",
+        "pack实际列表",
+        "许可证条件",
+        "clean profile重装"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A08",
+      "legacyStage": "G8",
+      "legacyDependsOn": [
+        "P56",
+        "P57",
+        "P58",
+        "P59"
+      ],
+      "evidencePath": "evidence/packages/A08/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P61",
+      "title": "升级回滚与操作文档",
+      "owner": "集成负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "docs/user/",
+        "docs/operations/",
+        "artifacts/release-notes.md"
+      ],
+      "sourceUnits": [],
+      "contractDocuments": [
+        "specs/11-verification-and-delivery.md",
+        "specs/01-host-contract.md"
+      ],
+      "deliverables": [
+        "完整安装配置/升级停用/故障/回滚手册",
+        "兼容矩阵",
+        "数据导出"
+      ],
+      "definitionOfDone": "操作者可按文档在独立环境复现安装与回滚，active epochs/原文不被后台升级破坏",
+      "verification": [
+        "全新测试用户复现",
+        "旧版本升级",
+        "备份独立读取",
+        "卸载保数据"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A08",
+      "legacyStage": "G8",
+      "legacyDependsOn": [
+        "P60"
+      ],
+      "evidencePath": "evidence/packages/A08/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    },
+    {
+      "id": "P62",
+      "title": "最终完整交付与证据封存",
+      "owner": "集成负责人",
+      "status": "not_verified",
+      "ownedPaths": [
+        "artifacts/DELIVERY.md",
+        "evidence/release/",
+        "docs/execution-ledger.md"
+      ],
+      "sourceUnits": [],
+      "contractDocuments": [
+        "specs/11-verification-and-delivery.md",
+        "specs/13-desktop-development-plan.md"
+      ],
+      "deliverables": [
+        "精确本地构件与hash",
+        "完整证据索引",
+        "未测范围/限制",
+        "可审review包"
+      ],
+      "definitionOfDone": "全部合同与门满足才声明完整；未获账号或发布授权不伪造通过/发布，明确具名待项",
+      "verification": [
+        "全部门复核",
+        "规格/实现hash一致",
+        "secret扫描",
+        "独立复核与可复现性"
+      ],
+      "kind": "acceptance_checkpoint",
+      "packageId": "A08",
+      "legacyStage": "G8",
+      "legacyDependsOn": [
+        "P61"
+      ],
+      "evidencePath": "evidence/packages/A08/",
+      "implementationRule": "复用可满足即接入，不为检查点单独重写模块或重复运行相同检查"
+    }
+  ]
+}

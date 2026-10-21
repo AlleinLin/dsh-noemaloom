@@ -1,0 +1,47 @@
+# Dependencies and generated output (root-only: vendored source may contain lib/).
+node_modules/
+/lib/
+/bin/
+/build/
+/dist/
+/delivery/
+/artifacts/
+/evidence/
+/coverage/
+/.cache/
+/.codegraph/
+/.desktop-validation-state.json
+/docs/desktop-evidence/
+/docs/*-validation.json
+/docs/benchmark.json
+/docs/resilience-results.json
+/src/client/*.generated.js
+
+# Local environments and private DSH state.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.credentials*
+.dsh/
+.codex/
+.claude/
+profiles/
+private-sessions/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Editor and temporary files.
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.bak
+*.tsbuildinfo
+*.tgz
+*.zip

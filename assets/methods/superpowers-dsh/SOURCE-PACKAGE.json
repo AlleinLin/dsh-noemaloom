@@ -1,0 +1,53 @@
+{
+  "name": "superpowers-dsh",
+  "description": "Superpowers for the DeepSeek Harness: TDD, debugging, planning, and collaboration skills adapted from obra/superpowers",
+  "version": "0.3.0",
+  "private": false,
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "skills",
+    "scripts",
+    "port",
+    "static",
+    "cordis.patch.yml",
+    "README.md",
+    "README.en.md"
+  ],
+  "scripts": {
+    "verify": "node scripts/verify-skills.mjs",
+    "compat": "node scripts/check-dsh-compat.mjs",
+    "sync": "node scripts/sync-from-upstream.mjs"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LayneChai/superpowers-dsh.git"
+  },
+  "homepage": "https://github.com/LayneChai/superpowers-dsh#readme",
+  "bugs": {
+    "url": "https://github.com/LayneChai/superpowers-dsh/issues"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "plugin",
+    "skills",
+    "superpowers"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "superpowersUpstream": "v7.0.0"
+  }
+}

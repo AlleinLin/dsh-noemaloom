@@ -1,0 +1,49 @@
+- id: preset-suite-windows-gitbash
+  name: '@deepseek-ai/dsh-agent-preset'
+  config:
+    id: suite.windows-gitbash
+    name: Windows Git Bash
+    description: 真正的 Git for Windows Bash，默认每次新进程，精确文本编辑与能力发现。
+    order: 11
+    plugins:
+      - id: persona
+        name: '@deepseek-ai/dsh-persona'
+        config:
+          prefix: 你是协助用户完成软件工作的工程助手。遵守当前任务、工作区规范及宿主权限，先核实事实，再完成实现与验证。
+      - id: agent-instructions
+        name: '@local/dsh-nexus/project-rules'
+        config:
+          maxBytes: 65536
+          instructionFileCandidates: [DEEPSEEK.md, AGENT.md, AGENTS.md, CLAUDE.md]
+          localInstructionFileCandidates: []
+      - id: time-context
+        name: '@deepseek-ai/dsh-time-context'
+      - id: nexus-preset-policy
+        name: '@local/dsh-nexus/preset-runtime'
+        config:
+          presetId: suite.windows-gitbash
+          shellId: git-bash
+          registerShell: true
+      - id: precise-editor
+        name: '@deepseek-ai/dsh-tool-str-replace-editor'
+      - id: tool-fs
+        name: '@deepseek-ai/dsh-tool-fs'
+      - id: tool-fs-search
+        name: '@deepseek-ai/dsh-tool-fs-search'
+      - id: compaction
+        name: cordis:group
+        group: true
+        isolate:
+          compaction: true
+          toolResultPruner: true
+        config:
+          - id: compaction-basic
+            name: '@local/dsh-nexus/compaction'
+          - id: command-compact
+            name: '@deepseek-ai/dsh-command-compact'
+          - id: tool-result-pruner
+            name: '@deepseek-ai/dsh-compaction-tool-result-pruner'
+            config:
+              thresholdChars: 8192
+              headChars: 4096
+              tailChars: 1024

@@ -1,0 +1,12 @@
+{
+  "name": "zod",
+  "version": "4.4.3",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/colinhacks/zod.git"
+  },
+  "licenseFiles": [
+    "LICENSE"
+  ]
+}

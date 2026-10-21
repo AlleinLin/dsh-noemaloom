@@ -1,0 +1,13 @@
+{
+  "name": "use-sync-external-store",
+  "version": "1.7.0",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/react/react.git",
+    "directory": "packages/use-sync-external-store"
+  },
+  "licenseFiles": [
+    "LICENSE"
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "name": "@nexus-aethra/dshell-storage",
+  "version": "0.1.14",
+  "description": "dshell storage engines: the mediums behind the std storage contract. Currently a SQLite command-history store on Node's built-in node:sqlite, so there is no native dependency and no install script; host-only, never imported by a client bundle.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nexus-Aethra/Nexus-Terminal.git",
+    "directory": "packages/dshell/storage"
+  },
+  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/types/index.d.ts",
+      "default": "./lib/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json --emitDeclarationOnly false",
+    "prepack": "corepack pnpm run build",
+    "build:host": "tsc -p tsconfig.json --emitDeclarationOnly false"
+  },
+  "files": [
+    "lib"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@nexus-aethra/dshell-std": "workspace:^"
+  },
+  "peerDependencies": {},
+  "devDependencies": {
+    "typescript": "^6.0.3"
+  }
+}

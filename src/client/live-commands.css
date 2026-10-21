@@ -1,0 +1,65 @@
+.nexus-live-commands {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  color: var(--dsw-alias-label-primary, inherit);
+  background: var(--dsw-alias-background-primary, transparent);
+  font-family: inherit;
+  font-size: var(--dsh-content-font-size-secondary, 13px);
+}
+.nexus-live-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--dsw-alias-divider, currentColor);
+}
+.nexus-live-history { display: flex; align-items: center; flex: 1; gap: 8px; min-width: 180px; }
+.nexus-live-history select {
+  flex: 1;
+  min-width: 0;
+  max-width: 100%;
+  color: inherit;
+  background: var(--dsw-alias-background-secondary, transparent);
+  border: 1px solid var(--dsw-alias-border-primary, currentColor);
+  border-radius: 8px;
+  font: inherit;
+  padding: 5px 8px;
+}
+.nexus-live-follow { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.nexus-live-toolbar button, .nexus-live-open {
+  color: var(--dsw-alias-label-primary, inherit);
+  background: var(--dsw-alias-button-floating-fill, transparent);
+  border: 1px solid var(--dsw-alias-border-primary, currentColor);
+  border-radius: 999px;
+  cursor: pointer;
+  font: inherit;
+  padding: 4px 10px;
+}
+.nexus-live-toolbar button:hover, .nexus-live-open:hover { background: var(--dsw-alias-button-floating-hover, transparent); }
+.nexus-live-open { font-size: 12px; margin: 3px 0 5px 28px; }
+.nexus-live-commands :focus-visible, .nexus-live-open:focus-visible { outline: 2px solid var(--dsw-alias-label-primary, currentColor); outline-offset: 2px; }
+.nexus-live-status { white-space: nowrap; color: var(--dsw-alias-label-secondary, inherit); }
+.nexus-live-status[data-state="failed"], .nexus-live-output [data-stream="stderr"] { color: var(--dsw-alias-label-error, #ba5b51); }
+.nexus-live-command {
+  display: flex;
+  gap: 9px;
+  align-items: baseline;
+  overflow: hidden;
+  padding: 7px 12px;
+  color: var(--dsw-alias-label-secondary, inherit);
+}
+.nexus-live-command code { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--dsw-alias-label-primary, inherit); }
+.nexus-live-command > span { flex: none; }
+.nexus-live-notice { padding: 5px 12px; color: var(--dsw-alias-label-secondary, inherit); overflow-wrap: anywhere; }
+.nexus-live-output { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; padding: 9px 12px; }
+.nexus-live-output pre {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: 12px/1.6 var(--dsh-code-font-family, ui-monospace, Consolas, monospace);
+}
+.nexus-live-empty { margin: 12px 0; color: var(--dsw-alias-label-secondary, inherit); }
+.nexus-live-footnote { padding: 5px 12px 8px; color: var(--dsw-alias-label-secondary, inherit); font-size: 11px; }

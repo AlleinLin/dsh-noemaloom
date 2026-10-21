@@ -1,0 +1,233 @@
+[
+  {
+    "upstream": "https://github.com/Wholiver/metis",
+    "commit": "8b1eda95afea3592e08a315e29dc7746ee57ca25",
+    "sourcePath": "LICENSE",
+    "assetPath": "LICENSE",
+    "contentHash": "d55e40e822fce59bbd9596fba198941a481d7fd568febc275228e038610e4622",
+    "licenseRef": "LICENSE",
+    "noticeRef": "NOTICE.md",
+    "modifications": "None. Preserved method source. Nexus typed policy overrides permissions, tiers, budgets and evidence.",
+    "validationSource": "specs/12-multimodel-orchestration.md; runtime evidence pending unified validation"
+  },
+  {
+    "upstream": "https://github.com/Wholiver/metis",
+    "commit": "8b1eda95afea3592e08a315e29dc7746ee57ca25",
+    "sourcePath": "contracts/roles.json",
+    "assetPath": "roles.json",
+    "contentHash": "416bcd0600253f32167b0e931b407f50fd32f4e7e859b723ca2769fe7756c930",
+    "licenseRef": "LICENSE",
+    "noticeRef": "NOTICE.md",
+    "modifications": "None. Preserved method source. Nexus typed policy overrides permissions, tiers, budgets and evidence.",
+    "validationSource": "specs/12-multimodel-orchestration.md; runtime evidence pending unified validation"
+  },
+  {
+    "upstream": "https://github.com/Wholiver/metis",
+    "commit": "8b1eda95afea3592e08a315e29dc7746ee57ca25",
+    "sourcePath": "contracts/frameworks.json",
+    "assetPath": "frameworks.json",
+    "contentHash": "217ac51093ebb4f7b3f02d6fe78bfa8c4d316bf9298eb0c87ee4371be40166a7",
+    "licenseRef": "LICENSE",
+    "noticeRef": "NOTICE.md",
+    "modifications": "None. Preserved method source. Nexus typed policy overrides permissions, tiers, budgets and evidence.",
+    "validationSource": "specs/12-multimodel-orchestration.md; runtime evidence pending unified validation"
+  },
+  {
+    "upstream": "https://github.com/Wholiver/metis",
+    "commit": "8b1eda95afea3592e08a315e29dc7746ee57ca25",
+    "sourcePath": "contracts/gates.json",
+    "assetPath": "gates.json",
+    "contentHash": "5a9e57d894fca4e7146b8bab5b3e7701e5fdc8baf69bc718ebe80c84bc9f6976",
+    "licenseRef": "LICENSE",
+    "noticeRef": "NOTICE.md",
+    "modifications": "None. Preserved method source. Nexus typed policy overrides permissions, tiers, budgets and evidence.",
+    "validationSource": "specs/12-multimodel-orchestration.md; runtime evidence pending unified validation"
+  },
+  {
+    "upstream": "https://github.com/Wholiver/metis",
+    "commit": "8b1eda95afea3592e08a315e29dc7746ee57ca25",
+    "sourcePath": "contracts/routes.json",
+    "assetPath": "routes.json",
+    "contentHash": "e993ec51fb8d0b7028bf3a31e3f2dcd236453d2a714f195dafd45a2078e4e974",
+    "licenseRef": "LICENSE",
+    "noticeRef": "NOTICE.md",
+    "modifications": "None. Preserved method source. Nexus typed policy overrides permissions, tiers, budgets and evidence.",
+    "validationSource": "specs/12-multimodel-orchestration.md; runtime evidence pending unified validation"
+  },
+  {
+    "upstream": "https://github.com/Wholiver/metis",
+    "commit": "8b1eda95afea3592e08a315e29dc7746ee57ca25",
+    "sourcePath": "agents/codex/skills/metis/frameworks/apply.md",
+    "assetPath": "frameworks/apply.md",
+    "contentHash": "265b55fdcb2633c0817510d17f9bb5118ed5e719b5841227023f0371d1173173",
+    "licenseRef": "LICENSE",
+    "noticeRef": "NOTICE.md",
+    "modifications": "None. Preserved method source. Nexus typed policy overrides permissions, tiers, budgets and evidence.",
+    "validationSource": "specs/12-multimodel-orchestration.md; runtime evidence pending unified validation"
+  },
+  {
+    "upstream": "https://github.com/Wholiver/metis",
+    "commit": "8b1eda95afea3592e08a315e29dc7746ee57ca25",
+    "sourcePath": "agents/codex/skills/metis/frameworks/backend-build.md",
+    "assetPath": "frameworks/backend-build.md",
+    "contentHash": "2f36e91bacfdddb9c742ac347955a4c01660837adbed5d204a208bd62977db82",
+    "licenseRef": "LICENSE",
+    "noticeRef": "NOTICE.md",
+    "modifications": "None. Preserved method source. Nexus typed policy overrides permissions, tiers, budgets and evidence.",
+    "validationSource": "specs/12-multimodel-orchestration.md; runtime evidence pending unified validation"
+  },
+  {
+    "upstream": "https://github.com/Wholiver/metis",
+    "commit": "8b1eda95afea3592e08a315e29dc7746ee57ca25",
+    "sourcePath": "agents/codex/skills/metis/frameworks/backend-fix.md",
+    "assetPath": "frameworks/backend-fix.md",
+    "contentHash": "a07ec4f9efaf60a18ebae1501cd2606384cfa58cb8e689f768f5d54203e3fa8d",
+    "licenseRef": "LICENSE",
+    "noticeRef": "NOTICE.md",
+    "modifications": "None. Preserved method source. Nexus typed policy overrides permissions, tiers, budgets and evidence.",
+    "validationSource": "specs/12-multimodel-orchestration.md; runtime evidence pending unified validation"
+  },
+  {
+    "upstream": "https://github.com/Wholiver/metis",
+    "commit": "8b1eda95afea3592e08a315e29dc7746ee57ca25",
+    "sourcePath": "agents/codex/skills/metis/frameworks/backend-implement.md",
+    "assetPath": "frameworks/backend-implement.md",
+    "contentHash": "d9507b280fcbfcfc812e166b7534d91b5cf87fd5ab03fe7e2c35a960291b348e",
+    "licenseRef": "LICENSE",
+    "noticeRef": "NOTICE.md",
+    "modifications": "None. Preserved method source. Nexus typed policy overrides permissions, tiers, budgets and evidence.",
+    "validationSource": "specs/12-multimodel-orchestration.md; runtime evidence pending unified validation"
+  },
+  {
+    "upstream": "https://github.com/Wholiver/metis",
+    "commit": "8b1eda95afea3592e08a315e29dc7746ee57ca25",
+    "sourcePath": "agents/codex/skills/metis/frameworks/composition.md",
+    "assetPath": "frameworks/composition.md",
+    "contentHash": "33fa26f10acc76f845c2d346445e27f966199c5dadce51779a38b5275b583132",
+    "licenseRef": "LICENSE",
+    "noticeRef": "NOTICE.md",
+    "modifications": "None. Preserved method source. Nexus typed policy overrides permissions, tiers, budgets and evidence.",
+    "validationSource": "specs/12-multimodel-orchestration.md; runtime evidence pending unified validation"
+  },
+  {
+    "upstream": "https://github.com/Wholiver/metis",
+    "commit": "8b1eda95afea3592e08a315e29dc7746ee57ca25",
+    "sourcePath": "agents/codex/skills/metis/frameworks/docs.md",
+    "assetPath": "frameworks/docs.md",
+    "contentHash": "e4ba2c4ee76ec4c4c81412f15996a4a57c30baafc481b0c32451a6cb3b74368f",
+    "licenseRef": "LICENSE",
+    "noticeRef": "NOTICE.md",
+    "modifications": "None. Preserved method source. Nexus typed policy overrides permissions, tiers, budgets and evidence.",
+    "validationSource": "specs/12-multimodel-orchestration.md; runtime evidence pending unified validation"
+  },
+  {
+    "upstream": "https://github.com/Wholiver/metis",
+    "commit": "8b1eda95afea3592e08a315e29dc7746ee57ca25",
+    "sourcePath": "agents/codex/skills/metis/frameworks/frontend-build.md",
+    "assetPath": "frameworks/frontend-build.md",
+    "contentHash": "6ce36af133ea40a6ff73c7d03e198df8ae256cd012a51cb8ee186dec398c66d6",
+    "licenseRef": "LICENSE",
+    "noticeRef": "NOTICE.md",
+    "modifications": "None. Preserved method source. Nexus typed policy overrides permissions, tiers, budgets and evidence.",
+    "validationSource": "specs/12-multimodel-orchestration.md; runtime evidence pending unified validation"
+  },
+  {
+    "upstream": "https://github.com/Wholiver/metis",
+    "commit": "8b1eda95afea3592e08a315e29dc7746ee57ca25",
+    "sourcePath": "agents/codex/skills/metis/frameworks/frontend-fix.md",
+    "assetPath": "frameworks/frontend-fix.md",
+    "contentHash": "3b5857461570c02b42c8c837397340f6e80a04afa1cc72030149818929ae4db9",
+    "licenseRef": "LICENSE",
+    "noticeRef": "NOTICE.md",
+    "modifications": "None. Preserved method source. Nexus typed policy overrides permissions, tiers, budgets and evidence.",
+    "validationSource": "specs/12-multimodel-orchestration.md; runtime evidence pending unified validation"
+  },
+  {
+    "upstream": "https://github.com/Wholiver/metis",
+    "commit": "8b1eda95afea3592e08a315e29dc7746ee57ca25",
+    "sourcePath": "agents/codex/skills/metis/frameworks/frontend-implement.md",
+    "assetPath": "frameworks/frontend-implement.md",
+    "contentHash": "134356294f92dbac79319033163c4e022f0c06a89d5a41047b6122c0e802b3c7",
+    "licenseRef": "LICENSE",
+    "noticeRef": "NOTICE.md",
+    "modifications": "None. Preserved method source. Nexus typed policy overrides permissions, tiers, budgets and evidence.",
+    "validationSource": "specs/12-multimodel-orchestration.md; runtime evidence pending unified validation"
+  },
+  {
+    "upstream": "https://github.com/Wholiver/metis",
+    "commit": "8b1eda95afea3592e08a315e29dc7746ee57ca25",
+    "sourcePath": "agents/codex/skills/metis/frameworks/frontend-review.md",
+    "assetPath": "frameworks/frontend-review.md",
+    "contentHash": "213f49a201e148a9474c6940aca43dd8e87a0c44a44f30fe909e433fd736e087",
+    "licenseRef": "LICENSE",
+    "noticeRef": "NOTICE.md",
+    "modifications": "None. Preserved method source. Nexus typed policy overrides permissions, tiers, budgets and evidence.",
+    "validationSource": "specs/12-multimodel-orchestration.md; runtime evidence pending unified validation"
+  },
+  {
+    "upstream": "https://github.com/Wholiver/metis",
+    "commit": "8b1eda95afea3592e08a315e29dc7746ee57ca25",
+    "sourcePath": "agents/codex/skills/metis/frameworks/generation.md",
+    "assetPath": "frameworks/generation.md",
+    "contentHash": "42d53f42a208b54499af3127bd1e6c98e0584c02753587fd218c0ccf3a03ba9b",
+    "licenseRef": "LICENSE",
+    "noticeRef": "NOTICE.md",
+    "modifications": "None. Preserved method source. Nexus typed policy overrides permissions, tiers, budgets and evidence.",
+    "validationSource": "specs/12-multimodel-orchestration.md; runtime evidence pending unified validation"
+  },
+  {
+    "upstream": "https://github.com/Wholiver/metis",
+    "commit": "8b1eda95afea3592e08a315e29dc7746ee57ca25",
+    "sourcePath": "agents/codex/skills/metis/frameworks/plan-design.md",
+    "assetPath": "frameworks/plan-design.md",
+    "contentHash": "dd24f40b3fa06fff03f28da473e49ccd0022d7cffa4ca267f28bff1b4a7fa8f2",
+    "licenseRef": "LICENSE",
+    "noticeRef": "NOTICE.md",
+    "modifications": "None. Preserved method source. Nexus typed policy overrides permissions, tiers, budgets and evidence.",
+    "validationSource": "specs/12-multimodel-orchestration.md; runtime evidence pending unified validation"
+  },
+  {
+    "upstream": "https://github.com/Wholiver/metis",
+    "commit": "8b1eda95afea3592e08a315e29dc7746ee57ca25",
+    "sourcePath": "agents/codex/skills/metis/frameworks/plan-research.md",
+    "assetPath": "frameworks/plan-research.md",
+    "contentHash": "02e1cb6af95ef585bc588b3376eedd99672602cdd87544b1eeccb5f5c706f45d",
+    "licenseRef": "LICENSE",
+    "noticeRef": "NOTICE.md",
+    "modifications": "None. Preserved method source. Nexus typed policy overrides permissions, tiers, budgets and evidence.",
+    "validationSource": "specs/12-multimodel-orchestration.md; runtime evidence pending unified validation"
+  },
+  {
+    "upstream": "https://github.com/Wholiver/metis",
+    "commit": "8b1eda95afea3592e08a315e29dc7746ee57ca25",
+    "sourcePath": "agents/codex/skills/metis/frameworks/plan-scope.md",
+    "assetPath": "frameworks/plan-scope.md",
+    "contentHash": "b5b02d0fe817b7d7198f867dbe390aa734d247b2bc95490a2987ec5f4b4d0bfd",
+    "licenseRef": "LICENSE",
+    "noticeRef": "NOTICE.md",
+    "modifications": "None. Preserved method source. Nexus typed policy overrides permissions, tiers, budgets and evidence.",
+    "validationSource": "specs/12-multimodel-orchestration.md; runtime evidence pending unified validation"
+  },
+  {
+    "upstream": "https://github.com/Wholiver/metis",
+    "commit": "8b1eda95afea3592e08a315e29dc7746ee57ca25",
+    "sourcePath": "agents/codex/skills/metis/frameworks/polish.md",
+    "assetPath": "frameworks/polish.md",
+    "contentHash": "bfd31b2adf0276501a628ab4666356c4df055f2f4dafc25ec77dd25ef16bf826",
+    "licenseRef": "LICENSE",
+    "noticeRef": "NOTICE.md",
+    "modifications": "None. Preserved method source. Nexus typed policy overrides permissions, tiers, budgets and evidence.",
+    "validationSource": "specs/12-multimodel-orchestration.md; runtime evidence pending unified validation"
+  },
+  {
+    "upstream": "https://github.com/Wholiver/metis",
+    "commit": "8b1eda95afea3592e08a315e29dc7746ee57ca25",
+    "sourcePath": "agents/codex/skills/metis/frameworks/refactor.md",
+    "assetPath": "frameworks/refactor.md",
+    "contentHash": "ed4e6fa26392fdacb743bca368e8a0731ce07ab83d59f85e72925c002c820992",
+    "licenseRef": "LICENSE",
+    "noticeRef": "NOTICE.md",
+    "modifications": "None. Preserved method source. Nexus typed policy overrides permissions, tiers, budgets and evidence.",
+    "validationSource": "specs/12-multimodel-orchestration.md; runtime evidence pending unified validation"
+  }
+]

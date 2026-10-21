@@ -1,0 +1,9 @@
+{
+  "id": "suite.adaptive-standard",
+  "schemaVersion": 1,
+  "presetRevision": 1,
+  "name": {"zh": "自适应标准", "en": "Adaptive Standard"},
+  "shell": {"id": "platform-default", "stateMode": "persistent", "loadUserProfile": false},
+  "toolSurface": ["shell", "read", "write", "edit", "glob", "grep", "nexus_discover", "nexus_action"],
+  "contextStrategy": "stable-schema-epoch-reversible-context"
+}

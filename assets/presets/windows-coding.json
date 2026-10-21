@@ -1,0 +1,9 @@
+{
+  "id": "suite.windows-coding",
+  "schemaVersion": 1,
+  "presetRevision": 1,
+  "name": {"zh": "Windows 编码", "en": "Windows Coding"},
+  "shell": {"id": "pwsh7", "stateMode": "persistent", "loadUserProfile": false},
+  "toolSurface": ["shell", "read", "write", "edit", "glob", "grep", "nexus_discover", "nexus_action"],
+  "contextStrategy": "stable-schema-epoch-reversible-context"
+}

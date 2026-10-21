@@ -1,0 +1,8 @@
+{
+  "model": "gpt-image-2.5-sunburst",
+  "prompt": "Design one finished vector-style app logo symbol for DSH Nexus, a thoughtful desktop AI engineering workspace. A bold, original compact geometric interlocking knot made of three continuous rounded ribbon segments around a small triangular negative space: the three nested scopes global, workspace, conversation, connected as one coherent instrument. Sophisticated quiet industrial design. Flat single solid burnt terracotta #C66A4A ink, isolated on pure white #FFFFFF background. Perfectly crisp clean edges, optically balanced, strong silhouette and legible at 24 pixels. Symbol centered, approximately 72 percent of the square canvas with generous clear margins. No text, no letters, no wordmark, no whale, no animal, no brain, no robot, no sparkles, no gradient, no shadow, no mockup, no border, no presentation sheet. Produce just this single final logo mark.",
+  "size": "1024x1024",
+  "quality": "medium",
+  "provider": "Fushengyun",
+  "generatedFile": "nexus-logo-generated.png"
+}

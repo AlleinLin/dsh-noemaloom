@@ -1,0 +1,23 @@
+{
+  "package": "@deepseek-ai/dsh-tool-subagent",
+  "version": "0.2.1-rc.2",
+  "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-tool-subagent/-/dsh-tool-subagent-0.2.1-rc.2.tgz",
+  "integrity": "sha512-VxIhRFSVyUg6i4imonbPhfjgfxqmSM0jkGt8jE9bswqC1+53qjVACcyEMGirWalqvNaTaiLO+c7d3u3Y9KGQIA==",
+  "license": "MIT",
+  "originalEntries": [
+    {
+      "path": "index.js",
+      "sha256": "de7b10aaf52b1b1616d13a831a9ece1f820b8a6302fe94667f31b6d641b2f46e"
+    },
+    {
+      "path": "model-selection-settings.js",
+      "sha256": "c0fcbd2ff5efa182802c892209460b271489e3b363c6afd1b62321507657d2d8"
+    }
+  ],
+  "changes": [
+    "Blank model-list filters mean no filter.",
+    "Publish live allowed route codes and supported reasoning efforts in parent context and tool results.",
+    "Normalize blank reasoning_effort as omitted; default to the effective model highest advertised effort before creating the child.",
+    "Preserve official per-session route authorization, preset policy, depth, activation and cancellation contracts."
+  ]
+}

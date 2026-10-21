@@ -1,0 +1,12 @@
+{
+  "name": "zustand",
+  "version": "4.5.7",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pmndrs/zustand.git"
+  },
+  "licenseFiles": [
+    "LICENSE"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "upstream": "DSH-agent-procedures",
+  "archive": "DSH-agent-procedures-main.zip",
+  "archiveSha256": "efb33ccfb0258e7a81b7a57cf70c1cb09d608fe1081c2dd323204c8a92eb7d70",
+  "archiveRoot": "DSH-agent-procedures-main/",
+  "archiveEntries": 18,
+  "license": "MIT",
+  "preserved": "All original archive members, with the common archive root removed; no original source files edited.",
+  "adaptations": "nexus-adapter/ adds an explicit native command and retains the original lazy file-based procedure mechanism."
+}

@@ -1,0 +1,11 @@
+{
+  "packageName": "dsh-mnemon-strategy-light-context",
+  "version": "0.5.6",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/omdsh-dev/dsh-mnemon.git",
+    "directory": "plugins/dsh-mnemon-strategy-light-context"
+  },
+  "upstreamLicenseFile": true
+}

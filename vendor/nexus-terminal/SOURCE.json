@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "upstream": "https://github.com/Nexus-Aethra/Nexus-Terminal",
+  "archive": "Nexus-Terminal-main.zip",
+  "archiveSha256": "0b196ab723860f9d25c6535ac64c096d5e91981fd1ba01bdb009f2227362170f",
+  "archiveRoot": "Nexus-Terminal-main/",
+  "archiveEntries": 375,
+  "license": "MIT",
+  "dshellPackageVersion": "0.1.14",
+  "preserved": "All original archive members, with the common archive root removed; no original source files edited.",
+  "adaptations": "nexus-adapter/ holds explicit fail-closed build transformations and Windows platform support."
+}

@@ -1,0 +1,6 @@
+# Runtime Python modules and knowledge assets remain packaged. The complete
+# upstream regression suite is retained in the separately delivered source ZIP.
+/test_*.py
+/whitebox_kb/wisdom/test_*.py
+/__pycache__/
+/*.pyc

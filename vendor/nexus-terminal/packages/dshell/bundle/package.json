@@ -1,0 +1,75 @@
+{
+  "name": "@nexus-aethra/dshell-bundle",
+  "version": "0.1.14",
+  "description": "dshell bundle: composition patch layer that wires dshell-* packages into the dsh web profile.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nexus-Aethra/Nexus-Terminal.git",
+    "directory": "packages/dshell/bundle"
+  },
+  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/types/index.d.ts",
+  "icon": "./icon.png",
+  "exports": {
+    ".": {
+      "types": "./lib/types/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json --emitDeclarationOnly false",
+    "prepack": "corepack pnpm run build",
+    "build:host": "tsc -p tsconfig.json --emitDeclarationOnly false"
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "icon.png"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@nexus-aethra/dshell-buffer": "workspace:^",
+    "@nexus-aethra/dshell-commands": "workspace:^",
+    "@nexus-aethra/dshell-conversation": "workspace:^",
+    "@nexus-aethra/dshell-files": "workspace:^",
+    "@nexus-aethra/dshell-mode": "workspace:^",
+    "@nexus-aethra/dshell-ssh": "workspace:^",
+    "@nexus-aethra/dshell-std": "workspace:^",
+    "@nexus-aethra/dshell-storage": "workspace:^",
+    "@nexus-aethra/dshell-terminal-bridge": "workspace:^",
+    "@nexus-aethra/dshell-usage": "workspace:^"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.2",
+    "@deepseek-ai/dsh-client-store": "0.1.5-rc.2 || 0.1.6-alpha.2 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2 || 0.2.1-rc.2",
+    "@deepseek-ai/dsh-client-ui-conversation": "0.1.5-rc.2 || 0.1.6-alpha.2 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2 || 0.2.1-rc.2",
+    "@deepseek-ai/dsh-sandbox-local": "0.1.5-rc.2 || 0.1.6-alpha.2 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2 || 0.2.1-rc.2",
+    "@deepseek-ai/dsh-sandbox-policy": "0.1.5-rc.2 || 0.1.6-alpha.2 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2 || 0.2.1-rc.2",
+    "@deepseek-ai/dsh-subprocess-local": "0.1.5-rc.2 || 0.1.6-alpha.2 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2 || 0.2.1-rc.2",
+    "@deepseek-ai/dsh-terminal": "0.1.5-rc.2 || 0.1.6-alpha.2 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2 || 0.2.1-rc.2",
+    "@deepseek-ai/dsh-terminal-bash": "0.1.5-rc.2 || 0.1.6-alpha.2 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2 || 0.2.1-rc.2"
+  },
+  "devDependencies": {
+    "@deepseek-ai/cordis": "^4.0.2",
+    "@deepseek-ai/dsh-client-store": "0.1.5-rc.2 || 0.1.6-alpha.2 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2 || 0.2.1-rc.2",
+    "@deepseek-ai/dsh-client-ui-conversation": "0.1.5-rc.2 || 0.1.6-alpha.2 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2 || 0.2.1-rc.2",
+    "@deepseek-ai/dsh-sandbox-local": "0.1.5-rc.2 || 0.1.6-alpha.2 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2 || 0.2.1-rc.2",
+    "@deepseek-ai/dsh-sandbox-policy": "0.1.5-rc.2 || 0.1.6-alpha.2 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2 || 0.2.1-rc.2",
+    "@deepseek-ai/dsh-subprocess-local": "0.1.5-rc.2 || 0.1.6-alpha.2 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2 || 0.2.1-rc.2",
+    "@deepseek-ai/dsh-terminal": "0.1.5-rc.2 || 0.1.6-alpha.2 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2 || 0.2.1-rc.2",
+    "@deepseek-ai/dsh-terminal-bash": "0.1.5-rc.2 || 0.1.6-alpha.2 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2 || 0.2.1-rc.2",
+    "tsdown": "^0.22.14",
+    "typescript": "^6.0.3"
+  }
+}

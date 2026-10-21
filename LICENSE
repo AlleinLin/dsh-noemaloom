@@ -1,0 +1,27 @@
+Noemaloom — Composite Distribution
+
+This package contains original integration code and selected third-party
+components. No single blanket license is asserted for the entire distribution.
+Third-party code, methods, templates, prompts and assets retain the licenses,
+copyright notices and additional conditions accompanying their original files.
+
+The component licenses and provenance are provided in:
+
+  THIRD-PARTY-NOTICES.md
+  NOTICE
+  notices/
+  assets/notices/
+  vendor/**/LICENSE*
+  assets/**/LICENSE*
+  sources.lock.json
+
+In particular, the billion-context/acp-kernel product attribution conditions
+remain applicable. An optional external service's license is separate from
+the license of the client adapter. No rights to third-party trademarks,
+unverified media, fonts or quoted material are implied by this notice.
+
+Original integration code authored for this project is made available under
+the MIT license in LICENSE-ORIGINAL. This grant covers only original work;
+third-party code, adapted upstream portions, templates, prompts and assets
+retain their own accompanying licenses. Existing copyright notices are
+preserved. This notice does not relicense upstream material.

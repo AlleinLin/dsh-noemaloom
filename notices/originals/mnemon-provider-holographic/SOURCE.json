@@ -1,0 +1,11 @@
+{
+  "packageName": "dsh-mnemon-provider-holographic",
+  "version": "0.5.6",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/omdsh-dev/dsh-mnemon.git",
+    "directory": "plugins/dsh-mnemon-provider-holographic"
+  },
+  "upstreamLicenseFile": true
+}

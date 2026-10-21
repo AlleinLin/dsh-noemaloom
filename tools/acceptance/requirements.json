@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "requirements": [
+    { "id": "CCH-042", "requiredKinds": ["domain-test", "long-run"], "resource": "500+ 轮真实内核轨迹、重启/idle/信息守恒及本地开销记录" },
+    { "id": "CCH-050", "requiredKinds": ["cache-experiment"], "resource": "三 seed 配对实际模型账户、冷暖请求、总费用/质量/TTFT和置信区间" },
+    { "id": "REL-002", "requiredKinds": ["desktop"], "resource": "本机 Desktop 真实安装与认证桥/工具/UI/存储完整链" },
+    { "id": "REL-006", "requiredKinds": ["cache-experiment"], "resource": "长程 matched workload 真实费用、缓存上报覆盖、质量和延迟" },
+    { "id": "REL-026", "requiredKinds": ["desktop", "online-model"], "resource": "同一 Run 真实多模型、独立验证、harness编辑和未来Run适应性" },
+    { "id": "REL-027", "requiredKinds": ["online-model"], "resource": "主会话/角色固定lane、fallback/handoff、全部实际物理attempt" },
+    { "id": "DEV-002", "requiredKinds": ["desktop"], "resource": "真实安装/slot/RPC/tool/storage/停用重启与 build 身份" },
+    { "id": "DEV-005", "requiredKinds": ["online-model", "host-contract"], "resource": "同一 Run 实施/独立审查/实际oracle，禁止固定成功路径" },
+    { "id": "DEV-007", "requiredKinds": ["domain-test", "cache-experiment"], "resource": "最终wire/精确恢复/故障golden及实际费用质量对照" },
+    { "id": "DEV-009", "requiredKinds": ["desktop"], "resource": "逐页面 Claude 视觉/交互及实际 backend" },
+    { "id": "DEV-012", "requiredKinds": ["package-audit"], "resource": "实际tarball内容、exports、patch、loader、来源与secret排除" },
+    { "id": "HOST-003", "requiredKinds": ["package-audit"], "resource": "构建后实际npm pack文件清单和内容审计" },
+    { "id": "HOST-007", "requiredKinds": ["desktop"], "resource": "正式Desktop认证成功与未认证401/403" },
+    { "id": "HOST-010", "requiredKinds": ["host-contract", "desktop"], "resource": "exact POST与官方Connection信封实际调用" },
+    { "id": "HOST-042", "requiredKinds": ["online-model"], "resource": "同目标热前缀与跨模型摘要的真实/估计区分报告" }
+  ]
+}

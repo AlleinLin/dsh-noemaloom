@@ -1,0 +1,9 @@
+{
+  "id": "suite.windows-gitbash",
+  "schemaVersion": 1,
+  "presetRevision": 1,
+  "name": {"zh": "Windows Git Bash", "en": "Windows Git Bash"},
+  "shell": {"id": "git-bash", "stateMode": "ephemeral", "loadUserProfile": false},
+  "toolSurface": ["shell", "read", "write", "edit", "glob", "grep", "nexus_discover", "nexus_action"],
+  "contextStrategy": "stable-schema-epoch-reversible-context"
+}

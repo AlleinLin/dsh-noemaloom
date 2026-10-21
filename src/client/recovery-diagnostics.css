@@ -1,0 +1,45 @@
+.nexus-recovery-diagnostics {
+  width: 100%;
+  min-width: 0;
+  color: var(--dsw-alias-label-secondary, inherit);
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.nexus-recovery-diagnostics details {
+  min-width: 0;
+  border: 1px solid var(--dsw-alias-border-primary, transparent);
+  border-radius: 10px;
+  background: var(--dsw-alias-background-secondary, transparent);
+}
+.nexus-recovery-diagnostics summary {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 24px;
+  padding: 3px 9px;
+  cursor: pointer;
+  list-style: none;
+}
+.nexus-recovery-diagnostics summary::-webkit-details-marker { display: none; }
+.nexus-recovery-diagnostics summary::before { content: "›"; flex: none; transition: transform .12s; }
+.nexus-recovery-diagnostics details[open] > summary::before { transform: rotate(90deg); }
+.nexus-recovery-diagnostics summary:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; border-radius: 8px; }
+.nexus-recovery-label { white-space: nowrap; flex: none; }
+.nexus-recovery-message { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nexus-recovery-diagnostics code { font-size: 10px; font-family: var(--dsh-code-font-family, ui-monospace, Consolas, monospace); overflow-wrap: anywhere; }
+.nexus-recovery-diagnostics summary > code { white-space: nowrap; flex: none; opacity: .8; }
+.nexus-recovery-diagnostics ol { list-style: none; max-height: 220px; overflow: auto; margin: 0; padding: 0 9px 6px; }
+.nexus-recovery-diagnostics li { padding: 8px 0; border-top: 1px solid var(--dsw-alias-border-primary, transparent); }
+.nexus-recovery-record-title { display: flex; align-items: baseline; flex-wrap: wrap; gap: 7px; }
+.nexus-recovery-record-title time { margin-left: auto; font-size: 10px; opacity: .75; }
+.nexus-recovery-diagnostics p { margin: 4px 0; overflow-wrap: anywhere; }
+.nexus-recovery-diagnostics dl { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 9px; row-gap: 1px; margin: 4px 0 0; font-size: 11px; opacity: .8; }
+.nexus-recovery-diagnostics dt, .nexus-recovery-diagnostics dd { margin: 0; overflow-wrap: anywhere; }
+@media (max-width: 560px) {
+  .nexus-recovery-diagnostics summary { flex-wrap: wrap; gap: 3px 6px; }
+  .nexus-recovery-message { flex-basis: 100%; padding-left: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nexus-recovery-diagnostics summary::before { transition: none; }
+}

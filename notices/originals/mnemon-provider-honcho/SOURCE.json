@@ -1,0 +1,11 @@
+{
+  "packageName": "dsh-mnemon-provider-honcho",
+  "version": "0.5.5",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/omdsh-dev/dsh-mnemon.git",
+    "directory": "plugins/dsh-mnemon-provider-honcho"
+  },
+  "upstreamLicenseFile": true
+}

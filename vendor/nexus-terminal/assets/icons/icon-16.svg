@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" fill="none">
+  <!--
+    dshell's icon at 16 px — the smallest size a launcher row renders.
+
+    `icon-small.svg` still works at 32, but a 16 px raster gives the cursor only
+    two rows, and the pill from that file smears into the chevron. Here the
+    chevron is pulled in and the cursor stretched into a bar, so the two glyphs
+    stay apart and the prompt still reads as `>_` instead of one white blob.
+  -->
+  <defs>
+    <linearGradient id="tile" x1="96" y1="16" x2="416" y2="496" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5B8CFF"/>
+      <stop offset="1" stop-color="#2E4CC0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" rx="112" fill="url(#tile)"/>
+
+  <path d="M100 172 L228 256 L100 340" stroke="#fff" stroke-width="68" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="284" y="296" width="156" height="72" rx="36" fill="#fff"/>
+</svg>

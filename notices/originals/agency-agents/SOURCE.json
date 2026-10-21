@@ -1,0 +1,10 @@
+{
+  "packageName": "@michengai/dsh-agency-agents",
+  "version": "1.2.7",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MichengAI/dsh-agency-agents.git"
+  },
+  "upstreamLicenseFile": true
+}

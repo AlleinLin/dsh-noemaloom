@@ -1,0 +1,36 @@
+DSH Nexus
+
+A unified integration for DeepSeek Harness Desktop 0.2.1-rc.2.
+The Nexus composition, adapters and user interface combine components with
+different license conditions; consult LICENSE and THIRD-PARTY-NOTICES.md.
+
+Product attribution:
+  billion-context / acp-kernel
+  https://github.com/ranxianglei/billion-context
+  The original license and additional product-surface attribution terms
+  are retained in vendor/acp-kernel/LICENSE and the source notices.
+
+Selected source families include dsh-memory and memory-evolve, dsh-mnemon,
+memsearch, turn-rewind, Agency Agents, dsh-web and its 19 subpackages,
+ThoughtDAG, Synapse, Archify, Aegis, Superpowers, J-Space, the qiudeng
+engineering methods, and Metis. The complete 36-unit source identities,
+selected paths, revisions, notices and outstanding runtime validation
+are listed in sources.lock.json and the delivery coverage report.
+
+Metis notices retain both Wholiver and Mario Zechner copyrights.
+ThoughtDAG and Synapse notices are retained under assets/notices/.
+ws and the xterm terminal packages retain their MIT notices under
+assets/notices/runtime-dependencies/. qrcode.react 4.2.0 is ISC,
+Copyright (c) 2015 Paul O’Shannessy. Its bundled QR Code Generator is MIT,
+Copyright (c) Project Nayuki. Both complete license texts are retained.
+Restricted code-review source is not copied; Nexus implements that
+capability separately. Remote services, optional external executables
+and third-party marketplace resources are not relicensed by Nexus.
+
+DSH-agent-procedures and Nexus-Aethra/Nexus-Terminal 0.1.14 retain their
+original MIT licenses and archive identities under vendor/agent-procedures/
+and vendor/nexus-terminal/. Their original tools, native dshell interface
+and registration model are preserved with a separate Windows/DSH adapter.
+
+No user account credentials, private sessions, machine profiles or
+deployment recovery snapshots are part of this distribution.

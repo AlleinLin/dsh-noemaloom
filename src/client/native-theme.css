@@ -1,0 +1,62 @@
+/* Palette and radius tokens are shared from native-theme-tokens.ts. */
+body:has(style[data-nexus-native-theme]) :where(button, [role="button"], select, textarea,
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"])) {
+  border-radius: var(--dsw-radius-md) !important;
+}
+body:has(style[data-nexus-native-theme]) :where(dialog, [role="dialog"], [role="menu"], [role="listbox"], fieldset) {
+  border-radius: var(--dsw-radius-panel) !important;
+}
+body:has(style[data-nexus-native-theme]) [role="tooltip"] {
+  border-radius: var(--dsw-radius-sm) !important;
+}
+body:has(style[data-nexus-native-theme]) :where(button, input, select, textarea) {
+  accent-color: var(--dsw-alias-brand-primary);
+}
+/* rc.2 exposes no panel-list size token. Match the semantic CSS-module suffix
+   and our own icon marker, leaving the native workspace tree flexible. */
+body [class$="_panelList"]:has([data-nexus-native-entry]) {
+  max-height: min(38vh, 360px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  overscroll-behavior: contain;
+  flex-shrink: 1;
+}
+.nexus-native-actions { display: inline-flex; align-items: center; gap: 4px; }
+.nexus-native-actions button {
+  border: 0; background: transparent; color: var(--dsw-alias-label-secondary);
+  padding: 5px 8px; border-radius: 6px; font: inherit; font-size: 12px; cursor: pointer;
+}
+.nexus-native-actions button:hover { background: var(--dsw-alias-interactive-bg-hover); }
+.nexus-native-actions button:focus-visible { outline: 2px solid var(--dsw-alias-state-business-primary); }
+
+/* rc.2 native seats: change presentation while retaining native behavior. */
+body:has(style[data-nexus-native-theme]) [data-chat-running] {
+  color: var(--dsw-alias-brand-primary);
+  --dsw-alias-label-shimmer: var(--dsw-alias-label-deep-diving-shimmer);
+}
+body:has(style[data-nexus-native-theme]) ._2H3hWW_root { border-right:1px solid var(--dsw-alias-border-l3); padding-inline:14px; }
+body:has(style[data-nexus-native-theme]) ._2H3hWW_panelList { gap:5px; padding-block:12px; border-block:1px solid var(--dsw-alias-border-l3); margin-block:10px 16px; }
+body:has(style[data-nexus-native-theme]) ._2H3hWW_panelTitle { font-size:13px; letter-spacing:.015em; }
+body:has(style[data-nexus-native-theme]) .Dc7zOa_header:not(.Dc7zOa_headerBlank) { background:var(--dsw-alias-bg-base); border-bottom:1px solid var(--dsw-alias-border-l3); min-height:54px; padding-inline:24px; }
+body:has(style[data-nexus-native-theme]) .Dc7zOa_titleRow { font-weight:500; letter-spacing:.01em; }
+body:has(style[data-nexus-native-theme]) .Dc7zOa_composerStack { box-sizing:border-box; min-width:0; padding:16px 24px 22px; }
+/* The input bar is a flex item. Auto inline margins would disable its native
+   stretch and collapse the percentage-sized card to its minimum content size.
+   Constrain the complete hero stack, never the editable text node. */
+body:has(style[data-nexus-native-theme]) .Dc7zOa_composerHero { width:min(100%, 820px); gap:24px; }
+body:has(style[data-nexus-native-theme]) .RlGAzG_root { min-width:0; align-self:stretch; }
+body:has(style[data-nexus-native-theme]) [data-composer-card] { border:1px solid var(--dsw-alias-border-l2); border-radius:20px; box-shadow:0 3px 16px #00000009; }
+body:has(style[data-nexus-native-theme]) [data-composer-card]:focus-within { border-color:var(--dsw-alias-state-business-primary); box-shadow:0 0 0 2px color-mix(in srgb,var(--dsw-alias-state-business-primary) 12%,transparent); }
+body:has(style[data-nexus-native-theme]) .Dc7zOa_heroWorkspaceRow { border-radius:10px; }
+/* Keep the host's view strip usable as plugins add peer views. */
+body:has(style[data-nexus-native-theme]) header[data-window-drag] [class$="_tabs"] {
+  min-width:0; overflow-x:auto; overflow-y:hidden; gap:22px;
+  scrollbar-width:thin; overscroll-behavior-x:contain; padding-bottom:2px;
+}
+body:has(style[data-nexus-native-theme]) header[data-window-drag] [class$="_tabs"]>button {
+  flex:0 0 auto; white-space:nowrap; letter-spacing:0;
+}
+@media(max-width:720px) {
+  body:has(style[data-nexus-native-theme]) .Dc7zOa_header:not(.Dc7zOa_headerBlank) { padding-inline:12px; }
+  body:has(style[data-nexus-native-theme]) .Dc7zOa_composerStack { padding:10px 12px; }
+}

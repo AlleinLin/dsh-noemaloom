@@ -1,0 +1,15 @@
+{
+  "package": "@deepseek-ai/dsh-agent-instructions",
+  "version": "0.2.1-rc.2",
+  "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-agent-instructions/-/dsh-agent-instructions-0.2.1-rc.2.tgz",
+  "integrity": "sha512-a1VQsocz34VvkwYMNc/zolMXrLXWIClhZ62kb3pi8hYd/8MSgjuE09YcoqX6ZmU8i4tmaroC9W1PdUEIksSgiQ==",
+  "originalEntry": "package/lib/index.js",
+  "originalEntrySha256": "4011f6e4c08228601bd4348ac78e322913142264f6e491ffdf9dcfda97393988",
+  "license": "MIT",
+  "changes": [
+    "Default project candidates: DEEPSEEK.md, AGENT.md, AGENTS.md, CLAUDE.md; no local overlay.",
+    "Discovery stops after the first present candidate in each directory.",
+    "Reconciliation suppresses lower candidates before content reads; unavailable higher probes fail closed.",
+    "Official rendering, budgets, root discovery, session projection and touch-driven updates retained; user-global scope unchanged."
+  ]
+}

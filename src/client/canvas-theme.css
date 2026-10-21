@@ -1,0 +1,87 @@
+:root {
+  --nexus-canvas-bg: var(--dsw-alias-bg-base, #faf9f5); --nexus-canvas-surface: var(--dsw-alias-bg-layer-1, #ffffff);
+  --nexus-canvas-text: var(--dsw-alias-label-primary, #24231f); --nexus-canvas-border: var(--dsw-alias-border-l3, #dedcd1); --nexus-canvas-accent: var(--dsw-alias-state-business-primary, #b85f40);
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --nexus-canvas-bg: var(--dsw-alias-bg-base, #262624); --nexus-canvas-surface: var(--dsw-alias-bg-layer-1, #30302e);
+  --nexus-canvas-text: var(--dsw-alias-label-primary, #f0eee6); --nexus-canvas-border: var(--dsw-alias-border-l3, #4d4c48); --nexus-canvas-accent: var(--dsw-alias-state-business-primary, #de977a);
+  color-scheme: dark;
+}
+html, body { background-color: var(--nexus-canvas-bg); color: var(--nexus-canvas-text); }
+button, input, select, textarea { border-radius: var(--dsw-radius-md, 9px); }
+button { accent-color: var(--nexus-canvas-accent); }
+dialog, [role="dialog"], .modal, .panel, .inspector, .thread-card, .message-card { border-radius: 14px; border-color: var(--nexus-canvas-border); }
+button, input, select, textarea { color: inherit; }
+input, select, textarea { background-color: var(--nexus-canvas-surface); border-color: var(--nexus-canvas-border); }
+.topbar, .sidebar, .thread-card, .detail, .inspector, .thread-detail, .message-card {
+  background-color: var(--nexus-canvas-surface); color: var(--nexus-canvas-text); border-color: var(--nexus-canvas-border);
+}
+button { background-color: var(--nexus-canvas-surface); border-color: var(--nexus-canvas-border); }
+button:hover { background-color: var(--dsw-alias-interactive-bg-hover, #e8e6dc); color: var(--nexus-canvas-text); }
+button.primary, button.primary:hover { background-color: var(--nexus-canvas-accent); border-color: var(--nexus-canvas-accent); color: var(--dsw-alias-label-primary-foreground, white); }
+
+/* ThoughtDAG renders its original ReactFlow components with these semantic
+   tokens. Preserve the distinct explore/trace/watch and status colors. */
+:root[data-nexus-canvas="thoughtdag"] {
+  --color-surface: var(--nexus-canvas-bg) !important;
+  --color-card: var(--nexus-canvas-surface) !important;
+  --color-wash: var(--dsw-alias-bg-layer-2, #f5f4ed) !important;
+  --color-line: var(--nexus-canvas-border) !important;
+  --color-line-strong: var(--dsw-alias-border-l1, #cac7bc) !important;
+  --color-ink: var(--nexus-canvas-text) !important;
+  --color-ink-muted: var(--dsw-alias-label-secondary, #64625c) !important;
+  --color-ink-faint: var(--dsw-alias-label-tertiary, #77756c) !important;
+  --color-accent: var(--nexus-canvas-accent) !important;
+  --color-accent-strong: var(--dsw-alias-accent-ink, #a34e34) !important;
+}
+:root[data-nexus-canvas="thoughtdag"] :is(.thought-node, .content-card) { border-radius: var(--dsw-radius-lg, 12px) !important; }
+
+/* Match the original Synapse selectors at greater specificity than both its
+   light rules and [data-theme="dark"] rules; do not recolor error/status UI. */
+:root[data-nexus-canvas="synapse"] :is(body, .main-stage, .canvas-viewport, .canvas-content) { background: var(--nexus-canvas-bg); color: var(--nexus-canvas-text); }
+:root[data-nexus-canvas="synapse"] .sidebar { background: var(--dsw-specific-sidebar-fill, #f0eee6); border-color: var(--nexus-canvas-border); }
+:root[data-nexus-canvas="synapse"] :is(.topbar, .canvas-tabs, .thread-card, .card-inspector, .card-inspector-head, .card-inspector-actions, .thread-detail, .message-card, .detail, .view-switch) {
+  background: var(--nexus-canvas-surface); color: var(--nexus-canvas-text); border-color: var(--nexus-canvas-border);
+}
+:root[data-nexus-canvas="synapse"] :is(.thread-card, .card-inspector, .message-card) { border-radius: var(--dsw-radius-panel, 14px); }
+:root[data-nexus-canvas="synapse"] :is(.thread-title, .card-inspector-head h2, .thread-answer h1, .thread-answer h2, .thread-answer h3, .card-inspector-answer h1, .card-inspector-answer h2, .card-inspector-answer h3) { color: var(--nexus-canvas-text); }
+:root[data-nexus-canvas="synapse"] :is(.thread-answer, .card-inspector-answer, .tree-row, .thread-card footer button, .card-inspector-actions button, .view-switch button, .canvas-tabs button) { color: var(--dsw-alias-label-secondary, #64625c); }
+:root[data-nexus-canvas="synapse"] :is(.workspace-label select, .new-workspace, .node-handle, .graph-continue-button, .graph-fold-button, .graph-branch-button, .card-inspector-actions button) {
+  background: var(--nexus-canvas-surface); border-color: var(--nexus-canvas-border); color: var(--nexus-canvas-text);
+}
+:root[data-nexus-canvas="synapse"] :is(.new-workspace:hover, .tree-row:hover, .thread-card footer button:hover, .card-inspector-close:hover, .card-inspector-actions button:hover, .view-switch button:hover) { background: var(--dsw-alias-interactive-bg-hover, #e8e6dc); color: var(--nexus-canvas-text); }
+:root[data-nexus-canvas="synapse"] :is(.tree-row.active, .thread-card footer .compare-button.selected) { background: var(--dsw-alias-accent-soft, #f3e9e2); color: var(--dsw-alias-accent-ink, #a34e34); }
+:root[data-nexus-canvas="synapse"] :is(.canvas-tabs button.active, .canvas-tabs button:hover) { color: var(--nexus-canvas-accent); border-bottom-color: var(--nexus-canvas-accent); }
+:root[data-nexus-canvas="synapse"] :is(.view-switch button.active, .selection-followup, .card-inspector-actions .primary, .card-inspector-actions .primary:hover) {
+  background: var(--nexus-canvas-accent); border-color: var(--nexus-canvas-accent); color: var(--dsw-alias-label-primary-foreground, white);
+}
+:root[data-nexus-canvas="synapse"] :is(.connectors .active-connector, .connectors .draft-connector) { stroke: var(--nexus-canvas-accent); }
+:root[data-nexus-canvas="synapse"] :is(.thread-answer code, .card-inspector-answer code, .thread-answer pre, .card-inspector-answer pre, .thread-answer th, .card-inspector-answer th) {
+  background: var(--dsw-alias-bg-layer-2, #f5f4ed); color: var(--nexus-canvas-text); border-color: var(--nexus-canvas-border);
+}
+:root[data-nexus-canvas="synapse"] :is(.draft-branch-form textarea, .message-composer textarea, .draft-quick-phrase-editor-row input, .draft-quick-phrase-add input) {
+  background: var(--nexus-canvas-surface); color: var(--nexus-canvas-text);
+  border-color: var(--nexus-canvas-border); outline-color: var(--nexus-canvas-accent);
+}
+:root[data-nexus-canvas="synapse"] :is(.draft-actions .primary, .draft-actions .primary:hover, .message-composer .primary) {
+  background: var(--nexus-canvas-accent); border-color: var(--nexus-canvas-accent); color: var(--dsw-alias-label-primary-foreground, white);
+}
+:root[data-nexus-canvas="synapse"] :is(.canvas-controls button, .draft-actions button) {
+  background-color: var(--nexus-canvas-surface); color: var(--nexus-canvas-text);
+}
+:root[data-nexus-canvas="synapse"] .draft-card strong { color: var(--nexus-canvas-text); }
+
+/* Only the original graph stage is mounted. DSH owns the application shell. */
+:root[data-nexus-canvas="synapse"] .nexus-synapse-canvas {
+  height: 100vh; min-height: 0; display: flex; flex-direction: column; overflow: hidden;
+  background: var(--nexus-canvas-bg); color: var(--nexus-canvas-text);
+}
+:root[data-nexus-canvas="synapse"] .nexus-synapse-canvas > .nexus-synapse-toolbar {
+  position: relative; display: flex; align-items: center; justify-content: flex-end; flex: none; min-height: 42px; padding: 0 12px;
+  background: var(--nexus-canvas-surface); border-bottom: 1px solid var(--nexus-canvas-border);
+}
+:root[data-nexus-canvas="synapse"] .nexus-synapse-canvas > .main-stage {
+  position: relative; flex: 1; min-height: 0; min-width: 0; display: flex; flex-direction: column; overflow: hidden;
+}
+:root[data-nexus-canvas="synapse"] .nexus-synapse-canvas .canvas-view { flex: 1; min-height: 0; }

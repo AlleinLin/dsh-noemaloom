@@ -1,0 +1,22 @@
+name: Bug report
+description: Report a reproducible problem
+body:
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: DSH version, Node.js version, Windows version and plugin version.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Include expected and actual behavior. Remove credentials and private session data.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      render: text

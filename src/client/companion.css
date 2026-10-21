@@ -1,0 +1,40 @@
+.nexus-companion,.nexus-aux-settings{color:var(--dsw-alias-text-primary,inherit);font-size:13px;letter-spacing:0;min-width:0}
+.nexus-companion{margin:6px 0;display:grid;gap:6px}
+.nexus-companion-note,.nexus-companion-gate{border:1px solid var(--dsw-alias-border-l2,#d5cec6);border-left:3px solid #c47859;background:var(--dsw-alias-bg-layer-1,#fff);border-radius:8px;padding:10px 12px}
+.nexus-companion-note-text{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:baseline}
+.nexus-companion-note-text strong{color:#b56d50;font-size:13px;flex:none}
+.nexus-companion-note-text>span{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere;line-height:1.6}
+.nexus-companion .nexus-companion-explanation{max-height:min(260px,30vh);overflow-y:auto;overscroll-behavior:contain;padding-right:6px}
+.nexus-companion p,.nexus-aux-settings p{white-space:pre-wrap;overflow-wrap:anywhere;margin:6px 0;line-height:1.6}
+.nexus-companion-actions,.nexus-aux-save,.nexus-aux-add,.nexus-aux-scope{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px}
+.nexus-companion button,.nexus-aux-settings button,.nexus-aux-settings select,.nexus-aux-settings input[type=number]{color:inherit;font:inherit;border:1px solid var(--dsw-alias-border-l2,#d5cec6);background:var(--dsw-alias-bg-layer-1,transparent);border-radius:6px;min-height:28px;padding:3px 8px;max-width:100%;letter-spacing:0}
+.nexus-companion button,.nexus-aux-settings button{cursor:pointer;text-decoration:none}
+.nexus-companion button:disabled,.nexus-aux-settings button:disabled{opacity:.5;cursor:default}
+.nexus-companion button:hover:not(:disabled),.nexus-aux-settings button:hover:not(:disabled){background:var(--dsw-alias-bg-layer-2,#f0ebe5)}
+.nexus-companion-actions button{border-color:transparent}
+.nexus-companion-gate [data-nexus-thorough-send]{background:#b86f51;color:white;text-decoration:none}
+.nexus-companion summary{cursor:pointer;overflow-wrap:anywhere}
+.nexus-companion-status,.nexus-companion-reflection{border-bottom:1px solid var(--dsw-alias-border-l2,#d5cec6);padding:5px 4px}
+.nexus-companion-status>summary,.nexus-companion-dismissed,.nexus-aux-source,.nexus-aux-settings small{color:var(--dsw-alias-text-secondary,#79736d);font-size:12px}
+.nexus-companion-status ol{padding-left:20px}
+.nexus-aux-settings{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;max-width:100%}
+.nexus-aux-settings>*{min-width:0}
+.nexus-aux-settings pre{white-space:pre-wrap;overflow-wrap:anywhere;max-width:100%;min-width:0}
+.nexus-aux-settings details,.nexus-aux-settings summary{min-width:0;overflow-wrap:anywhere}
+.nexus-aux-settings h3{font-size:14px;margin:8px 0 0}
+.nexus-aux-toggles{display:grid;gap:8px}
+.nexus-aux-settings label{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.nexus-aux-routes{padding:0;margin:0;list-style:none;display:grid;gap:0}
+.nexus-aux-routes li{display:flex;gap:6px;align-items:center;border-bottom:1px solid var(--dsw-alias-border-l2,#d5cec6);padding:10px 0;flex-wrap:wrap}
+.nexus-aux-grip{cursor:grab;display:inline-flex;width:20px;height:28px;align-items:center;justify-content:center}
+.nexus-aux-route-name{flex:1 1 140px;min-width:0;overflow-wrap:anywhere}
+.nexus-aux-route-name small{display:block;color:#b34d41}
+.nexus-aux-routes button{width:28px;height:28px;padding:4px;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.nexus-aux-routes select{max-width:240px}
+.nexus-aux-add select{flex:1 1 160px;min-width:0}
+.nexus-aux-scope select,.nexus-aux-routes select{min-width:0}
+.nexus-aux-budgets{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(210px,100%),1fr));gap:12px;padding-top:12px}
+.nexus-aux-number{display:grid!important;align-items:start!important;gap:4px!important}
+.nexus-aux-number input{width:100%;box-sizing:border-box}
+.nexus-aux-settings textarea{box-sizing:border-box;width:100%;resize:vertical;min-height:140px;font:inherit;line-height:1.6;color:inherit;background:var(--dsw-alias-bg-layer-1,transparent);border:1px solid var(--dsw-alias-border-l2,#d5cec6);border-radius:6px;padding:8px;letter-spacing:0}
+@media(max-width:600px){.nexus-aux-routes select{max-width:calc(100% - 26px);flex-basis:calc(100% - 26px);margin-left:26px}.nexus-companion-note-text{grid-template-columns:1fr;gap:4px}.nexus-companion-actions{gap:4px}}

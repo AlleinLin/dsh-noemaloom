@@ -1,0 +1,12 @@
+packages:
+  - packages/*/*
+
+# dshell imports @deepseek-ai/dsh-* and @deepseek-ai/cordis as workspace
+# dependencies from the local dsh checkout. pnpm 9 does not understand
+# relative workspace globs, so individual packages use `link:../dsh/...`
+# specifiers in their package.json. dsh/ is untracked in this repo (see
+# the repo-root .gitignore), so the link only resolves when the user has
+# the dsh checkout present at ./dsh.
+
+allowBuilds:
+  esbuild: true

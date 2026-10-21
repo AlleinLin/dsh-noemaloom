@@ -1,0 +1,204 @@
+[
+  {
+    "name": "@deepseek-ai/dsh-ssh",
+    "version": "0.2.1-rc.2",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/deepseek-ai/deepseek-harness.git",
+      "directory": "packages/ssh/ssh"
+    },
+    "licenseFiles": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "@xterm/xterm",
+    "version": "6.0.0",
+    "license": "MIT",
+    "repository": "https://github.com/xtermjs/xterm.js",
+    "licenseFiles": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "@xyflow/react",
+    "version": "12.11.6",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/xyflow/xyflow.git",
+      "directory": "packages/react"
+    },
+    "licenseFiles": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "@xyflow/system",
+    "version": "0.0.82",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/xyflow/xyflow.git",
+      "directory": "packages/system"
+    },
+    "licenseFiles": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "classcat",
+    "version": "5.0.5",
+    "license": "MIT",
+    "repository": "jorgebucaran/classcat",
+    "licenseFiles": [
+      "LICENSE.md"
+    ]
+  },
+  {
+    "name": "d3-color",
+    "version": "3.1.0",
+    "license": "ISC",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/d3/d3-color.git"
+    },
+    "licenseFiles": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "d3-dispatch",
+    "version": "3.0.1",
+    "license": "ISC",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/d3/d3-dispatch.git"
+    },
+    "licenseFiles": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "d3-drag",
+    "version": "3.0.0",
+    "license": "ISC",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/d3/d3-drag.git"
+    },
+    "licenseFiles": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "d3-ease",
+    "version": "3.0.1",
+    "license": "BSD-3-Clause",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/d3/d3-ease.git"
+    },
+    "licenseFiles": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "d3-interpolate",
+    "version": "3.0.1",
+    "license": "ISC",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/d3/d3-interpolate.git"
+    },
+    "licenseFiles": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "d3-selection",
+    "version": "3.0.0",
+    "license": "ISC",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/d3/d3-selection.git"
+    },
+    "licenseFiles": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "d3-timer",
+    "version": "3.0.1",
+    "license": "ISC",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/d3/d3-timer.git"
+    },
+    "licenseFiles": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "d3-transition",
+    "version": "3.0.1",
+    "license": "ISC",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/d3/d3-transition.git"
+    },
+    "licenseFiles": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "d3-zoom",
+    "version": "3.0.0",
+    "license": "ISC",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/d3/d3-zoom.git"
+    },
+    "licenseFiles": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "use-sync-external-store",
+    "version": "1.7.0",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/react/react.git",
+      "directory": "packages/use-sync-external-store"
+    },
+    "licenseFiles": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "zod",
+    "version": "4.4.3",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/colinhacks/zod.git"
+    },
+    "licenseFiles": [
+      "LICENSE"
+    ]
+  },
+  {
+    "name": "zustand",
+    "version": "4.5.7",
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/pmndrs/zustand.git"
+    },
+    "licenseFiles": [
+      "LICENSE"
+    ]
+  }
+]
