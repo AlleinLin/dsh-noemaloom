@@ -21,7 +21,13 @@ export async function workspacePath(root: string, requested: unknown, allowMissi
     throw new NexusError('SCOPE_MISMATCH', '拒绝设备路径');
   }
   const canonicalRoot = await realpath(root);
-  const candidate = resolve(canonicalRoot, requested);
+  // Windows temp roots may use an 8.3 spelling; workspace roots may also be
+  // junctions. Rebase paths under that supplied root onto its canonical root
+  // before checking scope. Every existing descendant still needs realpath.
+  const suppliedRoot = resolve(root), suppliedCandidate = resolve(suppliedRoot, requested);
+  const candidate = within(suppliedRoot, suppliedCandidate)
+    ? resolve(canonicalRoot, relative(suppliedRoot, suppliedCandidate))
+    : resolve(canonicalRoot, requested);
   if (!within(canonicalRoot, candidate) || relative(canonicalRoot, candidate).includes(':')) {
     throw new NexusError('SCOPE_MISMATCH', '文件路径超出工作区');
   }

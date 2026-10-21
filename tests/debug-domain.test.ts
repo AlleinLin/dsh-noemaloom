@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, writeFile, mkdir, rm } from 'node:fs/promises';
+import { mkdtemp, writeFile, mkdir, realpath, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createDebugModule, validateBreakpoints } from '../src/domain/debug/index.js';
@@ -29,7 +29,7 @@ test('launch JSONC, variables, secret-free labels and loopback attach restrictio
     const scope = { sessionId: 'session', workspaceRoot: root };
     const configs = await launchConfigurations(scope, program);
     assert.equal(configs.length, 1);
-    assert.equal((await resolveLaunch(configs[0], scope, program)).program, program);
+    assert.equal((await resolveLaunch(configs[0], scope, program)).program, await realpath(program));
     await assert.rejects(resolveLaunch({ type: 'debugpy', program: '${command:pickProcess}' }, scope, program), /Unsupported/);
     await assert.rejects(resolveLaunch({ type: 'debugpy', request: 'attach', connect: { host: 'example.invalid', port: 5678 } }, scope), /loopback/);
     await assert.rejects(resolveLaunch({ type: 'debugpy', program: '../outside.py' }, scope), /工作区/);
