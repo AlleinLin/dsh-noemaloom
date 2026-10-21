@@ -245,8 +245,10 @@ export function createLeaseManager(root: string, options: LeaseOptions = {}): Le
         const owner: Owner = { schemaVersion: 1, token, pid: process.pid, host: hostname(), createdAt: new Date().toISOString() };
         for (;;) {
           abortIfNeeded(signal);
+          let created = false;
           try {
             await mkdir(directory);
+            created = true;
             try {
               await writeFile(join(directory, 'owner.json'), JSON.stringify(owner), { flag: 'wx', mode: 0o600 });
             } catch (error) {
@@ -255,7 +257,29 @@ export function createLeaseManager(root: string, options: LeaseOptions = {}): Le
             }
             break;
           } catch (error) {
-            if (errno(error) !== 'EEXIST') throw error;
+            if (created) throw error;
+            let contended = errno(error) === 'EEXIST';
+            if (!contended && process.platform === 'win32' && ['EPERM', 'EACCES'].includes(errno(error) ?? '')) {
+              // Windows can surface the delete/recreate race between lease
+              // owners as EPERM/EACCES instead of EEXIST. Retry only when the
+              // exact lock path is momentarily absent, or when it is a normal
+              // directory owned by another writer. Preserve real ACL failures.
+              try {
+                const current = await lstat(directory);
+                if (!current.isDirectory() || current.isSymbolicLink()) {
+                  throw new NexusError('INTEGRITY_FAILED', '资源租约不是受支持的普通目录。');
+                }
+                contended = true;
+              } catch (inspectionError) {
+                if (errno(inspectionError) !== 'ENOENT') throw error;
+                if (Date.now() - beganAt >= timeoutMs) {
+                  throw new NexusError('RATE_LIMITED', '等待资源租约目录恢复超时。', { retryAfterMs: retryMs });
+                }
+                await pause(retryMs, signal);
+                continue;
+              }
+            }
+            if (!contended) throw error;
             await recover(directory, leaseMs);
             if (Date.now() - beganAt >= timeoutMs) {
               throw new NexusError('RATE_LIMITED', '资源正在被另一项操作使用，请稍后重试。', { retryAfterMs: retryMs });
