@@ -45,12 +45,14 @@ const entries = [
   ['dsh-better-display', 'better-display'], ['ui-task-board', 'task-board'],
   ['ui-git-graph', 'git-graph'], ['usage', 'usage'],
   ['agency-agents-remote', 'agency-agents-remote'], ['agency-agents', 'agency-agents'],
-  ['turn-rewind', 'turn-rewind'], ['thoughtdag', 'thoughtdag'], ['synapse', 'synapse'],
+  ['turn-rewind', 'turn-rewind'], ['dsh-codinput', 'codinput'],
+  ['thoughtdag', 'thoughtdag'], ['synapse', 'synapse'],
 ];
 let patch = "# Unified desktop composition. Original host entries retain their native IDs.\n- insert:\n    - id: nexus\n      name: '@local/dsh-nexus'\n";
 for (const [id, name] of entries) {
   patch += `    - id: ${id}\n      name: '@local/dsh-nexus/original/${name}'\n`;
   if (id === 'dsh-context') patch += "      config:\n        defaultPlacement: tab\n        fleetTab: show\n";
+  if (id === 'dsh-codinput') patch += "      config: {}\n";
   if (id === 'thoughtdag') patch += "      config:\n        mountPrefix: /thoughtdag\n        whyTools: true\n        whyPrompt: true\n";
 }
 const memoryPatch = (await readFile(join(mnemon.root, 'cordis.patch.yml'), 'utf8'))

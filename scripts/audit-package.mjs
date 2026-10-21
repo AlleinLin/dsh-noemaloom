@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { gunzipSync } from 'node:zlib';
 import ts from 'typescript';
 import { parseDocument } from 'yaml';
+import { parseFactory } from './original-factory.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -20,7 +21,7 @@ const rootFiles = new Set(['package.json', 'README.md', 'README.en.md', 'LICENSE
 for (const directory of ['agent-instructions', 'tool-subagent', 'agent-procedures', 'nexus-terminal', 'compaction-basic']) {
   for (const file of ['LICENSE', 'SOURCE.json']) rootFiles.add(`vendor/${directory}/${file}`);
 }
-const runtimePrefixes = ['lib/', 'locale/', 'assets/', 'notices/', 'vendor/memory-cognition/', 'vendor/memsearch/'];
+const runtimePrefixes = ['lib/', 'locale/', 'assets/', 'notices/', 'vendor/memory-cognition/', 'vendor/memsearch/', 'vendor/codinput/'];
 const privateDirectories = new Set(['.git', '.codegraph', 'node_modules', '__pycache__', '.venv', 'venv', '.dsh', '.codex', '.claude', '.ssh', '.aws', '.azure', '.gnupg', '.cache', 'profile', 'profiles', 'sessions', 'private-sessions']);
 const requiredFiles = [
   'package.json', 'lib/index.js', 'lib/client.js', 'lib/compaction.js', 'lib/preset-runtime.js',
@@ -39,6 +40,12 @@ const requiredFiles = [
   'LICENSE', 'NOTICE', 'THIRD-PARTY-NOTICES.md', 'sources.lock.json',
   'notices/step-pause/LICENSE', 'notices/step-pause/SOURCE.json',
   'notices/step-pause/index.upstream.js', 'notices/step-pause/package.upstream.json',
+  'lib/original/codinput.js', 'lib/original/codinput.cjs', 'lib/original-client/codinput.js',
+  'vendor/codinput/SOURCE.json', 'vendor/codinput/LICENSE', 'vendor/codinput/NOTICE',
+  'vendor/codinput/package.json', 'vendor/codinput/lib/client.js', 'vendor/codinput/lib/index.js',
+  'vendor/codinput/src/client/index.tsx',
+  'notices/originals/codinput/LICENSE', 'notices/originals/codinput/NOTICE',
+  'notices/originals/codinput/SOURCE.json', 'notices/originals/codinput/dependencies/SOURCE.json',
   'vendor/memory-cognition/nexus_bridge.py', 'vendor/memory-cognition/utf8_boot.py',
   'vendor/memory-cognition/package.json', 'vendor/memory-cognition/LICENSE',
   'vendor/memory-cognition/md_cg/__init__.py', 'vendor/memory-cognition/md_cg/mcp_server.py',
@@ -550,6 +557,8 @@ export async function auditPackage({ packagePath, outputPath = resolve(root, 'ev
       if (JSON.stringify(manifest?.dsh?.bundle?.patch) !== JSON.stringify(['./cordis.patch.yml', './cordis.presets.patch.yml'])) throw new Error('Both official composition patches must be declared in order');
       const host = parseYaml(files.get('cordis.patch.yml')?.data ?? Buffer.alloc(0));
       if (!Array.isArray(host) || !host.some(row => Array.isArray(row.insert) && row.insert.some(item => item.id === 'nexus' && item.name === manifest.name))) throw new Error('Host patch does not install the Nexus host row');
+      const codinputRows = host.flatMap(row => Array.isArray(row.insert) ? row.insert : []).filter(item => item.id === 'dsh-codinput');
+      if (codinputRows.length !== 1 || codinputRows[0].name !== `${manifest.name}/original/codinput`) throw new Error('Host patch must register the original Codinput host exactly once');
       const presets = parseYaml(files.get('cordis.presets.patch.yml')?.data ?? Buffer.alloc(0));
       if (!Array.isArray(presets)) throw new Error('Preset patch must be an array');
       for (const id of ['preset-standard', 'preset-ptc', 'preset-minimal', 'preset-cordis']) {
@@ -574,9 +583,9 @@ export async function auditPackage({ packagePath, outputPath = resolve(root, 'ev
     });
     check('provenance', () => {
       const lock = JSON.parse(decoder.decode(files.get('sources.lock.json')?.data ?? Buffer.alloc(0)));
-      if (lock.sourceCount !== 37 || lock.dshWebSubpackageCount !== 19 || lock.host?.release !== '0.2.1-rc.2'
+      if (lock.sourceCount !== 38 || lock.dshWebSubpackageCount !== 19 || lock.host?.release !== '0.2.1-rc.2'
         || lock.acceptance?.count !== 769 || lock.acceptance?.sha256 !== '113bc7b9b60b4bf44d3645dc07209a3c65148ecddf54ac5dd7cba696b8049e1a') throw new Error('Packaged source identity or frozen acceptance provenance is incomplete');
-      if (!Array.isArray(lock.units) || lock.units.length !== 37 || new Set(lock.units.map(unit => unit.id)).size !== 37) throw new Error('Packaged source provenance must identify all 37 sources');
+      if (!Array.isArray(lock.units) || lock.units.length !== 38 || new Set(lock.units.map(unit => unit.id)).size !== 38) throw new Error('Packaged source provenance must identify all 38 sources');
       const progress = JSON.parse(decoder.decode(files.get('notices/step-pause/SOURCE.json')?.data ?? Buffer.alloc(0)));
       if (progress.revision !== 'eeb93a7ff027e4beba94b8089dfb72dfe45b2550' || progress.license !== 'MIT') throw new Error('Step progress source identity is missing');
       for (const [name, identity] of Object.entries(progress.files ?? {})) {
@@ -585,6 +594,46 @@ export async function auditPackage({ packagePath, outputPath = resolve(root, 'ev
       }
       for (const id of ['DSH-agent-procedures', 'Nexus-Aethra/Nexus-Terminal']) {
         if (!lock.nativeArchives?.some(source => source.identity === id && /^[a-f0-9]{64}$/u.test(source.sha256))) throw new Error(`Missing native archive provenance: ${id}`);
+      }
+      const codinput = JSON.parse(decoder.decode(files.get('vendor/codinput/SOURCE.json')?.data ?? Buffer.alloc(0)));
+      if (codinput.packageName !== 'dsh-codinput' || codinput.version !== '0.3.2' || codinput.license !== 'MIT'
+        || codinput.revision !== 'a32da33ce4d50616bf490d360ae3dfe784e8aa50'
+        || lock.units.find(unit => unit.id === 'SRC-38')?.source?.revision !== codinput.revision) throw new Error('Original Codinput source identity is incomplete');
+      for (const path of [
+        'vendor/codinput/SOURCE.json', 'notices/originals/codinput/SOURCE.json',
+        'notices/originals/codinput/LICENSE', 'notices/originals/codinput/NOTICE',
+        'notices/originals/codinput/dependencies/SOURCE.json',
+      ]) {
+        if (sha256(files.get(path)?.data ?? Buffer.alloc(0)) !== lock.actualReusedFileHashes?.[path]) throw new Error(`Codinput provenance changed: ${path}`);
+      }
+      // npm may omit repository dotfiles/package-lock. All original runtime
+      // bytes, assets and complete implementation source must be shipped.
+      for (const [name, expected] of Object.entries(codinput.files ?? {})) {
+        const path = `vendor/codinput/${name}`, entry = files.get(path);
+        const required = /^(?:src|lib|assets)\//u.test(name) || ['LICENSE', 'NOTICE', 'package.json'].includes(name);
+        if ((entry || required) && sha256(entry?.data ?? Buffer.alloc(0)) !== expected) throw new Error(`Original Codinput bytes changed or missing: ${path}`);
+      }
+      for (const [name, expected] of Object.entries(codinput.dependencyLicenseFiles ?? {})) {
+        const path = `notices/originals/codinput/dependencies/${name}`;
+        if (sha256(files.get(path)?.data ?? Buffer.alloc(0)) !== expected) throw new Error(`Codinput dependency license changed: ${path}`);
+      }
+      const originalClient = decoder.decode(files.get('vendor/codinput/lib/client.js').data);
+      const factory = parseFactory(originalClient, 'dsh-codinput');
+      const expectedClient = '// Original published client: dsh-codinput@0.3.2\n'
+        + '// Original license is included under notices/originals.\n'
+        + `const factory = ${factory.factory};\nexport default factory;\n`;
+      if (decoder.decode(files.get('lib/original-client/codinput.js')?.data ?? Buffer.alloc(0)) !== expectedClient
+        || sha256(files.get('lib/original/codinput.cjs')?.data ?? Buffer.alloc(0)) !== codinput.files['lib/index.js']) {
+        throw new Error('Codinput bridge must retain its exact original factory and CommonJS host');
+      }
+      const originals = JSON.parse(decoder.decode(files.get('lib/originals-manifest.json')?.data ?? Buffer.alloc(0)));
+      const client = originals.clients?.find(row => row.id === 'codinput');
+      const host = originals.hosts?.find(row => row.id === 'codinput');
+      if (client?.revision !== codinput.revision || client.publishedSha256 !== codinput.files['lib/client.js']
+        || client.factorySha256 !== sha256(Buffer.from(factory.factory)) || client.adaptations?.length !== 0
+        || JSON.stringify(client.requires) !== JSON.stringify(['react', 'react-dom', 'react/jsx-runtime'])
+        || host?.revision !== codinput.revision || host.commonjsTarget !== './lib/original/codinput.cjs') {
+        throw new Error('Codinput original-client/host manifest is incomplete or contains adaptations');
       }
     });
     if (npmFiles) check('npmMetadataAgreement', () => {

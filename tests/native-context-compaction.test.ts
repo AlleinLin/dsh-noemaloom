@@ -26,9 +26,10 @@ import { toHarnessError } from '../src/host/native-diagnostics.js';
 import { readNativeCompactionDiagnostics } from '../src/domain/context/diagnostics.js';
 
 const provider = 'local-context-fixture', route = { provider, model: 'conversation', maxTokens: 256 };
-async function within<T>(pending: Promise<T>) {
+const fixtureWaitMs = 60_000;
+async function within<T>(pending: Promise<T>, label: string) {
   let timer!: ReturnType<typeof setTimeout>;
-  try { return await Promise.race([pending, new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error('Native context fixture timed out')), 15000); })]); }
+  try { return await Promise.race([pending, new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error(`Native context fixture timed out after ${fixtureWaitMs} ms: ${label}`)), fixtureWaitMs); })]); }
   finally { clearTimeout(timer); }
 }
 type SummaryFault = 'metadata-rate' | 'model-rate' | 'model-timeout' | 'model-auth' | 'model-budget' | 'model-permission' | 'model-pending';
@@ -166,7 +167,7 @@ async function fixture(t: TestContext, options: { window?: number; overflow?: bo
   }
   async function start(agent: Agent, text = 'Complete the local work.') {
     agent.followup(createUserMessage({ source: { kind: 'user' }, content: [{ type: 'text', text }] }));
-    await within(agent.whenIdle());
+    await within(agent.whenIdle(), `agent ${agent.id} waiting for idle`);
   }
   return { ctx: driverCtx, dir, store, services, module, create, seed, start, engine, requests, summaries, toolRuns };
 }

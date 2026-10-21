@@ -9,5 +9,5 @@ export const ORIGINAL_HOST_ENTRY_PREFIX = '@local/dsh-nexus/original/';
 export const ORIGINAL_HOST_IDS = [
   'better-sidebar', 'context', 'better-display', 'mnemon',
   'task-board', 'git-graph', 'usage', 'agency-agents',
-  'agency-agents-remote', 'turn-rewind', 'thoughtdag', 'synapse',
+  'agency-agents-remote', 'turn-rewind', 'codinput', 'thoughtdag', 'synapse',
 ] as const;

@@ -30,6 +30,7 @@
     "assets",
     "vendor/memory-cognition",
     "vendor/memsearch",
+    "vendor/codinput",
     "vendor/agent-instructions/LICENSE",
     "vendor/agent-instructions/SOURCE.json",
     "vendor/tool-subagent/LICENSE",

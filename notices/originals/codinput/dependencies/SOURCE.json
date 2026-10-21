@@ -1,0 +1,133 @@
+[
+  {
+    "integrity": "sha512-O/4hG3SC1YwcmQ0d2UVNDs+AsaNWd1iHVxbTeEBuqH+6bExAiPK3iS/BvpY6rZGURALv4ZD3sIgcCmRvw3ehBg==",
+    "license": "MIT",
+    "version": "6.11.1",
+    "packageName": "@codemirror/commands",
+    "resolved": "https://registry.npmjs.org/@codemirror/commands/-/commands-6.11.1.tgz",
+    "files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "integrity": "sha512-1q4PaT+o6PbgpkJt4Q8Fv5XJxTy4FUZ4MWETtyiDw3J0Pyr9E2vqcKL+k9wcvjNTIsauxvE7OfmWj3FRPHQ76A==",
+    "license": "MIT",
+    "version": "6.12.4",
+    "packageName": "@codemirror/language",
+    "resolved": "https://registry.npmjs.org/@codemirror/language/-/language-6.12.4.tgz",
+    "files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "integrity": "sha512-QjLbZmY1Au3JiRrDVYFLRD0BZ3SOKS9pR3yjIkd7u27YY8TFD9/Q9fhPnLV5l1mHFSo3hHU/N31vpwEJOx4owQ==",
+    "license": "MIT",
+    "version": "6.7.5",
+    "packageName": "@codemirror/state",
+    "resolved": "https://registry.npmjs.org/@codemirror/state/-/state-6.7.5.tgz",
+    "files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "integrity": "sha512-Nv0vxQ19NAqvB/c2pFzjIzFlzzJl7jmdtNkwOwGbn0Ks9mFAzibvumz7cQem5cRsFA2cEw2fg+uHZGbcHupLQQ==",
+    "license": "MIT",
+    "version": "6.43.12",
+    "packageName": "@codemirror/view",
+    "resolved": "https://registry.npmjs.org/@codemirror/view/-/view-6.43.12.tgz",
+    "files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "integrity": "sha512-sxQE460fPZyU3sdc8lafxiPwJHBzZRy/udNFynGQky1SePYBdhkBl1kOagA9uT3pxR8K09bOrmTUqA9wb/PjSQ==",
+    "license": "MIT",
+    "version": "1.5.2",
+    "packageName": "@lezer/common",
+    "resolved": "https://registry.npmjs.org/@lezer/common/-/common-1.5.2.tgz",
+    "files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "integrity": "sha512-qXdH7UqTvGfdVBINrgKhDsVTJTxactNNxLk7+UMwZhU13lMHaOBlJe9Vqp907ya56Y3+ed2tlqzys7jDkTmW0g==",
+    "license": "MIT",
+    "version": "1.2.3",
+    "packageName": "@lezer/highlight",
+    "resolved": "https://registry.npmjs.org/@lezer/highlight/-/highlight-1.2.3.tgz",
+    "files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "integrity": "sha512-rnCpTIBafOx4mRp43xOxDJbFipJm/c0cia/V5TiGlhmMa+wsSdoGmUN3w5Bqrks/09Q/D4tNAmWaT8p6NRi77A==",
+    "license": "MIT",
+    "version": "1.4.10",
+    "packageName": "@lezer/lr",
+    "resolved": "https://registry.npmjs.org/@lezer/lr/-/lr-1.4.10.tgz",
+    "files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "integrity": "sha512-Wy0V7+SGUjnF9/TkiM1hKVDPj7jKXduPNboMVtHTA8dySMURWqfg/JZ9E2Sq8JgSJmkl7k7Qe9FLeMSrSraWmQ==",
+    "license": "MIT",
+    "version": "1.0.4",
+    "packageName": "@marijn/find-cluster-break",
+    "resolved": "https://registry.npmjs.org/@marijn/find-cluster-break/-/find-cluster-break-1.0.4.tgz",
+    "files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "integrity": "sha512-aK6BbWfhf4U/wCcLHKPJl/xa6VkVstRaPywWtMKGwuOLc/wZTyQYuoxgvZnNsBvv7Kg3YTBQYYBCggcviQczuA==",
+    "license": "MIT",
+    "version": "1.0.7",
+    "packageName": "crelt",
+    "resolved": "https://registry.npmjs.org/crelt/-/crelt-1.0.7.tgz",
+    "files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "integrity": "sha512-EUBjM+B+lkDE41iE82DDSCfkoPGfXx8IxFxPMjNzm/Uk4xDet77rTN9wqlxlVg71kK7XGuUMv6wUxJUwwv+Xyw==",
+    "license": "(MPL-2.0 OR Apache-2.0)",
+    "version": "3.4.15",
+    "packageName": "dompurify",
+    "resolved": "https://registry.npmjs.org/dompurify/-/dompurify-3.4.15.tgz",
+    "files": [
+      "LICENSE",
+      "LICENSE-MPL"
+    ]
+  },
+  {
+    "integrity": "sha512-8dD6FusOQSrpv9Z1rdNMdlSgQOIP880DHqnohobOmYLElGEqAL/JvxvuxZO16r4HtjTlfPRDC1hbvxC9dPN2nA==",
+    "license": "MIT",
+    "version": "15.0.12",
+    "packageName": "marked",
+    "resolved": "https://registry.npmjs.org/marked/-/marked-15.0.12.tgz",
+    "files": [
+      "LICENSE.md"
+    ]
+  },
+  {
+    "integrity": "sha512-i/n8VsZydrugj3Iuzll8+x/00GH2vnYsk1eomD8QiRrSAeW6ItbCQDtfXCeJHd0iwiNagqjQkvpvREEPtW3IoQ==",
+    "license": "MIT",
+    "version": "4.1.3",
+    "packageName": "style-mod",
+    "resolved": "https://registry.npmjs.org/style-mod/-/style-mod-4.1.3.tgz",
+    "files": [
+      "LICENSE"
+    ]
+  },
+  {
+    "integrity": "sha512-dpojBhNsCNN7T82Tm7k26A6G9ML3NkhDsnw9n/eoxSRlVBB4CEtIQ/KTCLI2Fwf3ataSXRhYFkQi3SlnFwPvPQ==",
+    "license": "MIT",
+    "version": "2.2.8",
+    "packageName": "w3c-keyname",
+    "resolved": "https://registry.npmjs.org/w3c-keyname/-/w3c-keyname-2.2.8.tgz",
+    "files": [
+      "LICENSE"
+    ]
+  }
+]

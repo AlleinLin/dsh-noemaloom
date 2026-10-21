@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "specificationDate": "2026-10-19",
-  "sourceCount": 37,
+  "sourceCount": 38,
   "nativeArchives": [
     {
       "identity": "DSH-agent-procedures",
@@ -43,6 +43,38 @@
     "sha256": "113bc7b9b60b4bf44d3645dc07209a3c65148ecddf54ac5dd7cba696b8049e1a"
   },
   "units": [
+    {
+      "id": "SRC-38",
+      "identity": "Witherwithwinter__DSH-Codinput",
+      "requirements": "Original code-editor composer takeover, floating and sidebar input, native draft/attachment/model controls, settings and slash-command integration",
+      "decision": "Retain the entire pinned upstream checkout and execute its unchanged published client factory through the existing original-client owner; register the original CommonJS host through an export-only ESM bridge",
+      "coverage": "native composer input enhancement",
+      "source": {
+        "package": "dsh-codinput",
+        "version": "0.3.2",
+        "declaredLicense": "MIT",
+        "repository": "https://github.com/Witherwithwinter/DSH-Codinput",
+        "revision": "a32da33ce4d50616bf490d360ae3dfe784e8aa50",
+        "licenseFiles": [
+          "vendor/codinput/LICENSE",
+          "notices/originals/codinput/LICENSE",
+          "notices/originals/codinput/NOTICE"
+        ],
+        "packageManifest": "vendor/codinput/package.json",
+        "snapshot": "vendor/codinput",
+        "provenance": "vendor/codinput/SOURCE.json",
+        "revisionKind": "git-commit",
+        "contentIdentity": "git:a32da33ce4d50616bf490d360ae3dfe784e8aa50"
+      },
+      "implementationCandidates": [
+        "src/client/originals-manifest.ts",
+        "src/client/originals.ts",
+        "scripts/build-originals.mjs",
+        "scripts/vendored-original.mjs",
+        "cordis.patch.yml"
+      ],
+      "implementationStatus": "original_factory_and_host_requires_runtime_evidence"
+    },
     {
       "id": "SRC-37",
       "identity": "cxv117793-blip__dsh-step-pause",
@@ -4549,6 +4581,16 @@
     }
   ],
   "actualReusedFileHashes": {
+    "vendor/codinput/SOURCE.json": "693c72738e605a18d19be4ee0a213aeb3490307cb5882cd0f40efe9b8697a13b",
+    "vendor/codinput/package.json": "0bec51965550738a47881a95642832706f521acf47607ef9883edc1064b6cd84",
+    "vendor/codinput/lib/client.js": "f3112ea5b48b143e3a1ce6afe0a9dd65aa2138029601146143b22297d6225bd4",
+    "vendor/codinput/lib/index.js": "ef15d396ae2db897f244a5934b777f56871020e321a17bcff9dc61e73bc95b6e",
+    "vendor/codinput/LICENSE": "8a12a1d913654c74e92c2bcbd4ea8fd8fe3fa06888989dbb23999571af57dacf",
+    "vendor/codinput/NOTICE": "a8df754f32263e98fea06b7c2038bf0c698039e7e95b5bee3bcbbceccbb19677",
+    "notices/originals/codinput/LICENSE": "8a12a1d913654c74e92c2bcbd4ea8fd8fe3fa06888989dbb23999571af57dacf",
+    "notices/originals/codinput/NOTICE": "a8df754f32263e98fea06b7c2038bf0c698039e7e95b5bee3bcbbceccbb19677",
+    "notices/originals/codinput/SOURCE.json": "5299a4a7d5a0b78ef3719c00e0e86d9735be6927da5a196876c0fb73f4cb91d7",
+    "notices/originals/codinput/dependencies/SOURCE.json": "3eca217c6e6abebe0c94ff5dda910a32c92594fba747b471bf0f59304b03f10c",
     "notices/step-pause/LICENSE": "06a0ed70620305f263c09beb45e6d6288fec60259afd0dcb07865ac6f0b6a525",
     "notices/step-pause/index.upstream.js": "7823a2578586e004bfd6343cdc0c62be827462bac53e53bc694c3faa966075db",
     "notices/step-pause/package.upstream.json": "4569204de6a820be3b886e677798d6a25e45f45b788f435186bab0d31aeef01c",

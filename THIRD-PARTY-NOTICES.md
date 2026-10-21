@@ -57,6 +57,15 @@ versions, copyright notices, source identities, and modifications.
   adapted into the shared Nexus runtime and scoped settings. Full license,
   verbatim upstream host source and package manifest, commit and file hashes
   are retained in `notices/step-pause/`; adaptations are listed in `SOURCE.json`.
+- Witherwithwinter/DSH-Codinput 0.3.2 — MIT, Copyright (c) 2026
+  Witherwithwinter; fixed at commit `a32da33ce4d50616bf490d360ae3dfe784e8aa50`.
+  Its entire acquired checkout and byte hashes are in `vendor/codinput/`.
+  The original client factory and CommonJS host are preserved without behavior
+  or UI changes. Full upstream LICENSE/NOTICE and the exact bundled CodeMirror,
+  Lezer, marked, DOMPurify and helper dependency licenses are retained in
+  `notices/originals/codinput/`. DOMPurify is used under Apache-2.0 as selected
+  by upstream; its alternate MPL-2.0 text is also retained. Upstream NOTICE
+  retains DeepSeek Harness visual and style attribution.
 
 Restricted code-review source is not copied. Its user capabilities are independently
 implemented. External OpenViking service licensing is distinct from adapter licensing.

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="320" viewBox="0 0 320 320" fill="none" stroke="#ffffff" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round">
+  <!-- 左尖括号：发卡弯 + 内腿悬停收笔 + 底部小钩 -->
+  <path d="M 99 204 Q 93 215 86 205 L 35 148 L 88 87 Q 96 79 104 86 L 52 147 L 84 181" />
+  <!-- 右尖括号：闭合环带 -->
+  <path d="M 214 88 L 267 146 L 215 205 Q 223 216 230 209 L 282 150 L 231 88 Q 222 79 214 88 Z" />
+  <!-- 斜杠发卡 -->
+  <path d="M 138 154 L 169 59 A 5.3 5.3 0 0 1 179 62 L 151 146" />
+  <!-- 纸飞机 -->
+  <path d="M 227 121 L 87 189 L 130 207 L 130 240 Q 132 250 138 243 L 150 212 L 185 233 Z" />
+  <path d="M 130 207 L 227 121" />
+</svg>

@@ -72,3 +72,8 @@ available current evidence. Missing observations remain unverified.
 `sources.lock.json` preserves the original source ledger. The old preparation script,
 which depended on separate private research directories, is omitted. Upstream source
 and license texts are retained; new upstream imports should record exact provenance.
+
+Codinput uses its pinned, verbatim vendored client factory and CommonJS host;
+the build checks `vendor/codinput/SOURCE.json` before generating the bridge.
+See [the integration notes](codinput-upstream.md) for its original surfaces and
+Desktop validation targets.

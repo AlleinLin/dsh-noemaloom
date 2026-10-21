@@ -23,6 +23,9 @@
       name: '@local/dsh-nexus/original/agency-agents'
     - id: turn-rewind
       name: '@local/dsh-nexus/original/turn-rewind'
+    - id: dsh-codinput
+      name: '@local/dsh-nexus/original/codinput'
+      config: {}
     - id: thoughtdag
       name: '@local/dsh-nexus/original/thoughtdag'
       config:

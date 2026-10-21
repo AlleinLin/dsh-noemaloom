@@ -48,6 +48,30 @@ test('context duplicate pane is declined without removing other original native 
   assert.equal(originalSlotOptions('dsh-better-display', { name: 'conversation.view', id: 'reader' }), undefined);
 });
 
+test('Codinput keeps every upstream slot option and component unchanged', () => {
+  const registrations: any[] = [];
+  const ctx: any = {
+    slots: { register(options: unknown, component: unknown) {
+      registrations.push({ options, component });
+      return () => {};
+    } },
+    extend(meta: unknown) { return Object.assign(Object.create(this), meta); },
+  };
+  const adapted = adaptOriginalClientContext(ctx, 'dsh-codinput');
+  const component = () => null;
+  for (const options of [
+    { name: 'conversation.composer.bar', priority: -1, registrant: 'dsh-codinput' },
+    { name: 'settings.section', id: 'codinput', order: 60 },
+    { name: 'sidebar.right.pane.tab', key: 'dsh-codinput' },
+    { name: 'sidebar.right.pane.tab.title', key: 'dsh-codinput' },
+  ]) {
+    assert.equal(originalSlotOptions('dsh-codinput', options), options);
+    adapted.slots.register(options, component);
+    assert.equal(registrations.at(-1).options, options);
+    assert.equal(registrations.at(-1).component, component);
+  }
+});
+
 test('feature navigation uses the native owning entry instead of another copy of a feature', () => {
   const calls: unknown[][] = [];
   const ctx: any = {

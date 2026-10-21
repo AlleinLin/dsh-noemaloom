@@ -13,7 +13,7 @@ Product attribution:
 Selected source families include dsh-memory and memory-evolve, dsh-mnemon,
 memsearch, turn-rewind, Agency Agents, dsh-web and its 19 subpackages,
 ThoughtDAG, Synapse, Archify, Aegis, Superpowers, J-Space, the qiudeng
-engineering methods, Metis, and dsh-step-pause. The complete 37-unit source identities,
+engineering methods, Metis, dsh-step-pause, and DSH-Codinput. The complete 38-unit source identities,
 selected paths, revisions, notices and outstanding runtime validation
 are listed in sources.lock.json and the delivery coverage report.
 
@@ -35,6 +35,12 @@ and registration model are preserved with a separate Windows/DSH adapter.
 dsh-step-pause 0.3.0 is MIT, Copyright (c) 2026 dsh-step-pause contributors.
 Its periodic progress behavior is adapted in Nexus; the full MIT text,
 original host source and exact commit/hash provenance remain in notices/step-pause/.
+
+DSH-Codinput 0.3.2 is MIT, Copyright (c) 2026 Witherwithwinter.
+Its original source, prebuilt client and CommonJS host are retained in
+vendor/codinput/ at commit a32da33ce4d50616bf490d360ae3dfe784e8aa50.
+The full license, upstream NOTICE (including DeepSeek attribution) and bundled
+dependency license texts remain under notices/originals/codinput/.
 
 No user account credentials, private sessions, machine profiles or
 deployment recovery snapshots are part of this distribution.

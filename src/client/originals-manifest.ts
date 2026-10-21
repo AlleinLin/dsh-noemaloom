@@ -3,8 +3,10 @@ export interface OriginalDefinition {
   id: string;
   packageName: string;
   version: string;
-  role: 'sidebar' | 'conversation' | 'memory' | 'workspace' | 'settings' | 'canvas';
+  role: 'sidebar' | 'conversation' | 'memory' | 'workspace' | 'settings' | 'canvas' | 'input';
   client: boolean;
+  vendor?: string;
+  revision?: string;
 }
 
 export const ORIGINAL_PLUGINS: readonly OriginalDefinition[] = [
@@ -17,6 +19,7 @@ export const ORIGINAL_PLUGINS: readonly OriginalDefinition[] = [
   { id: 'usage', packageName: '@linxin666/dsh-usage', version: '0.4.7', role: 'settings', client: true },
   { id: 'agency-agents', packageName: '@michengai/dsh-agency-agents', version: '1.2.7', role: 'settings', client: true },
   { id: 'turn-rewind', packageName: '@anionex/dsh-turn-rewind', version: '0.3.10', role: 'conversation', client: true },
+  { id: 'codinput', packageName: 'dsh-codinput', version: '0.3.2', role: 'input', client: true, vendor: 'vendor/codinput', revision: 'a32da33ce4d50616bf490d360ae3dfe784e8aa50' },
   // These original SPA hosts are reused by original-canvases.tsx. Their old
   // body-level overlay clients are deliberately not executed.
   { id: 'thoughtdag', packageName: 'dsh-thoughtdag', version: '0.5.21', role: 'canvas', client: false },

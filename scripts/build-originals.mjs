@@ -6,6 +6,8 @@ import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
 import { adaptAgentClient } from './adapt-agent-client.mjs';
 import { adaptReaderClient } from './adapt-reader-client.mjs';
+import { parseFactory } from './original-factory.mjs';
+import { vendoredOriginal } from './vendored-original.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const require = createRequire(join(root, 'package.json'));
@@ -59,41 +61,6 @@ function exportedFile(manifest, subpath) {
   const select = value => typeof value === 'string' ? value : value && (select(value.default) ?? select(value.import));
   const value = select(manifest.exports?.[subpath]);
   return value ?? (subpath === '.' ? manifest.main ?? 'index.js' : undefined);
-}
-
-function parseFactory(source, packageName) {
-  const ast = ts.createSourceFile(`${packageName}.js`, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
-  let factory;
-  let registrations = 0;
-  function visit(node) {
-    if (ts.isCallExpression(node) && node.expression.getText(ast) === 'window.__ModuleLoader__.load') {
-      registrations += 1;
-      const argument = node.arguments[0];
-      if (!argument || !ts.isObjectLiteralExpression(argument)) throw new Error(`${packageName}: expected a literal module registration`);
-      const property = argument.properties.find(item => ts.isPropertyAssignment(item) && item.name.getText(ast) === 'factory');
-      factory = property && property.initializer;
-    }
-    ts.forEachChild(node, visit);
-  }
-  visit(ast);
-  if (registrations !== 1 || !factory || !(ts.isArrowFunction(factory) || ts.isFunctionExpression(factory))) {
-    throw new Error(`${packageName}: expected exactly one published client factory`);
-  }
-  const requireName = factory.parameters[0]?.name.getText(ast);
-  const requires = new Set();
-  function references(node) {
-    if (node !== factory && ts.isFunctionLike(node)) {
-      if (node.parameters?.some(parameter => parameter.name.getText(ast) === requireName)) return;
-      if (node.name?.getText(ast) === requireName) return;
-    }
-    if (ts.isCallExpression(node) && ts.isIdentifier(node.expression)
-      && node.expression.text === requireName && node.arguments[0] && ts.isStringLiteralLike(node.arguments[0])) {
-      requires.add(node.arguments[0].text);
-    }
-    ts.forEachChild(node, references);
-  }
-  if (requireName) references(factory);
-  return { factory: factory.getText(ast), requires: [...requires].sort() };
 }
 
 function replaceOnce(source, anchor, replacement, label) {
@@ -157,10 +124,20 @@ const hostRows = [];
 const notices = [];
 const clientPrerequisites = new Set();
 
-async function addHost(id, packageName, version, subpath = '.') {
-  const specifier = subpath === '.' ? packageName : `${packageName}${subpath.slice(1)}`;
+async function addHost(id, packageName, version, subpath = '.', installed) {
+  let specifier = subpath === '.' ? packageName : `${packageName}${subpath.slice(1)}`;
   const filename = `${id}.js`;
-  if (id === 'thoughtdag' || id === 'synapse') {
+  if (installed?.source) {
+    // Preserve the original CommonJS module under .cjs in our ESM package.
+    // This wrapper only forwards exports; the upstream host stays untouched.
+    if (installed.manifest.type === 'module') throw new Error(`${packageName}: expected the reviewed CommonJS host`);
+    specifier = `./${id}.cjs`;
+    await copyFile(join(installed.directory, exportedFile(installed.manifest, subpath)), join(hostOutput, `${id}.cjs`));
+    await writeFile(join(hostOutput, filename),
+      `// Original ${packageName}@${version}, commit ${installed.source.revision}.\n`
+      + `import original from ${JSON.stringify(specifier)};\n`
+      + 'export const { name, inject, apply } = original;\nexport default original;\n');
+  } else if (id === 'thoughtdag' || id === 'synapse') {
     const applyName = id === 'thoughtdag' ? 'applyThoughtdag' : 'applySynapse';
     await writeFile(join(hostOutput, filename),
       `// Original ${packageName}@${version}, scoped by the shared desktop canvas host.\n`
@@ -178,6 +155,7 @@ async function addHost(id, packageName, version, subpath = '.') {
   hostRows.push({
     id, packageName, version, specifier,
     export: `./original/${id}`, target: `./lib/original/${filename}`,
+    ...(installed?.source ? { revision: installed.source.revision, upstreamSha256: installed.source.files['lib/index.js'], commonjsTarget: `./lib/original/${id}.cjs` } : {}),
   });
 }
 
@@ -187,6 +165,9 @@ async function addClient(definition, installed) {
   if (!clientFile) throw new Error(`${manifest.name}: no original client export`);
   const source = await readFile(join(directory, clientFile), 'utf8');
   const parsed = parseFactory(source, manifest.name);
+  if (installed.source && parsed.requires.some(name => !['react', 'react-dom', 'react/jsx-runtime'].includes(name))) {
+    throw new Error(`${manifest.name}: unreviewed external client dependency`);
+  }
   let factory = parsed.factory;
   const adaptations = [];
   if (manifest.name === 'dsh-better-sidebar') {
@@ -224,6 +205,7 @@ async function addClient(definition, installed) {
     requires: parsed.requires, filename, adaptations,
     publishedSha256: createHash('sha256').update(source).digest('hex'),
     factorySha256: createHash('sha256').update(factory).digest('hex'),
+    ...(installed.source ? { revision: installed.source.revision, source: definition.vendor } : {}),
   });
 }
 
@@ -240,17 +222,22 @@ async function copyNotice(installed, id) {
     packageName: manifest.name, version: manifest.version,
     license: manifest.license ?? null, repository: manifest.repository ?? null,
     upstreamLicenseFile: found,
+    ...(installed.source ? {
+      revision: installed.source.revision, source: `vendor/${id}/SOURCE.json`,
+      clientSha256: installed.source.files['lib/client.js'], hostSha256: installed.source.files['lib/index.js'],
+      dependencyNotices: installed.source.dependencyNotices,
+    } : {}),
   };
   await writeFile(join(noticeDirectory, 'SOURCE.json'), JSON.stringify(info, null, 2) + '\n');
   notices.push(info);
 }
 
 for (const definition of originals) {
-  const installed = await packageRoot(definition.packageName);
+  const installed = definition.vendor ? await vendoredOriginal(root, definition) : await packageRoot(definition.packageName);
   if (installed.manifest.version !== definition.version) {
     throw new Error(`${definition.packageName}: expected ${definition.version}, installed ${installed.manifest.version}`);
   }
-  await addHost(definition.id, definition.packageName, definition.version);
+  await addHost(definition.id, definition.packageName, definition.version, '.', installed);
   await copyNotice(installed, definition.id);
   if (definition.client) await addClient(definition, installed);
 }
