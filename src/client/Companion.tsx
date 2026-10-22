@@ -4,6 +4,7 @@ import { createNexusApi, errorData } from './transport.js';
 import { AuxiliarySettings } from './AuxiliarySettings.js';
 import { MarkdownContent } from './MarkdownContent.js';
 import styles from './companion.css';
+import { visiblePoll } from './visible-poll.js';
 
 export function quoteCompanion(actions: any, input: any, note: Data): boolean {
   if (!actions?.insertText || input.phase !== 'plain') return false;
@@ -19,7 +20,8 @@ export function sendThoroughPrompt(actions: any, input: any, prompt: string, lat
   if (!actions.insertText(prompt, span)) return false;
   latch.current = true; actions.persistDraft(); actions.submit(); return true;
 }
-function Companion({ api, sessionId, inputActions, useInput, running }: { api: NexusApi; sessionId: string; inputActions: any; useInput: any; running: boolean }) {
+export function Companion({ api, sessionId, inputActions, useInput, running }: { api: NexusApi; sessionId: string; inputActions: any; useInput: any; running: boolean }) {
+  const generation = React.useSyncExternalStore(api.subscribe, api.getGeneration, api.getGeneration);
   const latestInput = React.useRef<any>(undefined);
   const input = useInput((value: any) => { latestInput.current = value; return value; });
   const [value, setValue] = React.useState<Data>(), [error, setError] = React.useState('');
@@ -29,33 +31,52 @@ function Companion({ api, sessionId, inputActions, useInput, running }: { api: N
   const scope = React.useMemo(() => ({ level: 'session' as const, sessionId }), [sessionId]);
   const alive = React.useRef<AbortController | undefined>(undefined);
   const latestValue = React.useRef(value); latestValue.current = value;
-  const loading = React.useRef<Promise<void> | undefined>(undefined);
+  const latestRunning = React.useRef(running); latestRunning.current = running;
+  const refreshedRunning = React.useRef(running);
+  const refresh = React.useRef<() => void>(() => {});
+  const loading = React.useRef<{ signal?: AbortSignal; operation: Promise<void> } | undefined>(undefined);
   const readVersion = React.useRef(0);
   const load = React.useCallback(async (signal?: AbortSignal) => {
-    if (loading.current) return loading.current;
+    if (loading.current && loading.current.signal === signal && !signal?.aborted) return loading.current.operation;
     const version = readVersion.current;
-    const operation = (async () => { const result = await api.call('companion', 'get', {}, { scope, signal }); if (!signal?.aborted && version === readVersion.current) setValue(result); })();
-    loading.current = operation;
-    try { await operation; } finally { if (loading.current === operation) loading.current = undefined; }
-  }, [api, scope]);
+    const operation = (async () => {
+      const result = await api.call('companion', 'get', {}, { scope, signal });
+      if (!signal?.aborted && version === readVersion.current) {
+        latestValue.current = result;
+        setValue(previous => JSON.stringify(previous) === JSON.stringify(result) ? previous : result);
+        setError('');
+      }
+    })();
+    loading.current = { signal, operation };
+    try { await operation; } finally { if (loading.current?.operation === operation) loading.current = undefined; }
+  }, [api, scope, generation]);
   React.useEffect(() => {
     const c = new AbortController(); alive.current = c;
-    void load(c.signal).catch(e => { if (!c.signal.aborted) setError(errorData(e).message); });
-    let timer: ReturnType<typeof setTimeout>;
-    const poll = () => {
-      const current = latestValue.current;
-      const delay = current?.enabled === false || current?.state === 'unconfigured' ? 120000 : current?.state === 'checking' || current?.gate?.state === 'pending' || running ? 2000 : 30000;
-      timer = setTimeout(() => { if (document.visibilityState === 'hidden') { poll(); return; } void load(c.signal).catch(() => {}).finally(() => { if (!c.signal.aborted) poll(); }); }, delay);
+    setBusy(false); setError('');
+    const poll = visiblePoll(() => load(c.signal), {
+      delay: () => {
+        const current = latestValue.current;
+        return current?.enabled === false || current?.state === 'unconfigured' ? 120000
+          : current?.state === 'checking' || current?.gate?.state === 'pending' ? 2000 : latestRunning.current ? 8000 : 30000;
+      },
+      onError: e => { if (!c.signal.aborted) setError(errorData(e).message); },
+    });
+    refresh.current = poll.refresh;
+    return () => {
+      c.abort(); poll.dispose(); readVersion.current++;
+      if (alive.current === c) alive.current = undefined;
+      if (refresh.current === poll.refresh) refresh.current = () => {};
     };
-    poll();
-    const visible = () => { if (document.visibilityState !== 'hidden') void load(c.signal).catch(() => {}); };
-    document.addEventListener('visibilitychange', visible);
-    return () => { c.abort(); clearTimeout(timer); document.removeEventListener('visibilitychange', visible); alive.current = undefined; };
-  }, [load, running]);
+  }, [load]);
   React.useEffect(() => {
-    if (value?.gate?.state !== 'pending' && !value?.dismissedAt) return;
-    const timer = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(timer);
-  }, [value?.gate?.state, value?.dismissedAt]);
+    if (refreshedRunning.current !== running) { refreshedRunning.current = running; refresh.current(); }
+  }, [running]);
+  React.useEffect(() => {
+    if (!(value?.gate?.state === 'pending' && value.gate.expiresAt > Date.now())
+      && !(dismissedWithoutReading && value?.dismissedAt && Date.now() - value.dismissedAt < 20000)) return;
+    const poll = visiblePoll(async () => { setNow(Date.now()); }, { delay: () => 1000 });
+    return () => poll.dispose();
+  }, [value?.gate?.state, value?.gate?.expiresAt, value?.dismissedAt, dismissedWithoutReading, now >= (value?.gate?.expiresAt ?? Infinity), now >= (value?.dismissedAt ?? Infinity) + 20000]);
   React.useEffect(() => { setExpanded(false); }, [value?.noteId]);
   React.useEffect(() => { latch.current = false; }, [value?.gate?.id]);
   const act = async (action: string, params: Data) => {
@@ -125,9 +146,9 @@ function Companion({ api, sessionId, inputActions, useInput, running }: { api: N
 export function registerCompanionConversation(ctx: ClientContext): () => void {
   const api = createNexusApi(ctx); let disposed = false;
   function Entry(props: any) {
-    const session = props.useSession((s: any) => s);
-    if (disposed || !props.sessionId || session?.sessionId !== props.sessionId || session?.header?.origin === 'subagent') return null;
-    return <Companion key={props.sessionId} api={api} sessionId={props.sessionId} inputActions={props.inputActions} useInput={props.useInput} running={Boolean(session.running)} />;
+    const running = props.useSession((s: any) => s?.sessionId === props.sessionId && s?.header?.origin !== 'subagent' ? Boolean(s.running) : undefined);
+    if (disposed || !props.sessionId || running === undefined) return null;
+    return <Companion key={props.sessionId} api={api} sessionId={props.sessionId} inputActions={props.inputActions} useInput={props.useInput} running={running} />;
   }
   const generation = ctx.connection.generation; let old = generation?.getSnapshot()?.id;
   const reset = generation?.subscribe(() => { const next = generation.getSnapshot()?.id; if (next !== old) { old = next; api.reset(); } });

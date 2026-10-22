@@ -4,6 +4,29 @@ import { createCompanionModule, DEEP_QUESTION, parseCompanion, THOROUGH_PROMPT }
 import { conversationSurface } from '../src/domain/insights/conversation.js';
 import { companionFixture, deferred } from './companion-fixture.js';
 
+test('an ended owner and a restarted module release orphaned checking without replaying a model', async () => {
+  const f = companionFixture(), entered = deferred(), release = deferred();
+  f.produce(async request => {
+    entered.resolve(); await release.promise;
+    return { text: 'late unused response', model: request.model, provider: request.provider };
+  });
+  const owner = new AbortController();
+  const operation = f.dispatch('observe', {}, { ...f.context, signal: owner.signal });
+  await entered.promise;
+  assert.equal((await f.dispatch('get', {}, f.owner)).state, 'checking', 'A genuinely active check must remain checking');
+  owner.abort(); assert.equal((await operation).state, 'cancelled'); release.resolve();
+  const restarted = createCompanionModule(f.services);
+  const interrupted: any = await restarted.dispatch({ action: 'get' }, f.owner);
+  assert.equal(interrupted.state, 'failed');
+  assert.equal(interrupted.errorCode, 'AUXILIARY_INTERRUPTED');
+  assert.equal(f.calls.length, 1, 'Restoring a readable retry state must never call a model');
+  await restarted.dispatch({ action: 'get' }, f.owner); assert.equal(f.calls.length, 1);
+  f.produce();
+  const retried: any = await restarted.dispatch({ action: 'retry' }, f.owner);
+  assert.equal(retried.state, 'ready', 'Explicit retry becomes available after recovering the orphan');
+  await restarted.dispose?.(); await f.module.dispose?.();
+});
+
 test('full surface includes tool arguments/results and children while excluding private reasoning and credential forms', () => {
   const packets = [{ sessionId: 'main', status: 'running', events: [
     { seq: 0, type: 'user/message', data: { message: { id: 'human', source: { kind: 'user' }, content: [{ type: 'text', text: '真实任务' }] } } },

@@ -1,10 +1,12 @@
 import * as React from 'react';
 import type { NexusApi, NexusScope } from '../types.js';
+import { visiblePoll } from '../visible-poll.js';
 interface Props {
   api: NexusApi; scope: NexusScope; path: string; dirty: boolean;
   onBreakpoints(path: string, values: any[]): void; onStopped(path: string, line: number): void; onRunning(): void;
 }
 export function DebugPanel(props: Props) {
+  const generation = React.useSyncExternalStore(props.api.subscribe, props.api.getGeneration, props.api.getGeneration);
   const [configurations, setConfigurations] = React.useState<any[]>([]);
   const [selected, setSelected] = React.useState(0);
   const [snapshot, setSnapshot] = React.useState<any>();
@@ -33,10 +35,9 @@ export function DebugPanel(props: Props) {
     return () => { active = false; };
   }, [props.api, props.path, props.scope]);
   React.useEffect(() => {
-    let active = true, timer: ReturnType<typeof setTimeout> | undefined;
+    let active = true;
     const controller = new AbortController();
-    const poll = async () => {
-      try {
+    const poll = visiblePoll(async () => {
         let result = await props.api.call<any>('debug', 'snapshot', { cursor: cursor.current }, { scope: props.scope, signal: controller.signal });
         if (!active) return;
         const previous = state.current;
@@ -45,17 +46,18 @@ export function DebugPanel(props: Props) {
           result = await props.api.call<any>('debug', 'snapshot', { cursor: 0 }, { scope: props.scope, signal: controller.signal });
           if (!active) return;
         }
-        state.current = result.snapshot; setSnapshot(result.snapshot);
+        state.current = result.snapshot; setSnapshot((old: any) => JSON.stringify(old) === JSON.stringify(result.snapshot) ? old : result.snapshot);
         cursor.current = result.cursor;
-        if (result.dropped) setOutput(value => `${value}\n[较早事件已超出缓冲区]\n`.slice(-131072));
+        let appended = result.dropped ? '\n[较早事件已超出缓冲区]\n' : '';
         for (const event of result.events) {
-          if (event.event === 'output') setOutput(value => (value + event.body.output).slice(-131072));
+          if (event.event === 'output') appended = (appended + event.body.output).slice(-131072);
           if (event.event === 'breakpoints') propsRef.current.onBreakpoints(event.body.path, event.body.breakpoints);
           if (event.event === 'breakpoint') {
             const point = event.body.breakpoint;
             if (point?.source?.path) propsRef.current.onBreakpoints(point.source.path, [point]);
           }
         }
+        if (appended) setOutput(value => (value + appended).slice(-131072));
         if (result.snapshot?.phase === 'stopped' && (previous?.id !== result.snapshot.id || previous?.generation !== result.snapshot.generation || previous?.phase !== 'stopped')) {
           const generation = result.snapshot.generation;
           const resultThreads = await command('threads', {}, generation);
@@ -64,15 +66,15 @@ export function DebugPanel(props: Props) {
           const id = result.snapshot.stopped?.threadId ?? resultThreads.threads?.[0]?.id;
           setThread(id);
           if (id !== undefined) await loadStack(id, generation);
-        } else if (result.snapshot?.phase !== 'stopped') {
+        } else if (result.snapshot?.phase !== 'stopped' && previous?.phase === 'stopped') {
           setFrames([]); setScopes([]); setFrame(undefined); setEvaluated(undefined); propsRef.current.onRunning();
         }
-      } catch (error) { if (active && !controller.signal.aborted) setError((error as Error).message); }
-      finally { if (active) timer = setTimeout(poll, ['running', 'stopped', 'preparing', 'starting'].includes(state.current?.phase) ? 350 : 1500); }
-    };
-    void poll();
-    return () => { active = false; controller.abort(); clearTimeout(timer); };
-  }, [props.api, props.scope]);
+    }, {
+      delay: () => ['running', 'stopped', 'preparing', 'starting'].includes(state.current?.phase) ? 350 : 10000,
+      onError: error => { if (active && !controller.signal.aborted) setError((error as Error).message); },
+    });
+    return () => { active = false; controller.abort(); poll.dispose(); };
+  }, [props.api, props.scope, generation]);
   const loadStack = async (id: number, generation = state.current?.generation) => {
     const result = await command('stackTrace', { threadId: id }, generation);
     if (state.current?.generation !== generation) return;

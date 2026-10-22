@@ -32,6 +32,12 @@ export function adaptSynapseClient(original) {
   const edits = [];
   const replaceNode = (node, text) => edits.push({ start: node.getStart(ast), end: node.end, text });
   const replaceFunction = (name, text) => replaceNode(namedFunction(ast, name), text);
+  const projection = namedFunction(ast, 'pollProjection').getText(ast);
+  if (!projection.includes('if (polling || document.hidden || !canReplaceView()) return'))
+    throw new Error('Synapse client adapter: original projection admission changed');
+  replaceFunction('pollProjection', projection.replace(
+    'if (polling || document.hidden || !canReplaceView()) return',
+    'if (!__nexusSynapseProjectionVisible() || polling || document.hidden || !canReplaceView()) return'));
   const render = namedFunction(ast, 'render');
   const renderStatements = render.body.statements;
   const variable = name => one(renderStatements.filter(statement => ts.isVariableStatement(statement)
@@ -113,6 +119,8 @@ ${messageListener.getText(ast)}`);
   }
   let adapted = original;
   for (const edit of edits) adapted = adapted.slice(0, edit.start) + edit.text + adapted.slice(edit.end);
+  adapted = replaceOnce(adapted, 'window.setInterval(() => { void pollProjection() }, 1_000)',
+    synapseProjectionLifecycle(), 'visibility-owned projection polling');
   adapted = replaceOnce(adapted,
     `if (threads.length === 0 && state.draft?.kind !== 'new') return \`<section class="empty-canvas"><strong>当前工作目录还没有 DSH 对话。</strong><p>点击新会话，在画布中输入第一条消息。</p><div><button class="primary" type="button" data-action="create-session">新建会话</button></div></section>\``,
     `if (threads.length === 0) return \`<section class="empty-canvas"><strong>暂无会话记录</strong><div><button class="primary" type="button" data-action="create-session">新建会话</button></div></section>\``,
@@ -150,10 +158,52 @@ ${messageListener.getText(ast)}`);
       'Reconcile native composer-opened acknowledgements through original projection and durable branch-anchor state.',
       'Disable unreachable legacy embedded form submission while retaining original source attribution.',
       'Use a short empty state and native new-session action.',
+      'Own original projection polling by authenticated parent visibility; serialize reads and release timers/listeners on page exit.',
     ],
     sourceSha256: digest(original),
     adaptedSha256: digest(adapted),
   };
+}
+
+function synapseProjectionLifecycle() {
+  return `
+let __nexusSynapseActive = window.parent === window;
+let __nexusSynapseProjectionTimer = 0, __nexusSynapseReading = false, __nexusSynapseDisposed = false;
+function __nexusSynapseProjectionVisible() { return __nexusSynapseActive && !document.hidden }
+function __nexusSynapseProjectionSchedule() {
+  clearTimeout(__nexusSynapseProjectionTimer); __nexusSynapseProjectionTimer = 0;
+  if (!__nexusSynapseDisposed && !__nexusSynapseReading && __nexusSynapseProjectionVisible())
+    __nexusSynapseProjectionTimer = setTimeout(__nexusSynapseProjectionTick, 1000);
+}
+async function __nexusSynapseProjectionTick() {
+  if (__nexusSynapseDisposed || __nexusSynapseReading || !__nexusSynapseProjectionVisible()) return;
+  __nexusSynapseReading = true;
+  try { await pollProjection() }
+  catch (error) { setError(error) }
+  finally { __nexusSynapseReading = false; __nexusSynapseProjectionSchedule() }
+}
+function __nexusSynapseProjectionVisibility() {
+  clearTimeout(__nexusSynapseProjectionTimer); __nexusSynapseProjectionTimer = 0;
+  if (__nexusSynapseProjectionVisible()) void __nexusSynapseProjectionTick();
+}
+function __nexusSynapseProjectionMessage(event) {
+  if (event.source !== window.parent || event.origin !== window.location.origin
+    || event.data?.source !== 'nexus-canvas' || typeof event.data.active !== 'boolean') return;
+  if (__nexusSynapseActive === event.data.active) return;
+  __nexusSynapseActive = event.data.active; __nexusSynapseProjectionVisibility();
+}
+function __nexusSynapseProjectionDispose() {
+  __nexusSynapseDisposed = true;
+  clearTimeout(__nexusSynapseProjectionTimer); __nexusSynapseProjectionTimer = 0;
+  window.removeEventListener('message', __nexusSynapseProjectionMessage);
+  document.removeEventListener('visibilitychange', __nexusSynapseProjectionVisibility);
+  window.removeEventListener('pagehide', __nexusSynapseProjectionDispose);
+}
+window.addEventListener('message', __nexusSynapseProjectionMessage);
+document.addEventListener('visibilitychange', __nexusSynapseProjectionVisibility);
+window.addEventListener('pagehide', __nexusSynapseProjectionDispose);
+__nexusSynapseProjectionSchedule();
+`;
 }
 
 /** Build-time invariants over the actual output, without executing app code. */

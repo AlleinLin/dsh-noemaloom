@@ -1,6 +1,7 @@
 import * as React from 'react';
 import type { ClientContext, NexusApi } from './types.js';
 import { rows } from './types.js';
+import { visiblePoll } from './visible-poll.js';
 import {
   appendCommandOutput, emptyCommandOutput, isCommandTool,
   type CommandOutput, type CommandOutputPage, type LiveCommand,
@@ -85,11 +86,11 @@ export function registerLiveCommandMonitor(rawContext: ClientContext, api: Nexus
       setOutput(outputRef.current);
       setAvailable(true);
       setFollow(true);
-      if (!visible || !sessionId || disposed) return;
+      if (!visible || !sessionId || disposed || lifetime.signal.aborted) return;
       const controller = new AbortController();
-      const stop = () => controller.abort();
+      const stop = () => { controller.abort(); poll.dispose(); };
       lifetime.signal.addEventListener('abort', stop, { once: true });
-      let timer: ReturnType<typeof setTimeout> | undefined;
+      let delay = 8000;
       const scope = { level: 'session' as const, sessionId };
       const applyPage = (page: CommandOutputPage) => {
         if (controller.signal.aborted || page.id !== selected) return;
@@ -97,7 +98,7 @@ export function registerLiveCommandMonitor(rawContext: ClientContext, api: Nexus
         outputRef.current = appendCommandOutput(outputRef.current, page);
         setOutput(outputRef.current);
       };
-      const poll = async () => {
+      const poll = visiblePoll(async () => {
         const problems: string[] = [];
         let native: LiveCommand[] = [], runtime: LiveCommand[] = [];
         let more = false;
@@ -147,16 +148,18 @@ export function registerLiveCommandMonitor(rawContext: ClientContext, api: Nexus
           const retained = previous.filter(command => command.sessionId === sessionId
             && ((command.source === 'native' && results[0].status === 'rejected')
               || (command.source === 'runtime' && results[1].status === 'rejected')));
-          return [...all, ...retained].sort((a, b) => b.startedAt - a.startedAt);
+          const next = [...all, ...retained].sort((a, b) => b.startedAt - a.startedAt);
+          return JSON.stringify(previous) === JSON.stringify(next) ? previous : next;
         });
         if (!selected && all[0]) setSelected(all[0].id);
         setError(problems.join(' · '));
-        timer = setTimeout(() => { void poll(); }, more ? 40 : 700);
-      };
-      void poll();
+        delay = more ? 40 : all.some(command => ['running', 'queued', 'pending', 'stopping', 'cancelling', 'unknown', 'effectUnknown'].includes(command.state)) ? 700 : 8000;
+        // One unavailable backend must not slow a healthy native output stream.
+        if (results[0].status === 'rejected' && results[1].status === 'rejected') throw new Error(problems.join(' · '));
+      }, { delay: () => delay, onError: cause => { if (!controller.signal.aborted) setError(message(cause)); } });
       return () => {
-        if (timer) clearTimeout(timer);
         controller.abort();
+        poll.dispose();
         lifetime.signal.removeEventListener('abort', stop);
       };
     }, [sessionId, selected, visible, generation, connectionGeneration]);

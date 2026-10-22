@@ -222,7 +222,16 @@ export function createCompanionModule(services: NexusServices): NexusModule {
       if (!ctx.sessionId || ctx.scopeLevel === 'global' || ctx.scopeLevel === 'workspace') throw new NexusError('INVALID_ARGUMENT', '旁路观察需要当前原生会话');
       const id = key(ctx), p = request.params ?? {};
       if (request.action === 'get') {
-        const value = await read(ctx), config = await auxiliarySettings(services, ctx);
+        let value = await read(ctx);
+        // Persisted "checking" is not proof that a model call still exists.
+        // A restart or an ended owner lifetime can leave it behind forever,
+        // disabling the only retry button and keeping the client on fast polls.
+        if (value.state === 'checking' && !operations.has(id)) value = await update(ctx, latest =>
+          latest.state === 'checking' && !operations.has(id) ? {
+            ...latest, state: 'failed', gate: undefined, errorCode: 'AUXILIARY_INTERRUPTED',
+            error: '上次辅助检查已中断，当前没有仍在执行的检查；可手动重试，主任务继续',
+          } : latest);
+        const config = await auxiliarySettings(services, ctx);
         return { ...value, enabled: config.enabled, suggestionsEnabled: config.suggestions, reflectionEnabled: config.reflection, planningPrompt: THOROUGH_PROMPT };
       }
       if (request.action === 'invalidate') {

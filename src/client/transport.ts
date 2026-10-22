@@ -5,7 +5,7 @@ export class ClientError extends Error {
 }
 export function errorData(error: unknown): { code: string; message: string; details?: unknown } {
   const item = error as any;
-  return { code: String(item?.code ?? (item?.name === 'AbortError' ? 'nexus/cancelled' : 'nexus/carrier-error')), message: String(item?.message ?? error ?? '请求失败'), details: item?.details };
+  return { code: String(typeof item?.code === 'string' ? item.code : item?.name === 'AbortError' ? 'nexus/cancelled' : item?.code ?? 'nexus/carrier-error'), message: String(item?.message ?? error ?? '请求失败'), details: item?.details };
 }
 export function createNexusApi(ctx: ClientContext): NexusApi {
   let generation = 0;
@@ -34,9 +34,21 @@ export function createNexusApi(ctx: ClientContext): NexusApi {
         if (controller.signal.aborted) aborted();
         else if (ready.getSnapshot()) finish();
       });
+      controller.signal.throwIfAborted();
       result = await ctx.connection.rpc.call('/api', 'nexus/rpc', { protocolVersion: 1, method, scope, payload }, controller.signal);
     } catch (cause) {
+      // RPC adapters often replace every abort with a generic DOMException.
+      // Recover our own lifetime reason before inspecting that lossy wrapper.
+      if (current !== generation) throw new ClientError('nexus/stale-generation', '宿主连接已更新，正在重新读取当前状态');
+      if (controller.signal.aborted) {
+        const reason = controller.signal.reason;
+        if (reason instanceof ClientError) throw reason;
+        throw new ClientError('nexus/cancelled', '本次界面请求的生命周期已结束');
+      }
       const error = errorData(cause);
+      if (error.code === 'nexus/cancelled') throw new ClientError('nexus/remote-aborted',
+        '宿主或上游请求意外中断；未收到本地取消信号，可刷新状态后重试',
+        { originalMessage: error.message });
       throw new ClientError(error.code, error.message, error.details);
     } finally {
       signal?.removeEventListener('abort', abort);
@@ -71,7 +83,7 @@ export function createNexusApi(ctx: ClientContext): NexusApi {
     snapshot: signal => invoke('nexus.snapshot', { action: 'snapshot', params: {} }, {}, signal),
     subscribe(listener) { listeners.add(listener); return () => listeners.delete(listener); },
     getGeneration: () => generation,
-    reset() { generation++; for (const controller of inFlight) controller.abort(); for (const listener of listeners) listener(); },
-    dispose() { disposed = true; for (const controller of inFlight) controller.abort(); inFlight.clear(); listeners.clear(); },
+    reset() { generation++; for (const controller of inFlight) controller.abort(new ClientError('nexus/stale-generation', '宿主连接已更新')); for (const listener of listeners) listener(); },
+    dispose() { disposed = true; for (const controller of inFlight) controller.abort(new ClientError('nexus/cancelled', '插件已停止')); inFlight.clear(); listeners.clear(); },
   };
 }

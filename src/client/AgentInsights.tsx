@@ -4,6 +4,7 @@ import type { ClientContext, Data, NexusApi, NexusScope } from './types.js';
 import { AutonomyPlan } from './AutonomyPlan.js';
 import { AuxiliarySettings } from './AuxiliarySettings.js';
 import styles from './agent-insights.css';
+import { sampledSource, visiblePoll } from './visible-poll.js';
 
 const empty = {};
 const FactsContext = React.createContext<{ ctx?: any; insights: Record<string, Data>; projections: Data; api?: NexusApi }>({ insights: empty, projections: empty });
@@ -40,11 +41,13 @@ export function agentContextMetrics(values: Data) {
 const number = (value: number) => new Intl.NumberFormat('zh-CN', { notation: value >= 10000 ? 'compact' : 'standard', maximumFractionDigits: 1 }).format(value);
 
 export function AgentInsightsProvider({ ctx, sessionId, active = true, children }: { ctx: any; sessionId: string; active?: boolean; children: React.ReactNode }) {
-  const list = React.useSyncExternalStore(React.useCallback(fn => ctx.sessions.list.subscribe(fn), [ctx]), React.useCallback(() => ctx.sessions.list.getSnapshot(), [ctx]));
+  const source = React.useMemo(() => sampledSource<Data>(ctx.sessions.list), [ctx]);
+  const list = React.useSyncExternalStore(source.subscribe, source.getSnapshot, source.getSnapshot);
   let root = sessionId;
   const seen = new Set<string>();
   while (list.byId?.[root]?.origin === 'subagent' && list.byId[root].parentId && !seen.has(root)) { seen.add(root); root = list.byId[root].parentId; }
   const api = React.useMemo(() => createNexusApi(ctx), [ctx]);
+  const generation = React.useSyncExternalStore(api.subscribe, api.getGeneration, api.getGeneration);
   const [insights, setInsights] = React.useState<Record<string, Data>>(empty);
   React.useEffect(() => {
     const stop = subscribeConnection(ctx, api);
@@ -54,20 +57,15 @@ export function AgentInsightsProvider({ ctx, sessionId, active = true, children 
     setInsights(empty);
     if (!active) return;
     const controller = new AbortController();
-    let timer: ReturnType<typeof setTimeout>;
-    const poll = async () => {
-      try {
+    const poll = visiblePoll(async () => {
         const result: Data = await api.call('insights', 'list', { tree: true }, { scope: { level: 'session', sessionId: root }, signal: controller.signal });
         if (!controller.signal.aborted) setInsights(old => {
           const next = Object.fromEntries((result.items ?? []).map((item: Data) => [item.sessionId, item]));
           return JSON.stringify(old) === JSON.stringify(next) ? old : next;
         });
-      } catch { /* Keep the last committed summary while reconnecting. */ }
-      if (!controller.signal.aborted) timer = setTimeout(poll, 8000);
-    };
-    void poll();
-    return () => { controller.abort(); clearTimeout(timer); };
-  }, [api, root, active]);
+    }, { delay: () => 8000 });
+    return () => { controller.abort(); poll.dispose(); };
+  }, [api, root, active, generation]);
   return <FactsContext.Provider value={{ ctx, api, insights, projections: list.projectionsBySession ?? empty }}><style>{styles}</style>{children}</FactsContext.Provider>;
 }
 export function AgentFacts({ node, compact = false }: { node: Data; compact?: boolean }) {
@@ -94,6 +92,7 @@ export function AgentFacts({ node, compact = false }: { node: Data; compact?: bo
 }
 
 export function TaskInsights({ api, scope, openSession }: { api: NexusApi; scope: NexusScope; openSession?(sessionId: string): void }) {
+  const generation = React.useSyncExternalStore(api.subscribe, api.getGeneration, api.getGeneration);
   const [value, setValue] = React.useState<Data>();
   const [config, setConfig] = React.useState<Data>();
   const [error, setError] = React.useState('');
@@ -107,16 +106,19 @@ export function TaskInsights({ api, scope, openSession }: { api: NexusApi; scope
     if (signal?.aborted) return;
     setValue(result); setConfig(settings);
     setRoute({ provider: settings.provider ?? '', model: settings.model ?? '', maxCallsPerDay: settings.maxCallsPerDay });
-  }, [api, scopeKey]);
+  }, [api, scopeKey, generation]);
   React.useEffect(() => {
     const c = new AbortController(); setValue(undefined); setError('');
-    void load(c.signal).catch(e => { if (!c.signal.aborted) setError(errorData(e).message); });
-    const timer = setInterval(() => {
-      if (document.visibilityState === 'hidden') return;
-      void api.call('insights', scope.level === 'session' ? 'get' : 'list', {}, { scope, signal: c.signal })
-        .then(result => { if (!c.signal.aborted) setValue(old => JSON.stringify(old) === JSON.stringify(result) ? old : result); }).catch(() => {});
-    }, 8000);
-    return () => { c.abort(); clearInterval(timer); };
+    let initialized = false;
+    const poll = visiblePoll(async () => {
+      if (!initialized) { await load(c.signal); initialized = true; }
+      else {
+        const result = await api.call('insights', scope.level === 'session' ? 'get' : 'list', {}, { scope, signal: c.signal });
+        if (!c.signal.aborted) setValue(old => JSON.stringify(old) === JSON.stringify(result) ? old : result);
+      }
+      if (!c.signal.aborted) setError('');
+    }, { delay: () => 8000, onError: e => { if (!c.signal.aborted) setError(errorData(e).message); } });
+    return () => { c.abort(); poll.dispose(); };
   }, [load]);
   const act = async (action: () => Promise<any>) => { setBusy(true); setError(''); try { await action(); await load(); } catch (e) { setError(errorData(e).message); } finally { setBusy(false); } };
   const configure = (automatic: boolean) => api.call('scope', 'configure', { feature: 'insights', config: { ...config?.local?.config, enabled: true, defaults: { ...config?.local?.config?.defaults, automatic, maxCallsPerDay: route.maxCallsPerDay } } }, { scope, revision: config?.local?.revision ?? 0, mutating: true });

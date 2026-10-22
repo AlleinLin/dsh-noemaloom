@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { visiblePoll } from './visible-poll.js';
 import { AuxiliarySettings } from './AuxiliarySettings.js';
 import { createNexusApi, errorData } from './transport.js';
 import type { ClientContext, Data, NexusApi, NexusScope } from './types.js';
@@ -364,6 +365,7 @@ export function AutonomyPlan({ api, scope, compact = false, active = true, openS
   const currentEditor = editor?.key === key ? editor : undefined;
   const enabled = settings?.effective?.enabled !== false;
   const budget: AutonomyBudget | undefined = value?.budget ?? settings?.budget;
+  const pollState = React.useRef({ value, opened }); pollState.current = { value, opened };
   const load = React.useCallback(async (signal?: AbortSignal) => {
     const call = ++sequence.current;
     const result = await readAutonomyCache(api, stableScope, signal);
@@ -378,16 +380,11 @@ export function AutonomyPlan({ api, scope, compact = false, active = true, openS
     const disposeMutations = () => { for (const controller of mutations.current) controller.abort(); mutations.current.clear(); };
     if (!active) return () => { alive.current = false; disposeMutations(); };
     const controller = new AbortController();
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const poll = async () => {
-      if (!controller.signal.aborted && !busyRef.current && (typeof document === 'undefined' || document.visibilityState !== 'hidden')) {
-        try { await load(controller.signal); }
-        catch (cause) { if (!controller.signal.aborted && identity.current === key && alive.current) setFailure({ key, message: errorData(cause).message }); }
-      }
-      if (!controller.signal.aborted) timer = setTimeout(poll, 8000);
-    };
-    void poll();
-    return () => { alive.current = false; controller.abort(); disposeMutations(); clearTimeout(timer); };
+    const poll = visiblePoll(async () => { if (!busyRef.current) await load(controller.signal); }, {
+      delay: () => compact && !pollState.current.opened && !['approved', 'running', 'verifying'].includes(pollState.current.value?.status) ? 30000 : 8000,
+      onError: cause => { if (!controller.signal.aborted && identity.current === key && alive.current) setFailure({ key, message: errorData(cause).message }); },
+    });
+    return () => { alive.current = false; controller.abort(); disposeMutations(); poll.dispose(); };
   }, [load, active]);
 
   const act = async (operation: (signal: AbortSignal) => Promise<unknown>, after?: () => void, refresh = true) => {
@@ -480,8 +477,8 @@ export function registerAutonomyConversation(rawContext: ClientContext): () => v
   const ctx = rawContext as any, api = createNexusApi(rawContext);
   let disposed = false;
   function ConversationPlan(props: any) {
-    const session = props.useSession((value: any) => value);
-    if (disposed || typeof props.sessionId !== 'string' || session?.sessionId !== props.sessionId) return null;
+    const matches = props.useSession((value: any) => value?.sessionId === props.sessionId);
+    if (disposed || typeof props.sessionId !== 'string' || !matches) return null;
     return <AutonomyPlan key={props.sessionId} api={api} scope={{ level: 'session', sessionId: props.sessionId }}
       openSession={ctx.uiWorkspace?.openSession ? id => ctx.uiWorkspace.openSession(id) : undefined} compact />;
   }

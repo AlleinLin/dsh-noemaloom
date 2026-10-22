@@ -174,7 +174,10 @@ export async function auxiliaryModel(services: NexusServices, ctx: DispatchConte
       return { ...result, attempts };
     } catch (error) {
       request.signal?.throwIfAborted();
-      const failure = error instanceof NexusError ? error : new NexusError('AUXILIARY_FAILED', error instanceof Error ? error.message : '辅助请求失败');
+      const failure = error instanceof NexusError ? error
+        : (error as Error)?.name === 'AbortError'
+          ? new NexusError('AUXILIARY_ABORT_UNATTRIBUTED', '辅助请求被宿主或上游中止；本次调用未收到所属任务的取消信号')
+          : new NexusError('AUXILIARY_FAILED', error instanceof Error ? error.message : '辅助请求失败');
       const details = object(failure.details);
       attempts.push({ ...route, state: 'failed', code: failure.code, reason: redactString(failure.message, 500),
         ...(Number.isFinite(details.providerRetryAfterMs) ? { retryAfterMs: details.providerRetryAfterMs } : {}) });

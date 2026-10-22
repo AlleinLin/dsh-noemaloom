@@ -3,6 +3,7 @@ import type { ClientContext } from './types.js';
 import { claudeThemeTokens } from './native-theme-tokens.js';
 import { openOriginalComposer, openOriginalConversationView } from './original-navigation.js';
 import canvasChromeCss from './original-canvases.css';
+import { visibleBatch } from './visible-poll.js';
 
 type Level = 'global' | 'workspace' | 'session';
 type Canvas = 'thoughtdag' | 'synapse';
@@ -50,7 +51,6 @@ function OriginalCanvas({ ctx, canvas, scope, sessionId, openView, active = true
     let disposed = false;
     let syncing = false;
     let pending = false;
-    let queued = false;
     let lastWorkspaces = '';
     let lastSession = '';
     const controller = new AbortController();
@@ -75,6 +75,16 @@ function OriginalCanvas({ ctx, canvas, scope, sessionId, openView, active = true
       };
     }
     const live = new Map<string, { binding: any; chat: any; stops: Array<() => void>; signature?: string }>();
+    const dirtyLive = new Set<string>();
+    const liveBatch = visibleBatch(() => {
+      if (disposed) return;
+      for (const sessionId of dirtyLive) publishLive(sessionId);
+      dirtyLive.clear();
+    });
+    const queueLive = (id: string) => {
+      dirtyLive.add(id);
+      liveBatch.request();
+    };
     const references = new Map<string, any>();
     const verifiedGenerated = new Set<string>();
     let resizeTimer: ReturnType<typeof setTimeout> | undefined;
@@ -117,13 +127,13 @@ function OriginalCanvas({ ctx, canvas, scope, sessionId, openView, active = true
           let chat;
           try { if (binding) chat = host.get('uiConversation').binding(id).target('chat'); } catch {}
           record = { binding, chat, stops: [] };
-          if (chat) record.stops.push(chat.subscribe(() => publishLive(id)));
-          if (binding?.session?.subscribe) record.stops.push(binding.session.subscribe(() => publishLive(id)));
+          if (chat) record.stops.push(chat.subscribe(() => queueLive(id)));
+          if (binding?.session?.subscribe) record.stops.push(binding.session.subscribe(() => queueLive(id)));
           live.set(id, record);
         }
-        publishLive(id);
+        queueLive(id);
       }
-      for (const [id, record] of live) if (!ids.has(id)) { record.stops.forEach(stop => stop()); live.delete(id); }
+      for (const [id, record] of live) if (!ids.has(id)) { record.stops.forEach(stop => stop()); live.delete(id); dirtyLive.delete(id); }
       for (const [id, reference] of references) if (!ids.has(id) || rows.byId[id]?.running !== true) { reference.release(); references.delete(id); }
     };
     const close = () => openView ? openView('chat') : ctx.layout?.selectPanel(null);
@@ -163,6 +173,7 @@ function OriginalCanvas({ ctx, canvas, scope, sessionId, openView, active = true
     };
     const sync = () => {
       if (disposed) return;
+      if (document.visibilityState === 'hidden') { lifecycle(false); return; }
       if (!frameReady.current) { if (canvas === 'synapse') void syncCatalog(); return; }
       const all = sessionRows(host);
       const ids = scopedIds(host, scope);
@@ -191,11 +202,8 @@ function OriginalCanvas({ ctx, canvas, scope, sessionId, openView, active = true
         void syncCatalog();
       }
     };
-    const queueSync = () => {
-      if (queued || disposed) return;
-      queued = true;
-      queueMicrotask(() => { queued = false; if (!disposed) sync(); });
-    };
+    const syncBatch = visibleBatch(sync);
+    const queueSync = syncBatch.request;
     sendRef.current = sync;
     const loaded = () => {
       frameReady.current = true;
@@ -311,6 +319,8 @@ function OriginalCanvas({ ctx, canvas, scope, sessionId, openView, active = true
       }
     };
     window.addEventListener('message', onMessage);
+    const visible = () => { if (document.visibilityState === 'hidden') lifecycle(false); else queueSync(); };
+    document.addEventListener('visibilitychange', visible);
     const disposers = [host.get('sessions').list.subscribe(queueSync), host.get('workspaces').list.subscribe(queueSync), host.uiWorkspace.selection.subscribe(queueSync)];
     const observer = new MutationObserver(syncTheme);
     observer.observe(document.body, { attributes: true, attributeFilter: ['data-ds-dark-theme'] });
@@ -323,7 +333,11 @@ function OriginalCanvas({ ctx, canvas, scope, sessionId, openView, active = true
       observer.disconnect();
       frameObserver.disconnect();
       clearTimeout(resizeTimer);
+      syncBatch.dispose();
+      liveBatch.dispose();
+      dirtyLive.clear();
       window.removeEventListener('message', onMessage);
+      document.removeEventListener('visibilitychange', visible);
       window.removeEventListener('nexus:appearance', syncTheme);
       for (const dispose of disposers) dispose();
       for (const record of live.values()) record.stops.forEach(stop => stop());
