@@ -10,7 +10,11 @@
 | Ponytail | 原设置页；`/ponytail`、`/ponytail-review` 等 | Wenaixi 5.6.1 原 provider，6 个技能、七阶工作法、会话模式及默认模式 |
 | OpenSpec | `/opsx-*` 和 `/openspec-*` | 原 DSH 适配器 0.4.0，12 个技能和12个用户命令别名；CLI 1.14.3 |
 | Karpathy | `/karpathy-guidelines` 或模型按需加载 | 原 DSH provider，读取 canonical 原始技能正文 |
-| dsh-ops | 原组件的工具、设置；可选原生 Panel/TUI | 0.4.1 原组合补丁，shell/file/PTC/discovery 默认启用，panel/TUI/隐藏官方工具默认关闭 |
+| dsh-ops | 原组件的工具、设置；可选原生 Panel/TUI | 0.4.1 原组合补丁，shell/file/PTC/discovery 默认启用；grep/glob 常驻，其他高级工具按需发现；panel/TUI/隐藏官方工具默认关闭 |
+
+OPS 的 Native 会话从 `ops_read_files`、`ops_discover_tools`、只读搜索 `ops_grep` 和 `ops_glob` 起步；PTC-only 会话从 `ops_inspect_local_file`、`ops_result`、`ops_load_sdk` 以及同一组搜索工具起步。读取、修改、文档和批处理等其他能力仍可由各自的发现入口按需启用。发现与 SDK 加载按 agent scope 隔离，主代理和每个子代理均有入口，但能力选择不会从父代理继承到子代理。
+
+`dsh-ops/panel` 只采集有界会话事件，不负责工具注册或可见性；开关它不会改变 OPS 工具表。若工具列表切换到 PTC-only 表面，应使用 `ops_load_sdk`；Native 表面使用 `ops_discover_tools`。新选工具在该 agent 的下一次模型步骤生效。
 
 Superpowers 与 Ponytail 的原生配置面板分别放在 DSH 设置的同名入口。
 原组件、配置控制器和开关逻辑保持上游实现，避免组合包身份遮住原包的配置卡片。

@@ -2,7 +2,8 @@
 
 ## Requirements
 
-- Node.js 24 LTS recommended; exact supported versions are in `package.json`.
+- Node.js **24.22.1** LTS recommended (pinned in `.nvmrc`); patched 22.x and
+  26.x releases listed in `package.json` are also supported.
 - DeepSeek Harness Desktop **0.2.1-rc.2** for runtime installation.
 - Windows and PowerShell for the supplied Desktop installer.
 - Python 3.10+ for the optional Python memory bridges; check each vendored component's
@@ -11,6 +12,7 @@
 
 ```powershell
 npm ci --ignore-scripts
+npm run audit:security
 npm run check
 npm run pack:delivery
 ```
@@ -19,6 +21,13 @@ The tracked `.npmrc` enables `legacy-peer-deps` because some pinned upstream UI
 packages declare React 18 peer ranges while the integration uses the host's shared
 React 19 identity. The lockfile retains the existing dependency graph. This resolves
 installation only; runtime compatibility still requires the relevant Desktop checks.
+
+`engine-strict` rejects Node.js versions older than the October 21, 2026 security
+releases. CI and delivery packaging reject all known npm audit findings, including
+low-severity advisories. Upgrade the affected package or add a compatible, pinned
+override and regenerate the lockfile; do not bypass the check with `--force`.
+The Desktop application's embedded Node.js/Electron runtime must be updated by
+the host distributor; a plugin dependency update does not replace that runtime.
 
 The build creates the original client adapters and native capability entries before
 bundling the host and client. Type checking and tests then run against this build.
@@ -73,8 +82,9 @@ available current evidence. Missing observations remain unverified.
 which depended on separate private research directories, is omitted. Upstream source
 and license texts are retained; new upstream imports should record exact provenance.
 
-Codinput uses its pinned, verbatim vendored client factory and CommonJS host;
-the build checks `vendor/codinput/SOURCE.json` before generating the bridge.
+Codinput keeps its pinned source and CommonJS host; its client is rebuilt with
+hash-checked compatibility fixes and the audited root dependency lockfile.
+The build checks `vendor/codinput/SOURCE.json` before generating the bridge.
 See [the integration notes](codinput-upstream.md) for its original surfaces and
 Desktop validation targets.
 # Native editor assets and debugger acceptance
@@ -83,7 +93,9 @@ The normal build also writes `lib/editor/manifest.json` and separately bundled,
 local ESM Monaco/worker assets. The main client includes only its native renderer
 registration and lazy loader. The build retains exact dependency licenses in
 `notices/editor/`; artifact and actual-package audits verify every whitelisted
-editor asset hash. Debugger binaries remain an on-demand, SHA-256-pinned cache.
+editor asset hash. Monaco is a build dependency and is not installed into the
+Desktop runtime; its compiled assets already include the patched sanitizer.
+Debugger binaries remain an on-demand, SHA-256-pinned cache.
 See [NATIVE-EDITOR.md](NATIVE-EDITOR.md) for toolchain prerequisites, supported
 launch.json features, recovery limits and the real four-language acceptance
 command. Run that acceptance only after the complete source batch is frozen.

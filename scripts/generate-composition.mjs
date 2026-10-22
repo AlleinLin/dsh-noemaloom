@@ -2,6 +2,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { nativeComposition } from './native-composition.mjs';
+import { configureOpsComposition } from './ops-composition.mjs';
 
 const require = createRequire(import.meta.url);
 const root = new URL('../', import.meta.url);
@@ -64,6 +65,6 @@ const memoryPatch = (await readFile(join(mnemon.root, 'cordis.patch.yml'), 'utf8
   .replace(/\b(name|use): (@local\/[^\r\n]+)/g, "$1: '$2'");
 patch += '\n' + memoryPatch;
 // Retain the original components, defaults and opt-in UI of dsh-ops.
-patch += '\n' + await readFile(join(packageRoot('dsh-ops').root, 'cordis.patch.yml'), 'utf8');
+patch += '\n' + configureOpsComposition(await readFile(join(packageRoot('dsh-ops').root, 'cordis.patch.yml'), 'utf8'));
 patch += '\n' + await nativeComposition();
 await writeFile(new URL('cordis.patch.yml', root), patch);

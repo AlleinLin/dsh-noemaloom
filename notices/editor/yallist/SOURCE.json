@@ -2,6 +2,7 @@
   "name": "yallist",
   "version": "5.0.0",
   "license": "BlueOak-1.0.0",
+  "installedPath": "node_modules/yallist",
   "resolved": "https://registry.npmjs.org/yallist/-/yallist-5.0.0.tgz",
   "integrity": "sha512-YgvUTfwqyc7UXVMrB+SImsVYSmTS8X/tSrtdNZMImM+n7+QTriRXyXim0mBrTXNeqzVF0KWGgHPeiyViFFrNDw==",
   "files": {

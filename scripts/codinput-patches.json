@@ -1,0 +1,132 @@
+[
+  {
+    "file": "src/client/cm.ts",
+    "upstreamSha256": "1596e75f35f2eb491d4fd833d44355784e7dcc3ff57973d366a8e5cde10c0ff2",
+    "replacements": [
+      {
+        "before": "}\n\n/**\n * 当前挂载编辑器的逻辑回调。扩展里**不闭包捕获** hooks，而是每次调用现取\n * 这个槽——因为跨形态切换会复用（见 takeEditorSnapshot）上一次的 EditorState，\n * 而它的扩展是那时创建的：若闭包捕获旧实例，恢复后就还在调用早已卸载的\n * 组件的 props（读旧 actions/旧 keyboard snapshot）。同一时刻只有一个编辑面\n * （三态单实例），模块级单槽足够且不会串台。\n */\nlet activeHooks: EditorHooks | null = null;\n\n/** 挂载时绑定（EditorPane 的 effect 负责）。 */\nexport function setActiveEditorHooks(hooks: EditorHooks | null): void {\n  activeHooks = hooks;\n}\n\n/**\n * 卸载时清空——但只清自己装的那一份。侧栏承载的切换不是原子的：侧栏 body\n * 常常先挂载（新实例装上 hooks），主输入面在下一拍才卸载（旧实例清空），无\n * 条件清空会把新实例的 hooks 摘掉，于是侧栏里打字不落草稿、行列指示不动、\n * 发送手势失效。按实例身份判断即可。\n */\nexport function clearActiveEditorHooks(hooks: EditorHooks): void {\n  if (activeHooks === hooks) activeHooks = null;\n}\n\nexport function createEditorExtensions(options: EditorOptions): Extension[] {\n  return [\n    EditorView.domEventHandlers({\n      keydown: (event, view) => activeHooks?.onKeydown(view, event) ?? false,\n      compositionstart: () => {\n        activeHooks?.onCompositionChange(true);\n        return false;\n      },\n      compositionend: () => {\n        // compositionend 落在 DOM 变更之后；延一帧避免选词回车误入 send 分支。\n        setTimeout(() => activeHooks?.onCompositionChange(false), 0);\n        return false;\n      },\n      focus: () => {\n        activeHooks?.onFocusChange(true);\n        return false;\n      },\n      blur: () => {\n        activeHooks?.onFocusChange(false);\n        return false;\n      },\n    }),\n",
+        "after": "}\n\n/**\n * 当前挂载编辑器的逻辑回调。扩展里**不闭包捕获** hooks，而是按实际\n * EditorView 现取——因为跨形态切换会复用（见 takeEditorSnapshot）上一次的\n * EditorState，而它的扩展是那时创建的：若闭包捕获旧实例，恢复后就还在调用\n * 早已卸载的组件的 props（读旧 actions/旧 keyboard snapshot）。主会话和侧栏\n * 子会话可以同时拥有编辑器，因此回调按 view 索引，避免事件串台。\n */\nconst editorHooks = new WeakMap<EditorView, EditorHooks>();\n\n/** 挂载时绑定（EditorPane 的 effect 负责）。 */\nexport function setActiveEditorHooks(view: EditorView, hooks: EditorHooks): void {\n  editorHooks.set(view, hooks);\n}\n\n/**\n * 卸载时只移除该 view 的回调；并发 composer 不会影响彼此。\n */\nexport function clearActiveEditorHooks(view: EditorView, hooks: EditorHooks): void {\n  if (editorHooks.get(view) === hooks) editorHooks.delete(view);\n}\n\nexport function createEditorExtensions(options: EditorOptions): Extension[] {\n  return [\n    EditorView.domEventHandlers({\n      keydown: (event, view) => editorHooks.get(view)?.onKeydown(view, event) ?? false,\n      compositionstart: (_event, view) => {\n        editorHooks.get(view)?.onCompositionChange(true);\n        return false;\n      },\n      compositionend: (_event, view) => {\n        // compositionend 落在 DOM 变更之后；延一帧避免选词回车误入 send 分支。\n        setTimeout(() => editorHooks.get(view)?.onCompositionChange(false), 0);\n        return false;\n      },\n      focus: (_event, view) => {\n        editorHooks.get(view)?.onFocusChange(true);\n        return false;\n      },\n      blur: (_event, view) => {\n        editorHooks.get(view)?.onFocusChange(false);\n        return false;\n      },\n    }),\n"
+      },
+      {
+        "before": "    editableCompartment.of(EditorView.editable.of(options.editable)),\n    keymap.of([...historyKeymap, ...defaultKeymap, indentWithTab]),\n    EditorView.updateListener.of((update) => {\n      if (update.docChanged && !update.transactions.some((tr) => tr.annotation(externalAnnotation) === true)) {\n        activeHooks?.onLocalChange(update.state.doc.toString());\n      }\n      if (update.docChanged || update.selectionSet) {\n        activeHooks?.onCaret(update.state.doc.toString(), update.state.selection.main.head);\n      }\n    }),\n  ];\n",
+        "after": "    editableCompartment.of(EditorView.editable.of(options.editable)),\n    keymap.of([...historyKeymap, ...defaultKeymap, indentWithTab]),\n    EditorView.updateListener.of((update) => {\n      const hooks = editorHooks.get(update.view);\n      if (update.docChanged && !update.transactions.some((tr) => tr.annotation(externalAnnotation) === true)) {\n        hooks?.onLocalChange(update.state.doc.toString());\n      }\n      if (update.docChanged || update.selectionSet) {\n        hooks?.onCaret(update.state.doc.toString(), update.state.selection.main.head);\n      }\n    }),\n  ];\n"
+      }
+    ]
+  },
+  {
+    "file": "src/client/command.ts",
+    "upstreamSha256": "27f870b965de30785bc800cf8491031cd6dc8335b71f1abeafe51c7fcda00c45",
+    "replacements": [
+      {
+        "before": " *\n */\n\nimport type { ClientContext } from './host-types';\nimport { stash } from './services';\nimport { loadPrefs, savePrefs, subscribePrefs } from './prefs';\nimport { carriedSessionIds, requestSidebarTabClose } from './sideinput';\n",
+        "after": " *\n */\n\nimport type { ClientContext, ComposerKeyboard } from './host-types';\nimport { stash } from './services';\nimport { loadPrefs, savePrefs, subscribePrefs } from './prefs';\nimport { carriedSessionIds, requestSidebarTabClose } from './sideinput';\n"
+      },
+      {
+        "before": "import { IconCodinputCommand16 } from './icons';\nimport { diagWindow, runGuarded } from './diag';\n\nfunction clearDraftOf(sessionId: string | undefined): void {\n  if (!sessionId) return;\n  try {\n    const actx = stash.sessions?.scope(sessionId);\n    if (actx && stash.conversation) stash.conversation.input.for(actx).setDraft('');\n  } catch {\n    /* 会话作用域不可达时忽略（提交路径本就会清空草稿） */\n",
+        "after": "import { IconCodinputCommand16 } from './icons';\nimport { diagWindow, runGuarded } from './diag';\n\nlet commandOrigin: { sessionId: string; keyboard: ComposerKeyboard } | undefined;\n\n/** Bind command cleanup to the composer the user actually interacted with. */\nexport function rememberCommandOrigin(sessionId: string | undefined, keyboard: ComposerKeyboard | undefined): void {\n  commandOrigin = sessionId && keyboard ? { sessionId, keyboard } : undefined;\n}\n\nfunction clearDraftOf(origin: typeof commandOrigin, revision: number | undefined): void {\n  if (!origin || revision === undefined) return;\n  try {\n    const snapshot = origin.keyboard.snapshot;\n    if (snapshot.draftRev !== revision || snapshot.draft.trim() !== '/codinput') return;\n    const actx = stash.sessions?.scope(origin.sessionId);\n    if (actx && stash.conversation) stash.conversation.input.for(actx).setDraft('');\n  } catch {\n    /* 会话作用域不可达时忽略（提交路径本就会清空草稿） */\n"
+      },
+      {
+        "before": "            ui: {\n              kind: 'action',\n              run: () => {\n                // 卸载会清掉诊断 sessionId，先捕获再延迟清草稿。\n                const sessionId = diagWindow().__dshCodinputSessionId ?? undefined;\n                savePrefs({ enabled: !loadPrefs().enabled });\n                // 侧栏里发起的退出：关掉承载会话的 Codinput 标签（body 经\n                // tab 域 actions.close 关闭、卸载撤销承载），主输入回到官方\n",
+        "after": "            ui: {\n              kind: 'action',\n              run: () => {\n                // Capture the explicit interaction owner before toggle unmounts it.\n                const origin = commandOrigin;\n                commandOrigin = undefined;\n                const revision = origin?.keyboard.snapshot.draftRev;\n                savePrefs({ enabled: !loadPrefs().enabled });\n                // 侧栏里发起的退出：关掉承载会话的 Codinput 标签（body 经\n                // tab 域 actions.close 关闭、卸载撤销承载），主输入回到官方\n"
+      },
+      {
+        "before": "                if (!loadPrefs().enabled) {\n                  for (const carried of carriedSessionIds()) requestSidebarTabClose(carried);\n                }\n                setTimeout(() => clearDraftOf(sessionId), 80);\n              },\n            },\n          }),\n",
+        "after": "                if (!loadPrefs().enabled) {\n                  for (const carried of carriedSessionIds()) requestSidebarTabClose(carried);\n                }\n                setTimeout(() => clearDraftOf(origin, revision), 80);\n              },\n            },\n          }),\n"
+      }
+    ]
+  },
+  {
+    "file": "src/client/components/CodinputSurface.tsx",
+    "upstreamSha256": "f94ebcd2a26d28d0c05e35ec6b290c4b3a534a0f9ce9d0b080dc341777561c57",
+    "replacements": [
+      {
+        "before": " */\n\nimport { useEffect, useMemo, useRef, useState } from 'react';\nimport type { EditorView } from '@codemirror/view';\nimport { marked } from 'marked';\nimport * as DOMPurifyModule from 'dompurify';\n",
+        "after": " */\n\nimport { useEffect, useMemo, useRef, useState } from 'react';\nimport { rememberCommandOrigin } from '../command';\nimport type { EditorView } from '@codemirror/view';\nimport { marked } from 'marked';\nimport * as DOMPurifyModule from 'dompurify';\n"
+      },
+      {
+        "before": "      w.__dshCodinputShell[sessionId] = { surface: true, side: side === true };\n    }\n    return () => {\n      diagSession(null);\n    };\n  }, [sessionId, triggers, keyboard, side]);\n\n",
+        "after": "      w.__dshCodinputShell[sessionId] = { surface: true, side: side === true };\n    }\n    return () => {\n      if (w.__dshCodinputSessionId === sessionId) diagSession(null);\n    };\n  }, [sessionId, triggers, keyboard, side]);\n\n"
+      },
+      {
+        "before": "              placeholder={placeholderText}\n              viewRef={viewRef}\n              onCaretMoved={caretMoved}\n              disabled={inert}\n              autoFocus={true}\n              solo={!previewOn}\n",
+        "after": "              placeholder={placeholderText}\n              viewRef={viewRef}\n              onCaretMoved={caretMoved}\n              onFocusedChange={(focused) => {\n                if (focused) rememberCommandOrigin(sessionId, keyboard);\n              }}\n              disabled={inert}\n              autoFocus={true}\n              solo={!previewOn}\n"
+      },
+      {
+        "before": "          sessionId={sessionId}\n          state={state}\n          actions={actions}\n          triggers={triggers}\n          caretRef={caretRef}\n          useProjection={useProjection}\n",
+        "after": "          sessionId={sessionId}\n          state={state}\n          actions={actions}\n          keyboard={keyboard}\n          triggers={triggers}\n          caretRef={caretRef}\n          useProjection={useProjection}\n"
+      }
+    ]
+  },
+  {
+    "file": "src/client/components/EditorPane.tsx",
+    "upstreamSha256": "48cc407fd9452acc3737c4a3eb9d142169669f890a0841380906342fd79b9595",
+    "replacements": [
+      {
+        "before": " *\n * 撤销历史跨形态保留：三态切换会让本组件重挂载（inline ↔ portal ↔ 侧栏），\n * 挂载时按 stateKey（会话）取回上次的 EditorState（含撤销栈/选区/文档），\n * 卸载时暂存回去；滚动位置一并记忆。扩展里的回调走模块级 hooks 槽（见 cm.ts），\n * 因此复用旧 state 不会调到已卸载实例的 props。\n */\n\nimport { useEffect, useLayoutEffect, useRef, useState } from 'react';\n",
+        "after": " *\n * 撤销历史跨形态保留：三态切换会让本组件重挂载（inline ↔ portal ↔ 侧栏），\n * 挂载时按 stateKey（会话）取回上次的 EditorState（含撤销栈/选区/文档），\n * 卸载时暂存回去；滚动位置一并记忆。扩展里的回调按 EditorView 取当前实例\n * hooks（见 cm.ts），因此复用旧 state 不会调到已卸载实例的 props，也不会把\n * 主/子编辑器串台。\n */\n\nimport { useEffect, useLayoutEffect, useRef, useState } from 'react';\n"
+      },
+      {
+        "before": "        liveRef.current.onFocusedChange?.(focused);\n      },\n    };\n    // 绑定本实例的逻辑回调（模块级单槽，恢复旧 state 时也走当前实例）。\n    setActiveEditorHooks(hooks);\n    // 按会话取回上次离开时的编辑器（含撤销历史）；没有则新建。\n    const restored = takeEditorSnapshot(key);\n    const view = new EditorView({\n",
+        "after": "        liveRef.current.onFocusedChange?.(focused);\n      },\n    };\n    // 按会话取回上次离开时的编辑器（含撤销历史）；没有则新建。\n    const restored = takeEditorSnapshot(key);\n    const view = new EditorView({\n"
+      },
+      {
+        "before": "    });\n    if (restored) view.scrollDOM.scrollTop = restored.scrollTop;\n    viewRef.current = view;\n    // 行列指示按恢复后的选区初始化（否则要先动一下才显示真实位置）。\n    const head = view.state.selection.main.head;\n    const line = view.state.doc.lineAt(head);\n",
+        "after": "    });\n    if (restored) view.scrollDOM.scrollTop = restored.scrollTop;\n    viewRef.current = view;\n    // 扩展可能来自恢复的旧 EditorState，因此必须在新 view 创建后重新绑定。\n    setActiveEditorHooks(view, hooks);\n    // 行列指示按恢复后的选区初始化（否则要先动一下才显示真实位置）。\n    const head = view.state.selection.main.head;\n    const line = view.state.doc.lineAt(head);\n"
+      },
+      {
+        "before": "      viewRef.current = null;\n      // 暂存编辑器状态（撤销栈 + 选区 + 文档 + 滚动），下次挂载原样装回。\n      putEditorSnapshot(key, { state: view.state, scrollTop: view.scrollDOM.scrollTop });\n      view.destroy();\n      clearActiveEditorHooks(hooks);\n    };\n    // key 变化（切会话）= 换一份编辑器，各自历史互不串台。\n    // eslint-disable-next-line react-hooks/exhaustive-deps\n",
+        "after": "      viewRef.current = null;\n      // 暂存编辑器状态（撤销栈 + 选区 + 文档 + 滚动），下次挂载原样装回。\n      putEditorSnapshot(key, { state: view.state, scrollTop: view.scrollDOM.scrollTop });\n      clearActiveEditorHooks(view, hooks);\n      view.destroy();\n    };\n    // key 变化（切会话）= 换一份编辑器，各自历史互不串台。\n    // eslint-disable-next-line react-hooks/exhaustive-deps\n"
+      }
+    ]
+  },
+  {
+    "file": "src/client/components/MenuSurface.tsx",
+    "upstreamSha256": "bc974a95e1be359492644c0cf323d1b665c3290e981e650ba76c376ce5a40256",
+    "replacements": [
+      {
+        "before": "  useLayoutEffect(() => {\n    const el = ref.current;\n    if (!el) return;\n    const rect = el.getBoundingClientRect();\n    let top: number;\n    if (side === 'top') {\n      top = Math.max(12, anchor.top - rect.height - 4);\n      el.style.bottom = 'auto';\n    } else {\n      top = Math.min(window.innerHeight - rect.height - 12, anchor.bottom + 4);\n      el.style.bottom = 'auto';\n    }\n    el.style.top = `${top}px`;\n    let left = anchor.left;\n    if (alignEnd) left = anchor.right - rect.width;\n    left = Math.min(Math.max(12, left), window.innerWidth - rect.width - 12);\n    el.style.left = `${left}px`;\n  }, [anchor, alignEnd, side]);\n\n  useEffect(() => {\n    const onDown = (event: PointerEvent): void => {\n",
+        "after": "  useLayoutEffect(() => {\n    const el = ref.current;\n    if (!el) return;\n    const update = (): void => {\n      const rect = el.getBoundingClientRect();\n      const viewport = el.querySelector<HTMLElement>('.dci-viewport');\n      const gutter = 12;\n      const gap = 4;\n      const viewportHeight = window.innerHeight;\n      const maxHeight = Math.max(1, viewportHeight - gutter * 2);\n      const contentHeight = Math.min(maxHeight, (viewport?.scrollHeight ?? el.scrollHeight) + 8);\n      const availableAbove = Math.max(1, anchor.top - gutter - gap);\n      const availableBelow = Math.max(1, viewportHeight - anchor.bottom - gutter - gap);\n      let placeAbove = side === 'top';\n      const preferredSpace = placeAbove ? availableAbove : availableBelow;\n      const alternateSpace = placeAbove ? availableBelow : availableAbove;\n      if (contentHeight > preferredSpace && alternateSpace > preferredSpace) placeAbove = !placeAbove;\n\n      const availableHeight = placeAbove ? availableAbove : availableBelow;\n      const height = Math.min(contentHeight, availableHeight);\n      el.style.height = `${height}px`;\n      el.style.maxHeight = `${height}px`;\n      el.style.bottom = 'auto';\n      const top = placeAbove\n        ? Math.max(gutter, anchor.top - height - gap)\n        : Math.min(viewportHeight - gutter - height, anchor.bottom + gap);\n      el.style.top = `${top}px`;\n      let left = anchor.left;\n      if (alignEnd) left = anchor.right - rect.width;\n      left = Math.min(Math.max(gutter, left), window.innerWidth - rect.width - gutter);\n      el.style.left = `${left}px`;\n      el.style.right = 'auto';\n    };\n\n    update();\n    window.addEventListener('resize', update);\n    return () => window.removeEventListener('resize', update);\n  }, [anchor, alignEnd, side, children]);\n\n  useEffect(() => {\n    const onDown = (event: PointerEvent): void => {\n"
+      },
+      {
+        "before": "  return (\n    <div\n      ref={ref}\n      className=\"dci-menu\"\n      style={\n        below\n          ? { top: anchor.bottom + 4, bottom: 'auto', ...(alignEnd ? { left: 'auto', right: window.innerWidth - anchor.right } : { left: anchor.left }), minWidth }\n          : { left: anchor.left, bottom: window.innerHeight - anchor.top + 4, top: 'auto', ...(alignEnd ? { left: 'auto', right: window.innerWidth - anchor.right } : {}), minWidth }\n      }\n    >\n      <div className=\"dci-viewport\">{children}</div>\n    </div>\n  );\n}\n",
+        "after": "  return (\n    <div\n      ref={ref}\n      className=\"dci-menu dci-menuSurface\"\n      style={\n        below\n          ? { top: anchor.bottom + 4, bottom: 'auto', ...(alignEnd ? { left: 'auto', right: window.innerWidth - anchor.right } : { left: anchor.left }), minWidth }\n          : { left: anchor.left, bottom: window.innerHeight - anchor.top + 4, top: 'auto', ...(alignEnd ? { left: 'auto', right: window.innerWidth - anchor.right } : {}), minWidth }\n      }\n    >\n      <div\n        className=\"dci-viewport\"\n        onWheel={(event) => event.stopPropagation()}\n        onTouchMove={(event) => event.stopPropagation()}\n      >\n        {children}\n      </div>\n    </div>\n  );\n}\n"
+      }
+    ]
+  },
+  {
+    "file": "src/client/components/Toolbar.tsx",
+    "upstreamSha256": "3e82c7e453e9db5f263f29a787886988740d0850fc3127f8bff78ae7d093bda0",
+    "replacements": [
+      {
+        "before": " */\n\nimport { useCallback, useState } from 'react';\nimport type { DraftAttachmentId, InputActions, InputState, InputTriggerController, UseProjection } from '../host-types';\nimport { openCommandMenu } from '../triggers';\nimport { t, useT } from '../i18n';\nimport { IconPlusOfficial, IconSendOfficial, IconStopOfficial } from '../icons';\nimport { ModelMenu } from './ModelMenu';\n",
+        "after": " */\n\nimport { useCallback, useState } from 'react';\nimport type {\n  ComposerKeyboard,\n  DraftAttachmentId,\n  InputActions,\n  InputState,\n  InputTriggerController,\n  UseProjection,\n} from '../host-types';\nimport { openCommandMenu } from '../triggers';\nimport { rememberCommandOrigin } from '../command';\nimport { t, useT } from '../i18n';\nimport { IconPlusOfficial, IconSendOfficial, IconStopOfficial } from '../icons';\nimport { ModelMenu } from './ModelMenu';\n"
+      },
+      {
+        "before": "  sessionId: string | undefined;\n  state: InputState | undefined;\n  actions: InputActions | undefined;\n  triggers: InputTriggerController | undefined;\n  /** caret 偏移（指令按钮以当前 caret 构造 synthetic hit）。 */\n  caretRef: { current: number | null };\n",
+        "after": "  sessionId: string | undefined;\n  state: InputState | undefined;\n  actions: InputActions | undefined;\n  keyboard: ComposerKeyboard | undefined;\n  triggers: InputTriggerController | undefined;\n  /** caret 偏移（指令按钮以当前 caret 构造 synthetic hit）。 */\n  caretRef: { current: number | null };\n"
+      },
+      {
+        "before": "}\n\nexport function Toolbar(props: ToolbarProps): JSX.Element {\n  const { sessionId, state, actions, triggers, caretRef, useProjection, disabled, onNotify } = props;\n  useT();\n\n  const attachments: readonly DraftAttachmentId[] = state?.attachmentIds ?? [];\n",
+        "after": "}\n\nexport function Toolbar(props: ToolbarProps): JSX.Element {\n  const { sessionId, state, actions, keyboard, triggers, caretRef, useProjection, disabled, onNotify } = props;\n  useT();\n\n  const attachments: readonly DraftAttachmentId[] = state?.attachmentIds ?? [];\n"
+      },
+      {
+        "before": "\n  const onCommandClick = (): void => {\n    if (!triggers) return;\n    openCommandMenu(triggers, undefined, caretRef.current ?? 0);\n  };\n\n  return (\n",
+        "after": "\n  const onCommandClick = (): void => {\n    if (!triggers) return;\n    rememberCommandOrigin(sessionId, keyboard);\n    openCommandMenu(triggers, keyboard, caretRef.current ?? 0);\n  };\n\n  return (\n"
+      }
+    ]
+  },
+  {
+    "file": "src/client/styles.ts",
+    "upstreamSha256": "53b32457c727526c5c34e5cb83df77887e54d85170897e28207b537fd4ed7393",
+    "replacements": [
+      {
+        "before": ".dci-chev[data-open=\"true\"] { transform: rotate(180deg); }\n\n/* 发送（官方 .primary）*/\n.dci-send { background: var(--dsw-alias-button-info-fill, color-mix(in srgb, currentColor 85%, transparent)); color: #fff; cursor: pointer;\n  border: none; border-radius: 999px; flex: none; place-items: center; width: 34px; height: 34px;\n  transition: background-color 0.1s; display: grid; transform: translateY(-2px); }\n.dci-send:hover:not(:disabled) { background: var(--dsw-alias-button-info-hover, color-mix(in srgb, currentColor 70%, transparent)); }\n.dci-send:disabled { opacity: 0.4; cursor: default; }\n\n/* ===== 菜单（官方 primitives Menu：r20 卡片 / item r10 / side-top 弹出）===== */\n",
+        "after": ".dci-chev[data-open=\"true\"] { transform: rotate(180deg); }\n\n/* 发送（官方 .primary）*/\n.dci-send { background: var(--dsw-alias-button-primary-fill, var(--dsw-alias-button-info-fill, color-mix(in srgb, currentColor 85%, transparent))); color: #fff; cursor: pointer;\n  border: none; border-radius: 999px; flex: none; place-items: center; width: 34px; height: 34px;\n  transition: background-color 0.1s; display: grid; transform: translateY(-2px); }\n.dci-send:hover:not(:disabled) { background: var(--dsw-alias-button-primary-hover, var(--dsw-alias-button-info-hover, color-mix(in srgb, currentColor 70%, transparent))); }\n.dci-send:disabled { opacity: 0.4; cursor: default; }\n\n/* ===== 菜单（官方 primitives Menu：r20 卡片 / item r10 / side-top 弹出）===== */\n"
+      },
+      {
+        "before": "  backdrop-filter: var(--dsw-menu-backdrop-filter, none); color: var(--dsw-alias-label-primary, #ececf1);\n  --dsw-elevation-stroke-color: var(--dsw-alias-border-l1, transparent);\n  box-shadow: var(--dsw-elevation-prominent, 0 10px 34px rgba(0, 0, 0, 0.35)); border: 0; border-radius: var(--dsw-radius-lg, 20px); font-size: 13px; }\n.dci-viewport { display: flex; flex-direction: column; min-height: 0; }\n.dci-menuLabel { padding: 8px 10px; font-size: 12px; line-height: 16px; color: var(--dsw-alias-label-tertiary, currentColor);\n  user-select: none; text-align: left; }\n.dci-item { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 40px; padding: 8px 10px; border: none;\n",
+        "after": "  backdrop-filter: var(--dsw-menu-backdrop-filter, none); color: var(--dsw-alias-label-primary, #ececf1);\n  --dsw-elevation-stroke-color: var(--dsw-alias-border-l1, transparent);\n  box-shadow: var(--dsw-elevation-prominent, 0 10px 34px rgba(0, 0, 0, 0.35)); border: 0; border-radius: var(--dsw-radius-lg, 20px); font-size: 13px; }\n.dci-menuSurface { overflow: hidden; }\n.dci-viewport { display: flex; flex: 1 1 auto; flex-direction: column; min-height: 0; overflow-x: hidden; overflow-y: auto;\n  overscroll-behavior: contain; touch-action: pan-y; -webkit-overflow-scrolling: touch; }\n.dci-menuLabel { padding: 8px 10px; font-size: 12px; line-height: 16px; color: var(--dsw-alias-label-tertiary, currentColor);\n  user-select: none; text-align: left; }\n.dci-item { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 40px; padding: 8px 10px; border: none;\n"
+      }
+    ]
+  }
+]

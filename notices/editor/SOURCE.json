@@ -5,6 +5,7 @@
       "name": "monaco-editor",
       "version": "0.57.0",
       "license": "MIT",
+      "installedPath": "node_modules/monaco-editor",
       "resolved": "https://registry.npmjs.org/monaco-editor/-/monaco-editor-0.57.0.tgz",
       "integrity": "sha512-5BkI9KGoqrNvBGUe15/QlZq3OooZ8WLg1AxTpaqHRCP3HNpzPPZKE2EDz8M7c+VRmCeUw1Brp4cx/PWm3kI/5A==",
       "files": {
@@ -16,6 +17,7 @@
       "name": "tar",
       "version": "7.5.22",
       "license": "BlueOak-1.0.0",
+      "installedPath": "node_modules/tar",
       "resolved": "https://registry.npmjs.org/tar/-/tar-7.5.22.tgz",
       "integrity": "sha512-MFO/QzvtAOmJbkhOaCTvbGcFN9L9b+JunIsDwaKljSOdcLMea3NJ1k9Usz/rjdfSXTq4dfzfeS7W4p4YOAAHeA==",
       "files": {
@@ -26,6 +28,7 @@
       "name": "@isaacs/fs-minipass",
       "version": "4.0.1",
       "license": "ISC",
+      "installedPath": "node_modules/@isaacs/fs-minipass",
       "resolved": "https://registry.npmjs.org/@isaacs/fs-minipass/-/fs-minipass-4.0.1.tgz",
       "integrity": "sha512-wgm9Ehl2jpeqP3zw/7mo3kRHFp5MEDhqAdwy1fTGkHAwnkGOVsgpvQhL8B5n1qlb01jV3n/bI0ZfZp5lWA1k4w==",
       "files": {
@@ -36,6 +39,7 @@
       "name": "chownr",
       "version": "3.0.0",
       "license": "BlueOak-1.0.0",
+      "installedPath": "node_modules/chownr",
       "resolved": "https://registry.npmjs.org/chownr/-/chownr-3.0.0.tgz",
       "integrity": "sha512-+IxzY9BZOQd/XuYPRmrvEVjF/nqj5kgT4kEq7VofrDoM1MxoRjEWkrCC3EtLi59TVawxTAn+orJwFQcrqEN1+g==",
       "files": {
@@ -46,6 +50,7 @@
       "name": "minipass",
       "version": "7.1.3",
       "license": "BlueOak-1.0.0",
+      "installedPath": "node_modules/minipass",
       "resolved": "https://registry.npmjs.org/minipass/-/minipass-7.1.3.tgz",
       "integrity": "sha512-tEBHqDnIoM/1rXME1zgka9g6Q2lcoCkxHLuc7ODJ5BxbP5d4c2Z5cGgtXAku59200Cx7diuHTOYfSBD8n6mm8A==",
       "files": {
@@ -56,6 +61,7 @@
       "name": "minizlib",
       "version": "3.1.0",
       "license": "MIT",
+      "installedPath": "node_modules/minizlib",
       "resolved": "https://registry.npmjs.org/minizlib/-/minizlib-3.1.0.tgz",
       "integrity": "sha512-KZxYo1BUkWD2TVFLr0MQoM8vUUigWD3LlD83a/75BqC+4qE0Hb1Vo5v1FgcfaNXvfXzr+5EhQ6ing/CaBijTlw==",
       "files": {
@@ -66,6 +72,7 @@
       "name": "yallist",
       "version": "5.0.0",
       "license": "BlueOak-1.0.0",
+      "installedPath": "node_modules/yallist",
       "resolved": "https://registry.npmjs.org/yallist/-/yallist-5.0.0.tgz",
       "integrity": "sha512-YgvUTfwqyc7UXVMrB+SImsVYSmTS8X/tSrtdNZMImM+n7+QTriRXyXim0mBrTXNeqzVF0KWGgHPeiyViFFrNDw==",
       "files": {
@@ -74,10 +81,11 @@
     },
     {
       "name": "monaco-editor/node_modules/dompurify",
-      "version": "3.4.15",
+      "version": "3.4.17",
       "license": "(MPL-2.0 OR Apache-2.0)",
-      "resolved": "https://registry.npmjs.org/dompurify/-/dompurify-3.4.15.tgz",
-      "integrity": "sha512-EUBjM+B+lkDE41iE82DDSCfkoPGfXx8IxFxPMjNzm/Uk4xDet77rTN9wqlxlVg71kK7XGuUMv6wUxJUwwv+Xyw==",
+      "installedPath": "node_modules/dompurify",
+      "resolved": "https://registry.npmjs.org/dompurify/-/dompurify-3.4.17.tgz",
+      "integrity": "sha512-B/pSlYVHQ58kqISD/yDjuJ1yfzI34m1gF4lAod2bwSRhiN4K5Cl3H8Af7hqB2PmTL911tdEudnnXn5FnhRoz0w==",
       "files": {
         "LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
         "LICENSE-MPL": "fab3dd6bdab226f1c08630b1dd917e11fcb4ec5e1e020e2c16f83a0a13863e85"
@@ -87,6 +95,7 @@
       "name": "monaco-editor/node_modules/marked",
       "version": "14.0.0",
       "license": "MIT",
+      "installedPath": "node_modules/monaco-editor/node_modules/marked",
       "resolved": "https://registry.npmjs.org/marked/-/marked-14.0.0.tgz",
       "integrity": "sha512-uIj4+faQ+MgHgwUW1l2PsPglZLOLOT1uErt06dAPtx2kjteLAkbsd/0FiYg/MGS+i7ZKLb7w2WClxHkzOOuryQ==",
       "files": {

@@ -160,13 +160,13 @@
       name: dsh-ops/ptc
       config:
         required: false
-        alwaysLoaded: []
+        alwaysLoaded: [grep, glob]
     - id: dsh-ops-discovery
       name: dsh-ops/discovery
       config:
         enabled: true
         maxResults: 3
-        alwaysLoaded: []
+        alwaysLoaded: [grep, glob]
         required: false
         denyCredentialReads: true
     - id: dsh-ops-panel

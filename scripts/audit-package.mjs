@@ -8,6 +8,7 @@ import { gunzipSync } from 'node:zlib';
 import ts from 'typescript';
 import { parseDocument } from 'yaml';
 import { parseFactory } from './original-factory.mjs';
+import { buildCodinputClient } from './build-codinput.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -628,6 +629,7 @@ export async function auditPackage({ packagePath, outputPath = resolve(root, 'ev
       }
       report.editor = { monaco: editor.monaco, assets: editor.assets.length, workers: Object.keys(editor.workers), adapters: adapters.artifacts.length };
     });
+    const rebuiltCodinput = await buildCodinputClient();
     check('provenance', () => {
       const lock = JSON.parse(decoder.decode(files.get('sources.lock.json')?.data ?? Buffer.alloc(0)));
       if (lock.sourceCount !== 44 || lock.dshWebSubpackageCount !== 19 || lock.host?.release !== '0.2.1-rc.2'
@@ -669,22 +671,34 @@ export async function auditPackage({ packagePath, outputPath = resolve(root, 'ev
         if (sha256(files.get(path)?.data ?? Buffer.alloc(0)) !== expected) throw new Error(`Codinput dependency license changed: ${path}`);
       }
       const originalClient = decoder.decode(files.get('vendor/codinput/lib/client.js').data);
-      const factory = parseFactory(originalClient, 'dsh-codinput');
+      parseFactory(originalClient, 'dsh-codinput');
       const expectedClient = '// Original published client: dsh-codinput@0.3.2\n'
         + '// Original license is included under notices/originals.\n'
-        + `const factory = ${factory.factory};\nexport default factory;\n`;
+        + `const factory = ${rebuiltCodinput.factory};\nexport default factory;\n`;
       if (decoder.decode(files.get('lib/original-client/codinput.js')?.data ?? Buffer.alloc(0)) !== expectedClient
         || sha256(files.get('lib/original/codinput.cjs')?.data ?? Buffer.alloc(0)) !== codinput.files['lib/index.js']) {
-        throw new Error('Codinput bridge must retain its exact original factory and CommonJS host');
+        throw new Error('Codinput bridge must match the verified adaptation build and original CommonJS host');
       }
       const originals = JSON.parse(decoder.decode(files.get('lib/originals-manifest.json')?.data ?? Buffer.alloc(0)));
+      const adaptedNotices = JSON.parse(decoder.decode(files.get('notices/originals/codinput/adapted-dependencies/SOURCE.json')?.data ?? Buffer.alloc(0)));
+      if (JSON.stringify(adaptedNotices) !== JSON.stringify(rebuiltCodinput.dependencies))
+        throw new Error('Codinput rebuilt dependency provenance differs');
+      for (const dependency of rebuiltCodinput.dependencies) {
+        const directory = `notices/originals/codinput/adapted-dependencies/${dependency.name.replaceAll('/', '__')}`;
+        for (const [file, expected] of Object.entries(dependency.files)) {
+          if (sha256(files.get(`${directory}/${file}`)?.data ?? Buffer.alloc(0)) !== expected)
+            throw new Error(`Codinput adapted dependency license differs: ${dependency.name}`);
+        }
+      }
       const client = originals.clients?.find(row => row.id === 'codinput');
       const host = originals.hosts?.find(row => row.id === 'codinput');
       if (client?.revision !== codinput.revision || client.publishedSha256 !== codinput.files['lib/client.js']
-        || client.factorySha256 !== sha256(Buffer.from(factory.factory)) || client.adaptations?.length !== 0
-        || JSON.stringify(client.requires) !== JSON.stringify(['react', 'react-dom', 'react/jsx-runtime'])
+        || client.factorySha256 !== sha256(Buffer.from(rebuiltCodinput.factory))
+        || JSON.stringify(client.adaptations) !== JSON.stringify(rebuiltCodinput.adaptations)
+        || JSON.stringify(client.rebuiltDependencies) !== JSON.stringify(rebuiltCodinput.dependencies)
+        || JSON.stringify(client.requires) !== JSON.stringify(rebuiltCodinput.requires)
         || host?.revision !== codinput.revision || host.commonjsTarget !== './lib/original/codinput.cjs') {
-        throw new Error('Codinput original-client/host manifest is incomplete or contains adaptations');
+        throw new Error('Codinput adaptation/dependency/host manifest is incomplete');
       }
     });
     if (npmFiles) check('npmMetadataAgreement', () => {

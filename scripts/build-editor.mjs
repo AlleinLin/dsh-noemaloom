@@ -1,6 +1,7 @@
 import { build } from 'esbuild';
 import { mkdir, readFile, writeFile, readdir, copyFile, rm } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
+import { createRequire } from 'node:module';
 import { join, relative, resolve, dirname } from 'node:path';
 
 export async function buildEditor() {
@@ -51,10 +52,28 @@ export async function buildEditor() {
   const lock = JSON.parse(await readFile('package-lock.json', 'utf8'));
   const packages = ['monaco-editor', 'tar', '@isaacs/fs-minipass', 'chownr', 'minipass', 'minizlib', 'yallist',
     'monaco-editor/node_modules/dompurify', 'monaco-editor/node_modules/marked'];
+  const monacoRequire = createRequire(resolve('node_modules/monaco-editor/package.json'));
   const notices = [];
   for (const name of packages) {
-    const packageRoot = join('node_modules', name), pkg = JSON.parse(await readFile(join(packageRoot, 'package.json'), 'utf8'));
-    const pinned = lock.packages[`node_modules/${name}`];
+    let packageRoot = join('node_modules', name);
+    // npm overrides may hoist Monaco's patched dependencies to the root.
+    // Follow Monaco's actual resolution instead of assuming a nested copy.
+    if (name.startsWith('monaco-editor/node_modules/')) {
+      const dependency = name.slice('monaco-editor/node_modules/'.length);
+      packageRoot = dirname(monacoRequire.resolve(dependency));
+      for (;;) {
+        try {
+          const candidate = JSON.parse(await readFile(join(packageRoot, 'package.json'), 'utf8'));
+          if (candidate.name === dependency) break;
+        } catch (error) { if (error.code !== 'ENOENT') throw error; }
+        const parent = dirname(packageRoot);
+        if (parent === packageRoot) throw new Error(`Cannot locate Monaco dependency: ${dependency}`);
+        packageRoot = parent;
+      }
+    }
+    const pkg = JSON.parse(await readFile(join(packageRoot, 'package.json'), 'utf8'));
+    const installedPath = relative(resolve('.'), resolve(packageRoot)).replaceAll('\\', '/');
+    const pinned = lock.packages[installedPath];
     if (!pinned?.integrity || pinned.version !== pkg.version) throw new Error(`Editor dependency lock mismatch: ${name}`);
     const destination = join('notices/editor', name.replaceAll('/', '__')); await mkdir(destination, { recursive: true });
     const files = (await readdir(packageRoot)).filter(file => /^(?:licen[cs]e(?:[.-].*)?|ThirdPartyNotices\.txt)$/i.test(file));
@@ -64,7 +83,7 @@ export async function buildEditor() {
       await copyFile(join(packageRoot, file), join(destination, file));
       hashes[file] = createHash('sha256').update(await readFile(join(destination, file))).digest('hex');
     }
-    const source = { name, version: pkg.version, license: pkg.license, resolved: pinned.resolved, integrity: pinned.integrity, files: hashes };
+    const source = { name, version: pkg.version, license: pkg.license, installedPath, resolved: pinned.resolved, integrity: pinned.integrity, files: hashes };
     await writeFile(join(destination, 'SOURCE.json'), JSON.stringify(source, null, 2) + '\n'); notices.push(source);
   }
   await writeFile('notices/editor/SOURCE.json', JSON.stringify({ schema: 1, packages: notices }, null, 2) + '\n');

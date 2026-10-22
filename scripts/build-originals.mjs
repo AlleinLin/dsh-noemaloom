@@ -10,6 +10,7 @@ import { parseFactory } from './original-factory.mjs';
 import { vendoredOriginal } from './vendored-original.mjs';
 import { suppressManagedUpdateUi } from './managed-updates.mjs';
 import { workflowNotices } from './workflow-notices.mjs';
+import { buildCodinputClient } from './build-codinput.mjs';
 import { nativeEditorExtensions } from '../src/shared/editor-extensions.ts';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -214,6 +215,22 @@ async function addClient(definition, installed) {
   }
   let factory = parsed.factory;
   const adaptations = [];
+  let rebuiltDependencies;
+  if (definition.id === 'codinput') {
+    const rebuilt = await buildCodinputClient();
+    factory = rebuilt.factory;
+    parsed.requires = rebuilt.requires;
+    adaptations.push(...rebuilt.adaptations);
+    rebuiltDependencies = rebuilt.dependencies;
+    for (const dependency of rebuiltDependencies) {
+      const destination = join(root, 'notices/originals/codinput/adapted-dependencies', dependency.name.replaceAll('/', '__'));
+      await mkdir(destination, { recursive: true });
+      for (const file of Object.keys(dependency.files))
+        await copyFile(join(root, dependency.installedPath, file), join(destination, file));
+    }
+    await writeFile(join(root, 'notices/originals/codinput/adapted-dependencies/SOURCE.json'),
+      JSON.stringify(rebuiltDependencies, null, 2) + '\n');
+  }
   if (manifest.name === 'dsh-better-sidebar') {
     factory = adaptSidebar(factory);
     parsed.requires.push('@local/dsh-nexus/agent-insights');
@@ -250,6 +267,7 @@ async function addClient(definition, installed) {
   clientRows.push({
     id: definition.id, packageName: manifest.name, version: manifest.version,
     requires: parsed.requires, filename, adaptations,
+    ...(rebuiltDependencies ? { rebuiltDependencies } : {}),
     publishedSha256: createHash('sha256').update(source).digest('hex'),
     factorySha256: createHash('sha256').update(factory).digest('hex'),
     ...(installed.source ? { revision: installed.source.revision, source: definition.vendor } : {}),

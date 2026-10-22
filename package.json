@@ -6,10 +6,10 @@
   "type": "module",
   "license": "SEE LICENSE IN LICENSE",
   "engines": {
-    "node": "^22.19.0 || >=24.0.0",
+    "node": "^22.23.4 || ^24.22.1 || ^26.12.1",
     "dsh": "0.2.1-rc.2"
   },
-  "packageManager": "npm@11.17.0",
+  "packageManager": "npm@11.19.1",
   "exports": {
     ".": "./lib/index.js",
     "./compaction": "./lib/compaction.js",
@@ -55,12 +55,17 @@
     "test": "node scripts/run-tests.mjs",
     "verify:artifacts": "node scripts/verify-artifacts.mjs",
     "check": "npm run build && npm run typecheck && npm run test && npm run verify:artifacts",
-    "pack:delivery": "node scripts/package-delivery.mjs",
+    "audit:security": "npm audit --audit-level=low",
+    "pack:delivery": "npm run audit:security && node scripts/package-delivery.mjs",
     "acceptance:report": "node scripts/acceptance-report.mjs",
     "acceptance:debug": "node scripts/acceptance-debug.mjs",
     "upstreams:check": "node scripts/check-upstreams.mjs --output upstream-report.json"
   },
   "dependencies": {
+    "@codemirror/commands": "6.11.1",
+    "@codemirror/language": "6.12.4",
+    "@codemirror/state": "6.7.5",
+    "@codemirror/view": "6.43.12",
     "@anionex/dsh-turn-rewind": "0.3.10",
     "@deepseek-ai/dsh-home-paths": "0.2.1-rc.2",
     "@deepseek-ai/dsh-ssh": "0.2.1-rc.2",
@@ -96,16 +101,17 @@
     "dsh-skin-market": "0.1.66",
     "dsh-synapse": "0.4.2",
     "dsh-thoughtdag": "0.5.22",
-    "fast-xml-parser": "5.3.1",
-    "fflate": "0.8.2",
+    "dompurify": "3.4.17",
+    "fast-xml-parser": "5.11.2",
+    "fflate": "0.8.3",
     "ignore": "5.3.2",
-    "monaco-editor": "0.57.0",
+    "marked": "15.0.12",
     "pdf-parse": "2.4.5",
     "qrcode.react": "4.2.0",
     "ssh2": "1.17.0",
     "tar": "7.5.22",
     "typescript": "6.0.3",
-    "ws": "8.18.3",
+    "ws": "8.22.0",
     "yaml": "2.9.0",
     "zod": "4.4.3",
     "@wenaixi/dsh-superpower": "8.0.0",
@@ -115,6 +121,10 @@
     "dsh-ops": "0.4.1",
     "@fission-ai/openspec": "1.14.3",
     "dsh-mnemon-source-skills": "0.5.1"
+  },
+  "overrides": {
+    "dompurify": "3.4.17",
+    "katex": "0.19.0"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "4.0.5",
@@ -149,6 +159,7 @@
     "@deepseek-ai/schemastery": "3.18.5"
   },
   "devDependencies": {
+    "monaco-editor": "0.57.0",
     "@deepseek-ai/cordis": "4.0.5",
     "@deepseek-ai/dsh-agent": "0.2.1-rc.2",
     "@deepseek-ai/dsh-agent-loop": "0.2.1-rc.2",
