@@ -2,6 +2,7 @@ import * as React from 'react';
 import type { ClientContext, Data, NexusApi } from './types.js';
 import { createNexusApi, errorData } from './transport.js';
 import { AuxiliarySettings } from './AuxiliarySettings.js';
+import { MarkdownContent } from './MarkdownContent.js';
 import styles from './companion.css';
 
 export function quoteCompanion(actions: any, input: any, note: Data): boolean {
@@ -110,7 +111,7 @@ function Companion({ api, sessionId, inputActions, useInput, running }: { api: N
       }}>发送四问</button><button data-nexus-thorough-skip="" disabled={busy} onClick={() => void act('gate', { gateId: gate.id, choice: 'skipped' })}>略过</button>
         <small>{Math.max(0, Math.ceil((gate.expiresAt - currentTime) / 1000))} 秒后继续</small></div>
     </div>}
-    {value?.reflection && value.enabled && value.reflectionEnabled && <details className="nexus-companion-reflection" data-nexus-deep-reflection=""><summary>{value.reflection.stage === 'review' ? 'Review' : '规划前'} · 更深的问题</summary><p>{value.reflection.text}</p></details>}
+    {value?.reflection && value.enabled && value.reflectionEnabled && <details className="nexus-companion-reflection" data-nexus-deep-reflection=""><summary>{value.reflection.stage === 'review' ? 'Review' : '规划前'} · 更深的问题</summary><MarkdownContent source={value.reflection.text} /></details>}
     {value && <details className="nexus-companion-status"><summary>{value.state === 'checking' ? '独立辅助检查中' : value.state === 'unconfigured' ? '辅助模型未配置' : value.state === 'failed' || value.state === 'context-incomplete' ? '辅助检查未完成' : value.state === 'disabled' ? '独立辅助已停用' : '独立辅助'}{value.attempts?.some((a: Data) => a.state === 'failed') ? ' · 已降级' : ''}</summary>
       {value.error && <p role="status">{value.errorCode} · {value.error}</p>}
       {value.attempts?.length > 0 && <ol>{value.attempts.map((a: Data, index: number) => <li key={index}>{a.provider}/{a.model} · {a.state === 'succeeded' ? '成功' : `${a.code} · ${a.reason}`}{a.reasoningEffort ? ` · reasoning_effort=${a.reasoningEffort}` : ''}{a.retryAfterMs ? ` · 服务建议等待 ${a.retryAfterMs}ms` : ''}</li>)}</ol>}

@@ -66,6 +66,10 @@ versions, copyright notices, source identities, and modifications.
   `notices/originals/codinput/`. DOMPurify is used under Apache-2.0 as selected
   by upstream; its alternate MPL-2.0 text is also retained. Upstream NOTICE
   retains DeepSeek Harness visual and style attribution.
+- The conversation reflection Markdown renderer also uses the pinned root marked
+  15.0.12 (MIT) and DOMPurify 3.4.17 (Apache-2.0 selected). Their exact license
+  texts are retained with the shared dependency notices in
+  `notices/originals/codinput/`.
 
 Restricted code-review source is not copied. Its user capabilities are independently
 implemented. External OpenViking service licensing is distinct from adapter licensing.

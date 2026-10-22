@@ -4,6 +4,7 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
 import { THOROUGH_PROMPT } from '../src/domain/insights/prompts.js';
+import { parseMarkdown, sanitizeMarkdown } from '../src/client/MarkdownContent.js';
 
 const bundle = await build({ entryPoints: [fileURLToPath(new URL('../src/client/Companion.tsx', import.meta.url))],
   bundle: true, write: false, platform: 'node', format: 'cjs', target: 'node22', packages: 'external', loader: { '.css': 'text' }, logLevel: 'silent' });
@@ -38,4 +39,17 @@ test('four questions use the captured native revision once and refuse intervenin
   assert.equal(sendThoroughPrompt(f.actions, f.state(), THOROUGH_PROMPT, latch, fresh), true);
   assert.equal(sendThoroughPrompt(f.actions, f.state(), THOROUGH_PROMPT, latch, fresh), false);
   assert.equal(f.result().submits, 1); assert.equal(f.result().draft, THOROUGH_PROMPT);
+});
+test('reflection markdown renders structure and formatting while raw HTML is escaped', () => {
+  const html = parseMarkdown('## 事实\n\n**重点** 与 `代码`\n\n- 第一项\n- 第二项\n\n<script>alert(1)</script>');
+  assert.match(html, /<h2>事实<\/h2>/);
+  assert.match(html, /<strong>重点<\/strong>/);
+  assert.match(html, /<code>代码<\/code>/);
+  assert.match(html, /<ul>[\s\S]*<li>第一项<\/li>[\s\S]*<li>第二项<\/li>[\s\S]*<\/ul>/);
+  assert.doesNotMatch(html, /<script>/i);
+  assert.match(html, /&lt;script&gt;/i);
+});
+test('markdown rendering fails closed to escaped text without a supported DOM', () => {
+  assert.equal(sanitizeMarkdown('<script>alert("1")</script> & \'text\''),
+    '&lt;script&gt;alert(&quot;1&quot;)&lt;/script&gt; &amp; &#39;text&#39;');
 });
