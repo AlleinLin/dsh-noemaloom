@@ -252,6 +252,40 @@ async function fixture(t: TestContext, options: {
   };
 }
 
+test('provider finish diagnostics keep original causal facts before its public message is replaced', async t => {
+  const h = await fixture(t, {
+    async *produce() {
+      yield { type: 'finish', reason: { kind: 'error', failure: {
+        code: 'PI_AI_ERROR', message: 'private provider response body api_key=must-not-escape',
+        status: 503,
+      } } };
+    },
+  });
+  const { agent } = await h.create('original-provider-finish-diagnostics');
+  await h.start(agent);
+  const facts = h.diagnostics.find(item => item.phase === 'provider-response');
+  assert.ok(facts);
+  assert.equal(facts.diagnosticCode, 'NX_GATEWAY_UNAVAILABLE');
+  assert.equal(facts.status, 503);
+  assert.ok((facts.causeCodes as string[]).includes('PI_AI_ERROR'));
+  assert.equal(JSON.stringify(facts).includes('must-not-escape'), false);
+  assert.equal(h.adapter.calls.length, 1);
+  assert.equal(h.toolsExecuted(), 0);
+});
+
+test('a stalled provider diagnostic observer cannot hold the native failure boundary', async t => {
+  const h = await fixture(t, {
+    async *produce() { yield { type: 'finish', reason: { kind: 'error', failure: { code: 'PI_AI_ERROR', message: 'opaque' } } }; },
+  });
+  // Exercise the production tracker with an observation carrier that never settles.
+  (h.tracker as any).diagnostic = () => new Promise(() => {});
+  const { agent } = await h.create('stalled-finish-diagnostics');
+  await h.start(agent);
+  assert.equal(h.recovery.length, 1);
+  assert.equal(h.recovery[0].failure.code, 'PI_AI_ERROR');
+  assert.equal(h.toolsExecuted(), 0);
+});
+
 test('the old awaited observer reproduces finish(tool-calls), assistant/attempt, UNKNOWN and no tool dispatch', async t => {
   const h = await fixture(t, {
     oldAwaitedObserver: true,

@@ -132,6 +132,73 @@ test('legacy parameter spellings, Team names, parent/lead aliases and safe reply
   await assert.rejects(f.call(f.a, 'send_message', { target: 'lead', agent_id: f.b.id, message: 'conflict' }), { code: 'NX_MAIL_INVALID_TARGET' });
 });
 
+test('new updates accept empty reply links and unused recipient fields without inventing a mailbox reply', async t => {
+  const f = fixture(t);
+  for (const [index, reply_to] of ['', '   '].entries()) {
+    const args = { target: '', agent_id: f.root.id, message: 'New child status update', request_id: `empty-reply-${index}`, reply_to };
+    const sent = await f.call(f.a, 'send_message', args);
+    assert.equal(sent.state, 'accepted');
+    const { reply_to: _emptyReply, ...withoutReply } = args;
+    const retried = await f.call(f.a, 'send_message', withoutReply);
+    assert.equal(retried.message_id, sent.message_id);
+  }
+  assert.equal(f.deliveries.length, 2, 'empty and omitted reply links have the same idempotency fingerprint');
+  const read = await f.call(f.a, 'read_agent_messages');
+  assert.ok(read.messages.every((row: any) => row.reply_to === null));
+  const fallback = await f.call(f.a, 'send_message', { target: 'parent', agent_id: '', message: 'Optional intent key', request_id: '', reply_to: '' }, 'empty-request-call');
+  assert.equal(fallback.request_id, 'empty-request-call');
+});
+
+test('aliases and exact recipient ids agree by identity while real conflicts remain rejected before delivery', async t => {
+  const f = fixture(t);
+  const first = await f.call(f.a, 'send_message', {
+    target: 'parent', agent_id: f.root.id, message: 'One status update', request_id: 'parent-alias', reply_to: '',
+  });
+  const repeated = await f.call(f.a, 'send_message', {
+    target: f.root.id, message: 'One status update', request_id: 'parent-alias',
+  });
+  assert.equal(first.message_id, repeated.message_id);
+  assert.equal(first.target, f.root.id);
+  assert.equal(f.deliveries.length, 1);
+  await assert.rejects(f.call(f.a, 'send_message', {
+    target: 'parent', agent_id: f.b.id, message: 'Conflicting recipient',
+  }), { code: 'NX_MAIL_INVALID_TARGET' });
+  assert.equal(f.deliveries.length, 1);
+  const stopped = await f.call(f.root, 'interrupt_agent', { target: 'team-a', agent_id: f.a.id });
+  assert.equal(stopped.accepted, true);
+});
+
+test('invalid nonempty reply links give an actionable correction and never degrade into an unlinked send', async t => {
+  const f = fixture(t);
+  for (const reply_to of ['business-intent-1', 'parent', f.root.id]) {
+    await assert.rejects(f.call(f.a, 'send_message', {
+      target: f.root.id, message: 'Status update', request_id: 'correctable-intent', reply_to,
+    }), (error: any) => {
+      assert.equal(error.code, 'NX_MAIL_REPLY_DENIED');
+      assert.match(error.message, /No message was sent/);
+      assert.match(error.message, /NEW message omit reply_to/);
+      assert.match(error.message, /read_agent_messages/);
+      assert.match(error.message, /same request_id/);
+      return true;
+    });
+  }
+  assert.equal(f.deliveries.length, 0);
+  assert.equal((await f.call(f.a, 'read_agent_messages')).messages.length, 0);
+  const corrected = await f.call(f.a, 'send_message', {
+    target: f.root.id, message: 'Status update', request_id: 'correctable-intent', reply_to: '',
+  });
+  assert.equal(corrected.state, 'accepted');
+  assert.equal(f.deliveries.length, 1);
+});
+
+test('the model-facing definition explains a new send separately from replies and send idempotency', t => {
+  const f = fixture(t), definition = f.tools.get('send_message', f.a);
+  assert.match(definition.description, /NEW message omit reply_to/);
+  assert.match(definition.parameters.properties.reply_to.description, /OPTIONAL reply link/);
+  assert.match(definition.parameters.properties.reply_to.description, /Never use request_id/);
+  assert.match(definition.parameters.properties.request_id.description, /NOT a received message_id/);
+});
+
 test('idempotent same request sends once and conflicting content never replays', async t => {
   const f = fixture(t), args = { target: f.a.id, message: 'One work update', request_id: 'stable-request' };
   const [first, second] = await Promise.all([f.call(f.root, 'send_message', args), f.call(f.root, 'send_message', args)]);

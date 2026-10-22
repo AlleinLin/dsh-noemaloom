@@ -165,6 +165,8 @@ export function classifyFailure(error: unknown, context: FailureContext = {}): F
     diagnosticCode = 'NX_PROVIDER_EMPTY_RESPONSE'; category = 'provider'; canonicalCode = 'EMPTY_RESPONSE'; retryable = true;
   } else if (raw === 'INVALID_ARGUMENT' || raw.startsWith('INVALID_') || status === 400 || status === 404 || status === 422) {
     diagnosticCode = 'NX_REQUEST_REJECTED'; category = 'provider';
+  } else if (raw === 'PI_AI_ERROR') {
+    diagnosticCode = 'NX_PROVIDER_FAILURE'; category = 'provider';
   } else if (raw === 'UNKNOWN' || raw === 'UNCLASSIFIED_FAILURE') {
     diagnosticCode = 'NX_UNKNOWN_FAILURE'; category = 'unattributed';
   } else {

@@ -9,6 +9,9 @@ import { scopeTarget } from '@deepseek-ai/dsh-scope';
 import { ProviderRequestId, type ResolvedRetryPolicy } from '@deepseek-ai/dsh-llm';
 import { recordRecoveryDiagnostic, registerRequestRecovery } from '../src/host/request-recovery.js';
 import type { HostContext } from '../src/host/types.js';
+import { stepProgressServices } from './step-progress-fixture.js';
+import { createScopeModule } from '../src/domain/scope.js';
+import { REQUEST_RETRY_FEATURE } from '../src/shared/request-retry.js';
 
 const normal = (maxRetries = 3): ResolvedRetryPolicy => ({
   mode: 'normal', maxRetries, retryableCodes: ['TRANSPORT', 'SERVER', 'RATE_LIMIT', 'TIMEOUT', 'EMPTY_RESPONSE'],
@@ -16,7 +19,7 @@ const normal = (maxRetries = 3): ResolvedRetryPolicy => ({
 });
 const transport = { code: 'TRANSPORT', message: 'sensitive provider body', status: 502, requestId: ProviderRequestId('provider-request-42') };
 
-async function fixture(t: TestContext, native = false) {
+async function fixture(t: TestContext, native = false, settings = false) {
   const root = new Context();
   let ctx!: Context;
   let sessions!: SessionStore;
@@ -24,6 +27,7 @@ async function fixture(t: TestContext, native = false) {
   let projections!: SessionProjectionRegistry;
   let disposeRecovery!: () => void;
   const events: SessionEvent[] = [];
+  const { services: scopeServices } = stepProgressServices();
   // ctx.get() deliberately exposes only active providers. The official host
   // services must finish activating before a consumer queries their presence.
   const servicesFiber = root.plugin({
@@ -32,13 +36,14 @@ async function fixture(t: TestContext, native = false) {
       sessions = new SessionStore(owner);
       agents = new AgentRegistry(owner);
       projections = new SessionProjectionRegistry(owner);
+      if (settings) owner.provide('nexus', { services: scopeServices } as any);
     },
   });
   await servicesFiber.await();
   assert.equal(servicesFiber.state, 2);
   const fiber = root.plugin({
     name: 'request-recovery-fixture',
-    inject: ['sessions', 'agents', 'sessionProjections'],
+    inject: ['sessions', 'agents', 'sessionProjections', ...(settings ? ['nexus'] : [])],
     apply(owner: Context) {
       ctx = owner;
       assert.ok(ctx.get('sessionProjections'), 'the recovery consumer must see an active official registry');
@@ -72,8 +77,12 @@ async function fixture(t: TestContext, native = false) {
     const payload = { agent, turn: 1, step: 1, provider: 'fixture-provider', failure, retryPolicy, signal };
     return ctx.waterfall(scopeTarget(agent, agent), 'agent/request-error', payload, async () => undefined);
   };
+  const configure = (defaults: Record<string, unknown>, sessionId?: string, expectedRevision = 0) => createScopeModule(scopeServices).dispatch({
+    action: 'configure', params: { feature: REQUEST_RETRY_FEATURE, config: { defaults } }, expectedRevision,
+  }, { actorId: 'connection-owner', permissions: new Set(['scope.configure']), scopeLevel: sessionId ? 'session' : 'global',
+    ...(sessionId ? { sessionId, workspaceRoot: scopeServices.workspaceRoot } : {}) });
   return {
-    ctx, agent, session, events, diagnostics, projections, recover,
+    ctx, agent, session, events, diagnostics, projections, recover, configure, scopeServices,
     dispose: () => disposeRecovery(),
     restart() { disposeRecovery(); disposeRecovery = registerRequestRecovery(ctx as unknown as HostContext); },
     removeAgent() { detachAgent(); },
@@ -92,6 +101,68 @@ test('the prepended adapter delegates exactly one native retry and never adds it
   assert.equal(h.diagnostics().at(-1).outcome, 'delegated');
   assert.equal(h.diagnostics().at(-1).source, 'native-retry');
   assert.equal(h.diagnostics().at(-1).retry, 1);
+});
+
+test('custom scope policy owns one same-step retry even with the native retry plugin installed', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const h = await fixture(t, true, true);
+  await h.configure({ mode: 'custom', maxRetries: 2, algorithm: 'linear', initialDelayMs: 1000, maxDelayMs: 10_000, jitterRatio: 0 });
+  for (const expected of [1000, 2000]) {
+    const pending = h.recover();
+    for (let i = 0; i < 80; i++) await Promise.resolve();
+    const scheduled = h.events.filter(event => event.type === 'llm/retry').at(-1)!;
+    assert.equal((scheduled.data as any).delayMs, expected);
+    assert.equal((scheduled.data as any).maxRetries, 2);
+    t.mock.timers.tick(expected);
+    assert.deepEqual(await pending, { kind: 'retry' });
+  }
+  assert.equal(await h.recover(), undefined);
+  assert.equal(h.events.filter(event => event.type === 'llm/retry').length, 2, 'no native and Nexus duplicate timers');
+  assert.equal(h.diagnostics().at(-1).diagnosticCode, 'NX_RETRY_EXHAUSTED');
+  h.session.append('step/start', { turn: 1, step: 2 });
+  await h.configure({ mode: 'disabled' }, h.agent.id);
+  assert.equal(await h.recover(), undefined);
+  assert.equal(h.diagnostics().at(-1).stopReason, 'retry-disabled');
+});
+
+test('opaque provider errors stay distinct and require an explicit user retry setting', async t => {
+  const h = await fixture(t, true, true);
+  const config = { mode: 'custom', maxRetries: 2, initialDelayMs: 0, maxDelayMs: 0 };
+  const opaque = { code: 'PI_AI_ERROR', message: 'unknown provider SDK failure' } as any;
+  await h.configure(config);
+  assert.equal(await h.recover(opaque), undefined);
+  assert.equal(h.diagnostics().at(-1).diagnosticCode, 'NX_PROVIDER_FAILURE');
+  assert.equal(h.diagnostics().at(-1).stopReason, 'not-retryable');
+  await h.configure({ ...config, retryOpaqueProviderErrors: true }, undefined, 1);
+  assert.deepEqual(await h.recover(opaque), { kind: 'retry' });
+  h.restart();
+  assert.deepEqual(await h.recover(opaque), { kind: 'retry' });
+  assert.equal(await h.recover(opaque), undefined);
+  assert.equal(h.diagnostics().at(-1).canonicalCode, 'PI_AI_ERROR');
+  assert.equal(h.diagnostics().at(-1).retry, 2);
+  assert.equal(h.diagnostics().at(-1).stopReason, 'retry-exhausted');
+  h.session.append('step/start', { turn: 2, step: 1 });
+  for (const failure of [
+    { ...opaque, status: 403 }, { ...opaque, status: 400 }, { code: 'INTERNAL', message: 'local bug' },
+    { code: 'PARTIAL_EFFECT', message: 'unknown effects' }, { code: 'CTX_NATIVE_BUSY', message: 'maintenance' },
+  ]) assert.equal(await h.recover(failure as any), undefined);
+  assert.equal(h.events.filter(event => event.type === 'llm/retry').length, 2);
+});
+
+test('custom waits remain cancellable and Retry-After beyond the configured cap reports the exact reason', async t => {
+  const h = await fixture(t, true, true);
+  await h.configure({ mode: 'custom', maxRetries: 8, algorithm: 'fixed', initialDelayMs: 60_000, maxDelayMs: 90_000, jitterRatio: 0 });
+  const controller = new AbortController();
+  const pending = h.recover(transport, normal(1), controller.signal);
+  for (let i = 0; i < 80; i++) await Promise.resolve();
+  assert.equal(h.events.filter(event => event.type === 'llm/retry').length, 1);
+  controller.abort({ kind: 'user' });
+  assert.equal(await pending, undefined);
+  assert.equal(h.diagnostics().at(-1).stopReason, 'user-cancelled');
+  h.session.append('step/start', { turn: 2, step: 1 });
+  assert.equal(await h.recover({ ...transport, providerRetryAfterMs: 90_001 } as any), undefined);
+  assert.equal(h.diagnostics().at(-1).stopReason, 'retry-delay-unsupported');
+  assert.equal(h.events.filter(event => event.type === 'llm/retry').length, 1);
 });
 
 test('native exhaustion and unsupported provider wait are explicit without extra fallback', async t => {

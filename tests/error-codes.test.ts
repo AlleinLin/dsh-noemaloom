@@ -5,6 +5,17 @@ import { annotateNativeFailure, toHarnessError, toNativeLlmError } from '../src/
 import { NexusError } from '../src/ports/contracts.js';
 import { LlmError } from '@deepseek-ai/dsh-llm';
 
+test('PI_AI_ERROR is an opaque provider failure and does not imply a confirmed internal or network fault', () => {
+  const opaque = classifyFailure({ code: 'PI_AI_ERROR', message: 'opaque SDK failure' }, { phase: 'provider-response' });
+  assert.equal(opaque.diagnosticCode, 'NX_PROVIDER_FAILURE');
+  assert.equal(opaque.canonicalCode, 'PI_AI_ERROR');
+  assert.equal(opaque.category, 'provider');
+  assert.equal(opaque.retryable, false);
+  const confirmed = annotateNativeFailure({ code: 'PI_AI_ERROR', status: 429, requestId: 'public-request' });
+  assert.equal(confirmed.code, 'RATE_LIMIT');
+  assert.equal(confirmed.requestId, 'public-request');
+});
+
 test('network causes survive reduced provider failures without leaking raw bodies', () => {
   for (const error of [
     new Error('fetch failed', { cause: Object.assign(new Error('private'), { code: 'ECONNRESET' }) }),

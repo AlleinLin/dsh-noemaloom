@@ -4,9 +4,12 @@ import type { LlmRetryEventData } from '@deepseek-ai/dsh-llm-retry';
 import { ProviderRequestId, type ResolvedRetryPolicy } from '@deepseek-ai/dsh-llm';
 import { z } from 'zod';
 import { classifyFailure, ERROR_CODES, type FailureDiagnosis } from '../shared/error-codes.js';
-import { nativeErrorIdentity } from './native-diagnostics.js';
+import { nativeErrorIdentity, nativeFailureFacts } from './native-diagnostics.js';
 import type { HostContext } from './types.js';
 import { nativeCompactionFor } from './compaction-binding.js';
+import { effectiveSettings } from '../domain/scope.js';
+import { boundedRead } from '../shared/bounded-read.js';
+import { REQUEST_RETRY_FEATURE, requestRetryDelay, resolveRequestRetryOptions, type RequestRetryOptions } from '../shared/request-retry.js';
 
 const RECORD = 'plugin:nexus/request-recovery';
 const STATE = 'nexusRequestRecovery';
@@ -25,6 +28,7 @@ const STOP_REASONS = new Set([
   'budget-denied', 'session-deleted', 'recovery-handler-failed',
   'recovery-state-unavailable', 'recovery-record-failed', 'native-retry-stopped',
   'context-compactor-unavailable', 'context-compacted', 'no-proven-context-reduction', 'no-safe-bounded-range', 'summary-model-declined-safe-range',
+  'retry-settings-unavailable',
 ]);
 const ABORT_RETRIES = 3;
 const ALWAYS_FALLBACK_RETRIES = 5;
@@ -281,6 +285,18 @@ function delay(delayMs: number, signal: AbortSignal): Promise<boolean> {
   });
 }
 
+async function configuredRetry(ctx: HostContext, agent: RecoveryPayload['agent'], signal: AbortSignal): Promise<RequestRetryOptions | undefined> {
+  const services = ctx.get('nexus')?.services;
+  if (!services?.store) return;
+  const root = agent.session.header.cwd ?? services.workspaceRoot;
+  const settings = await boundedRead(() => effectiveSettings(services.store, root,
+    { scopeLevel: 'session', sessionId: agent.id, workspaceRoot: root }, REQUEST_RETRY_FEATURE), {
+    signal, timeoutMs: 2000, timeout: () => new Error('retry settings unavailable'),
+    cancelled: () => new Error('retry settings cancelled'),
+  });
+  return resolveRequestRetryOptions(settings.effective);
+}
+
 /** Recover only at the official same-turn seam; never synthesize user input. */
 export function registerRequestRecovery(ctx: HostContext): () => void {
   const lifetime = new AbortController();
@@ -308,7 +324,9 @@ export function registerRequestRecovery(ctx: HostContext): () => void {
     let traceId: string | undefined;
     try { traceId = nativeErrorIdentity(payload.failure, diagnosis.canonicalCode).traceId; } catch { /* Helper mints a safe fallback. */ }
     return recordRecoveryDiagnostic(ctx, String(payload.agent.id), {
-      ...diagnosis, traceId, turn: payload.turn, step: payload.step, provider: payload.provider,
+      ...diagnosis, ...nativeFailureFacts(payload.failure, payload.signal),
+      providerRetryAfterMs: payload.failure.providerRetryAfterMs,
+      traceId, turn: payload.turn, step: payload.step, provider: payload.provider,
       source: 'observer', ...facts,
     });
   };
@@ -349,9 +367,16 @@ export function registerRequestRecovery(ctx: HostContext): () => void {
 
       const unattributedAbort = diagnosis.diagnosticCode === 'NX_ABORT_UNATTRIBUTED';
       const policy = validPolicy(payload.retryPolicy) ? payload.retryPolicy : undefined;
+      let configured: RequestRetryOptions | undefined;
+      try { configured = await configuredRetry(ctx, agent, fused); }
+      catch {
+        return await stop(stopped() ?? 'retry-settings-unavailable', stopped() ? 'NX_CANCELLED' : 'NX_RECOVERY_FAILED');
+      }
+      if (configured?.mode === 'disabled') return await stop('retry-disabled', 'NX_RETRY_DISABLED', 'nexus-fallback');
+      const custom = configured?.mode === 'custom' ? configured : undefined;
       // Unattributed adapter aborts need an explicit finite cap, including when
       // the installed native policy is "always". They never become network errors.
-      if (!unattributedAbort) {
+      if (!unattributedAbort && !custom) {
         let decision: Decision;
         try { decision = await next(); } catch {
           return await stop(stopped() ?? 'recovery-handler-failed', 'NX_RECOVERY_FAILED');
@@ -391,27 +416,28 @@ export function registerRequestRecovery(ctx: HostContext): () => void {
 
       const beforeFallback = stopped();
       if (beforeFallback) return await stop(beforeFallback, 'NX_CANCELLED', 'nexus-fallback');
-      if (!policy && !unattributedAbort) return await stop('retry-disabled', 'NX_RETRY_DISABLED', 'nexus-fallback');
+      if (!policy && !unattributedAbort && !custom) return await stop('retry-disabled', 'NX_RETRY_DISABLED', 'nexus-fallback');
       if (!stateReady || stateOf(agent.session, STATE) === undefined) {
         return await stop('recovery-state-unavailable', 'NX_RECOVERY_FAILED', 'nexus-fallback');
       }
-      const maxRetries = unattributedAbort ? ABORT_RETRIES : policy!.mode === 'normal' ? policy!.maxRetries : ALWAYS_FALLBACK_RETRIES;
+      const maxRetries = custom?.maxRetries ?? (unattributedAbort ? ABORT_RETRIES : policy!.mode === 'normal' ? policy!.maxRetries : ALWAYS_FALLBACK_RETRIES);
       if (maxRetries === 0) return await stop('retry-disabled', 'NX_RETRY_DISABLED', 'nexus-fallback', currentRetry(payload), maxRetries);
-      if (!unattributedAbort && policy!.mode === 'normal' && !policy!.retryableCodes.includes(payload.failure.code)) {
+      const eligible = custom ? diagnosis.retryable || unattributedAbort
+        || custom.retryOpaqueProviderErrors && payload.failure.code === 'PI_AI_ERROR' && diagnosis.diagnosticCode === 'NX_PROVIDER_FAILURE'
+        : unattributedAbort || policy!.mode === 'always' || policy!.retryableCodes.includes(payload.failure.code);
+      if (!eligible) {
         return await stop('not-retryable', diagnosis.diagnosticCode, 'nexus-fallback', currentRetry(payload), maxRetries);
       }
       const previous = currentRetry(payload);
       if (previous >= maxRetries) return await stop('retry-exhausted',
         unattributedAbort ? 'NX_ABORT_UNATTRIBUTED' : 'NX_RETRY_EXHAUSTED', 'nexus-fallback', previous, maxRetries);
-      const backoff = policy ?? { initialDelayMs: 500, maxDelayMs: 10_000, jitterRatio: 0.1 };
+      const backoff = custom ?? policy ?? { initialDelayMs: 500, maxDelayMs: 10_000, jitterRatio: 0.1 };
       const retryAfter = payload.failure.providerRetryAfterMs;
       if (Number.isFinite(retryAfter) && retryAfter! > backoff.maxDelayMs) {
         return await stop('retry-delay-unsupported', 'NX_RETRY_DELAY_UNSUPPORTED', 'nexus-fallback', previous, maxRetries);
       }
       const retry = previous + 1;
-      const localDelay = Math.min(backoff.initialDelayMs * 2 ** Math.min(previous, 1023), backoff.maxDelayMs);
-      const delayMs = Math.round(Number.isFinite(retryAfter) && retryAfter! > 0 ? retryAfter!
-        : Math.min(localDelay * (1 - backoff.jitterRatio + 2 * backoff.jitterRatio * Math.random()), backoff.maxDelayMs));
+      const delayMs = requestRetryDelay(custom ?? { ...backoff, algorithm: 'exponential', multiplier: 2 }, previous, retryAfter)!;
       const retryId = randomUUID() as LlmRetryEventData['retryId'];
       const beforeSchedule = stopped();
       if (beforeSchedule) return await stop(beforeSchedule, 'NX_CANCELLED');
@@ -420,7 +446,8 @@ export function registerRequestRecovery(ctx: HostContext): () => void {
         // Persist public diagnostic text, never the provider's original body.
         agent.session.append('llm/retry', {
           retryId, turn: payload.turn, step: payload.step, provider: payload.provider, mode: 'normal',
-          policyKey: unattributedAbort ? 'nexus:unattributed-abort:v1' : policyKey(policy!),
+          policyKey: custom ? `nexus:custom:${JSON.stringify(custom)}`
+            : unattributedAbort ? 'nexus:unattributed-abort:v1' : policyKey(policy!),
           retry, maxRetries, delayMs,
           failure: { code: diagnosis.canonicalCode, message: `[${diagnosis.diagnosticCode}] ${diagnosis.message}`,
             ...(diagnosis.status === undefined ? {} : { status: diagnosis.status }),

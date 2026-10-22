@@ -29,6 +29,7 @@ interface MailIndex { schema: 1; rootId: string; entries: Record<string, MailInd
 interface PauseMarker { sessionId: string; paused: boolean; at: number; stopSeq?: number }
 export interface SendMail {
   target: string;
+  alternateTarget?: string;
   content: Array<{ type: 'text'; text: string }>;
   requestId: string;
   delivery?: 'steer' | 'queue';
@@ -137,11 +138,13 @@ export class AgentMailbox {
     if (!Array.isArray(input.content) || !input.content.length || input.content.some(block => !block || block.type !== 'text' || typeof block.text !== 'string')
       || Buffer.byteLength(JSON.stringify(input.content)) > 65536) throw communicationError('NX_MAIL_MESSAGE_LIMIT', 'Messages must contain text and fit 64 KiB.');
     if (input.delivery !== undefined && !['steer', 'queue'].includes(input.delivery)) throw communicationError('NX_MAIL_INVALID_ARGUMENT', 'delivery must be steer or queue.');
-    if (input.replyTo !== undefined && !/^mail_[a-f0-9]{64}$/.test(input.replyTo)) throw communicationError('NX_MAIL_REPLY_DENIED', 'reply_to must be a mailbox message_id.');
-    const directory = await this.directory(caller, signal), target = resolveAgent(directory, input.target);
+    const replyTo = typeof input.replyTo === 'string' ? input.replyTo.trim() || undefined : input.replyTo;
+    if (replyTo !== undefined && !/^mail_[a-f0-9]{64}$/.test(replyTo)) throw communicationError('NX_MAIL_REPLY_DENIED',
+      'No message was sent. For a NEW message omit reply_to or use "". For a reply, call read_agent_messages and copy the received message_id (mail_ followed by 64 hexadecimal characters), targeting its sender. Never use request_id, an agent id, parent or lead as reply_to. Correct the arguments and retry with the same request_id.');
+    const directory = await this.directory(caller, signal), target = resolveAgent(directory, input.target, input.alternateTarget);
     if (target.id === caller.id) throw communicationError('NX_MAIL_SELF_MESSAGE', 'Send to another agent; this operation does not steer yourself.');
     const id = `mail_${digest([directory.rootId, caller.id, input.requestId])}`;
-    const fingerprint = digest([caller.id, target.id, input.content, input.delivery ?? 'steer', input.replyTo ?? null]);
+    const fingerprint = digest([caller.id, target.id, input.content, input.delivery ?? 'steer', replyTo ?? null]);
     return this.serial(id, async () => {
       signal.throwIfAborted();
       const old = await this.store.get<AgentMail>(this.collection(directory.rootId), id);
@@ -150,14 +153,15 @@ export class AgentMailbox {
         return this.reconcile(old.value, old.revision, signal);
       }
       if (!target.addressable) throw communicationError('NX_MAIL_NOT_RESUMABLE', 'Target is one-shot, external, unknown, or outside the authorized workspace. No replacement was created.');
-      if (input.replyTo) {
-        const reply = await this.store.get<AgentMail>(this.collection(directory.rootId), input.replyTo);
-        if (!reply || reply.value.targetId !== caller.id || reply.value.senderId !== target.id) throw communicationError('NX_MAIL_REPLY_DENIED', 'reply_to must name a received message from this recipient.');
+      if (replyTo) {
+        const reply = await this.store.get<AgentMail>(this.collection(directory.rootId), replyTo);
+        if (!reply || reply.value.targetId !== caller.id || reply.value.senderId !== target.id) throw communicationError('NX_MAIL_REPLY_DENIED',
+          'No message was sent. reply_to must identify a message you received from the target agent. Call read_agent_messages and copy that message_id and sender_id; for a new update omit reply_to or use "". Retry corrected arguments with the same request_id.');
       }
       const mail: AgentMail = {
         id, rootId: directory.rootId, workspaceRoot: directory.workspaceRoot, senderId: caller.id, targetId: target.id,
         requestId: input.requestId, fingerprint, content: structuredClone(input.content), delivery: input.delivery ?? 'steer',
-        ...(input.replyTo ? { replyTo: input.replyTo } : {}), state: 'queued', createdAt: timestamp(), updatedAt: timestamp(),
+        ...(replyTo ? { replyTo } : {}), state: 'queued', createdAt: timestamp(), updatedAt: timestamp(),
       };
       // Durable outbox acceptance precedes any recipient effect.
       await this.indexed(directory.rootId, index => {
@@ -340,8 +344,8 @@ export class AgentMailbox {
       ...this.receipt(mail), content: mail.content, reply_to: mail.replyTo ?? null, created_at: mail.createdAt,
     })), offset, next_offset: offset + limit < entries.length ? offset + limit : null, cursor: this.cursor };
   }
-  async interrupt(caller: any, rawTarget: string, signal: AbortSignal) {
-    const directory = await this.directory(caller, signal), target = resolveAgent(directory, rawTarget);
+  async interrupt(caller: any, rawTarget: string, signal: AbortSignal, alternateTarget?: string) {
+    const directory = await this.directory(caller, signal), target = resolveAgent(directory, rawTarget, alternateTarget);
     let descendant = target;
     while (descendant.parentId && descendant.parentId !== caller.id) {
       descendant = directory.agents.find(row => row.id === descendant.parentId)!;

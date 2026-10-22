@@ -848,5 +848,7 @@ var BasicCompactionEngine = class extends CompactionEngine {
   }
 };
 export {
-  compactSurfaceRegion
+  buildSummarizationInput,
+  compactSurfaceRegion,
+  selectCompactableRange
 };

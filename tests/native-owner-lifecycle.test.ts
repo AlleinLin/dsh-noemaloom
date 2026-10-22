@@ -43,7 +43,9 @@ async function fixture() {
   const calls: string[] = [];
   const events: any[] = [];
   const notices: unknown[] = [];
-  const agent = { id: 'fixture-session', session: { seq: 50, header: { cwd: dataDir },
+  const agent = { id: 'fixture-session', async runMaintenance<T>(job: (signal: AbortSignal) => Promise<T>) {
+    return job(new AbortController().signal);
+  }, session: { seq: 50, header: { cwd: dataDir },
     eventAt(seq: number) { return events.find(event => event.seq === seq); } } };
   let propose: () => Promise<any> = async () => ({ decision: 'wait' });
   let commit: () => Promise<any> = async () => ({ committed: true });
@@ -75,7 +77,7 @@ async function fixture() {
     const instance: any = Object.create(NexusCompactionEngine.prototype);
     Object.assign(instance, {
       nativeContext: context, runningLanes: sharedRunning ? localRunning : new Map(),
-      pendingSummaries: new WeakMap(), officialOwners: new WeakMap(), nativeOverflowRetries: new WeakMap(),
+      pendingSummaries: new WeakMap(), officialOwners: new WeakMap(), nativeOverflowRetries: new WeakMap(), idleRangeAgents: new WeakSet(),
       admissions: new WeakMap(), requestRoutes: new WeakMap(), assemblies: new WeakMap(), lastResults: new WeakMap(),
       synchronize: async () => ({ nudge: { shouldInject: nudge } }),
       measurePressure: async () => ({ automaticEnabled: true, compressionAllowed: true, enabled: true,
@@ -113,10 +115,58 @@ async function fixture() {
   };
 }
 
+test('busy manual admission performs no lane or sync work and cannot stop the current automatic pressure check', async () => {
+  const h = await fixture();
+  let syncCalls = 0;
+  h.first.synchronize = async () => { syncCalls++; };
+  h.agent.runMaintenance = () => { throw new Error('already has active work'); };
+  try {
+    await assert.rejects(h.first.compactNow(h.agent, h.signal()), (error: any) =>
+      error instanceof HarnessError && error.code === 'CTX_NATIVE_BUSY');
+    assert.equal(syncCalls, 0);
+    assert.equal(h.first.runningLanes.size, 0);
+    assert.equal(await h.owner(), undefined, 'rejected manual commands do not create durable owners');
+    h.setNudge(false);
+    assert.equal(await h.first.compactIfNeeded(h.agent, 'pressure', h.signal()), null);
+    assert.deepEqual(h.calls, []);
+  } finally { await h.close(); }
+});
+
+test('a queued maintenance admission leaves the lane available until the exact host callback starts', async () => {
+  const h = await fixture();
+  let enter!: () => void, entered = false, syncCalls = 0;
+  const gate = new Promise<void>(resolve => { enter = resolve; });
+  h.agent.runMaintenance = async job => { await gate; entered = true; return job(h.signal()); };
+  h.first.synchronize = async () => { assert.equal(entered, true); syncCalls++; };
+  h.first.compactIdle = async () => null;
+  const manual = h.first.compactNow(h.agent, h.signal());
+  try {
+    await new Promise<void>(resolve => setImmediate(resolve));
+    assert.equal(h.first.runningLanes.size, 0);
+    assert.equal(await h.owner(), undefined);
+    h.setNudge(false);
+    assert.equal(await h.first.compactIfNeeded(h.agent, 'pressure', h.signal()), null);
+    assert.equal(syncCalls, 0);
+  } finally { enter(); await manual; await h.close(); }
+});
+
+test('an aborted command cannot claim native maintenance, a lane or a durable owner', async () => {
+  const h = await fixture(), abort = new AbortController();
+  let admissions = 0;
+  h.agent.runMaintenance = async job => { admissions++; return job(h.signal()); };
+  abort.abort(new Error('explicit command cancellation'));
+  try {
+    await assert.rejects(h.first.compactNow(h.agent, abort.signal));
+    assert.equal(admissions, 0);
+    assert.equal(h.first.runningLanes.size, 0);
+    assert.equal(await h.owner(), undefined);
+  } finally { await h.close(); }
+});
+
 test('manual summary failure with a durable exact start/error-end releases maintenance and keeps the failed attempt diagnostic', async () => {
-  const h = await fixture(), original = BasicCompactionEngine.prototype.compactNow;
+  const h = await fixture();
   let calls = 0;
-  BasicCompactionEngine.prototype.compactNow = async () => {
+  h.first.compactIdle = async () => {
     calls++;
     h.events.push({ seq: 50, type: 'compaction/start', data: { compactionId: 'failed-manual' } },
       { seq: 51, type: 'compaction/end', data: { compactionId: 'failed-manual', error: { message: 'private provider failure' } } });
@@ -130,16 +180,16 @@ test('manual summary failure with a durable exact start/error-end releases maint
     assert.equal(row.value.status, 'released');
     assert.equal(row.value.diagnostics?.at(-1)?.outcome, 'failed-before-replacement');
     assert.equal(row.value.diagnostics?.at(-1)?.auxiliaryEffect, 'unknown');
-    BasicCompactionEngine.prototype.compactNow = async () => { calls++; return null; };
+    h.first.compactIdle = async () => { calls++; return null; };
     assert.equal(await h.first.compactNow(h.agent, h.signal()), null);
     assert.equal(calls, 2, 'only a separate explicit command starts a new official attempt');
-  } finally { BasicCompactionEngine.prototype.compactNow = original; await h.close(); }
+  } finally { await h.close(); }
 });
 
 test('legacy official owner recovers only a unique closed failed transaction and never replays it', async () => {
-  const h = await fixture(), original = BasicCompactionEngine.prototype.compactNow;
+  const h = await fixture();
   let calls = 0;
-  BasicCompactionEngine.prototype.compactNow = async () => { calls++; return null; };
+  h.first.compactIdle = async () => { calls++; return null; };
   try {
     await h.seed('official-started', { kind: 'manual-now' });
     h.events.push({ seq: 21, type: 'compaction/start', data: { compactionId: 'legacy-failed' } },
@@ -148,7 +198,7 @@ test('legacy official owner recovers only a unique closed failed transaction and
     assert.equal(calls, 1);
     assert.equal((await h.owner()).value.diagnostics?.[0]?.outcome, 'failed-before-replacement');
     assert.equal(h.calls.includes('native/import'), false);
-  } finally { BasicCompactionEngine.prototype.compactNow = original; await h.close(); }
+  } finally { await h.close(); }
 });
 
 test('an unmatched official start or two candidate transactions cannot be released from missing summaries', async () => {
@@ -269,9 +319,8 @@ for (const phase of ['preparing', 'decision-started', 'proposal-prepared'] as co
 
   test(`manual compactNow recovers a legacy ${phase} owner before executing the new command`, async () => {
     const h = await fixture();
-    const original = BasicCompactionEngine.prototype.compactNow;
     let officialCalls = 0;
-    BasicCompactionEngine.prototype.compactNow = async () => {
+    h.first.compactIdle = async () => {
       officialCalls++;
       return { compactionId: 'new-manual-command' } as any;
     };
@@ -288,7 +337,6 @@ for (const phase of ['preparing', 'decision-started', 'proposal-prepared'] as co
       assert.notEqual(owner.value.operationId, 'previous-interrupted-operation');
       assert.deepEqual(h.calls, ['native/import'], 'the abandoned auxiliary request is never replayed');
     } finally {
-      BasicCompactionEngine.prototype.compactNow = original;
       await h.close();
     }
   });

@@ -266,6 +266,8 @@ export class HostAttemptTracker {
             ? (usage ? 'reported' : 'unreported') : value.reason.kind === 'aborted' ? 'cancelled' : 'failed';
           successfulTerminal = value.reason.kind === 'stop' || value.reason.kind === 'tool-calls';
           if (value.reason.kind === 'error' || value.reason.kind === 'aborted') {
+            const diagnosis = classifyFailure(value.reason.failure, { phase: 'provider-response', signalAborted: signalAborted() });
+            void diagnose(diagnosis.diagnosticCode, 'provider-response', value.reason.failure);
             const failure = annotateNativeFailure(value.reason.failure, { phase: 'provider-response', signalAborted: signalAborted() });
             value = { ...value, reason: { ...value.reason, failure } };
           }

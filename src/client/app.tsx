@@ -15,6 +15,7 @@ import { DesktopControls } from './DesktopControls.js';
 import { AuxiliarySettings } from './AuxiliarySettings.js';
 import { StepPauseSettings } from './StepPauseSettings.js';
 import { ContextCompactionSettings } from './ContextCompactionSettings.js';
+import { RequestRetrySettings } from './RequestRetrySettings.js';
 import { NativeAppearanceControls } from './NativeAppearanceControls.js';
 import { previewNativeAppearance, saveNativeAppearance } from './native-appearance.js';
 import { NATIVE_APPEARANCE_DEFAULTS, validateNativeAppearance } from '../shared/native-appearance.js';
@@ -206,7 +207,7 @@ function SettingsView({ context, preferences, setPreferences, snapshot, notify, 
     } catch (cause) { setSaveError(cause); }
     finally { setSaving(false); }
   };
-  const groups = [{ id: 'appearance', label: '外观与阅读' }, { id: 'auxiliary', label: '意图识别与旁路审阅' }, { id: 'step-progress', label: '步骤进度' }, { id: 'context-compaction', label: '上下文压缩' }, { id: 'diagnostics', label: '诊断与来源' }];
+  const groups = [{ id: 'appearance', label: '外观与阅读' }, { id: 'auxiliary', label: '意图识别与旁路审阅' }, { id: 'step-progress', label: '步骤进度' }, { id: 'context-compaction', label: '上下文压缩' }, { id: 'request-retry', label: '模型请求重试' }, { id: 'diagnostics', label: '诊断与来源' }];
   if (section === 'auxiliary') return <div className="nexus-page nexus-settings-page"><div className="nexus-settings-layout"><nav className="nexus-settings-nav" aria-label="设置分类">{groups.map(group => <button key={group.id} aria-current={section === group.id ? 'page' : undefined} onClick={() => setSection(group.id)}>{group.label}</button>)}</nav><section className="nexus-settings-content"><h2>意图识别与旁路审阅</h2><AuxiliarySettings api={context.api} /></section></div></div>;
   const update = (value: Partial<Preferences>) => { setDraft(old => ({ ...old, ...value })); setDirty(true); };
   const updateAppearance = (value: Data) => { setAppearanceDraft(old => ({ ...old, ...value })); setDirty(true); };
@@ -221,7 +222,7 @@ function SettingsView({ context, preferences, setPreferences, snapshot, notify, 
   return <div className="nexus-page nexus-settings-page"><div className="nexus-settings-layout">
     <nav className="nexus-settings-nav" aria-label="设置分类">{groups.map(group => <button key={group.id} aria-current={section === group.id ? 'page' : undefined} onClick={() => setSection(group.id)}>{group.label}</button>)}</nav>
     <section className="nexus-settings-content"><h2>{groups.find(group => group.id === section)?.label}</h2>
-      {section === 'step-progress' ? <StepPauseSettings api={context.api} /> : section === 'context-compaction' ? <ContextCompactionSettings api={context.api} /> : section === 'appearance' ? <>
+      {section === 'step-progress' ? <StepPauseSettings api={context.api} /> : section === 'context-compaction' ? <ContextCompactionSettings api={context.api} /> : section === 'request-retry' ? <RequestRetrySettings api={context.api} /> : section === 'appearance' ? <>
         {Boolean(saveError) && <ErrorMessage error={saveError} />}
         <div className="nexus-setting-row"><div><strong>界面语言</strong></div><select aria-label="界面语言" value={language} onChange={event => { setLanguage(event.target.value); try { localStorage.setItem('dsh-nexus:language', event.target.value); } catch {} }}><option value="zh">简体中文</option><option value="en">English</option><option value="ru">Русский</option></select></div>
         <div className="nexus-setting-row"><div><strong>Claude 主题</strong></div><select aria-label="全局皮肤" value={draft.skin} onChange={e => update({ skin: e.target.value as Preferences['skin'] })}><option value="claude">Claude（默认）</option><option value="host">DSH 原生</option></select></div>

@@ -47,7 +47,7 @@
       "version": "0.2.1-rc.2",
       "license": "MIT",
       "upstreamSha256": "b7ac52f20a36430cf01a66b3a36f23a48ffdb22708d714dbe1fff541b5df4ec5",
-      "derivedSha256": "d520322574c016be3e216543938c4ba124fac7af695ca63bde7e8494526a5d2d"
+      "derivedSha256": "d8721c90779745f3959da2a68c3ad110cf1df94591716bb4eed6a208e8cff44e"
     }
   },
   "metis": {

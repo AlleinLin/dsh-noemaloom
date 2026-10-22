@@ -3,6 +3,7 @@ import { workspaceIdentity } from './workspace-runtime.js';
 import { boundedRead } from '../shared/bounded-read.js';
 import { STEP_PAUSE_FEATURE, validateStepPauseConfig } from '../shared/step-pause.js';
 import { CONTEXT_COMPACTION_FEATURE, validateContextCompactionConfig } from '../shared/context-compaction.js';
+import { REQUEST_RETRY_FEATURE, resolveRequestRetryOptions, validateRequestRetryConfig } from '../shared/request-retry.js';
 
 export type ScopeLevel = 'global' | 'workspace' | 'session';
 export const scopeLevel = (ctx?: DispatchContext): ScopeLevel => ctx?.scopeLevel ?? (ctx?.sessionId ? 'session' : 'workspace');
@@ -117,6 +118,10 @@ export function createScopeModule(services: NexusServices): NexusModule {
         && (ctx?.actorId !== 'connection-owner' || !ctx.permissions?.has(`scope.${request.action}`))) {
         throw new NexusError('PERMISSION_DENIED', '上下文自动压缩设置仅由用户在对应范围修改');
       }
+      if (feature === REQUEST_RETRY_FEATURE && ['configure', 'reset'].includes(request.action)
+        && (ctx?.actorId !== 'connection-owner' || !ctx.permissions?.has(`scope.${request.action}`))) {
+        throw new NexusError('PERMISSION_DENIED', '模型请求重试设置仅由用户在对应范围修改');
+      }
       const key = `${scopeKeys(root, ctx).at(-1)}/${feature}`;
       if (request.action === 'configure') {
         const config = request.params?.config as JsonRecord;
@@ -136,6 +141,15 @@ export function createScopeModule(services: NexusServices): NexusModule {
             const result = await services.host.sessions('models/info', route) as JsonRecord;
             if (!Number.isSafeInteger(result.contextWindow) || Number(result.contextWindow) <= 0) throw new NexusError('CTX_MODEL_WINDOW_UNKNOWN', '所选压缩模型未声明有效窗口');
           }
+        }
+        if (feature === REQUEST_RETRY_FEATURE) {
+          const invalid = validateRequestRetryConfig(config);
+          if (invalid) throw new NexusError('INVALID_ARGUMENT', invalid);
+          const inherited = (await effectiveSettings(services.store, root, ctx, feature)).inherited;
+          let effective: JsonRecord = { enabled: true, defaults: {} };
+          for (const layer of inherited) effective = merge(effective, layer.config);
+          try { resolveRequestRetryOptions(merge(effective, config)); }
+          catch (cause) { throw new NexusError('INVALID_ARGUMENT', (cause as Error).message); }
         }
         if (feature === 'auxiliary') {
           const { auxiliarySettings, validateAuxiliaryConfig } = await import('./insights/auxiliary.js');

@@ -3,7 +3,7 @@ import { isSurfaceEvent, SessionSeq, type SessionEvent } from '@deepseek-ai/dsh-
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { z } from 'zod';
-import { toolPairingBalancedBefore, toolPairingBalancedAfter } from '@deepseek-ai/dsh-compaction';
+import { ManualCompactionError, toolPairingBalancedBefore, toolPairingBalancedAfter } from '@deepseek-ai/dsh-compaction';
 import { isNexusError, NexusError, type StoredRecord } from '../ports/contracts.js';
 import { parseCompressArgs } from '../adapters/upstream/billion/index.js';
 import { COMPRESSION_DOCTRINE } from '../domain/context/doctrine.js';
@@ -16,7 +16,7 @@ import { registerNativeCompactionBinding } from './compaction-binding.js';
 import { measureContextPressure, summaryModelPolicy, type ContextAdmission } from './context-pressure.js';
 import { classifyFailure, failureMetadata, mustStopAfterAuxiliaryFailure } from '../shared/error-codes.js';
 import { recordRecoveryDiagnostic } from './request-recovery.js';
-import { compactSurfaceRegion } from '../../vendor/compaction-basic/region.mjs';
+import { buildSummarizationInput, compactSurfaceRegion, selectCompactableRange } from '../../vendor/compaction-basic/region.mjs';
 import { NATIVE_SYNC_CHECKPOINTS, nativeSyncStateHash, type NativeSyncCheckpoint } from '../domain/context/native-sync.js';
 import type { ContextArchiveHead } from '../domain/context/archive-types.js';
 import type { ContextSession } from '../domain/context/types.js';
@@ -605,11 +605,71 @@ export default class NexusCompactionEngine extends BasicCompactionEngine {
 
   override async compactNow(agent: any, signal: AbortSignal, sourceCommandId?: any): Promise<any> {
     try {
-      return await this.withLane(agent, 'manual-now', async owner => {
-        await this.synchronize(agent, signal);
-        return this.commitManual(agent, signal, owner, () => super.compactNow(agent, signal, sourceCommandId));
-      }, signal);
+      signal.throwIfAborted();
+      if (typeof agent.runMaintenance !== 'function') throw new NexusError('HOST_CONTRACT_UNSUPPORTED', '宿主未提供空闲会话维护合同，未执行压缩');
+      let admitted = false;
+      try {
+        // Claim the actual Agent before any lane, sync or model work. A rejected
+        // manual command must never reserve a lane needed by the running turn.
+        return await agent.runMaintenance(async (maintenanceSignal: AbortSignal) => {
+          admitted = true;
+          const operationSignal = AbortSignal.any([signal, maintenanceSignal]);
+          operationSignal.throwIfAborted();
+          this.idleRangeAgents.add(agent);
+          try {
+            return await this.withLane(agent, 'manual-now', async owner => {
+              await this.synchronize(agent, operationSignal);
+              return this.commitManual(agent, operationSignal, owner, () => this.compactIdle(agent, operationSignal, sourceCommandId));
+            }, operationSignal);
+          } catch (error) {
+            if (maintenanceSignal.aborted && operationSignal.reason === maintenanceSignal.reason) {
+              throw new ManualCompactionError('cancelled', 'manual compaction was cancelled', { cause: error });
+            }
+            throw error;
+          } finally { this.idleRangeAgents.delete(agent); }
+        });
+      } catch (error) {
+        if (!admitted && !signal.aborted) throw new NexusError('CTX_NATIVE_BUSY', '会话仍有执行或维护任务；本次手动压缩未获取 lane、未同步或发送摘要，空闲后重试');
+        throw error;
+      }
     } catch (error) { throw toHarnessError(error); }
+  }
+
+  protected async compactIdle(agent: any, signal: AbortSignal, sourceCommandId?: any): Promise<any> {
+    signal.throwIfAborted();
+    const meter = this.nativeContext.get('tokenMeter');
+    const range = selectCompactableRange(agent.session, meter.measure(agent.session), 0);
+    if (!range) return null;
+    const policy = await this.summaryPolicy(agent, signal, await this.measurePressure(agent, signal));
+    const nodes: number[] = agent.session.surface.nodes;
+    const start = nodes.indexOf(range.start), end = nodes.indexOf(range.end);
+    const fits = (last: number) => Buffer.byteLength(JSON.stringify(
+      buildSummarizationInput(agent.session, nodes.slice(start, last + 1))), 'utf8')
+      + policy.summaryMaxTokens + 4096 < policy.summaryWindowTokens;
+    let selectedEnd = end;
+    if (!fits(end)) {
+      // Source size grows monotonically with this exact prefix. Bound the
+      // source before opening a transaction; never truncate a native message.
+      let low = start, high = end - 1;
+      selectedEnd = start - 1;
+      while (low <= high) {
+        const middle = Math.floor((low + high) / 2);
+        if (fits(middle)) { selectedEnd = middle; low = middle + 1; }
+        else high = middle - 1;
+      }
+      while (selectedEnd >= start && !toolPairingBalancedAfter(agent.session, SessionSeq(nodes[selectedEnd]))) selectedEnd--;
+      if (selectedEnd < start) throw new NexusError('CTX_SUMMARY_INPUT_LIMIT', '压缩模型窗口内没有可容纳的完整工具配对范围；请选择更大压缩模型，未发送摘要或替换会话');
+    }
+    return compactSurfaceRegion({
+      meter,
+      summarize: (input, owner, abort) => this.summarize(input, owner, abort),
+      recover: (error, owner, sourceEventSeqs, abort) => this.nativeContext.waterfall('compaction/summary-error', {
+        session: owner.session, sourceEventSeqs, error, ...(abort ? { signal: abort } : {}),
+      }, () => false),
+    }, agent.session, range.start, nodes[selectedEnd], agent, {
+      owner: null, stability: 'selected-span', ...(sourceCommandId === undefined ? {} : { sourceCommandId }),
+      flush: async () => { await this.nativeContext.get('sessions').flush(agent.session); },
+    }, signal);
   }
 
   override async compactRegion(start: any, end: any, agent: any, signal?: AbortSignal): Promise<any> {

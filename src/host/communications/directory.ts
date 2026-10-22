@@ -91,12 +91,15 @@ export async function agentDirectory(ctx: HostContext, caller: any, signal: Abor
   return { rootId: root.id, workspaceRoot, selfId: caller.id, agents: rows, diagnostics };
 }
 
-export function resolveAgent(directory: AgentDirectory, target: unknown): AgentAddress {
+export function resolveAgent(directory: AgentDirectory, target: unknown, alternateTarget?: string): AgentAddress {
   if (typeof target !== 'string' || !target.trim() || target.length > 512) throw communicationError('NX_MAIL_INVALID_TARGET', 'Provide a nonempty exact agent id or task-local alias.');
   const value = target.trim();
   const exact = directory.agents.find(row => row.id === value);
   const matches = exact ? [exact] : directory.agents.filter(row => row.aliases.includes(value));
   if (!matches.length) throw communicationError('NX_MAIL_TARGET_NOT_FOUND', `No target ${JSON.stringify(value)} in this task. Use list_agents; do not recreate an existing agent.`);
   if (matches.length !== 1) throw communicationError('NX_MAIL_TARGET_AMBIGUOUS', `Alias is ambiguous; choose an exact id: ${JSON.stringify(matches.map(row => ({ id: row.id, label: row.label })))}`);
+  if (alternateTarget && resolveAgent(directory, alternateTarget).id !== matches[0].id) {
+    throw communicationError('NX_MAIL_INVALID_TARGET', 'target and agent_id resolve to different agents. No message was sent. Use one exact id from list_agents and omit or empty the other spelling.');
+  }
   return matches[0];
 }
