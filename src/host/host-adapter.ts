@@ -7,7 +7,7 @@ import { createSessionBridge } from './session-bridge.js';
 import { createExtensionBridge } from './extension-bridge.js';
 import { resourceHostAction } from './resource-services.js';
 import { installExecutionPolicy, type ExecutionPolicy } from './execution-policy.js';
-import { coreToNative, nativeToCore, type NativeMessage } from '../adapters/upstream/billion/native.js';
+import { coreToNative, nativeToCore } from '../adapters/upstream/billion/native.js';
 import { NEXUS_SOURCE } from './source.js';
 import { createExtensionClientBridge } from './extension-client-bridge.js';
 import { HostAttemptTracker, type ExplicitAttempt } from './attempt-policy.js';
@@ -21,6 +21,7 @@ import { annotateNativeFailure, nativeErrorIdentity, nativeFailureFacts, toHarne
 import { classifyFailure } from '../shared/error-codes.js';
 import { workspaceIdentity } from '../domain/workspace-runtime.js';
 import { nativeCompactionFor } from './compaction-binding.js';
+import { auxiliaryInputMessages, summaryEnvelopeBudget } from './auxiliary-input.js';
 
 export const hostAuthority = new AsyncLocalStorage<DispatchContext & { ownerIntent?: string; toolExecution?: any }>();
 
@@ -154,17 +155,7 @@ export function createHostAdapter(ctx: HostContext, config: NexusConfig, workspa
       }
       const purpose = ['compression-auxiliary', 'compression-inband', 'memory-extraction', 'title', 'lint-repair', 'background-index', 'diagnostic-canary'].includes(request.role)
         ? request.role : request.role === 'reviewer' ? 'review' : 'workflow-planning';
-      const inputMessages = request.messages ?? [{ role: 'user' as const, content: request.prompt }];
-      const nativeMessages: NativeMessage[] = [
-        ...(request.system ? [{ id: `aux_${logicalCallId}_system`, role: 'system' as const, content: [{ type: 'text', text: request.system }], source: { kind: 'system-prompt' } }] : []),
-        ...inputMessages.map((message, index) => ({
-          id: `aux_${logicalCallId}_${index}`, role: message.role,
-          content: [{ type: 'text', text: message.content }],
-          source: message.role === 'system' ? { kind: 'system-prompt' }
-            : message.role === 'assistant' ? { kind: 'model', provider: 'nexus-composed-context', model: 'authored-assistant-context' }
-            : { kind: NEXUS_SOURCE, meta: { purpose: 'auxiliary-model-input' } },
-        })),
-      ];
+      const nativeMessages = auxiliaryInputMessages(request, logicalCallId);
       if (request.images?.length) {
         if (request.images.length > 16) throw new NexusError('RESOURCE_LIMIT', '每次模型请求最多16张图片');
         const images = request.images.map(image => {
@@ -195,10 +186,10 @@ export function createHostAdapter(ctx: HostContext, config: NexusConfig, workspa
         tools: [], signal, sessionId, purpose,
       };
       if (request.role === 'compression-auxiliary') {
-        const inputUpperEstimate = Buffer.byteLength(JSON.stringify({ system: options.system, messages: options.messages, tools: options.tools }), 'utf8');
-        if (inputUpperEstimate + (options.maxTokens ?? 4096) + 1024 >= prepared.context.contextWindow) {
+        const budget = summaryEnvelopeBudget(options, prepared.context.contextWindow, options.maxTokens ?? 4096);
+        if (!budget.fits) {
           throw new NexusError('CTX_SUMMARY_INPUT_LIMIT', '摘要最终请求超过当前模型安全预算，未发送模型请求',
-            { inputUpperEstimate, outputReserveTokens: options.maxTokens ?? 4096, windowTokens: prepared.context.contextWindow });
+            budget);
         }
       }
       auxiliaryAttempts.set(options, { attemptId, logicalCallId, role: request.role, owner, isolated: request.independentRoute === true });

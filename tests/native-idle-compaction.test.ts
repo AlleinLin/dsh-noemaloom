@@ -1,19 +1,27 @@
 import test, { type TestContext } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
 import { build } from 'esbuild';
 import { Context } from '@deepseek-ai/cordis';
 import { AgentRegistry, type AgentHandle } from '@deepseek-ai/dsh-agent';
 import { AgentLoop } from '@deepseek-ai/dsh-agent-loop';
-import { LlmRuntime, ToolCallId, createToolResultMessage, createUserMessage } from '@deepseek-ai/dsh-llm';
+import { LlmAdapter, LlmRuntime, ToolCallId, createToolResultMessage, createUserMessage, type GenerateOptions, type StreamChunk } from '@deepseek-ai/dsh-llm';
 import { SessionId, SessionStore } from '@deepseek-ai/dsh-session';
 import { SessionProjectionRegistry } from '@deepseek-ai/dsh-session-projection';
 import { SystemPrompt } from '@deepseek-ai/dsh-system-prompt';
 import { ToolRuntime } from '@deepseek-ai/dsh-tools';
 import { TokenMeter } from '@deepseek-ai/dsh-token-meter';
 import { buildSummarizationInput, compactSurfaceRegion } from '../vendor/compaction-basic/region.mjs';
-import NexusCompactionEngine from '../src/host/compaction.js';
+import NexusCompactionEngine, { manualSummaryRequest } from '../src/host/compaction.js';
+import { auxiliaryInputMessages, summaryEnvelopeBudget, summaryRequestBudget } from '../src/host/auxiliary-input.js';
+import { createHostAdapter } from '../src/host/host-adapter.js';
+import { createContextModule } from '../src/domain/context/index.js';
+import type { HostContext } from '../src/host/types.js';
+import type { NexusModule, NexusServices } from '../src/ports/contracts.js';
+import { companionFixture } from './companion-fixture.js';
 
 test('idle selection, source replay and transaction helpers are pinned official implementations with only their exports changed', async () => {
   const upstream = await readFile('vendor/compaction-basic/index.upstream.mjs', 'utf8');
@@ -149,7 +157,8 @@ function idleEngine(root: Context, policy: any) {
   engine.summarize = async (input: any, agent: any) => {
     assert.throws(() => agent.runMaintenance(async () => {}), /already has active work/);
     calls.inputs.push(input);
-    assert.ok(Buffer.byteLength(JSON.stringify(input)) + policy.summaryMaxTokens + 4096 < policy.summaryWindowTokens);
+    assert.ok(summaryRequestBudget(manualSummaryRequest(input, agent.id, policy),
+      policy.summaryWindowTokens, policy.summaryMaxTokens).fits);
     return { summary: [{ type: 'text', text: 'A faithful short summary of the selected source.' }], provider: 'fixture', model: 'fixture' };
   };
   return { engine, calls };
@@ -198,9 +207,13 @@ test('compactNow bounds source to the selected model window without splitting a 
   const tail = createUserMessage({ source: { kind: 'user' }, content: [{ type: 'text', text: 'Unselected current input remains exact.' }] });
   session.append('user/message', tail, { surfaceOp: 'append' });
   const summaryMaxTokens = 128;
-  const summaryWindowTokens = Buffer.byteLength(JSON.stringify(buildSummarizationInput(session, [start, assistant]))) + summaryMaxTokens + 4097;
-  assert.ok(Buffer.byteLength(JSON.stringify(buildSummarizationInput(session, [start, assistant, tool]))) + summaryMaxTokens + 4096 > summaryWindowTokens);
-  const { engine, calls } = idleEngine(root, { summaryWindowTokens, summaryMaxTokens });
+  const policy = { provider: 'fixture', model: 'fixture', summaryWindowTokens: Number.MAX_SAFE_INTEGER, summaryMaxTokens };
+  const budget = summaryRequestBudget(manualSummaryRequest(buildSummarizationInput(session, [start, assistant]), agent.id, policy),
+    policy.summaryWindowTokens, summaryMaxTokens);
+  policy.summaryWindowTokens = budget.inputUpperEstimate + budget.outputReserveTokens + budget.headroomTokens + 1;
+  assert.equal(summaryRequestBudget(manualSummaryRequest(buildSummarizationInput(session, [start, assistant, tool]), agent.id, policy),
+    policy.summaryWindowTokens, summaryMaxTokens).fits, false);
+  const { engine, calls } = idleEngine(root, policy);
   const original = session.snapshotEvents();
   await engine.compactNow(agent, new AbortController().signal, 'bounded-model-command');
   assert.equal(calls.inputs.length, 1);
@@ -226,4 +239,145 @@ test('a source with no complete prefix inside the summary window sends no model 
   assert.deepEqual(session.snapshotEvents(), original);
   assert.equal(engine.idleRangeAgents.has(agent), false);
   await agent.runMaintenance(async () => {});
+});
+
+async function actualSummaryHost(t: TestContext, root: Context, windowTokens: number) {
+  const dataDir = await mkdtemp(join(tmpdir(), 'nexus-summary-envelope-'));
+  const { services: base } = companionFixture();
+  const requests: GenerateOptions[] = [], releases: string[] = [];
+  const route = { provider: 'summary-envelope', model: 'bounded-summary' };
+  class Adapter extends LlmAdapter {
+    override async listModels() { return [{ provider: route.provider, id: route.model, name: route.model }]; }
+    override async resolveModel(provider: string, model: string) {
+      return { provider, id: model, name: model, context: { contextWindow: windowTokens }, defaultMaxTokens: 128 };
+    }
+    async *stream(options: GenerateOptions): AsyncGenerator<StreamChunk> {
+      requests.push(options);
+      const bytes = Buffer.byteLength(JSON.stringify({ system: options.system, messages: options.messages, tools: options.tools }), 'utf8');
+      assert.ok(bytes + (options.maxTokens ?? 4096) + 1024 < windowTokens,
+        'the real prepared stream must receive an envelope inside the selected model window');
+      yield { type: 'block-end', index: 0, block: { type: 'text', text: 'Faithful summary of the selected completed source and remaining constraints.' } };
+      yield { type: 'finish', reason: { kind: 'stop' } };
+    }
+  }
+  root.get('llm')!.registerAdapter([route.provider], new Adapter());
+  let host!: ReturnType<typeof createHostAdapter>, module!: NexusModule;
+  const services: NexusServices = {
+    ...base, dataDir, workspaceRoot: dataDir,
+    async invoke(domain, request, context) {
+      assert.equal(domain, 'context');
+      if (request.action === 'request/release') releases.push(String(request.params?.planId));
+      return module.dispatch(request, context);
+    },
+  };
+  const fiber = root.plugin({ name: 'summary-envelope-real-host', apply(ctx: Context) {
+    host = createHostAdapter(ctx as unknown as HostContext, {}, dataDir, new AbortController().signal);
+    services.host = host;
+    module = createContextModule(services);
+    host.connect(services);
+  } });
+  await fiber.await(); assert.equal(fiber.state, 2);
+  t.after(async () => {
+    await host.dispose(); await module.dispose?.(); await fiber.dispose();
+    await rm(dataDir, { recursive: true, force: true });
+  });
+  return { services, host, requests, releases, route };
+}
+
+test('escape-heavy idle source reaches the actual native summary stream after final-envelope range selection', async t => {
+  const { root, agent, session } = await nativeFixture(t);
+  const seqs = Array.from({ length: 8 }, (_, i) => session.append('user/message', createUserMessage({
+    source: { kind: 'user' }, content: [{ type: 'text', text: `Verified source ${i}: ` + '"C:\\work\\data"\\n'.repeat(900) }],
+  }), { surfaceOp: 'append' }).seq);
+  const tail = createUserMessage({ source: { kind: 'user' }, content: [{ type: 'text', text: 'Current input remains exact.' }] });
+  session.append('user/message', tail, { surfaceOp: 'append' });
+  const fullInput = buildSummarizationInput(session, seqs);
+  const windowTokens = Buffer.byteLength(JSON.stringify(fullInput), 'utf8') + 128 + 4097;
+  const h = await actualSummaryHost(t, root, windowTokens);
+  const policy = { ...h.route, summaryWindowTokens: windowTokens, summaryMaxTokens: 128 };
+  const fullRequest = manualSummaryRequest(fullInput, agent.id, policy);
+  assert.equal(summaryRequestBudget(fullRequest, windowTokens, 128).fits, false,
+    'the old raw-source budget passes while the final serialized envelope cannot fit');
+  assert.equal(summaryEnvelopeBudget({ messages: auxiliaryInputMessages(fullRequest) }, windowTokens, 128).fits, false);
+  const { engine } = idleEngine(root, policy);
+  engine.officialOwners = new WeakMap();
+  engine.pendingSummaries = new WeakMap();
+  const fallback = engine.nativeContext.get;
+  engine.nativeContext.get = (name: string) => name === 'nexus' ? { services: h.services } : fallback(name);
+  delete engine.summarize; // Exercise production summarize, adapter, context preparation and LlmRuntime.
+  const before = session.snapshotEvents();
+  const result = await engine.compactNow(agent, new AbortController().signal, 'escaped-envelope-command');
+  assert.ok(result?.compactionId);
+  assert.equal(h.requests.length, 1);
+  assert.equal(h.releases.length, 1);
+  const events = session.snapshotEvents();
+  assert.deepEqual(events.slice(0, before.length), before);
+  assert.deepEqual(events.slice(before.length).map(event => event.type),
+    ['compaction/start', 'compaction/summary', 'user/message', 'compaction/end']);
+  const summary = events.find(event => event.type === 'compaction/summary')!.data as any;
+  assert.ok(summary.shadowedSeqs.length > 0 && summary.shadowedSeqs.length < seqs.length);
+  const replacement = events[before.length + 2];
+  assert.ok('surfaceOp' in replacement);
+  assert.deepEqual(replacement.surfaceOp,
+    { op: 'replace', startSeq: summary.shadowedSeqs[0], endSeq: summary.shadowedSeqs.at(-1) });
+  for (const seq of seqs.filter(seq => !summary.shadowedSeqs.includes(seq))) {
+    const original = session.deriveEventMessage(session.eventAt(seq)!);
+    assert.deepEqual(session.deriveMessages().find(message => message.id === original!.id), original);
+  }
+  assert.deepEqual(session.deriveMessages().find(message => message.id === tail.id), tail);
+  assert.equal(agent.options.model, undefined, 'the independent summary route must not change the conversation model');
+  await agent.runMaintenance(async () => {});
+});
+
+test('source that fits alone but whose minimum full envelope cannot fit creates no transaction or model request', async t => {
+  const { root, agent, session } = await nativeFixture(t);
+  const first = session.append('user/message', createUserMessage({ source: { kind: 'user' },
+    content: [{ type: 'text', text: '"\\n\\tC:\\work"'.repeat(600) }] }), { surfaceOp: 'append' }).seq;
+  session.append('user/message', createUserMessage({ source: { kind: 'user' },
+    content: [{ type: 'text', text: 'Retain current input.' }] }), { surfaceOp: 'append' });
+  const windowTokens = Buffer.byteLength(JSON.stringify(buildSummarizationInput(session, [first]))) + 128 + 4097;
+  const h = await actualSummaryHost(t, root, windowTokens);
+  const { engine } = idleEngine(root, { ...h.route, summaryWindowTokens: windowTokens, summaryMaxTokens: 128 });
+  const before = session.snapshotEvents();
+  await assert.rejects(engine.compactNow(agent, new AbortController().signal), { code: 'CTX_SUMMARY_INPUT_LIMIT' });
+  assert.deepEqual(session.snapshotEvents(), before);
+  assert.equal(h.requests.length, 0);
+  await agent.runMaintenance(async () => {});
+});
+
+test('summary envelope sizing includes UTF-8, prompts, message wrappers and escaped source with strict headroom', () => {
+  const policy = { provider: 'fixture', model: 'fixture', summaryMaxTokens: 128 };
+  const request = manualSummaryRequest({ tools: [{ name: 'read', description: '只读工具' }],
+    messages: [{ role: 'user', content: [{ type: 'text', text: '"C:\\工作\\result.json"\\n' }] }] }, 'fixture', policy);
+  const envelope = { system: '', messages: auxiliaryInputMessages(request), tools: [] };
+  const bytes = Buffer.byteLength(JSON.stringify(envelope), 'utf8');
+  const budget = summaryRequestBudget(request, Number.MAX_SAFE_INTEGER, 128);
+  assert.equal(budget.inputUpperEstimate, bytes);
+  assert.ok(bytes > Buffer.byteLength(request.prompt, 'utf8') + Buffer.byteLength(request.system!, 'utf8'));
+  assert.equal(budget.headroomTokens, 4096);
+  assert.equal(summaryRequestBudget(request, bytes + 128 + 4096, 128).fits, false);
+  assert.equal(summaryRequestBudget(request, bytes + 128 + 4097, 128).fits, true);
+  assert.equal(summaryEnvelopeBudget(envelope, bytes + 128 + 1024, 128).fits, false);
+  assert.equal(summaryEnvelopeBudget(envelope, bytes + 128 + 1025, 128).fits, true);
+});
+
+test('the final host guard rejects an oversized escaped envelope, releases its plan, and accepts the next request', async t => {
+  const { root } = await nativeFixture(t);
+  const prompt = '\\'.repeat(16000);
+  const windowTokens = Buffer.byteLength(prompt) + 128 + 1025;
+  const h = await actualSummaryHost(t, root, windowTokens);
+  const request = { ...h.route, role: 'compression-auxiliary', independentRoute: true, sessionId: 'guard-release',
+    prompt, maxTokens: 128 };
+  await assert.rejects(h.host.model(request), (error: any) => {
+    assert.equal(error.code, 'CTX_SUMMARY_INPUT_LIMIT');
+    assert.match(error.message, /摘要最终请求/);
+    assert.ok(error.details.inputUpperEstimate + 128 + 1024 >= windowTokens);
+    return true;
+  });
+  assert.equal(h.requests.length, 0, 'local envelope rejection must not dispatch a paid request');
+  assert.equal(h.releases.length, 1, 'the prepared request is released even if the final guard refuses it');
+  const result = await h.host.model({ ...request, prompt: 'A smaller subsequent explicit request.' });
+  assert.ok(result.text);
+  assert.equal(h.requests.length, 1);
+  assert.equal(h.releases.length, 2);
 });
