@@ -8,6 +8,13 @@ The body font and palette follow the existing Claude theme; code uses monospace.
 Better Sidebar's file router yields supported extensions to this renderer.
 Its original editor remains available for other formats and previously open tabs.
 
+Monaco reads the inherited palette from DSH's `body`, including the native
+`data-ds-dark-theme` marker. The initial editor, gutter, find/hover widgets and
+both diff panes use that palette before mounting. Switching light/dark or the
+Claude skin updates open editors without recreating models or changing drafts.
+All tabs share one theme subscription; it observes only root/body theme
+attributes and skin lifecycle events, not editor rendering mutations.
+
 ## Editing and recovery
 
 Use Save or Ctrl/Cmd+S, Find, Replace, and Compare in the file toolbar. Writes

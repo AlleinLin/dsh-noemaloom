@@ -15,6 +15,7 @@ function subscribe(listener: () => void) {
 /** One global, removable skin. DSH continues to own light/dark selection. */
 export function NativeTheme() {
   const active = React.useSyncExternalStore(subscribe, enabled, () => true);
+  React.useLayoutEffect(() => { window.dispatchEvent(new Event('nexus:theme')); }, [active]);
   return <>
     <style data-nexus-native-appearance="">{nativeChromeCss}</style>
     <style data-nexus-live-commands="">{liveCommandsCss}</style>

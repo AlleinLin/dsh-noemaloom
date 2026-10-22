@@ -3,6 +3,7 @@ import * as monaco from 'monaco-editor';
 import { retainModel, releaseModel, saveModel, discardModel, adoptDiskBase, disposeModels, type EditorRecord } from './models.js';
 import type { NexusApi } from '../types.js';
 import { DebugPanel } from './DebugPanel.js';
+import { EDITOR_THEME, watchEditorTheme } from './theme.js';
 import './editor.css';
 
 interface Props {
@@ -61,8 +62,9 @@ export function Editor(props: Props) {
   }, [record]);
   React.useEffect(() => {
     if (!record || !mount.current) return;
-    theme();
+    const releaseTheme = watchEditorTheme(monaco.editor, mount.current.ownerDocument);
     const options: monaco.editor.IStandaloneEditorConstructionOptions = {
+      theme: EDITOR_THEME,
       automaticLayout: true, fontFamily: '"Cascadia Code", Consolas, "SFMono-Regular", monospace', fontSize: 13,
       minimap: { enabled: false }, glyphMargin: true, scrollBeyondLastLine: false, fixedOverflowWidgets: true,
       wordWrap: 'off', tabSize: 2, readOnly: new TextEncoder().encode(record.model.getValue()).length > 512 * 1024,
@@ -83,13 +85,11 @@ export function Editor(props: Props) {
       const next = pointRef.current.some(point => point.line === line) ? pointRef.current.filter(point => point.line !== line) : [...pointRef.current, { line }].sort((a, b) => a.line - b.line);
       void changeBreakpoints(next);
     });
-    const observer = new MutationObserver(theme);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'data-theme', 'style'] });
     let active = true;
     const dispose = () => {
       if (!active) return; active = false; mountedEditors.delete(dispose);
       const state = code.saveViewState(); if (state) record.views.set(tab.id, state);
-      observer.disconnect(); toggle.dispose(); instance.dispose(); base?.dispose(); editor.current = null;
+      releaseTheme(); toggle.dispose(); instance.dispose(); base?.dispose(); editor.current = null;
     };
     mountedEditors.add(dispose);
     return dispose;
@@ -174,19 +174,4 @@ export function Editor(props: Props) {
       onBreakpoints={(path, values) => { if (record && samePath(path, record.path)) setVerified(previous => [...previous.filter(point => !values.some(value => value.id !== undefined && value.id === point.id || value.line === point.line)), ...values]); }}
       onStopped={openSource} onRunning={() => setStopped(undefined)} />}
   </section>;
-}
-let themeKey = '';
-function theme() {
-  const style = getComputedStyle(document.documentElement);
-  const color = (name: string, fallback: string) => style.getPropertyValue(name).trim() || fallback;
-  const background = color('--dsw-alias-bg-base', '#faf9f5');
-  const foreground = color('--dsw-alias-label-primary', '#24231f');
-  const accent = color('--dsw-alias-brand-primary', '#b85f40');
-  const dark = document.documentElement.classList.contains('dark') || document.documentElement.dataset.theme === 'dark';
-  const key = `${dark}:${background}:${foreground}:${accent}`; if (key === themeKey) return; themeKey = key;
-  const hex = (value: string, fallback: string) => /^#[0-9a-f]{6}$/i.test(value) ? value : fallback;
-  monaco.editor.defineTheme('nexus-native', { base: dark ? 'vs-dark' : 'vs', inherit: true, rules: [],
-    colors: { 'editor.background': hex(background, dark ? '#262624' : '#faf9f5'), 'editor.foreground': hex(foreground, dark ? '#eeede7' : '#24231f'),
-      'editorCursor.foreground': hex(accent, '#b85f40'), 'editorLineNumber.foreground': dark ? '#99978e' : '#77756c', 'editor.selectionBackground': dark ? '#6f4b3d' : '#ead7ca' } });
-  monaco.editor.setTheme('nexus-native');
 }
