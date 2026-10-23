@@ -102,7 +102,15 @@ export function classifyFailure(error: unknown, context: FailureContext = {}): F
   const codes = chain.flatMap(item => [item.code, ...(Array.isArray(item.causeCodes) ? item.causeCodes.slice(0, 12) : [])])
     .filter((value): value is string => typeof value === 'string' && CODE.test(value));
   const overflow = chain.some(item => [item.code, item.type].some(value =>
-    typeof value === 'string' && value.length <= 96 && OVERFLOW.has(value.toUpperCase())));
+    typeof value === 'string' && value.length <= 96 && OVERFLOW.has(value.toUpperCase()))
+    // PI adapters sometimes flatten the provider's typed error into message.
+    // Only explicit overflow markers qualify; "compact" or an opaque PI code
+    // alone is never evidence that a context replacement is needed.
+    || typeof item.message === 'string' && item.message.length <= 32768
+      && (/\b(?:CONTEXT_WINDOW_EXCEEDED|CONTEXT_LENGTH_EXCEEDED|MAX_CONTEXT_LENGTH_EXCEEDED|PROMPT_TOO_LONG)\b/i.test(item.message)
+        || /\b(?:context (?:window|length)|prompt (?:length|tokens?))\s+(?:has\s+)?exceed(?:s|ed)?\b/i.test(item.message)
+        || /\bmaximum context length is\s+\d[\d,]*\s+tokens?\b/i.test(item.message)
+          && /\b(?:requested|resulted in)\s+\d[\d,]*\s+tokens?\b/i.test(item.message)));
   // Some adapters have already reduced a socket Error to a released failure
   // snapshot. Recognize exact platform markers without retaining its body.
   for (const item of chain) {

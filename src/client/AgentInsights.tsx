@@ -1,13 +1,15 @@
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 import { createNexusApi, errorData } from './transport.js';
 import type { ClientContext, Data, NexusApi, NexusScope } from './types.js';
 import { AutonomyPlan } from './AutonomyPlan.js';
 import { AuxiliarySettings } from './AuxiliarySettings.js';
 import styles from './agent-insights.css';
 import { sampledSource, visiblePoll } from './visible-poll.js';
+import { contextOccupancy } from '../shared/context-occupancy.js';
 
 const empty = {};
-const FactsContext = React.createContext<{ ctx?: any; insights: Record<string, Data>; projections: Data; api?: NexusApi }>({ insights: empty, projections: empty });
+const FactsContext = React.createContext<{ ctx?: any; insights: Record<string, Data>; projections: Data; api?: NexusApi; active?: boolean }>({ insights: empty, projections: empty });
 const labels: Record<string, string> = { system: '系统', tools: '工具定义', user: '用户', inject: '注入', skill: '技能', assistant: '助手', tool: '工具结果' };
 const colors = ['#a7866c', '#bc9062', '#74958b', '#b58aaa', '#8595ac', '#c98069', '#8c9c69'];
 function subscribeConnection(ctx: ClientContext, api: NexusApi) {
@@ -20,18 +22,17 @@ function subscribeConnection(ctx: ClientContext, api: NexusApi) {
 }
 /** Mirrors Context's current-pressure calibration; billed usage stays separate. */
 export function agentContextMetrics(values: Data) {
-  const head = values.contextTimeline, pressure = values.contextPressure, breakdown = values.contextBreakdown;
-  const current = head?.current;
-  if (!current) return undefined;
-  const last = head.last ?? head.requests?.at(-1);
-  const tokens = Math.max(0, pressure?.projectedTokens ?? pressure?.pressureTokens
-    ?? (Number.isFinite(last?.prompt) ? last.prompt + current.total - last.total : current.total));
-  const window = pressure?.contextWindow ?? head.contextWindow;
+  const breakdown = values.contextBreakdown;
+  const current = values.contextTimeline?.current ?? {};
+  const occupancy = contextOccupancy(values);
+  if (occupancy.tokens === undefined) return undefined;
+  const tokens = occupancy.tokens, window = occupancy.window ?? 0;
   const messageTotal = ['user', 'inject', 'skill', 'assistant', 'tool'].reduce((sum, key) => sum + (current[key] ?? 0), 0);
   const parts = Object.keys(labels).map((key, index) => ({ key, label: labels[key], color: colors[index],
     value: key === 'system' ? breakdown?.systemTokens ?? current.system ?? 0
       : key === 'tools' ? breakdown?.toolsTokens ?? current.tools ?? 0
-      : messageTotal > 0 ? (breakdown?.messageTokens ?? messageTotal) * (current[key] ?? 0) / messageTotal : 0 }));
+      : messageTotal > 0 ? (breakdown?.messageTokens ?? messageTotal) * (current[key] ?? 0) / messageTotal
+        : key === 'assistant' ? breakdown?.messageTokens ?? 0 : 0 }));
   const total = parts.reduce((sum, part) => sum + part.value, 0);
   const billed = values.tokenUsage;
   return { tokens, window, percent: window > 0 ? Math.min(100, Math.round(tokens / window * 1000) / 10) : undefined,
@@ -66,11 +67,64 @@ export function AgentInsightsProvider({ ctx, sessionId, active = true, children 
     }, { delay: () => 8000 });
     return () => { controller.abort(); poll.dispose(); };
   }, [api, root, active, generation]);
-  return <FactsContext.Provider value={{ ctx, api, insights, projections: list.projectionsBySession ?? empty }}><style>{styles}</style>{children}</FactsContext.Provider>;
+  return <FactsContext.Provider value={{ ctx, api, insights, active, projections: list.projectionsBySession ?? empty }}><style>{styles}</style>{children}</FactsContext.Provider>;
 }
+function InsightDialog({ children, close }: { children: React.ReactNode; close(): void }) {
+  const ref = React.useRef<HTMLDialogElement>(null);
+  const stopResize = React.useRef<(() => void) | undefined>(undefined);
+  React.useLayoutEffect(() => {
+    const element = ref.current!;
+    element.showModal();
+    return () => { stopResize.current?.(); element.close(); };
+  }, []);
+  return createPortal(<dialog ref={ref} aria-label="代理任务与上下文" className="nexus-insight-dialog"
+    onCancel={event => { event.preventDefault(); close(); }}
+    onClick={event => { event.stopPropagation(); if (event.target === event.currentTarget) {
+      const rect = event.currentTarget.getBoundingClientRect();
+      if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) close();
+    } }}
+    onPointerDown={event => event.stopPropagation()} onWheel={event => event.stopPropagation()}>
+    <button type="button" className="nexus-insight-close" onClick={close} aria-label="关闭">×</button>
+    <div className="nexus-insight-body">{children}</div>
+    <button type="button" className="nexus-insight-resize" aria-label="调整窗口大小" title="拖动调整大小"
+      onPointerDown={event => {
+        if (event.button !== 0) return;
+        event.preventDefault(); event.stopPropagation();
+        stopResize.current?.();
+        const element = ref.current!, rect = element.getBoundingClientRect();
+        const viewport = element.ownerDocument.defaultView!;
+        const x = event.clientX, y = event.clientY, pointerId = event.pointerId;
+        const move = (next: PointerEvent) => {
+          if (next.pointerId !== pointerId) return;
+          const width = Math.max(Math.min(360, viewport.innerWidth - 32),
+            Math.min(viewport.innerWidth - 32, rect.width + next.clientX - x));
+          const height = Math.max(Math.min(260, viewport.innerHeight - 32),
+            Math.min(viewport.innerHeight - 32, rect.height + next.clientY - y));
+          element.style.width = `${width}px`; element.style.height = `${height}px`;
+        };
+        // Window listeners keep working if the native top layer releases
+        // pointer capture. They exist only for this gesture and are disposed
+        // on up, cancel, blur, or owner unmount.
+        const stop = () => {
+          viewport.removeEventListener('pointermove', move);
+          viewport.removeEventListener('pointerup', stop);
+          viewport.removeEventListener('pointercancel', stop);
+          viewport.removeEventListener('blur', stop);
+          if (stopResize.current === stop) stopResize.current = undefined;
+        };
+        stopResize.current = stop;
+        viewport.addEventListener('pointermove', move);
+        viewport.addEventListener('pointerup', stop);
+        viewport.addEventListener('pointercancel', stop);
+        viewport.addEventListener('blur', stop);
+      }}>◢</button>
+  </dialog>, document.body);
+}
+
 export function AgentFacts({ node, compact = false }: { node: Data; compact?: boolean }) {
-  const { insights, projections, api } = React.useContext(FactsContext);
+  const { insights, projections, api, active = true } = React.useContext(FactsContext);
   const [open, setOpen] = React.useState(false);
+  React.useEffect(() => { setOpen(false); }, [active, node.id]);
   const metrics = agentContextMetrics(projections[node.id]?.values ?? {});
   const insight = insights[node.id], summary = insight?.summary;
   const full = [summary?.goal && `目标：${summary.goal}`, summary?.currentWork && `当前：${summary.currentWork}`, summary?.nextStep && `建议：${summary.nextStep}`].filter(Boolean).join('\n');
@@ -81,13 +135,12 @@ export function AgentFacts({ node, compact = false }: { node: Data; compact?: bo
     </span>
     {!compact && <span className="nexus-agent-goal" title={full}>{summary?.goal ? `目标 · ${summary.goal}` : node.tasks?.length ? `任务 · ${node.tasks[0].subject}` : '目标待分析'}</span>}
     <button className="nexus-agent-suggestion" title={full || '任务规划与上下文'} onClick={event => { event.stopPropagation(); setOpen(true); }}>{compact ? '规划与上下文' : summary?.nextStep ? `建议 · ${summary.nextStep}` : '规划与上下文'}</button>
-    {open && api && <span className="nexus-insight-backdrop" onClick={event => { event.stopPropagation(); setOpen(false); }}><span role="dialog" aria-modal="true" aria-label="代理任务与上下文" className="nexus-insight-dialog" onClick={event => event.stopPropagation()} onKeyDown={event => { if (event.key === 'Escape') setOpen(false); }}>
-      <button className="nexus-insight-close" onClick={() => setOpen(false)} aria-label="关闭">×</button>
-      <strong>{node.label}</strong><span>宿主状态 · {node.state}</span>
+    {open && api && active && <InsightDialog close={() => setOpen(false)}>
+      <header className="nexus-insight-heading"><strong>{node.label}</strong><span>宿主状态 · {node.state}</span></header>
       {metrics && <span>当前上下文 ≈{number(metrics.tokens)} / {metrics.window > 0 ? number(metrics.window) : '未知'}{metrics.percent === undefined ? '' : ` · ${metrics.percent}%`}{metrics.billed === undefined ? '' : `　累计消耗 ${number(metrics.billed)}`}</span>}
       {metrics && <span className="nexus-context-legend">{metrics.parts.map(p => <span key={p.key}><i style={{ background: p.color }} />{p.label} ≈{number(p.value)}</span>)}</span>}
-      <TaskInsights api={api} scope={{ level: 'session', sessionId: node.id }} />
-    </span></span>}
+      <div className="nexus-insight-columns"><TaskInsights api={api} scope={{ level: 'session', sessionId: node.id }} /></div>
+    </InsightDialog>}
   </span>;
 }
 

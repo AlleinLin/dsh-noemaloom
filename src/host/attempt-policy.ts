@@ -217,6 +217,7 @@ export class HostAttemptTracker {
     let firstReasoningAt: string | undefined;
     let timeToFirstReasoningMs: number | undefined;
     let providerRequestId: string | undefined;
+    let emptyUsage: any;
     const execute = <T>(operation: () => T): T => owner ? this.operation.run(owner, operation) : operation();
     let iterator: AsyncIterator<any> | undefined;
     try {
@@ -229,6 +230,20 @@ export class HostAttemptTracker {
         const chunk = await execute(() => iterator!.next());
         if (chunk.done) break;
         let value = chunk.value;
+        if (value.type === 'usage') {
+          // PI can emit a synthetic all-zero sample immediately before its
+          // error finish. Publishing it resets native pressure to zero and
+          // destroys the previous calibration, including after restoration.
+          // Hold it until success; real positive usage always passes through.
+          const sample = value.usage;
+          if (sample && sample.inputTokens === 0 && sample.outputTokens === 0
+            && !(sample.cacheReadTokens > 0) && !(sample.cacheWriteTokens > 0)
+            && !(sample.totalTokens > 0)) {
+            emptyUsage = value;
+            continue;
+          }
+          emptyUsage = undefined;
+        }
         if (successfulTerminal && value.type === 'finish') {
           const tail = value.reason?.failure;
           // The official adapter normalizer discards DOMException.name and
@@ -256,6 +271,11 @@ export class HostAttemptTracker {
           firstReasoningAt = new Date().toISOString();
         }
         if (value.type === 'finish') {
+          if (emptyUsage && (value.reason.kind === 'stop' || value.reason.kind === 'tool-calls')) {
+            usage = emptyUsage.usage;
+            yield emptyUsage;
+          }
+          emptyUsage = undefined;
           terminal = true;
           terminalKind = value.reason.kind;
           terminalAt = performance.now();

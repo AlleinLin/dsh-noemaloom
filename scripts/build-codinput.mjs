@@ -17,6 +17,8 @@ export const CODINPUT_ADAPTATIONS = [
   'viewport-bounded-scrollable-menus',
   'theme-primary-send-control',
   'rebuild-with-pinned-safe-dependencies',
+  'preserve-native-tab-pointer-gestures',
+  'restored-context-surface-estimate',
 ];
 
 /** Fail closed when upstream changes; the recorded vendor itself stays verbatim. */
@@ -52,6 +54,9 @@ export async function buildCodinputClient() {
     plugins: [{
       name: 'verified-codinput-adaptations',
       setup(builder) {
+        builder.onResolve({ filter: /^nexus:context-occupancy$/ }, () => ({
+          path: join(root, 'src/shared/context-occupancy.ts'),
+        }));
         builder.onLoad({ filter: /[/\\]vendor[/\\]codinput[/\\]src[/\\].*\.[jt]sx?$/ }, async args => ({
           contents: adaptCodinputSource(relative(vendorRoot, args.path).replaceAll('\\', '/'), await readFile(args.path)),
           loader: args.path.endsWith('x') ? 'tsx' : 'ts',

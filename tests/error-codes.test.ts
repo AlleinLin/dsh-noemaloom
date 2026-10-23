@@ -16,6 +16,18 @@ test('PI_AI_ERROR is an opaque provider failure and does not imply a confirmed i
   assert.equal(confirmed.requestId, 'public-request');
 });
 
+test('flattened PI overflow messages keep their explicit context identity without guessing from compaction proximity', () => {
+  for (const message of ['context_length_exceeded', 'Context window exceeded',
+    "This model's maximum context length is 500000 tokens. However, you requested 500100 tokens."]) {
+    const result = classifyFailure({ code: 'PI_AI_ERROR', message });
+    assert.equal(result.canonicalCode, 'CONTEXT_WINDOW_EXCEEDED', message);
+    assert.equal(result.retryable, false, 'native compaction must prove shrinkage before any retry');
+  }
+  for (const message of ['opaque', 'compaction happened earlier', 'tool result too long', 'failed to compact']) {
+    assert.equal(classifyFailure({ code: 'PI_AI_ERROR', message }).canonicalCode, 'PI_AI_ERROR');
+  }
+});
+
 test('network causes survive reduced provider failures without leaking raw bodies', () => {
   for (const error of [
     new Error('fetch failed', { cause: Object.assign(new Error('private'), { code: 'ECONNRESET' }) }),

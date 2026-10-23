@@ -286,6 +286,50 @@ test('a stalled provider diagnostic observer cannot hold the native failure boun
   assert.equal(h.toolsExecuted(), 0);
 });
 
+test('synthetic all-zero usage on PI failure does not overwrite native context calibration', async t => {
+  const h = await fixture(t, {
+    async *produce() {
+      yield { type: 'usage', usage: { inputTokens: 0, outputTokens: 0, totalTokens: 0 } };
+      yield { type: 'finish', reason: { kind: 'error', failure: { code: 'PI_AI_ERROR', message: 'opaque' } } };
+    },
+  });
+  const { agent } = await h.create('pi-zero-usage');
+  await h.start(agent);
+  const attempt = eventsOf(agent, 'assistant/attempt').at(-1)!;
+  assert.equal(expandAssistantStream(attempt.data.stream).some(item => item.chunk.type === 'usage'), false);
+  assert.equal(h.recovery.length, 1);
+  assert.equal(h.recovery[0].failure.code, 'PI_AI_ERROR');
+  assert.equal(h.adapter.calls.length, 1);
+});
+
+test('positive prompt usage on a failed response remains billable and visible', async t => {
+  const h = await fixture(t, {
+    async *produce() {
+      yield { type: 'usage', usage: { inputTokens: 0, outputTokens: 0, cacheReadTokens: 450000 } };
+      yield { type: 'finish', reason: { kind: 'error', failure: { code: 'PI_AI_ERROR', message: 'opaque' } } };
+    },
+  });
+  const { agent } = await h.create('pi-positive-usage');
+  await h.start(agent);
+  const attempt = eventsOf(agent, 'assistant/attempt').at(-1)!;
+  const chunks = expandAssistantStream(attempt.data.stream);
+  assert.ok(chunks.some(item => item.chunk.type === 'usage' && item.chunk.usage.cacheReadTokens === 450000));
+});
+
+test('explicit context overflow inside PI message reaches native overflow recovery instead of opaque provider-stop', async t => {
+  const h = await fixture(t, {
+    async *produce() {
+      yield { type: 'finish', reason: { kind: 'error', failure: {
+        code: 'PI_AI_ERROR', message: 'context_length_exceeded: private prompt body',
+      } } };
+    },
+  });
+  const { agent } = await h.create('pi-typed-overflow');
+  await h.start(agent);
+  assert.equal(h.recovery[0].failure.code, 'CONTEXT_WINDOW_EXCEEDED');
+  assert.equal(h.recovery[0].failure.message.includes('private'), false);
+});
+
 test('the old awaited observer reproduces finish(tool-calls), assistant/attempt, UNKNOWN and no tool dispatch', async t => {
   const h = await fixture(t, {
     oldAwaitedObserver: true,

@@ -128,5 +128,41 @@
         "after": "  backdrop-filter: var(--dsw-menu-backdrop-filter, none); color: var(--dsw-alias-label-primary, #ececf1);\n  --dsw-elevation-stroke-color: var(--dsw-alias-border-l1, transparent);\n  box-shadow: var(--dsw-elevation-prominent, 0 10px 34px rgba(0, 0, 0, 0.35)); border: 0; border-radius: var(--dsw-radius-lg, 20px); font-size: 13px; }\n.dci-menuSurface { overflow: hidden; }\n.dci-viewport { display: flex; flex: 1 1 auto; flex-direction: column; min-height: 0; overflow-x: hidden; overflow-y: auto;\n  overscroll-behavior: contain; touch-action: pan-y; -webkit-overflow-scrolling: touch; }\n.dci-menuLabel { padding: 8px 10px; font-size: 12px; line-height: 16px; color: var(--dsw-alias-label-tertiary, currentColor);\n  user-select: none; text-align: left; }\n.dci-item { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 40px; padding: 8px 10px; border: none;\n"
       }
     ]
+  },
+  {
+    "file": "src/client/index.tsx",
+    "upstreamSha256": "97c30e9e7c949b3c75ed686ff785dcdeb99556fc9734bec8319e0a11c0c4f992",
+    "replacements": [
+      {
+        "before": "  // ---- 去掉 dockkit「拖动标签页→浮动/换位」手势（产品决策 2026-09-20：\n  // 悬浮只经主输入卡片 pin 按钮进入）。capture 相位拦掉 tab chip 的\n  // pointerdown，dockkit 的 press→drag 追踪不再启动；点击激活走独立\n  // click 事件、关闭按钮有专属 pointerdown 处理，均不受影响。 ----\n  runGuarded('draggate.install', () => {\n    const w = window as unknown as { __dshCodinputDragGate?: boolean };\n    if (w.__dshCodinputDragGate) return;\n    w.__dshCodinputDragGate = true;\n    document.addEventListener(\n      'pointerdown',\n      (event) => {\n        if (!(event.target instanceof Element)) return;\n        if (event.target.closest('[data-dockkit-tab-close]')) return;\n        if (event.target.closest('[data-dockkit-tab]')) event.stopPropagation();\n      },\n      { capture: true },\n    );\n  });\n\n",
+        "after": "  // Native dockkit owns tab dragging; never capture document-wide pointer events.\n\n"
+      }
+    ]
+  },
+  {
+    "file": "src/client/components/StatsRow.tsx",
+    "upstreamSha256": "a3fdc36c9a57400d25313871b5b8ad5b36b7ae53e5019ed52bf7d2d5f812ca76",
+    "replacements": [
+      {
+        "before": "const GAUGE_CIRCUMFERENCE = 2 * Math.PI * 5.5;",
+        "after": "import { contextOccupancy } from 'nexus:context-occupancy';\n\nconst GAUGE_CIRCUMFERENCE = 2 * Math.PI * 5.5;"
+      },
+      {
+        "before": "  const usedTokens = pressure.projectedTokens ?? pressure.pressureTokens ?? 0;",
+        "after": "  const usedTokens = contextOccupancy({ contextPressure: pressure, contextBreakdown: breakdown }).tokens;\n  const known = usedTokens !== undefined;\n  const displayTokens = usedTokens ?? 0;"
+      },
+      {
+        "before": "  const pct = Math.min(100, Math.round((usedTokens / windowTokens) * 100));",
+        "after": "  const pct = Math.min(100, Math.round((displayTokens / windowTokens) * 100));"
+      },
+      {
+        "before": "<span>{Math.round(pct)}%</span>",
+        "after": "<span>{known ? `${Math.round(pct)}%` : '—'}</span>"
+      },
+      {
+        "before": "~{shortTokens(usedTokens)} / {shortTokens(windowTokens)}",
+        "after": "{known ? `~${shortTokens(displayTokens)}` : '—'} / {shortTokens(windowTokens)}"
+      }
+    ]
   }
 ]

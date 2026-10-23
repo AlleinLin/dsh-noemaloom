@@ -5,7 +5,16 @@ function once(source, anchor, replacement, label) {
 }
 /** Keep the original tree/graph, polls and team model; share one cache. */
 export function adaptAgentClient(factory) {
-  let source = once(factory, 'function SubagentView(props) {',
+  // A completed background pan must suppress only its own derived click.
+  // Reset before testing node/control targets, including expanded groups.
+  let source = once(factory, `stopGlide();
+\t\t\t\tconst target = event.target;
+\t\t\t\tif (target.closest("[data-graph-node]") !== null) return;`,
+    `stopGlide();
+                travelRef.current = 0;
+\t\t\t\tconst target = event.target;
+\t\t\t\tif (target.closest("[data-graph-node]") !== null) return;`, 'graph click admission');
+  source = once(source, 'function SubagentView(props) {',
     `const nexusAgentFacts = require("@local/dsh-nexus/agent-insights");
     function SubagentView(props) {
       return react_jsx_runtime.jsx(nexusAgentFacts.AgentInsightsProvider, {

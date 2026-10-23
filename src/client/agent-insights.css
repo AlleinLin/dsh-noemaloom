@@ -2,8 +2,15 @@
 .nexus-agent-context,.nexus-agent-goal,.nexus-agent-suggestion{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;min-width:0;max-width:100%}
 .nexus-agent-stack{display:flex;height:4px;min-height:4px;border-radius:4px;background:var(--dsw-alias-border-l1);overflow:hidden}
 .nexus-agent-suggestion{border:0;background:transparent;color:var(--dsw-alias-state-business-primary);padding:0;text-align:left;font:inherit;cursor:pointer}
-.nexus-insight-backdrop{position:fixed;inset:0;z-index:1600;background:#0003;display:flex;align-items:center;justify-content:center;padding:24px}
-.nexus-insight-dialog{display:flex;flex-direction:column;gap:10px;position:relative;width:min(600px,90vw);max-height:80vh;overflow:auto;padding:24px;border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1);border-radius:16px;box-shadow:0 12px 48px #0002;font-size:12px;line-height:1.6;color:var(--dsw-alias-label-primary)}
+.nexus-insight-dialog{box-sizing:border-box;position:fixed;inset:0;margin:auto;width:min(960px,calc(100vw - 32px));height:min(720px,calc(100vh - 32px));min-width:min(360px,calc(100vw - 32px));min-height:min(260px,calc(100vh - 32px));max-width:calc(100vw - 32px);max-height:calc(100vh - 32px);overflow:hidden;padding:24px;border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1,#292724);border-radius:16px;box-shadow:0 12px 48px #0002;font-size:12px;line-height:1.6;color:var(--dsw-alias-label-primary);white-space:normal;container-type:inline-size}
+.nexus-insight-dialog[open]{display:flex;flex-direction:column;gap:10px}
+.nexus-insight-dialog::backdrop{background:#0005}
+.nexus-insight-body{display:flex;flex-direction:column;gap:10px;flex:1;min-height:0;overflow:auto;overscroll-behavior:contain}
+.nexus-insight-resize{position:absolute;right:2px;bottom:2px;width:22px;height:22px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;color:var(--dsw-alias-label-tertiary);font-size:14px;cursor:nwse-resize;touch-action:none}
+.nexus-insight-heading{display:flex;flex-direction:column;gap:6px;padding-right:24px}
+.nexus-insight-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start;min-height:0}
+.nexus-insight-columns>*{min-width:0;max-width:100%;box-sizing:border-box}
+@container (max-width:680px){.nexus-insight-columns{grid-template-columns:minmax(0,1fr)}}
 .nexus-insight-close{position:absolute;right:12px;top:8px;background:none;border:0;color:inherit;cursor:pointer;font-size:20px}
 .nexus-context-legend{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:11px}.nexus-context-legend i{display:inline-block;width:7px;height:7px;border-radius:3px;margin-right:4px}
 .nexus-task-insights{border:1px solid var(--dsw-alias-border-l2);border-radius:12px;padding:12px;margin:8px 0;line-height:1.6;color:var(--dsw-alias-label-primary);font-size:12px}
