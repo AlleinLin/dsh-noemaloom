@@ -86,7 +86,7 @@ export function failureMetadata(error: unknown): FailureMetadata {
   const status = chain.map(item => item.status ?? item.statusCode).find(value => Number.isInteger(value) && value >= 100 && value <= 599);
   const requestId = chain.map(item => item.requestId).find(value => typeof value === 'string' && /^[a-zA-Z0-9._:-]{1,160}$/.test(value));
   const providerRetryAfterMs = chain.map(item => item.providerRetryAfterMs)
-    .find((value): value is number => typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 86_400_000);
+    .find((value): value is number => typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= Number.MAX_SAFE_INTEGER);
   const provenance = chain.some(item => item.provenance === 'provider' || item.name === 'LlmError'
     || isNexusError(item) && record(item.details).provenance === 'provider') ? 'provider' as const : undefined;
   const authorityDenied = chain.some(item => item.authorityDenied === true
@@ -204,7 +204,8 @@ export function isRecoverableStreamTail(error: unknown, context: FailureContext 
   if (context.signalAborted) return false;
   const code = record(error).code;
   if (typeof code === 'string' && !TRANSPORT.has(code) && !TIMEOUT.has(code)
-    && !['UNKNOWN', 'UNCLASSIFIED_FAILURE', 'ABORTED', 'CANCELLED'].includes(code)) return false;
+    && !['UNKNOWN', 'UNCLASSIFIED_FAILURE', 'ABORTED', 'CANCELLED', 'PI_AI_ERROR'].includes(code)) return false;
   const diagnosis = classifyFailure(error, context);
-  return diagnosis.category === 'network' || diagnosis.diagnosticCode === 'NX_ABORT_UNATTRIBUTED';
+  return diagnosis.category === 'network' || diagnosis.diagnosticCode === 'NX_ABORT_UNATTRIBUTED'
+    || diagnosis.diagnosticCode === 'NX_PROVIDER_FAILURE';
 }

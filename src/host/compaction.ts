@@ -3,6 +3,7 @@ import { isSurfaceEvent, SessionSeq, type SessionEvent } from '@deepseek-ai/dsh-
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { z } from 'zod';
+import { scopeTarget } from '@deepseek-ai/dsh-scope';
 import { ManualCompactionError, toolPairingBalancedBefore, toolPairingBalancedAfter } from '@deepseek-ai/dsh-compaction';
 import { isNexusError, NexusError, type ModelRequest, type StoredRecord } from '../ports/contracts.js';
 import { parseCompressArgs } from '../adapters/upstream/billion/index.js';
@@ -11,7 +12,7 @@ import { hashObject, sha256 } from '../domain/context/cache.js';
 import { appendNativeDiagnostic, beforeOfficialPhase, NATIVE_OWNER_COLLECTION,
   type NativeLaneOwner, type NativeOperationDiagnostic } from '../domain/context/native-transactions.js';
 import { createLeaseManager, type Lease, type LeaseManager } from '../domain/storage/lease.js';
-import { nativeErrorIdentity, toHarnessError, toNativeLlmError } from './native-diagnostics.js';
+import { annotateNativeFailure, nativeErrorIdentity, toHarnessError, toNativeLlmError } from './native-diagnostics.js';
 import { registerNativeCompactionBinding } from './compaction-binding.js';
 import { measureContextPressure, summaryModelPolicy, type ContextAdmission } from './context-pressure.js';
 import { classifyFailure, failureMetadata, mustStopAfterAuxiliaryFailure } from '../shared/error-codes.js';
@@ -95,7 +96,8 @@ export default class NexusCompactionEngine extends BasicCompactionEngine {
   private pendingSummaries = new WeakMap<object, any>();
   private officialOwners = new WeakMap<object, LaneLease>();
   private nativeContext: any;
-  private nativeOverflowRetries = new WeakMap<object, { key: string; count: number }>();
+  private nativeOverflowRetries = new WeakMap<object, { key: string; count: number;
+    baseline?: { generation: number; occupiedTokens: number } }>();
   private admissions = new WeakMap<object, ContextAdmission>();
   private assemblies = new WeakMap<object, any>();
   private requestRoutes = new WeakMap<object, any>();
@@ -128,13 +130,26 @@ export default class NexusCompactionEngine extends BasicCompactionEngine {
       this.admissions.set(agent, { messages: decision.messages, assembly: this.assemblies.get(agent) });
       return decision;
     }, { prepend: true });
-    ctx.on('agent/request', async ({ agent, signal }: any, next: () => Promise<any>) => {
+    ctx.on('agent/request', async ({ agent, signal, turn, step }: any, next: () => Promise<any>) => {
       const route = await next();
       this.requestRoutes.set(agent, route);
       const admission = this.admissions.get(agent);
       if (admission) admission.route = route;
       try {
-        if (!signal.aborted) await this.compactIfNeeded(agent, 'pressure', signal);
+        while (!signal.aborted) {
+          try { await this.compactIfNeeded(agent, 'pressure', signal); break; }
+          catch (error) {
+            // A preparation throw occurs before the native stream seam. Only
+            // repeat this maintenance stage; waterfall next() is one-shot and
+            // must never be called twice to skip other admission middleware.
+            const decision = await ctx.waterfall(scopeTarget(agent, agent), 'agent/request-error', {
+              agent, signal, turn, step, provider: route.provider,
+              failure: annotateNativeFailure(error, { phase: 'automatic-context-maintenance', signalAborted: signal.aborted }),
+              recoveryStage: 'preparation',
+            }, async () => undefined);
+            if (decision?.kind !== 'retry') throw error;
+          }
+        }
       } finally {
         // Retries are the same step; its original input has already landed.
         this.admissions.delete(agent);
@@ -278,29 +293,49 @@ export default class NexusCompactionEngine extends BasicCompactionEngine {
     }
   }
 
-  async recoverOverflow(payload: any): Promise<{ kind: 'retry' } | undefined> {
+  async recoverOverflow(payload: any, managed?: { retry: number; maxRetries: number }): Promise<{ kind: 'retry' } | undefined> {
     const { agent, signal, turn, step } = payload;
     const key = JSON.stringify([turn, step]);
     const state = this.nativeOverflowRetries.get(agent);
     const count = state?.key === key ? state.count : 0;
     const diagnose = async (reason: string, outcome: 'stopped' | 'delegated', code = 'NX_CONTEXT_WINDOW_EXCEEDED', facts: any = {}) => {
+      const effectiveOutcome = managed && outcome === 'stopped' && !signal.aborted ? 'deferred' : outcome;
       await recordRecoveryDiagnostic(this.nativeContext, agent.id, {
         ...classifyFailure(payload.failure, { phase: 'context-overflow-recovery', signalAborted: signal.aborted }),
-        diagnosticCode: code, source: 'observer', outcome, stopReason: reason,
-        turn, step, retry: count, maxRetries: 2, ...facts,
+        diagnosticCode: code, source: 'observer', outcome: effectiveOutcome, stopReason: reason,
+        turn, step, retry: managed?.retry ?? count, maxRetries: managed?.maxRetries ?? 2, ...facts,
       });
-      this.lastResults.set(agent, { reason, outcome, ...facts });
+      this.lastResults.set(agent, { reason, outcome: effectiveOutcome, ...facts });
     };
-    if (signal.aborted || count >= 2) { await diagnose(signal.aborted ? 'signal-aborted' : 'retry-exhausted', 'stopped'); return; }
+    if (signal.aborted || !managed && count >= 2) { await diagnose(signal.aborted ? 'signal-aborted' : 'retry-exhausted', 'stopped'); return; }
     // Claim before awaiting: duplicate observers cannot start another summary.
-    this.nativeOverflowRetries.set(agent, { key, count: count + 1 });
+    const baseline = state?.key === key ? state.baseline : undefined;
+    this.nativeOverflowRetries.set(agent, { key, count: count + 1, baseline });
     try {
       const generation = agent.session.surface.replaceGeneration;
       const before = await this.measurePressure(agent, signal, { route: agent.session.requestHeader()?.config });
+      if (baseline && generation > baseline.generation) {
+        // A previous retry may have replaced the surface but failed to save
+        // its final receipt. Reconcile that exact operation first; its proven
+        // smaller result can resume the request without another summary.
+        const owner = await this.reconcileOnly(agent, signal);
+        const reconciled = await this.measurePressure(agent, signal, { route: agent.session.requestHeader()?.config });
+        if (!signal.aborted && owner?.value.status === 'released' && owner.value.phase === 'context-committed'
+          && owner.value.hostCompactionId && reconciled.occupiedTokens < baseline.occupiedTokens) {
+          this.nativeOverflowRetries.set(agent, { key, count: count + 1 });
+          await diagnose('context-compacted', 'delegated', 'NX_CONTEXT_WINDOW_EXCEEDED', {
+            hostCompactionId: owner.value.hostCompactionId, beforeTokens: baseline.occupiedTokens, afterTokens: reconciled.occupiedTokens,
+          });
+          return { kind: 'retry' };
+        }
+      }
+      this.nativeOverflowRetries.set(agent, { key, count: count + 1,
+        baseline: { generation, occupiedTokens: before.occupiedTokens } });
       const result = await this.compactIfNeeded(agent, 'context-overflow', signal);
       const after = await this.measurePressure(agent, signal, { route: agent.session.requestHeader()?.config });
       if (!signal.aborted && result?.nativeReceipt?.committed === true && result?.compactionId && agent.session.surface.replaceGeneration > generation
         && after.occupiedTokens < before.occupiedTokens) {
+        this.nativeOverflowRetries.set(agent, { key, count: count + 1 });
         await diagnose('context-compacted', 'delegated', 'NX_CONTEXT_WINDOW_EXCEEDED', {
           hostCompactionId: result.compactionId, beforeTokens: before.occupiedTokens, afterTokens: after.occupiedTokens,
         });

@@ -34,7 +34,7 @@ async function within<T>(pending: Promise<T>, label: string) {
 }
 type SummaryFault = 'metadata-rate' | 'model-rate' | 'model-timeout' | 'model-auth' | 'model-budget' | 'model-permission' | 'model-pending';
 async function fixture(t: TestContext, options: { window?: number; overflow?: boolean; wait?: boolean; failReceipt?: boolean;
-  summaryUnavailable?: boolean; summaryFault?: SummaryFault; toolFailure?: boolean } = {}) {
+  summaryUnavailable?: boolean; summaryFault?: SummaryFault; toolFailure?: boolean; retryBudget?: number } = {}) {
   const dir = await mkdtemp(path.join(os.tmpdir(), 'nexus-native-context-'));
   const root = new Context(), fibers: any[] = [], handles: AgentHandle[] = [];
   const store = createAtomicStore(dir), requests: GenerateOptions[] = [], summaries: any[] = [];
@@ -80,6 +80,11 @@ async function fixture(t: TestContext, options: { window?: number; overflow?: bo
     },
   };
   module = createContextModule(services);
+  // These transactional tests use a short explicit budget. The stream suite
+  // separately exercises the production default of 64 retries in full.
+  await createScopeModule(services).dispatch({ action: 'configure', params: { feature: 'request-retry',
+    config: { defaults: { maxRetries: options.retryBudget ?? 1, initialDelayMs: 0, maxDelayMs: 0 } } }, expectedRevision: 0 },
+  { scopeLevel: 'global', actorId: 'connection-owner', permissions: new Set(['scope.configure']) });
   await createScopeModule(services).dispatch({ action: 'configure', params: { feature: 'context-compaction',
     config: { defaults: { summaryModel: { provider, model: 'summary-large' } } } }, expectedRevision: 0 },
   { scopeLevel: 'global', actorId: 'connection-owner', permissions: new Set(['scope.configure']) });
@@ -217,10 +222,26 @@ test('missing safe summary and unknown replacement receipt stop without unchange
     const agent = await f.create(`native-context-stopped-${kind}`); await f.seed(agent, 14); await f.start(agent);
     assert.equal(f.requests.length, 2); assert.equal(f.toolRuns.get(agent.id), 1); assert.equal(f.summaries.length, 1);
     const status = await f.engine.contextStatus(agent, new AbortController().signal);
-    assert.equal(status.lastResult.outcome, 'stopped');
+    assert.equal(status.lastResult.outcome, 'deferred');
     assert.match(status.lastResult.reason, /^(?:CTX_|PARTIAL_EFFECT|SESSION_DURABILITY_UNVERIFIED|summary-model-declined-safe-range)/);
     if (kind === 'receipt') assert.equal(status.maintenance.state, 'reconciliation-required');
   }
+});
+
+test('overflow backoff reconciles a transient final receipt failure without a second summary or replacement', async t => {
+  const f = await fixture(t, { window: 1000000, overflow: true, failReceipt: true, retryBudget: 3 });
+  const parent = await f.create('overflow-receipt-parent'), child = await f.create('overflow-receipt-child', parent);
+  await f.seed(child, 14);
+  await f.start(child);
+  const events = child.session.snapshotEvents();
+  assert.equal(events.filter(event => event.type === 'turn/end').at(-1)?.data.reason?.kind, 'completed');
+  assert.equal(events.filter(event => event.type === 'llm/retry').length, 2);
+  assert.equal(events.filter(event => event.type === 'compaction/summary').length, 1);
+  assert.equal(f.summaries.length, 1);
+  assert.equal(f.requests.length, 3);
+  assert.ok(f.requests[2]!.messages.length < f.requests[1]!.messages.length);
+  assert.equal(f.toolRuns.get(child.id), 1);
+  assert.equal(parent.session.snapshotEvents().some(event => event.type === 'turn/start'), false);
 });
 
 test('real read-only child compacts only itself and repeat requestId reuses the formal receipt', async t => {
@@ -338,7 +359,7 @@ test('real parent and child continue their same steps after auxiliary rate limit
 
 test('auxiliary authority denies and uncertain effects remain stops for a real child even while its request fits', async t => {
   for (const summaryFault of ['model-budget', 'model-permission', 'model-pending'] as const) {
-    const f = await fixture(t, { summaryFault }), parent = await f.create(`aux-denied-parent-${summaryFault}`);
+    const f = await fixture(t, { summaryFault, retryBudget: 0 }), parent = await f.create(`aux-denied-parent-${summaryFault}`);
     const child = await f.create(`aux-denied-child-${summaryFault}`, parent);
     await f.seed(child, 16);
     await createScopeModule(f.services).dispatch({ action: 'configure', params: { feature: 'context-compaction',
@@ -358,7 +379,7 @@ test('auxiliary authority denies and uncertain effects remain stops for a real c
 });
 
 test('actual pressure and provider overflow retain recoverable auxiliary causes without an unchanged request retry', async t => {
-  const hard = await fixture(t, { window: 5000, summaryFault: 'metadata-rate' }), full = await hard.create('aux-hard-full');
+  const hard = await fixture(t, { window: 5000, summaryFault: 'metadata-rate', retryBudget: 0 }), full = await hard.create('aux-hard-full');
   await hard.seed(full, 14); await hard.start(full);
   assert.equal(hard.requests.length, 0);
   const end = full.session.snapshotEvents().filter(event => event.type === 'turn/end').at(-1);
@@ -373,7 +394,7 @@ test('actual pressure and provider overflow retain recoverable auxiliary causes 
   await f.seed(child, 14); await f.start(child);
   assert.equal(f.requests.length, 2); assert.equal(f.toolRuns.get(child.id), 1); assert.equal(f.summaries.length, 1);
   const status = await f.engine.contextStatus(child, new AbortController().signal);
-  assert.equal(status.lastResult.outcome, 'stopped');
+  assert.equal(status.lastResult.outcome, 'deferred');
   assert.equal(status.lastResult.maintenanceCode, 'RATE_LIMIT');
   assert.equal(status.lastResult.status, 429);
   assert.equal(status.lastResult.providerRetryAfterMs, 75000);
@@ -395,6 +416,29 @@ test('ordinary tool failures reach the model as failed results and parent and re
     assert.equal(f.toolRuns.get(agent.id), 1);
     assert.ok(f.requests.filter(request => request.sessionId === agent.id)[1]?.messages.some(message => message.role === 'tool' && message.isError));
   }
+});
+
+test('a real child recovers transient automatic maintenance without skipping admission middleware or restarting its step', async t => {
+  const f = await fixture(t, { window: 1000000, retryBudget: 4 });
+  const parent = await f.create('preparation-recovery-parent'), child = await f.create('preparation-recovery-child', parent);
+  const original = f.engine.compactIfNeeded.bind(f.engine);
+  let failures = 0, admissionCalls = 0;
+  f.ctx.on('agent/request', async (_payload, next) => { admissionCalls++; return next(); });
+  f.engine.compactIfNeeded = async (agent, trigger, signal) => {
+    if (agent === child && trigger === 'pressure' && failures++ < 3) {
+      throw new NexusError('CTX_NATIVE_BUSY', 'Temporary maintenance lease contention');
+    }
+    return original(agent, trigger, signal);
+  };
+  await f.start(child);
+  const events = child.session.snapshotEvents();
+  assert.equal(events.filter(event => event.type === 'turn/end').at(-1)?.data.reason?.kind, 'completed');
+  assert.equal(events.filter(event => event.type === 'llm/retry').length, 3);
+  assert.equal(events.filter(event => event.type === 'step/start').length, 2);
+  assert.equal(admissionCalls, 2, 'next() is called once per step, never used as a retry callback');
+  assert.equal(f.requests.length, 2);
+  assert.equal(f.toolRuns.get(child.id), 1);
+  assert.equal(parent.session.snapshotEvents().some(event => event.type === 'turn/start'), false);
 });
 
 test('current-route pressure includes pending input, system, tools and output reserve', async t => {

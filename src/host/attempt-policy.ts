@@ -307,8 +307,7 @@ export class HostAttemptTracker {
         // The native driver records an attempt and makes its same-step retry
         // decision when it receives a released failure chunk. A thrown
         // middleware AbortError would bypass that seam and become UNKNOWN.
-        if (!terminal && !signalAborted()
-          && (diagnosis.retryable || diagnosis.diagnosticCode === 'NX_ABORT_UNATTRIBUTED')) {
+        if (!terminal && !signalAborted()) {
           failure = undefined;
           terminal = true;
           terminalKind = diagnosis.diagnosticCode === 'NX_ABORT_UNATTRIBUTED' ? 'aborted' : 'error';
@@ -326,8 +325,7 @@ export class HostAttemptTracker {
       catch (error) {
         if (successfulTerminal && isRecoverableStreamTail(error, { signalAborted: signalAborted() })) {
           await diagnose('NX_STREAM_TAIL_RECOVERED', 'provider-iterator-cleanup', error);
-        } else if ((terminalKind === 'error' || terminalKind === 'aborted') && !signalAborted()
-          && (classifyFailure(error).retryable || classifyFailure(error).diagnosticCode === 'NX_ABORT_UNATTRIBUTED')) {
+        } else if ((terminalKind === 'error' || terminalKind === 'aborted') && !signalAborted()) {
           // A failure finish has already reached the native retry boundary.
           // A second transport/adapter abort while closing that same request
           // must not replace it with a thrown, unrouteable middleware error.

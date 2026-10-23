@@ -96,7 +96,7 @@ export function recoveryStopReason(reason?: string): string | undefined {
   const reasons: Record<string, string> = {
     'retry-exhausted': '自动重试次数已耗尽',
     'retry-disabled': '当前策略不允许自动重试',
-    'retry-settings-unavailable': '无法确认当前范围的重试设置，请检查宿主存储',
+    'retry-settings-unavailable': '重试设置暂不可读，沿用上次策略或默认64次',
     'retry-delay-unsupported': '等待时间超过重试策略上限',
     'signal-aborted': '请求取消信号已触发',
     'user-cancelled': '用户已停止请求',

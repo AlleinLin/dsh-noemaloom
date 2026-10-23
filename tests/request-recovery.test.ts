@@ -12,6 +12,7 @@ import type { HostContext } from '../src/host/types.js';
 import { stepProgressServices } from './step-progress-fixture.js';
 import { createScopeModule } from '../src/domain/scope.js';
 import { REQUEST_RETRY_FEATURE } from '../src/shared/request-retry.js';
+import { registerNativeCompactionBinding } from '../src/host/compaction-binding.js';
 
 const normal = (maxRetries = 3): ResolvedRetryPolicy => ({
   mode: 'normal', maxRetries, retryableCodes: ['TRANSPORT', 'SERVER', 'RATE_LIMIT', 'TIMEOUT', 'EMPTY_RESPONSE'],
@@ -90,16 +91,17 @@ async function fixture(t: TestContext, native = false, settings = false) {
   };
 }
 
-test('the prepended adapter delegates exactly one native retry and never adds its own', async t => {
-  const h = await fixture(t, true);
+test('Nexus owns exactly one retry without running another native or downstream retry', async t => {
+  const h = await fixture(t, true, true);
+  await h.configure({ mode: 'inherit' });
   let downstream = 0;
   h.ctx.on('agent/request-error', async (_payload, next) => { downstream++; return next(); });
   assert.deepEqual(await h.recover(), { kind: 'retry' });
   assert.equal(h.events.filter(event => event.type === 'llm/retry').length, 1);
   assert.equal(h.events.filter(event => event.type === 'llm/retry-started').length, 1);
-  assert.equal(downstream, 0, 'native normal retry owns the recovery decision');
-  assert.equal(h.diagnostics().at(-1).outcome, 'delegated');
-  assert.equal(h.diagnostics().at(-1).source, 'native-retry');
+  assert.equal(downstream, 0, 'one recovery owner prevents nested waits');
+  assert.equal(h.diagnostics().at(-1).outcome, 'retry-started');
+  assert.equal(h.diagnostics().at(-1).source, 'nexus-fallback');
   assert.equal(h.diagnostics().at(-1).retry, 1);
 });
 
@@ -125,15 +127,11 @@ test('custom scope policy owns one same-step retry even with the native retry pl
   assert.equal(h.diagnostics().at(-1).stopReason, 'retry-disabled');
 });
 
-test('opaque provider errors stay distinct and require an explicit user retry setting', async t => {
+test('all failed requests use the selected budget, including old PI opt-out settings', async t => {
   const h = await fixture(t, true, true);
-  const config = { mode: 'custom', maxRetries: 2, initialDelayMs: 0, maxDelayMs: 0 };
+  const config = { mode: 'custom', maxRetries: 2, initialDelayMs: 0, maxDelayMs: 0, retryOpaqueProviderErrors: false };
   const opaque = { code: 'PI_AI_ERROR', message: 'unknown provider SDK failure' } as any;
   await h.configure(config);
-  assert.equal(await h.recover(opaque), undefined);
-  assert.equal(h.diagnostics().at(-1).diagnosticCode, 'NX_PROVIDER_FAILURE');
-  assert.equal(h.diagnostics().at(-1).stopReason, 'not-retryable');
-  await h.configure({ ...config, retryOpaqueProviderErrors: true }, undefined, 1);
   assert.deepEqual(await h.recover(opaque), { kind: 'retry' });
   h.restart();
   assert.deepEqual(await h.recover(opaque), { kind: 'retry' });
@@ -141,15 +139,56 @@ test('opaque provider errors stay distinct and require an explicit user retry se
   assert.equal(h.diagnostics().at(-1).canonicalCode, 'PI_AI_ERROR');
   assert.equal(h.diagnostics().at(-1).retry, 2);
   assert.equal(h.diagnostics().at(-1).stopReason, 'retry-exhausted');
-  h.session.append('step/start', { turn: 2, step: 1 });
+  let step = 1;
   for (const failure of [
     { ...opaque, status: 403 }, { ...opaque, status: 400 }, { code: 'INTERNAL', message: 'local bug' },
     { code: 'PARTIAL_EFFECT', message: 'unknown effects' }, { code: 'CTX_NATIVE_BUSY', message: 'maintenance' },
-  ]) assert.equal(await h.recover(failure as any), undefined);
-  assert.equal(h.events.filter(event => event.type === 'llm/retry').length, 2);
+    { code: 'UNKNOWN', message: 'unclassified' }, { code: 'INSUFFICIENT_QUOTA', message: 'quota' },
+    { code: 'BUDGET_EXCEEDED', message: 'budget admission remains authoritative' },
+  ]) {
+    h.session.append('step/start', { turn: 2, step: ++step });
+    assert.deepEqual(await h.recover(failure as any), { kind: 'retry' }, failure.code);
+  }
+  assert.equal(h.events.filter(event => event.type === 'llm/retry').length, 10);
 });
 
-test('custom waits remain cancellable and Retry-After beyond the configured cap reports the exact reason', async t => {
+test('default PI retries survive all 64 capped waits, reload and the native error allowlist', async t => {
+  const h = await fixture(t, true, true);
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const failure = { code: 'PI_AI_ERROR', message: 'provider stream failed' } as any;
+  for (let previous = 0; previous < 64; previous++) {
+    if (previous === 32) h.restart();
+    const pending = h.recover(failure, normal(1));
+    for (let i = 0; i < 80; i++) await Promise.resolve();
+    const records = h.events.filter(event => event.type === 'llm/retry');
+    assert.equal(records.length, previous + 1);
+    const record = records.at(-1)!.data;
+    assert.equal(record.mode, 'normal');
+    if (record.mode !== 'normal') throw new Error('Expected bounded recovery');
+    assert.equal(record.retry, previous + 1);
+    assert.equal(record.maxRetries, 64);
+    const base = Math.min(500 * 2 ** previous, 30_000);
+    assert.ok(record.delayMs >= base * 0.9 - 1 && record.delayMs <= Math.min(base * 1.1 + 1, 30_000));
+    t.mock.timers.tick(record.delayMs);
+    assert.deepEqual(await pending, { kind: 'retry' });
+  }
+  assert.equal(await h.recover(failure), undefined);
+  assert.equal(h.diagnostics().at(-1).stopReason, 'retry-exhausted');
+  assert.equal(h.diagnostics().at(-1).maxRetries, 64);
+  assert.equal(h.events.filter(event => event.type === 'llm/retry-started').length, 64);
+});
+
+test('legacy inherit mode uses provider timing without its error allowlist or one-retry cap', async t => {
+  const h = await fixture(t, true, true);
+  await h.configure({ mode: 'inherit', maxRetries: 2, retryOpaqueProviderErrors: false });
+  const failure = { code: 'PI_AI_ERROR', message: 'opaque' } as any;
+  for (let i = 0; i < 2; i++) assert.deepEqual(await h.recover(failure, normal(1)), { kind: 'retry' });
+  assert.equal(await h.recover(failure, normal(1)), undefined);
+  assert.deepEqual(h.events.filter(event => event.type === 'llm/retry').map(event => event.data.delayMs), [0, 0]);
+  assert.equal(h.diagnostics().at(-1).retry, 2);
+});
+
+test('custom waits remain cancellable even when Retry-After exceeds the algorithm cap', async t => {
   const h = await fixture(t, true, true);
   await h.configure({ mode: 'custom', maxRetries: 8, algorithm: 'fixed', initialDelayMs: 60_000, maxDelayMs: 90_000, jitterRatio: 0 });
   const controller = new AbortController();
@@ -160,27 +199,38 @@ test('custom waits remain cancellable and Retry-After beyond the configured cap 
   assert.equal(await pending, undefined);
   assert.equal(h.diagnostics().at(-1).stopReason, 'user-cancelled');
   h.session.append('step/start', { turn: 2, step: 1 });
-  assert.equal(await h.recover({ ...transport, providerRetryAfterMs: 90_001 } as any), undefined);
-  assert.equal(h.diagnostics().at(-1).stopReason, 'retry-delay-unsupported');
-  assert.equal(h.events.filter(event => event.type === 'llm/retry').length, 1);
+  const nextController = new AbortController();
+  const nextWait = h.recover({ ...transport, providerRetryAfterMs: 90_001 } as any, normal(), nextController.signal);
+  for (let i = 0; i < 80; i++) await Promise.resolve();
+  assert.equal(h.events.filter(event => event.type === 'llm/retry').at(-1)!.data.delayMs, 90_001);
+  nextController.abort({ kind: 'parent' });
+  assert.equal(await nextWait, undefined);
+  assert.equal(h.diagnostics().at(-1).stopReason, 'parent-cancelled');
+  assert.equal(h.events.filter(event => event.type === 'llm/retry').length, 2);
 });
 
-test('native exhaustion and unsupported provider wait are explicit without extra fallback', async t => {
-  const h = await fixture(t, true);
+test('the scope budget controls exhaustion even when the native plugin has a different limit', async t => {
+  const h = await fixture(t, true, true);
+  await h.configure({ mode: 'inherit', maxRetries: 1 });
   assert.deepEqual(await h.recover(transport, normal(1)), { kind: 'retry' });
   assert.equal(await h.recover(transport, normal(1)), undefined);
   assert.equal(h.events.filter(event => event.type === 'llm/retry').length, 1);
   assert.equal(h.diagnostics().at(-1).diagnosticCode, 'NX_RETRY_EXHAUSTED');
   assert.equal(h.diagnostics().at(-1).retry, 1);
   h.session.append('step/start', { turn: 1, step: 1 });
-  assert.equal(await h.recover({ ...transport, providerRetryAfterMs: 101 } as any), undefined);
-  assert.equal(h.diagnostics().at(-1).diagnosticCode, 'NX_RETRY_DELAY_UNSUPPORTED');
-  assert.equal(h.diagnostics().at(-1).stopReason, 'retry-delay-unsupported');
-  assert.equal(h.events.filter(event => event.type === 'llm/retry').length, 1);
+  const controller = new AbortController();
+  const pending = h.recover({ ...transport, providerRetryAfterMs: 2_147_483_648 } as any, normal(), controller.signal);
+  for (let i = 0; i < 80; i++) await Promise.resolve();
+  assert.equal(h.events.filter(event => event.type === 'llm/retry').at(-1)!.data.delayMs, 2_147_483_648);
+  controller.abort({ kind: 'user' });
+  assert.equal(await pending, undefined);
+  assert.equal(h.diagnostics().at(-1).stopReason, 'user-cancelled');
+  assert.equal(h.events.filter(event => event.type === 'llm/retry').length, 2);
 });
 
 test('fallback count survives adapter reload through the official projection', async t => {
-  const h = await fixture(t);
+  const h = await fixture(t, false, true);
+  await h.configure({ mode: 'inherit', maxRetries: 2 });
   assert.deepEqual(await h.recover(transport, normal(2)), { kind: 'retry' });
   h.restart();
   assert.deepEqual(await h.recover(transport, normal(2)), { kind: 'retry' });
@@ -195,8 +245,9 @@ test('fallback count survives adapter reload through the official projection', a
   assert.deepEqual(await h.recover(transport, normal(2)), { kind: 'retry' });
 });
 
-test('unattributed Abort and exact UNKNOWN cancellation retry three times with their diagnosis intact', async t => {
-  const h = await fixture(t, true);
+test('unattributed Abort and exact UNKNOWN cancellation use the same configured budget with their diagnosis intact', async t => {
+  const h = await fixture(t, true, true);
+  await h.configure({ mode: 'inherit', maxRetries: 4 });
   const always: ResolvedRetryPolicy = { mode: 'always', initialDelayMs: 0, maxDelayMs: 0, jitterRatio: 0 };
   for (const failure of [
     { code: 'ABORTED', message: 'The operation was aborted.' },
@@ -204,35 +255,30 @@ test('unattributed Abort and exact UNKNOWN cancellation retry three times with t
   ]) {
     h.session.append('step/start', { turn: 1, step: 1 });
     const before = h.events.filter(event => event.type === 'llm/retry').length;
-    for (let attempt = 0; attempt < 3; attempt++) assert.deepEqual(await h.recover(failure as any, always), { kind: 'retry' });
+    for (let attempt = 0; attempt < 4; attempt++) assert.deepEqual(await h.recover(failure as any, always), { kind: 'retry' });
     assert.equal(await h.recover(failure as any, always), undefined);
-    assert.equal(h.events.filter(event => event.type === 'llm/retry').length - before, 3);
+    assert.equal(h.events.filter(event => event.type === 'llm/retry').length - before, 4);
     const last = h.diagnostics().at(-1);
     assert.equal(last.diagnosticCode, 'NX_ABORT_UNATTRIBUTED');
     assert.equal(last.canonicalCode, 'ABORTED');
     assert.equal(last.stopReason, 'retry-exhausted');
-    assert.equal(last.maxRetries, 3);
+    assert.equal(last.maxRetries, 4);
     assert.equal(h.diagnostics().some(item => item.diagnosticCode === 'NX_NETWORK_TRANSPORT'), false);
   }
 });
 
-test('credential, subscription, quota, budget and delete failures veto native always policy', async t => {
-  const h = await fixture(t, true);
+test('provider lifecycle error codes cannot impersonate an actual disposed agent or deleted session', async t => {
+  const h = await fixture(t, true, true);
+  await h.configure({ mode: 'inherit' });
   const always: ResolvedRetryPolicy = { mode: 'always', initialDelayMs: 0, maxDelayMs: 0, jitterRatio: 0 };
   let downstream = 0;
   h.ctx.on('agent/request-error', async () => { downstream++; return { kind: 'retry' }; });
-  for (const [code, stopReason] of [
-    ['AUTH', 'authorization-denied'], ['INVALID_API_KEY', 'authorization-denied'],
-    ['SUBSCRIPTION_REQUIRED', 'authorization-denied'], ['INSUFFICIENT_QUOTA', 'quota-denied'],
-    ['BUDGET_EXCEEDED', 'budget-denied'], ['SESSION_DELETED', 'session-deleted'],
-    ['CTX_PREPARATION_FAILED', 'not-retryable'], ['PARTIAL_EFFECT', 'not-retryable'],
-    ['SESSION_DURABILITY_UNVERIFIED', 'not-retryable'], ['PENDING_OPERATION', 'not-retryable'],
-  ]) {
-    assert.equal(await h.recover({ code, message: 'hidden' } as any, always), undefined);
-    assert.equal(h.diagnostics().at(-1).stopReason, stopReason);
+  for (const code of ['SESSION_DELETED', 'SESSION_NOT_FOUND', 'AGENT_DISPOSED', 'PLUGIN_DISPOSED', 'ABORTED', 'CANCELLED']) {
+    assert.deepEqual(await h.recover({ code, message: 'hidden' } as any, always), { kind: 'retry' });
+    assert.equal(h.diagnostics().at(-1).outcome, 'retry-started');
   }
   assert.equal(downstream, 0);
-  assert.equal(h.events.filter(event => event.type === 'llm/retry').length, 0);
+  assert.equal(h.events.filter(event => event.type === 'llm/retry').length, 6);
 });
 
 test('explicit cancellation records its actual origin and starts no retry', async t => {
@@ -253,13 +299,14 @@ test('explicit cancellation records its actual origin and starts no retry', asyn
 test('fallback waits cancel immediately on user stop, parent stop, disposal and unload', async t => {
   for (const action of ['user', 'parent', 'agent', 'session', 'plugin']) {
     await t.test(action, async sub => {
-      const h = await fixture(sub);
+      const h = await fixture(sub, false, true);
+      await h.configure({ mode: 'inherit' });
       const controller = new AbortController();
       const policy = { ...normal(), initialDelayMs: 60_000, maxDelayMs: 60_000 };
       const pending = h.recover(transport, policy, controller.signal);
       // No timer advances or real wait: settle the diagnostic microtasks before
       // cancellation, so cancellation also covers the cancellable-delay seam.
-      for (let i = 0; i < 8; i++) await Promise.resolve();
+      for (let i = 0; i < 80; i++) await Promise.resolve();
       assert.equal(h.events.filter(event => event.type === 'llm/retry').length, 1);
       if (action === 'plugin') h.dispose();
       else if (action === 'agent') h.removeAgent();
@@ -275,45 +322,110 @@ test('fallback waits cancel immediately on user stop, parent stop, disposal and 
   }
 });
 
-test('unloading Nexus preserves a delegated native wait and its eventual recovery decision', async t => {
+test('unloading Nexus cancels its sole recovery wait without cancelling the original agent signal', async t => {
   t.mock.timers.enable({ apis: ['setTimeout'] });
-  const h = await fixture(t, true);
+  const h = await fixture(t, true, true);
+  await h.configure({ mode: 'inherit' });
   const controller = new AbortController();
   const pending = h.recover(transport, { ...normal(), initialDelayMs: 60_000, maxDelayMs: 60_000 }, controller.signal);
-  for (let i = 0; i < 8; i++) await Promise.resolve();
-  let settled = false;
-  void pending.then(() => { settled = true; });
+  for (let i = 0; i < 80; i++) await Promise.resolve();
   h.dispose();
-  for (let i = 0; i < 8; i++) await Promise.resolve();
-  assert.equal(settled, false, 'Nexus cannot cancel the native retry owner');
+  assert.equal(await pending, undefined);
   t.mock.timers.tick(60_000);
-  assert.deepEqual(await pending, { kind: 'retry' });
   assert.equal(controller.signal.aborted, false);
-  assert.equal(h.events.filter(event => event.type === 'llm/retry-started').length, 1);
+  assert.equal(h.events.filter(event => event.type === 'llm/retry-started').length, 0);
   assert.equal(h.diagnostics().at(-1).retry, 1);
 });
 
-test('a throwing downstream recovery remains the original provider failure with no fallback', async t => {
-  const h = await fixture(t);
+test('a broken downstream recovery cannot prevent the unified retry', async t => {
+  const h = await fixture(t, false, true);
+  await h.configure({ mode: 'inherit' });
   h.ctx.on('agent/request-error', async () => { throw new Error('private plugin failure'); });
-  assert.equal(await h.recover(), undefined);
-  assert.equal(h.events.filter(event => event.type === 'llm/retry').length, 0);
-  assert.equal(h.diagnostics().at(-1).diagnosticCode, 'NX_RECOVERY_FAILED');
+  assert.deepEqual(await h.recover(), { kind: 'retry' });
+  assert.equal(h.events.filter(event => event.type === 'llm/retry').length, 1);
+  assert.equal(h.diagnostics().at(-1).outcome, 'retry-started');
   assert.equal(h.diagnostics().at(-1).canonicalCode, 'TRANSPORT');
   assert.equal(JSON.stringify(h.diagnostics()).includes('private plugin failure'), false);
 });
 
-test('normal policy eligibility and bounded always fallback stop without inventing a network failure', async t => {
-  const h = await fixture(t);
-  assert.equal(await h.recover({ code: 'UNKNOWN', message: 'arbitrary unknown' } as any), undefined);
-  assert.equal(h.diagnostics().at(-1).stopReason, 'not-retryable');
-  assert.equal(await h.recover(transport, normal(0)), undefined);
-  assert.equal(h.diagnostics().at(-1).diagnosticCode, 'NX_RETRY_DISABLED');
+test('neither a native error allowlist nor its disabled policy can veto scoped recovery', async t => {
+  const h = await fixture(t, true, true);
+  await h.configure({ mode: 'inherit', maxRetries: 7 });
+  assert.deepEqual(await h.recover({ code: 'UNKNOWN', message: 'arbitrary unknown' } as any), { kind: 'retry' });
+  assert.equal(h.diagnostics().at(-1).diagnosticCode, 'NX_UNKNOWN_FAILURE');
+  assert.deepEqual(await h.recover(transport, normal(0)), { kind: 'retry' });
   const always: ResolvedRetryPolicy = { mode: 'always', initialDelayMs: 0, maxDelayMs: 0, jitterRatio: 0 };
   for (let i = 0; i < 5; i++) assert.deepEqual(await h.recover(transport, always), { kind: 'retry' });
   assert.equal(await h.recover(transport, always), undefined);
-  assert.equal(h.diagnostics().at(-1).maxRetries, 5);
-  assert.equal(h.events.filter(event => event.type === 'llm/retry').length, 5);
+  assert.equal(h.diagnostics().at(-1).maxRetries, 7);
+  assert.equal(h.events.filter(event => event.type === 'llm/retry').length, 7);
+});
+
+test('missing settings services still select the default 64-attempt policy', async t => {
+  const h = await fixture(t, true);
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const pending = h.recover({ code: 'PI_AI_ERROR', message: 'opaque' } as any);
+  for (let i = 0; i < 80; i++) await Promise.resolve();
+  const scheduled = h.events.find(event => event.type === 'llm/retry')!.data;
+  assert.equal(scheduled.mode, 'normal');
+  if (scheduled.mode !== 'normal') throw new Error('Expected bounded recovery');
+  assert.equal(scheduled.maxRetries, 64);
+  assert.ok(scheduled.delayMs >= 450 && scheduled.delayMs <= 550);
+  t.mock.timers.tick(scheduled.delayMs);
+  assert.deepEqual(await pending, { kind: 'retry' });
+});
+
+test('settings read failures retain the last known policy, including explicit disable', async t => {
+  const h = await fixture(t, true, true);
+  await h.configure({ mode: 'inherit', maxRetries: 2 });
+  assert.deepEqual(await h.recover(), { kind: 'retry' });
+  const get = h.scopeServices.store.get;
+  h.scopeServices.store.get = async () => { throw new Error('private storage outage'); };
+  assert.deepEqual(await h.recover(), { kind: 'retry' });
+  assert.ok(h.diagnostics().some(item => item.phase === 'retry-settings' && item.outcome === 'deferred'));
+  h.scopeServices.store.get = get;
+  await h.configure({ mode: 'disabled' }, undefined, 1);
+  assert.equal(await h.recover(), undefined);
+  h.scopeServices.store.get = async () => { throw new Error('private storage outage'); };
+  assert.equal(await h.recover(), undefined);
+  assert.equal(h.diagnostics().at(-1).stopReason, 'retry-disabled');
+  h.scopeServices.store = undefined as any;
+  assert.equal(await h.recover(), undefined, 'temporary absence of the whole settings service preserves known disable');
+  assert.equal(h.diagnostics().at(-1).stopReason, 'retry-disabled');
+  assert.equal(h.events.filter(event => event.type === 'llm/retry').length, 2);
+});
+
+test('overflow recovery retries its safe stage under one durable budget before allowing a changed request', async t => {
+  const h = await fixture(t, true, true);
+  await h.configure({ mode: 'inherit', maxRetries: 5 });
+  const seen: any[] = [];
+  const binding = registerNativeCompactionBinding(h.ctx as unknown as HostContext, {
+    async compactRanges() { throw new Error('not a manual compaction'); },
+    async recoverOverflow(payload, managed) {
+      seen.push(managed);
+      assert.equal(payload.agent, h.agent);
+      if (seen.length === 1) throw new Error('transient recovery handler failure');
+      return seen.length < 4 ? undefined : { kind: 'retry' };
+    },
+  });
+  binding.bind(h.agent); t.after(binding.dispose);
+  assert.deepEqual(await h.recover({ code: 'CONTEXT_WINDOW_EXCEEDED', message: 'too long' } as any), { kind: 'retry' });
+  assert.deepEqual(seen.map(item => item.retry), [1, 2, 3, 4]);
+  assert.ok(seen.every(item => item.maxRetries === 5));
+  assert.equal(h.events.filter(event => event.type === 'llm/retry').length, 4);
+  h.restart();
+  assert.deepEqual(await h.recover(), { kind: 'retry' });
+  assert.equal(await h.recover(), undefined);
+  assert.equal(h.diagnostics().at(-1).retry, 5, 'recovery phases and provider resends share one budget');
+});
+
+test('unavailable overflow compaction exhausts recovery without authorizing an unchanged oversized request', async t => {
+  const h = await fixture(t, true, true);
+  await h.configure({ mode: 'inherit', maxRetries: 3 });
+  assert.equal(await h.recover({ code: 'CONTEXT_WINDOW_EXCEEDED', message: 'too long' } as any), undefined);
+  assert.equal(h.events.filter(event => event.type === 'llm/retry').length, 3);
+  assert.equal(h.diagnostics().at(-1).stopReason, 'retry-exhausted');
+  assert.ok(h.diagnostics().some(item => item.stopReason === 'context-compactor-unavailable' && item.outcome === 'deferred'));
 });
 
 test('helper writes only bounded allowlisted facts and defaults recovered/deferred outcomes', async t => {

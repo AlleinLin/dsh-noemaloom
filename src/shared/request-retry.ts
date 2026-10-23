@@ -1,14 +1,16 @@
-/** User-owned request recovery policy. An inherited policy leaves the provider in control. */
+/** Same-step recovery; counts exclude the original model request. */
 export const REQUEST_RETRY_FEATURE = 'request-retry';
 export const REQUEST_RETRY_DEFAULTS = Object.freeze({
-  mode: 'inherit' as const,
-  maxRetries: 5,
+  mode: 'custom' as const,
+  maxRetries: 64,
   algorithm: 'exponential' as const,
   initialDelayMs: 500,
   maxDelayMs: 30_000,
   multiplier: 2,
   jitterRatio: 0.1,
-  retryOpaqueProviderErrors: false,
+  // Retained for reading older settings. Error eligibility is no longer gated
+  // by this flag; all failed requests use the selected retry budget.
+  retryOpaqueProviderErrors: true,
 });
 export interface RequestRetryOptions {
   mode: 'inherit' | 'custom' | 'disabled';
@@ -65,8 +67,9 @@ export function requestRetryDelay(
   random = Math.random,
 ): number | undefined {
   if (Number.isFinite(providerRetryAfterMs) && providerRetryAfterMs! > 0) {
-    // Never shorten the provider's minimum wait or silently exceed the user's cap.
-    return providerRetryAfterMs! > options.maxDelayMs ? undefined : Math.ceil(providerRetryAfterMs!);
+    // The cap bounds our algorithm, not the provider's minimum wait. A long
+    // Retry-After must not turn a transient error into a one-attempt stop.
+    return providerRetryAfterMs! <= Number.MAX_SAFE_INTEGER ? Math.ceil(providerRetryAfterMs!) : undefined;
   }
   const factor = options.algorithm === 'fixed' ? 1 : options.algorithm === 'linear' ? previous + 1
     : options.multiplier ** Math.min(previous, 1024);

@@ -41,6 +41,14 @@ test('retry validation rejects unsafe values and unknown algorithms without sile
   assert.equal(resolveRequestRetryOptions({ defaults: { maxRetries: 0 } }).maxRetries, 0);
 });
 
+test('new and legacy profiles default to 64 retries without a PI opt-in', () => {
+  const options = resolveRequestRetryOptions({});
+  assert.equal(options.mode, 'custom');
+  assert.equal(options.maxRetries, 64);
+  assert.equal(options.retryOpaqueProviderErrors, true);
+  assert.equal(resolveRequestRetryOptions({ defaults: { mode: 'inherit' } }).maxRetries, 64);
+});
+
 test('fixed, linear and exponential algorithms obey cap, jitter and Retry-After', () => {
   const settings = { ...REQUEST_RETRY_DEFAULTS, initialDelayMs: 1000, maxDelayMs: 5000, jitterRatio: 0 };
   const series = (algorithm: 'fixed' | 'linear' | 'exponential') =>
@@ -53,7 +61,10 @@ test('fixed, linear and exponential algorithms obey cap, jitter and Retry-After'
   assert.equal(requestRetryDelay({ ...settings, jitterRatio: 0.2 }, 0, undefined, () => 1), 1200);
   assert.equal(requestRetryDelay({ ...settings, jitterRatio: 1 }, 4, undefined, () => 1), 5000);
   assert.equal(requestRetryDelay(settings, 0, 4321), 4321);
-  assert.equal(requestRetryDelay(settings, 0, 5001), undefined);
+  assert.equal(requestRetryDelay(settings, 0, 5001), 5001, 'provider minimum outlives the algorithm cap');
+  assert.equal(requestRetryDelay(settings, 0, 86_400_001), 86_400_001);
+  assert.equal(requestRetryDelay(settings, 0, 2_147_483_648), 2_147_483_648);
+  assert.equal(requestRetryDelay(settings, 0, Number.MAX_SAFE_INTEGER + 1), undefined);
   assert.equal(requestRetryDelay(settings, 10000), 5000);
   assert.equal(requestRetryDelay({ ...settings, initialDelayMs: 0, maxDelayMs: 0 }, 10000), 0);
 });

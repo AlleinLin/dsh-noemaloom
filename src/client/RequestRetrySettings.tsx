@@ -5,7 +5,7 @@ import { boundedRead } from '../shared/bounded-read.js';
 import { REQUEST_RETRY_FEATURE, requestRetryDelay, resolveRequestRetryOptions, validateRequestRetryConfig, type RequestRetryOptions } from '../shared/request-retry.js';
 
 const labels: Record<string, string> = { global: '全局', workspace: '工作区', session: '会话' };
-const modeLabels = { inherit: '沿用提供方策略', custom: '自定义重试', disabled: '关闭自动重试' };
+const modeLabels = { inherit: '沿用提供方间隔', custom: '自动退避重试', disabled: '关闭自动重试' };
 function useRead(api: NexusApi, action: string, params: Data, scope: NexusScope, enabled = true) {
   const [data, setData] = React.useState<Data>(), [error, setError] = React.useState<unknown>();
   const [loading, setLoading] = React.useState(enabled), [revision, setRevision] = React.useState(0);
@@ -96,10 +96,11 @@ function RetryForm({ api, scope }: { api: NexusApi; scope: NexusScope }) {
       <p>{labels[scope.level ?? 'global']} · 当前：{options ? modeLabels[options.mode] : '设置待修正'}</p>
       <label className="nexus-setting-row"><span>重试策略<small>全局→工作区→会话继承；主代理和子代理均按各自会话生效</small></span>
         <select aria-label="重试策略" value={draft.defaults?.mode ?? ''} onChange={event => update('mode', event.target.value || undefined)}>
-          <option value="">继承上级 / 使用默认</option><option value="inherit">沿用提供方策略</option><option value="custom">自定义重试</option><option value="disabled">关闭自动重试</option>
+          <option value="">继承上级 / 默认64次退避重试</option><option value="inherit">沿用提供方间隔</option><option value="custom">自定义退避重试</option><option value="disabled">关闭自动重试</option>
         </select></label>
-      {(options?.mode === 'custom' || draft.defaults?.mode === 'custom') && <>
+      {options && options.mode !== 'disabled' && <>
         {numeric('maxRetries', '最大重试次数', 0, 100)}
+        {options.mode === 'inherit' ? <p>间隔使用当前提供方的初始值、上限和随机抖动，按2倍指数退避；提供方未给出时使用默认值。次数仍由这里控制。</p> : <>
         <label className="nexus-setting-row"><span>间隔算法<small>来源：{source('algorithm')}</small></span>
           <select aria-label="重试间隔算法" value={draft.defaults?.algorithm ?? ''} onChange={event => update('algorithm', event.target.value || undefined)}>
             <option value="">继承 / 默认指数退避</option><option value="fixed">固定间隔</option><option value="linear">线性退避</option><option value="exponential">指数退避</option>
@@ -108,12 +109,10 @@ function RetryForm({ api, scope }: { api: NexusApi; scope: NexusScope }) {
         {numeric('maxDelayMs', '间隔上限（毫秒）', 0, 86_400_000)}
         {options?.algorithm === 'exponential' && numeric('multiplier', '指数倍率', 1, 10, 0.1)}
         {numeric('jitterRatio', '随机抖动比例', 0, 1, 0.01)}
-        <label className="nexus-setting-row"><span>重试未分类的服务端适配器错误<small>仅 PI_AI_ERROR；默认关闭。原始原因不明，不作为已确认的网络故障。</small></span>
-          <select aria-label="重试未分类的服务端适配器错误" value={draft.defaults?.retryOpaqueProviderErrors === undefined ? '' : String(draft.defaults.retryOpaqueProviderErrors)} onChange={event => update('retryOpaqueProviderErrors', event.target.value === '' ? undefined : event.target.value === 'true')}>
-            <option value="">继承 / 默认关闭</option><option value="false">关闭</option><option value="true">开启有限重试</option>
-          </select></label>
         {options && <p role="status">前{Math.min(5, options.maxRetries)}次间隔（未含抖动）：{Array.from({ length: Math.min(5, options.maxRetries) }, (_, index) => `${requestRetryDelay({ ...options!, jitterRatio: 0 }, index)! / 1000}秒`).join(' → ') || '不重试'}</p>}
-        <p>服务端 Retry-After 优先；超过间隔上限时明确停止。用户取消、权限与预算拒绝、未核实的操作不会自动重试。</p>
+        </>}
+        <p>所有失败的模型请求均按本策略重试，包括 PI_AI_ERROR 和流式异常。默认最多64次；用户或父任务取消会立即停止。</p>
+        <p>服务端 Retry-After 优先，可超过算法间隔上限。每次重试重新校验权限和预算，已执行的工具不会重放。</p>
       </>}
       {invalid && <p role="alert">{invalid}</p>}
       <div className="nexus-actions"><Button primary type="submit" disabled={!dirty || Boolean(invalid)}>保存重试设置</Button>

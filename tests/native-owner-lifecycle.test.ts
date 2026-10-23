@@ -132,6 +132,29 @@ test('busy manual admission performs no lane or sync work and cannot stop the cu
   } finally { await h.close(); }
 });
 
+test('managed overflow recovery can pass the old two-attempt limit but still requires a committed smaller context', async () => {
+  const h = await fixture();
+  const agent: any = h.agent;
+  agent.session.surface = { replaceGeneration: 0 };
+  agent.session.requestHeader = () => ({ config: {} });
+  let tokens = 9000, attempts = 0;
+  h.first.measurePressure = async () => ({ occupiedTokens: tokens });
+  h.first.compactIfNeeded = async () => {
+    if (++attempts <= 3) throw new NexusError('CTX_NATIVE_BUSY', 'Temporary recovery contention');
+    tokens = 1000; agent.session.surface.replaceGeneration++;
+    return { compactionId: 'verified-recovery', nativeReceipt: { committed: true } };
+  };
+  const payload = { agent, signal: h.signal(), turn: 1, step: 1,
+    failure: { code: 'CONTEXT_WINDOW_EXCEEDED', message: 'capacity' } };
+  try {
+    for (let retry = 1; retry <= 3; retry++) assert.equal(await h.first.recoverOverflow(payload, { retry, maxRetries: 64 }), undefined);
+    assert.deepEqual(await h.first.recoverOverflow(payload, { retry: 4, maxRetries: 64 }), { kind: 'retry' });
+    assert.equal(attempts, 4);
+    h.first.compactIfNeeded = async () => ({ compactionId: 'no-shrink', nativeReceipt: { committed: true } });
+    assert.equal(await h.first.recoverOverflow(payload, { retry: 5, maxRetries: 64 }), undefined);
+  } finally { await h.close(); }
+});
+
 test('a queued maintenance admission leaves the lane available until the exact host callback starts', async () => {
   const h = await fixture();
   let enter!: () => void, entered = false, syncCalls = 0;

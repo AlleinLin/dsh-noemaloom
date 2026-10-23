@@ -13,6 +13,10 @@ import { SystemPrompt } from '@deepseek-ai/dsh-system-prompt';
 import { ToolRuntime, defineContentToolFixture } from '@deepseek-ai/dsh-tools';
 import { HostAttemptTracker } from '../src/host/attempt-policy.js';
 import { toNativeLlmError } from '../src/host/native-diagnostics.js';
+import { registerRequestRecovery } from '../src/host/request-recovery.js';
+import { createScopeModule } from '../src/domain/scope.js';
+import { stepProgressServices } from './step-progress-fixture.js';
+import { REQUEST_RETRY_FEATURE } from '../src/shared/request-retry.js';
 import type { HostContext } from '../src/host/types.js';
 import {
   NexusError, type HostAttemptMetadata, type HostAttemptPolicy, type HostAttemptReceipt, type JsonRecord,
@@ -126,6 +130,8 @@ async function fixture(t: TestContext, options: {
   observe?: (facts: JsonRecord) => Promise<void>;
   diagnostic?: (facts: JsonRecord) => void;
   retryOnce?: boolean;
+  productionRecovery?: boolean;
+  recoveryDefaults?: Record<string, unknown>;
 } = {}) {
   const root = new Context();
   const adapter = new LocalAdapter(options.produce ?? ((_request, attempt) => toolResponse(attempt)));
@@ -134,7 +140,13 @@ async function fixture(t: TestContext, options: {
   const observations: JsonRecord[] = [];
   const diagnostics: JsonRecord[] = [];
   const recovery: RecoveryRequest[] = [];
+  const { services: retryServices } = stepProgressServices();
+  if (options.productionRecovery) await createScopeModule(retryServices).dispatch({
+    action: 'configure', params: { feature: REQUEST_RETRY_FEATURE,
+      config: { defaults: { initialDelayMs: 0, maxDelayMs: 0, ...options.recoveryDefaults } } }, expectedRevision: 0,
+  }, { actorId: 'connection-owner', permissions: new Set(['scope.configure']), scopeLevel: 'global' });
   const toolEntered = deferred();
+  const retryScheduled = deferred();
   let toolsExecuted = 0;
   let ctx!: Context;
   let tracker!: HostAttemptTracker;
@@ -152,6 +164,7 @@ async function fixture(t: TestContext, options: {
       new AgentRegistry(owner);
       new SessionStore(owner);
       new SessionProjectionRegistry(owner);
+      if (options.productionRecovery) owner.provide('nexus', { services: retryServices } as any);
       new SystemPrompt(owner, { includeHarnessIdentity: false });
       const llm = new LlmRuntime(owner);
       llm.registerAdapter([route.provider], adapter);
@@ -183,7 +196,7 @@ async function fixture(t: TestContext, options: {
 
   const driver = root.plugin({
     name: 'native-recovery-driver',
-    inject: ['agents', 'sessions', 'sessionProjections', 'llm', 'tools', 'systemPrompt'],
+    inject: ['agents', 'sessions', 'sessionProjections', 'llm', 'tools', 'systemPrompt', ...(options.productionRecovery ? ['nexus'] : [])],
     apply(owner: Context) {
       ctx = owner;
       new AgentLoop(ctx, AgentLoop.Config({ agents: [], maxParallelToolCalls: 1 }));
@@ -196,6 +209,8 @@ async function fixture(t: TestContext, options: {
         if (options.retryOnce && recovery.length === 1) return { kind: 'retry' };
         return next();
       });
+      if (options.productionRecovery) registerRequestRecovery(ctx as unknown as HostContext);
+      ctx.on('session/event', (_session, event) => { if (event.type === 'llm/retry') retryScheduled.resolve(); });
       ctx.on('llm/stream', (request, next) => {
         // Deliberately reproduce the previous middleware's awaited settled
         // callback. This path demonstrates the native failure independently
@@ -232,11 +247,13 @@ async function fixture(t: TestContext, options: {
   await driver.await();
   assert.equal(driver.state, 2);
 
-  async function create(name: string, policy?: HostAttemptPolicy) {
+  async function create(name: string, policy?: HostAttemptPolicy, parent?: Agent) {
     const id = SessionId(name);
     const owner = policy ? tracker.ownerFor({ role: 'worker', prompt: 'local fixture', attemptPolicy: policy }) : undefined;
     tracker.reserve(id, owner);
-    const handle = await ctx.agents.create({ sessionId: id, agentOptions: route });
+    const handle = await ctx.agents.create({ sessionId: id, agentOptions: route, ...(parent ? {
+      parentAgent: parent, meta: { origin: 'subagent' as const, delegationDepth: 1 },
+    } : {}) });
     handles.push(handle);
     return { agent: handle.agent, owner };
   }
@@ -248,7 +265,7 @@ async function fixture(t: TestContext, options: {
 
   return {
     create, start, adapter, tracker, observations, diagnostics, recovery, toolEntered: toolEntered.promise,
-    toolsExecuted: () => toolsExecuted,
+    toolsExecuted: () => toolsExecuted, retryScheduled: retryScheduled.promise,
   };
 }
 
@@ -329,6 +346,106 @@ test('explicit context overflow inside PI message reaches native overflow recove
   assert.equal(h.recovery[0].failure.code, 'CONTEXT_WINDOW_EXCEEDED');
   assert.equal(h.recovery[0].failure.message.includes('private'), false);
 });
+
+for (const kind of ['parent', 'child'] as const) {
+  test(`the real ${kind} completes after 64 PI failures with one tool dispatch and no synthetic followup`, async t => {
+    const h = await fixture(t, {
+      productionRecovery: true,
+      async *produce(_request, attempt) {
+        if (attempt <= 64) {
+          // Even a complete-looking tool call in a failed response must never
+          // execute; only the final successful response may commit it.
+          for await (const chunk of toolResponse(attempt)) if (chunk.type !== 'finish') yield chunk;
+          yield { type: 'finish', reason: { kind: 'error', failure: { code: 'PI_AI_ERROR', message: 'stream interrupted' } } };
+        } else yield* toolResponse(attempt);
+      },
+    });
+    const parent = (await h.create(`pi-${kind}-parent`)).agent;
+    const agent = kind === 'child' ? (await h.create('pi-child-worker', undefined, parent)).agent : parent;
+    await h.start(agent);
+    assertCompleted(agent, 65);
+    assert.equal(h.adapter.calls.length, 65);
+    assert.equal(eventsOf(agent, 'assistant/attempt').length, 64);
+    assert.equal(eventsOf(agent, 'llm/retry').length, 64);
+    assert.equal(eventsOf(agent, 'llm/retry-started').length, 64);
+    assert.equal(eventsOf(agent, 'step/start').length, 1);
+    assert.equal(eventsOf(agent, 'turn/start').length, 1);
+    assert.equal(h.toolsExecuted(), 1);
+    if (kind === 'child') assert.equal(eventsOf(parent, 'turn/start').length, 0);
+  });
+}
+
+test('65 consecutive provider failures exhaust exactly 64 retries and retain the last failure', async t => {
+  const h = await fixture(t, {
+    productionRecovery: true,
+    async *produce() { yield { type: 'finish', reason: { kind: 'error', failure: { code: 'PI_AI_ERROR', message: 'opaque' } } }; },
+  });
+  const { agent } = await h.create('pi-exhaustion');
+  await h.start(agent);
+  assert.equal(h.adapter.calls.length, 65);
+  assert.equal(eventsOf(agent, 'llm/retry').length, 64);
+  assert.equal(eventsOf(agent, 'assistant/attempt').length, 65);
+  assert.equal(h.toolsExecuted(), 0);
+  const reason = turnEnd(agent);
+  assert.equal(reason.kind, 'error');
+  if (reason.kind === 'error') assert.equal(reason.error.code, 'PI_AI_ERROR');
+  const diagnostic = agent.session.snapshotEvents().filter((event: any) => event.type === 'plugin:nexus/request-recovery').at(-1)!.data as any;
+  assert.equal(diagnostic.stopReason, 'retry-exhausted');
+  assert.equal(diagnostic.retry, 64);
+});
+
+test('a thrown PI iterator failure reaches production retry and resumes the same native step', async t => {
+  let passes = 0;
+  const h = await fixture(t, {
+    productionRecovery: true,
+    async *middleware(_request, next) {
+      if (passes++ === 0) throw Object.assign(new Error('private stream failure'), { code: 'PI_AI_ERROR' });
+      yield* next();
+    },
+  });
+  const { agent } = await h.create('pi-thrown-stream');
+  await h.start(agent);
+  assertCompleted(agent);
+  assert.equal(eventsOf(agent, 'llm/retry').length, 1);
+  assert.equal(eventsOf(agent, 'assistant/attempt').length, 1);
+  assert.equal(h.toolsExecuted(), 1);
+});
+
+for (const kind of ['user', 'parent'] as const) {
+  test(`${kind} cancellation interrupts a production PI backoff without sending another request`, async t => {
+    const h = await fixture(t, {
+      productionRecovery: true, recoveryDefaults: { initialDelayMs: 60_000, maxDelayMs: 60_000 },
+      async *produce() { yield { type: 'finish', reason: { kind: 'error', failure: { code: 'PI_AI_ERROR', message: 'opaque' } } }; },
+    });
+    const { agent } = await h.create(`pi-cancel-${kind}`);
+    const running = h.start(agent);
+    await within(h.retryScheduled, 'PI backoff');
+    agent.cancel({ kind });
+    await running;
+    assert.equal(h.adapter.calls.length, 1);
+    assert.equal(eventsOf(agent, 'llm/retry-started').length, 0);
+    assert.deepEqual(turnEnd(agent), { kind: 'aborted', reason: { kind } });
+  });
+}
+
+for (const tail of ['throw', 'finish'] as const) {
+  test(`a PI ${tail} after a complete terminal preserves the response and never resubmits tools`, async t => {
+    const h = await fixture(t, {
+      productionRecovery: true,
+      async *middleware(_request, next) {
+        yield* next();
+        if (tail === 'throw') throw Object.assign(new Error('provider cleanup failed'), { code: 'PI_AI_ERROR' });
+        yield { type: 'finish', reason: { kind: 'error', failure: { code: 'PI_AI_ERROR', message: 'tail' } } };
+      },
+    });
+    const { agent } = await h.create(`pi-completed-tail-${tail}`);
+    await h.start(agent);
+    assertCompleted(agent);
+    assert.equal(h.adapter.calls.length, 1);
+    assert.equal(eventsOf(agent, 'llm/retry').length, 0);
+    assert.equal(h.toolsExecuted(), 1);
+  });
+}
 
 test('the old awaited observer reproduces finish(tool-calls), assistant/attempt, UNKNOWN and no tool dispatch', async t => {
   const h = await fixture(t, {
@@ -557,7 +674,7 @@ test('a hard admission budget error retains BUDGET_EXCEEDED in the real native t
   await assert.rejects(h.tracker.finish(owner), error => error === failure);
 });
 
-test('an internal middleware error retains its machine code instead of UNKNOWN', async t => {
+test('an internal middleware error reaches same-step recovery and retains its code', async t => {
   const h = await fixture(t, {
     retryOnce: true,
     async *middleware() { throw new NexusError('INTERNAL', 'Fixture internal failure.'); },
@@ -570,11 +687,11 @@ test('an internal middleware error retains its machine code instead of UNKNOWN',
   if (reason.kind === 'error') {
     assert.equal(reason.error.code, 'INTERNAL');
     assert.match(reason.error.message, /NX_INTERNAL_FAILURE/);
-    assert.match(reason.error.message, /traceId=trace_/);
+    assert.match(reason.error.message, /(?:traceId|诊断)=trace_/);
   }
   assert.equal(h.adapter.calls.length, 0);
   assert.equal(h.toolsExecuted(), 0);
-  assert.equal(h.recovery.length, 0);
+  assert.equal(h.recovery.length, 2);
 });
 
 test('authoritative settlement failure after finish remains fatal and preserves its code', async t => {

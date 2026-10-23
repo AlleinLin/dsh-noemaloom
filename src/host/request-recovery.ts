@@ -30,8 +30,6 @@ const STOP_REASONS = new Set([
   'context-compactor-unavailable', 'context-compacted', 'no-proven-context-reduction', 'no-safe-bounded-range', 'summary-model-declined-safe-range',
   'retry-settings-unavailable',
 ]);
-const ABORT_RETRIES = 3;
-const ALWAYS_FALLBACK_RETRIES = 5;
 
 export interface RequestRecoveryDiagnostic {
   schemaVersion: 1;
@@ -88,6 +86,7 @@ interface RecoveryPayload {
   failure: { code: string; message: string; providerRetryAfterMs?: number };
   retryPolicy?: ResolvedRetryPolicy;
   signal: AbortSignal;
+  recoveryStage?: 'preparation';
 }
 type Decision = { kind: 'retry' } | undefined;
 
@@ -142,9 +141,9 @@ function sanitize(sessionId: string, facts: Record<string, unknown>): RequestRec
     const value = facts[key];
     if (count(value, key === 'maxRetries' ? 10_000 : Number.MAX_SAFE_INTEGER)) data[key] = value;
   }
-  if (count(facts.delayMs, 2_147_483_647)) data.delayMs = facts.delayMs;
+  if (count(facts.delayMs, Number.MAX_SAFE_INTEGER)) data.delayMs = facts.delayMs;
   if (typeof facts.providerRetryAfterMs === 'number' && Number.isFinite(facts.providerRetryAfterMs)
-      && facts.providerRetryAfterMs >= 0 && facts.providerRetryAfterMs <= 86_400_000) data.providerRetryAfterMs = facts.providerRetryAfterMs;
+      && facts.providerRetryAfterMs >= 0 && facts.providerRetryAfterMs <= Number.MAX_SAFE_INTEGER) data.providerRetryAfterMs = facts.providerRetryAfterMs;
   for (const key of ['beforeTokens', 'afterTokens'] as const) {
     if (count(facts[key], Number.MAX_SAFE_INTEGER)) data[key] = facts[key] as number;
   }
@@ -210,12 +209,6 @@ function foldRecovery(state: RecoveryState, event: SessionEvent): RecoveryState 
   const previous = state[key]?.retry ?? 0;
   return { ...state, [key]: { retry: Math.min(previous + 1, 10_000), retryId: data.retryId } };
 }
-function policyKey(policy: ResolvedRetryPolicy): string {
-  return policy.mode === 'always'
-    ? JSON.stringify([policy.mode, policy.initialDelayMs, policy.maxDelayMs, policy.jitterRatio])
-    : JSON.stringify([policy.mode, policy.maxRetries, [...policy.retryableCodes].sort(),
-      policy.initialDelayMs, policy.maxDelayMs, policy.jitterRatio]);
-}
 function validPolicy(policy: ResolvedRetryPolicy | undefined): policy is ResolvedRetryPolicy {
   if (!policy || !['normal', 'always'].includes(policy.mode)) return false;
   if (![policy.initialDelayMs, policy.maxDelayMs].every(value => Number.isFinite(value) && value >= 0 && value <= 2_147_483_647)
@@ -231,63 +224,39 @@ function signalStop(signal: AbortSignal): string {
   if (kind === 'hook') return 'hook-cancelled';
   return 'signal-aborted';
 }
-function hardStop(failure: unknown): { stopReason: string; diagnosticCode: string; canonicalCode?: string } | undefined {
-  const chain: any[] = failure && typeof failure === 'object' ? [failure] : [];
-  const seen = new Set(chain);
-  for (let i = 0; i < chain.length && chain.length < 6; i++) {
-    for (const value of [chain[i].cause, chain[i].failure]) {
-      if (value && typeof value === 'object' && !seen.has(value)) { seen.add(value); chain.push(value); }
-    }
-  }
-  for (const value of chain) {
-    const code = token(value.code, CODE) ?? '';
-    const message = typeof value.message === 'string' && value.message.length <= 32_768 ? value.message : '';
-    if (['AUTH', 'INVALID_CREDENTIAL', 'PERMISSION_DENIED', 'UNAUTHORIZED', 'FORBIDDEN', 'INVALID_API_KEY',
-      'SUBSCRIPTION_REQUIRED', 'SUBSCRIPTION_EXPIRED', 'PAYMENT_REQUIRED'].includes(code)
-      || [401, 402, 403].includes(value.status ?? value.statusCode)
-      || /\b(?:invalid api[- ]?key|invalid credentials?|subscription (?:required|expired)|authentication failed)\b/i.test(message)) {
-      return { stopReason: 'authorization-denied', diagnosticCode: 'NX_AUTH_DENIED', canonicalCode: code && code !== 'UNKNOWN' ? code : 'AUTH' };
-    }
-    if (/(?:^|_)(?:QUOTA|CREDIT|CREDITS|BALANCE)(?:_|$)/.test(code)
-      || /\b(?:insufficient[_ ](?:quota|credits?|balance)|quota[_ ](?:exceeded|exhausted)|credit balance (?:is )?(?:low|exhausted))\b/i.test(message)) {
-      return { stopReason: 'quota-denied', diagnosticCode: 'NX_AUTH_DENIED', canonicalCode: code && code !== 'UNKNOWN' ? code : 'QUOTA_EXCEEDED' };
-    }
-    if (code.includes('BUDGET') || ['POLICY_DENIED', 'APPROVAL_REQUIRED'].includes(code)) {
-      return { stopReason: 'budget-denied', diagnosticCode: 'NX_POLICY_BLOCKED', canonicalCode: code };
-    }
-    if (code.startsWith('CTX_') || code === 'SESSION_DURABILITY_UNVERIFIED') {
-      return { stopReason: 'not-retryable', diagnosticCode: 'NX_CONTEXT_MAINTENANCE', canonicalCode: code };
-    }
-    if (code === 'PARTIAL_EFFECT' || code.includes('PENDING_OPERATION')) {
-      return { stopReason: 'not-retryable', diagnosticCode: 'NX_PENDING_EFFECT', canonicalCode: code };
-    }
-    if (['SESSION_DELETED', 'SESSION_NOT_FOUND', 'DELETED'].includes(code)) {
-      return { stopReason: 'session-deleted', diagnosticCode: 'NX_CANCELLED', canonicalCode: code };
-    }
-    if (['AGENT_DISPOSED', 'DISPOSED', 'PLUGIN_DISPOSED'].includes(code)) {
-      return { stopReason: code === 'PLUGIN_DISPOSED' ? 'plugin-disposed' : 'agent-disposed',
-        diagnosticCode: 'NX_CANCELLED', canonicalCode: code };
-    }
-  }
-}
 function delay(delayMs: number, signal: AbortSignal): Promise<boolean> {
   if (signal.aborted) return Promise.resolve(false);
   return new Promise(resolve => {
+    let remaining = delayMs;
+    let timer: ReturnType<typeof setTimeout>;
     const finish = (ready: boolean) => {
       clearTimeout(timer);
       signal.removeEventListener('abort', onAbort);
       resolve(ready);
     };
     const onAbort = () => finish(false);
-    const timer = setTimeout(() => finish(true), delayMs);
+    const schedule = () => {
+      // Node clamps larger delays to 1ms. Split long provider waits instead of
+      // accidentally flooding the provider or stopping recovery altogether.
+      const part = Math.min(remaining, 2_147_483_647);
+      timer = setTimeout(() => {
+        remaining -= part;
+        if (remaining > 0) schedule(); else finish(true);
+      }, part);
+    };
+    schedule();
     signal.addEventListener('abort', onAbort, { once: true });
     if (signal.aborted) onAbort();
   });
 }
 
-async function configuredRetry(ctx: HostContext, agent: RecoveryPayload['agent'], signal: AbortSignal): Promise<RequestRetryOptions | undefined> {
+async function configuredRetry(ctx: HostContext, agent: RecoveryPayload['agent'], signal: AbortSignal,
+  lastKnown?: RequestRetryOptions): Promise<RequestRetryOptions> {
   const services = ctx.get('nexus')?.services;
-  if (!services?.store) return;
+  if (!services?.store) {
+    if (lastKnown) throw new Error('retry settings service unavailable');
+    return resolveRequestRetryOptions({});
+  }
   const root = agent.session.header.cwd ?? services.workspaceRoot;
   const settings = await boundedRead(() => effectiveSettings(services.store, root,
     { scopeLevel: 'session', sessionId: agent.id, workspaceRoot: root }, REQUEST_RETRY_FEATURE), {
@@ -304,6 +273,7 @@ export function registerRequestRecovery(ctx: HostContext): () => void {
   const waits = new Set<{ agent: RecoveryPayload['agent']; controller: AbortController }>();
   const disposedAgents = new WeakSet<object>();
   const disposedSessions = new WeakSet<object>();
+  const configuredPolicies = new WeakMap<object, RequestRetryOptions>();
   const removers: Array<() => void> = [];
   let projections: any;
   let stateReady = false;
@@ -335,7 +305,7 @@ export function registerRequestRecovery(ctx: HostContext): () => void {
   };
   const currentRetry = (payload: RecoveryPayload): number => stateOf(payload.agent.session, STATE)?.[stateKey(payload)]?.retry ?? 0;
 
-  async function recover(payload: RecoveryPayload, next: () => Promise<Decision>): Promise<Decision> {
+  async function recover(payload: RecoveryPayload): Promise<Decision> {
     const { agent, signal } = payload;
     const local = { agent, controller: new AbortController() };
     waits.add(local);
@@ -352,119 +322,98 @@ export function registerRequestRecovery(ctx: HostContext): () => void {
     try {
       const initialStop = stopped();
       if (initialStop) return await stop(initialStop, 'NX_CANCELLED');
-      if (diagnosis.canonicalCode === 'CONTEXT_WINDOW_EXCEEDED') {
-        // Do not delegate to an "always" transport retry policy. Only the
-        // exact live compactor can prove and retry a changed same-step request.
-        const compactor = nativeCompactionFor(agent);
-        if (!compactor?.recoverOverflow) return await stop('context-compactor-unavailable', 'NX_CONTEXT_WINDOW_EXCEEDED');
-        return await compactor.recoverOverflow(payload);
-      }
-      const terminal = hardStop(payload.failure);
-      if (terminal) {
-        await diagnostic(payload, diagnosis, { ...terminal, outcome: 'stopped', retry: currentRetry(payload) });
-        return undefined;
-      }
-
       const unattributedAbort = diagnosis.diagnosticCode === 'NX_ABORT_UNATTRIBUTED';
       const policy = validPolicy(payload.retryPolicy) ? payload.retryPolicy : undefined;
-      let configured: RequestRetryOptions | undefined;
-      try { configured = await configuredRetry(ctx, agent, fused); }
+      let configured: RequestRetryOptions;
+      try {
+        configured = await configuredRetry(ctx, agent, fused, configuredPolicies.get(agent));
+        configuredPolicies.set(agent, configured);
+      }
       catch {
-        return await stop(stopped() ?? 'retry-settings-unavailable', stopped() ? 'NX_CANCELLED' : 'NX_RECOVERY_FAILED');
+        if (stopped()) return await stop(stopped()!, 'NX_CANCELLED');
+        configured = configuredPolicies.get(agent) ?? resolveRequestRetryOptions({});
+        await diagnostic(payload, diagnosis, { diagnosticCode: 'NX_RECOVERY_FAILED', phase: 'retry-settings',
+          outcome: 'deferred', stopReason: 'retry-settings-unavailable', retry: currentRetry(payload),
+          maxRetries: configured.maxRetries });
       }
-      if (configured?.mode === 'disabled') return await stop('retry-disabled', 'NX_RETRY_DISABLED', 'nexus-fallback');
-      const custom = configured?.mode === 'custom' ? configured : undefined;
-      // Unattributed adapter aborts need an explicit finite cap, including when
-      // the installed native policy is "always". They never become network errors.
-      if (!unattributedAbort && !custom) {
-        let decision: Decision;
-        try { decision = await next(); } catch {
-          return await stop(stopped() ?? 'recovery-handler-failed', 'NX_RECOVERY_FAILED');
-        }
-        // Native retry owns its wait and decision. Removing Nexus must not
-        // cancel another plugin's recovery or change its signal/payload.
-        const afterDelegate = signal.aborted ? signalStop(signal) : disposedSessions.has(agent.session) ? 'session-deleted'
-          : disposedAgents.has(agent) ? 'agent-disposed' : undefined;
-        if (afterDelegate) return await stop(afterDelegate, 'NX_CANCELLED');
-        if (decision?.kind === 'retry') {
-          const nativeRetry = policy
-            ? stateOf(agent.session, 'llmRetry')?.[JSON.stringify([payload.provider, policyKey(policy)])]?.retry : undefined;
-          await diagnostic(payload, diagnosis, { outcome: 'delegated', source: 'native-retry',
-            retry: count(nativeRetry) ? nativeRetry : currentRetry(payload),
-            ...(policy?.mode === 'normal' ? { maxRetries: policy.maxRetries } : {}) });
-          return decision;
-        }
-        const native = stateOf(agent.session, 'llmRetry');
-        if (native !== undefined) {
-          if (!policy || policy.mode === 'normal' && policy.maxRetries === 0) {
-            return await stop('retry-disabled', 'NX_RETRY_DISABLED', 'native-retry');
-          }
-          const previous = native[JSON.stringify([payload.provider, policyKey(policy)])]?.retry ?? 0;
-          if (policy.mode === 'normal' && previous >= policy.maxRetries) {
-            return await stop('retry-exhausted', 'NX_RETRY_EXHAUSTED', 'native-retry', previous, policy.maxRetries);
-          }
-          if (policy.mode === 'normal' && !policy.retryableCodes.includes(payload.failure.code)) {
-            return await stop('not-retryable', diagnosis.diagnosticCode, 'native-retry', previous, policy.maxRetries);
-          }
-          if (policy.mode === 'normal' && Number.isFinite(payload.failure.providerRetryAfterMs)
-            && payload.failure.providerRetryAfterMs! > policy.maxDelayMs) {
-            return await stop('retry-delay-unsupported', 'NX_RETRY_DELAY_UNSUPPORTED', 'native-retry', previous, policy.maxRetries);
-          }
-          return await stop('native-retry-stopped', diagnosis.diagnosticCode, 'native-retry', previous);
-        }
-      }
-
+      if (configured.mode === 'disabled') return await stop('retry-disabled', 'NX_RETRY_DISABLED', 'nexus-fallback');
+      // Older profiles may explicitly select "inherit". Inherit timing hints,
+      // not the adapter's error allowlist: PI/UNKNOWN must not stop at retry 0.
+      const custom = configured.mode === 'inherit' ? { ...configured,
+          algorithm: 'exponential' as const, multiplier: 2,
+          initialDelayMs: policy?.initialDelayMs ?? configured.initialDelayMs,
+          maxDelayMs: policy?.maxDelayMs ?? configured.maxDelayMs,
+          jitterRatio: policy?.jitterRatio ?? configured.jitterRatio,
+        } : configured;
+      // Only the native signal and live lifecycle events can cancel recovery.
+      // A provider's ABORTED/DELETED/DISPOSED code is still a failed request
+      // when the real agent remains alive. Permission/budget admission runs
+      // again on an actual attempt; this policy adds no authority.
       const beforeFallback = stopped();
       if (beforeFallback) return await stop(beforeFallback, 'NX_CANCELLED', 'nexus-fallback');
-      if (!policy && !unattributedAbort && !custom) return await stop('retry-disabled', 'NX_RETRY_DISABLED', 'nexus-fallback');
       if (!stateReady || stateOf(agent.session, STATE) === undefined) {
         return await stop('recovery-state-unavailable', 'NX_RECOVERY_FAILED', 'nexus-fallback');
       }
-      const maxRetries = custom?.maxRetries ?? (unattributedAbort ? ABORT_RETRIES : policy!.mode === 'normal' ? policy!.maxRetries : ALWAYS_FALLBACK_RETRIES);
+      const maxRetries = custom.maxRetries;
       if (maxRetries === 0) return await stop('retry-disabled', 'NX_RETRY_DISABLED', 'nexus-fallback', currentRetry(payload), maxRetries);
-      const eligible = custom ? diagnosis.retryable || unattributedAbort
-        || custom.retryOpaqueProviderErrors && payload.failure.code === 'PI_AI_ERROR' && diagnosis.diagnosticCode === 'NX_PROVIDER_FAILURE'
-        : unattributedAbort || policy!.mode === 'always' || policy!.retryableCodes.includes(payload.failure.code);
-      if (!eligible) {
-        return await stop('not-retryable', diagnosis.diagnosticCode, 'nexus-fallback', currentRetry(payload), maxRetries);
+      // One durable budget owns provider retries and overflow recovery phases.
+      // Reattempting maintenance never authorizes replaying a pending effect.
+      while (true) {
+        const previous = currentRetry(payload);
+        if (previous >= maxRetries) return await stop('retry-exhausted',
+          unattributedAbort ? 'NX_ABORT_UNATTRIBUTED' : 'NX_RETRY_EXHAUSTED', 'nexus-fallback', previous, maxRetries);
+        const retryAfter = payload.failure.providerRetryAfterMs;
+        const delayMs = requestRetryDelay(custom, previous, retryAfter);
+        if (delayMs === undefined) {
+          return await stop('retry-delay-unsupported', 'NX_RETRY_DELAY_UNSUPPORTED', 'nexus-fallback', previous, maxRetries);
+        }
+        const retry = previous + 1;
+        const retryId = randomUUID() as LlmRetryEventData['retryId'];
+        const beforeSchedule = stopped();
+        if (beforeSchedule) return await stop(beforeSchedule, 'NX_CANCELLED');
+        try {
+          // The released event owns the durable count and native countdown UI.
+          // Persist public diagnostic text, never the provider's original body.
+          agent.session.append('llm/retry', {
+            retryId, turn: payload.turn, step: payload.step, provider: payload.provider, mode: 'normal',
+            policyKey: `nexus:custom:${JSON.stringify(custom)}`,
+            retry, maxRetries, delayMs,
+            failure: { code: diagnosis.canonicalCode, message: `[${diagnosis.diagnosticCode}] ${diagnosis.message}`,
+              ...(diagnosis.status === undefined ? {} : { status: diagnosis.status }),
+              ...(diagnosis.requestId ? { requestId: ProviderRequestId(diagnosis.requestId) } : {}) },
+          });
+        } catch { return await stop('recovery-record-failed', 'NX_RECOVERY_FAILED', 'nexus-fallback', previous, maxRetries); }
+        if (currentRetry(payload) <= previous) {
+          return await stop('recovery-state-unavailable', 'NX_RECOVERY_FAILED', 'nexus-fallback', previous, maxRetries);
+        }
+        await diagnostic(payload, diagnosis, { outcome: 'scheduled', source: 'nexus-fallback', retry, maxRetries, delayMs });
+        if (!await delay(delayMs, fused)) return await stop(stopped() ?? 'signal-aborted', 'NX_CANCELLED', 'nexus-fallback', retry, maxRetries);
+        const afterWait = stopped();
+        if (afterWait) return await stop(afterWait, 'NX_CANCELLED', 'nexus-fallback', retry, maxRetries);
+        try { agent.session.append('llm/retry-started', { retryId, turn: payload.turn, step: payload.step, retry }); }
+        catch { return await stop('recovery-record-failed', 'NX_RECOVERY_FAILED', 'nexus-fallback', retry, maxRetries); }
+        await diagnostic(payload, diagnosis, { outcome: 'retry-started', source: 'nexus-fallback', retry, maxRetries });
+        if (diagnosis.canonicalCode === 'CONTEXT_WINDOW_EXCEEDED' && payload.recoveryStage !== 'preparation') {
+          // Retry the safe recovery stage, not the unchanged oversized request.
+          // The live compactor reconciles any previous formal operation first.
+          let decision: Decision;
+          const compactor = nativeCompactionFor(agent);
+          try {
+            decision = await compactor?.recoverOverflow?.({ ...payload, signal: fused }, { retry, maxRetries });
+          } catch {
+            await diagnostic(payload, diagnosis, { diagnosticCode: 'NX_RECOVERY_FAILED',
+              phase: 'context-overflow-recovery', outcome: 'deferred', retry, maxRetries,
+              stopReason: 'recovery-handler-failed' });
+          }
+          if (stopped()) return await stop(stopped()!, 'NX_CANCELLED', 'nexus-fallback', retry, maxRetries);
+          if (decision?.kind !== 'retry') {
+            await diagnostic(payload, diagnosis, { phase: 'context-overflow-recovery', outcome: 'deferred',
+              retry, maxRetries, stopReason: compactor?.recoverOverflow ? 'no-proven-context-reduction' : 'context-compactor-unavailable' });
+            continue;
+          }
+        }
+        return stopped() ? await stop(stopped()!, 'NX_CANCELLED', 'nexus-fallback', retry, maxRetries) : { kind: 'retry' };
       }
-      const previous = currentRetry(payload);
-      if (previous >= maxRetries) return await stop('retry-exhausted',
-        unattributedAbort ? 'NX_ABORT_UNATTRIBUTED' : 'NX_RETRY_EXHAUSTED', 'nexus-fallback', previous, maxRetries);
-      const backoff = custom ?? policy ?? { initialDelayMs: 500, maxDelayMs: 10_000, jitterRatio: 0.1 };
-      const retryAfter = payload.failure.providerRetryAfterMs;
-      if (Number.isFinite(retryAfter) && retryAfter! > backoff.maxDelayMs) {
-        return await stop('retry-delay-unsupported', 'NX_RETRY_DELAY_UNSUPPORTED', 'nexus-fallback', previous, maxRetries);
-      }
-      const retry = previous + 1;
-      const delayMs = requestRetryDelay(custom ?? { ...backoff, algorithm: 'exponential', multiplier: 2 }, previous, retryAfter)!;
-      const retryId = randomUUID() as LlmRetryEventData['retryId'];
-      const beforeSchedule = stopped();
-      if (beforeSchedule) return await stop(beforeSchedule, 'NX_CANCELLED');
-      try {
-        // The released event owns the durable count and native countdown UI.
-        // Persist public diagnostic text, never the provider's original body.
-        agent.session.append('llm/retry', {
-          retryId, turn: payload.turn, step: payload.step, provider: payload.provider, mode: 'normal',
-          policyKey: custom ? `nexus:custom:${JSON.stringify(custom)}`
-            : unattributedAbort ? 'nexus:unattributed-abort:v1' : policyKey(policy!),
-          retry, maxRetries, delayMs,
-          failure: { code: diagnosis.canonicalCode, message: `[${diagnosis.diagnosticCode}] ${diagnosis.message}`,
-            ...(diagnosis.status === undefined ? {} : { status: diagnosis.status }),
-            ...(diagnosis.requestId ? { requestId: ProviderRequestId(diagnosis.requestId) } : {}) },
-        });
-      } catch { return await stop('recovery-record-failed', 'NX_RECOVERY_FAILED', 'nexus-fallback', previous, maxRetries); }
-      if (currentRetry(payload) <= previous) {
-        return await stop('recovery-state-unavailable', 'NX_RECOVERY_FAILED', 'nexus-fallback', previous, maxRetries);
-      }
-      await diagnostic(payload, diagnosis, { outcome: 'scheduled', source: 'nexus-fallback', retry, maxRetries, delayMs });
-      if (!await delay(delayMs, fused)) return await stop(stopped() ?? 'signal-aborted', 'NX_CANCELLED', 'nexus-fallback', retry, maxRetries);
-      const afterWait = stopped();
-      if (afterWait) return await stop(afterWait, 'NX_CANCELLED', 'nexus-fallback', retry, maxRetries);
-      try { agent.session.append('llm/retry-started', { retryId, turn: payload.turn, step: payload.step, retry }); }
-      catch { return await stop('recovery-record-failed', 'NX_RECOVERY_FAILED', 'nexus-fallback', retry, maxRetries); }
-      await diagnostic(payload, diagnosis, { outcome: 'retry-started', source: 'nexus-fallback', retry, maxRetries });
-      return stopped() ? await stop(stopped()!, 'NX_CANCELLED', 'nexus-fallback', retry, maxRetries) : { kind: 'retry' };
     } catch {
       await diagnostic(payload, diagnosis, { diagnosticCode: 'NX_RECOVERY_FAILED', outcome: 'failed',
         stopReason: 'recovery-handler-failed', retry: currentRetry(payload) });
@@ -484,12 +433,13 @@ export function registerRequestRecovery(ctx: HostContext): () => void {
     disposedSessions.add(session);
     for (const wait of waits) if (wait.agent.session === session) wait.controller.abort();
   });
-  listen('agent/request-error', (payload: RecoveryPayload, next: () => Promise<Decision>) => {
-    const operation = recover(payload, next);
+  const trackRecovery = (payload: RecoveryPayload) => {
+    const operation = recover(payload);
     active.add(operation);
     void operation.then(() => active.delete(operation), () => active.delete(operation));
     return operation;
-  }, { prepend: true });
+  };
+  listen('agent/request-error', trackRecovery, { prepend: true });
   const dispose = () => {
     if (lifetime.signal.aborted) return;
     lifetime.abort();
