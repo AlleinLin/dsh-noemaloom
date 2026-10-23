@@ -36,6 +36,8 @@ for (const name of Object.keys(manifest.dependencies)) {
 manifest.dsh.client.inject = [...prerequisites].sort();
 await writeFile(new URL('package.json', root), JSON.stringify(manifest, null, 2) + '\n');
 const lock = JSON.parse(await readFile(new URL('package-lock.json', root), 'utf8'));
+lock.name = manifest.name;
+lock.packages[''].name = manifest.name;
 lock.version = manifest.version;
 lock.packages[''].version = manifest.version;
 lock.packages[''].dependencies = manifest.dependencies;
@@ -51,18 +53,18 @@ const entries = [
   ['superpowers', 'superpowers'], ['ponytail', 'ponytail'],
   ['dsh-openspec', 'openspec'], ['dsh-karpathy-methodology', 'karpathy'],
 ];
-let patch = "# Unified desktop composition. Original host entries retain their native IDs.\n- insert:\n    - id: nexus\n      name: '@local/dsh-nexus'\n";
+let patch = "# Unified desktop composition. Original host entries retain their native IDs.\n- insert:\n    - id: nexus\n      name: 'dsh-noemaloom'\n";
 for (const [id, name] of entries) {
-  patch += `    - id: ${id}\n      name: '@local/dsh-nexus/original/${name}'\n`;
+  patch += `    - id: ${id}\n      name: 'dsh-noemaloom/original/${name}'\n`;
   if (id === 'dsh-context') patch += "      config:\n        defaultPlacement: tab\n        fleetTab: show\n";
   if (id === 'dsh-codinput') patch += "      config: {}\n";
   if (id === 'thoughtdag') patch += "      config:\n        mountPrefix: /thoughtdag\n        whyTools: true\n        whyPrompt: true\n";
 }
 const memoryPatch = (await readFile(join(mnemon.root, 'cordis.patch.yml'), 'utf8'))
-  .replace(/\bdsh-mnemon\/bundle\b/g, '@local/dsh-nexus/original/mnemon-bundle')
-  .replace(/\bdsh-mnemon-([\w-]+)/g, '@local/dsh-nexus/original/mnemon-$1')
-  .replace(/\bname: dsh-mnemon\b/g, 'name: @local/dsh-nexus/original/mnemon')
-  .replace(/\b(name|use): (@local\/[^\r\n]+)/g, "$1: '$2'");
+  .replace(/\bdsh-mnemon\/bundle\b/g, 'dsh-noemaloom/original/mnemon-bundle')
+  .replace(/\bdsh-mnemon-([\w-]+)/g, 'dsh-noemaloom/original/mnemon-$1')
+  .replace(/\bname: dsh-mnemon\b/g, 'name: dsh-noemaloom/original/mnemon')
+  .replace(/\b(name|use): (dsh-noemaloom\/[^\r\n]+)/g, "$1: '$2'");
 patch += '\n' + memoryPatch;
 // Retain the original components, defaults and opt-in UI of dsh-ops.
 patch += '\n' + configureOpsComposition(await readFile(join(packageRoot('dsh-ops').root, 'cordis.patch.yml'), 'utf8'));

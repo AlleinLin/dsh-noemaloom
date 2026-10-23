@@ -38,7 +38,7 @@ covered by a successful JavaScript CI job.
 
 The packaging script runs `npm pack`, audits the actual archive and generates:
 
-- A content-addressed `local-dsh-nexus-<version>-<sha256>.tgz`.
+- A content-addressed `dsh-noemaloom-<version>-<sha256>.tgz`.
 - `install-manifest.json`, `install-desktop.ps1` and `SHA256SUMS.txt`.
 - `package-audit.json`, which must pass for packaging to succeed.
 
@@ -59,14 +59,19 @@ Desktop before installing.
 The installer verifies the package digest, host version and installed key-file hashes.
 It uses the Desktop profile under `DSH_HOME`, or the user's `.dsh` when unset.
 Reopen Desktop and verify the enabled plugin, configuration and desired runtime features.
-The internal package name remains `@local/dsh-nexus`; some entries still use the Nexus label.
+The package and plugin registration name is `dsh-noemaloom`. If the former
+`@local/dsh-nexus` dependency is present, the installer verifies the replacement
+before removing the old registration with the same bundled CLI. Failed legacy
+removal withdraws a newly added replacement while the old registration remains.
+Existing `data/nexus` storage, settings keys and the `nexus` entry ID are retained.
+See [registration and migration](PLUGIN-REGISTRATION.md) for custom module references.
 
 ## Remove
 
 Exit Desktop before running:
 
 ```powershell
-& 'C:\Program Files\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd' plugin --profile desktop remove '@local/dsh-nexus'
+& 'C:\Program Files\DeepSeek Harness\resources\runtime\cli\bin\dsh.cmd' plugin --profile desktop remove 'dsh-noemaloom'
 ```
 
 Restart Desktop and check any custom preset references. Uninstalling the package

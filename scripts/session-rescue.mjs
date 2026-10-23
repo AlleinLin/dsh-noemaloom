@@ -29,7 +29,7 @@ const insertion = `
 `;
 const file = join(resolve(packageRoot), 'lib', 'compaction.js');
 const manifest = JSON.parse(await readFile(join(packageRoot, 'package.json'), 'utf8'));
-if (manifest.name !== '@local/dsh-nexus' || manifest.engines?.dsh !== '0.2.1-rc.2') {
+if (!['dsh-noemaloom', '@local/dsh-nexus'].includes(manifest.name) || manifest.engines?.dsh !== '0.2.1-rc.2') {
   throw new Error('This rescue tool only supports the Nexus package for Desktop 0.2.1-rc.2.');
 }
 const bytes = await readFile(file);

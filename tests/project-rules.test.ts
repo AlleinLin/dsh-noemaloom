@@ -21,8 +21,8 @@ test('shipped presets wire the ordered first-match project rule reader', async (
       if (!Array.isArray(value) && (value as Record<string, unknown>).name === '@deepseek-ai/dsh-tool-subagent') {
         assert.fail(`Unadapted child model selection in ${file}`);
       }
-      if (!Array.isArray(value) && (value as Record<string, unknown>).name === '@local/dsh-nexus/subagent') delegations++;
-      if (!Array.isArray(value) && (value as Record<string, unknown>).name === '@local/dsh-nexus/project-rules') {
+      if (!Array.isArray(value) && (value as Record<string, unknown>).name === 'dsh-noemaloom/subagent') delegations++;
+      if (!Array.isArray(value) && (value as Record<string, unknown>).name === 'dsh-noemaloom/project-rules') {
         const config = (value as { config: Record<string, unknown> }).config;
         assert.deepEqual(config.instructionFileCandidates, ['DEEPSEEK.md', 'AGENT.md', 'AGENTS.md', 'CLAUDE.md'], file);
         assert.deepEqual(config.localInstructionFileCandidates, [], file);

@@ -18,7 +18,10 @@ if ([string]::IsNullOrWhiteSpace($dshRoot)) { $dshRoot = Join-Path $userRoot '.d
 elseif ($dshRoot -eq '~') { $dshRoot = $userRoot }
 elseif ($dshRoot.StartsWith('~\') -or $dshRoot.StartsWith('~/')) { $dshRoot = Join-Path $userRoot $dshRoot.Substring(2) }
 $profileRoot = Join-Path ([IO.Path]::GetFullPath($dshRoot)) 'profiles\desktop'
-$packageRoot = Join-Path $profileRoot 'node_modules\@local\dsh-nexus'
+$packageRoot = Join-Path $profileRoot 'node_modules\dsh-noemaloom'
+if (!(Test-Path -LiteralPath (Join-Path $packageRoot 'package.json') -PathType Leaf)) {
+    $packageRoot = Join-Path $profileRoot 'node_modules\@local\dsh-nexus'
+}
 if ([string]::IsNullOrWhiteSpace($NexusDataDirectory)) { $NexusDataDirectory = Join-Path $profileRoot 'data\nexus' }
 if ($Mode -ne 'inspect' -and @(Get-Process -Name 'DeepSeek Harness' -ErrorAction SilentlyContinue).Count -gt 0) {
     throw 'Exit DeepSeek Harness from its tray menu before apply/undo. No process was stopped.'

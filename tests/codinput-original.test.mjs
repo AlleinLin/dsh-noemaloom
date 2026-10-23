@@ -43,7 +43,7 @@ test('Codinput retains its pinned source, formal host registration and complete 
   assert.equal(licenses.find(entry => entry.packageName === 'dompurify').license, '(MPL-2.0 OR Apache-2.0)');
   const patch = parse(await readFile('cordis.patch.yml', 'utf8'));
   assert.deepEqual(patch.flatMap(row => row.insert ?? []).find(row => row.id === 'dsh-codinput'), {
-    id: 'dsh-codinput', name: '@local/dsh-nexus/original/codinput', config: {},
+    id: 'dsh-codinput', name: 'dsh-noemaloom/original/codinput', config: {},
   });
   const originalHost = require('../vendor/codinput/lib/index.js');
   assert.equal(originalHost.name, 'dsh-codinput');

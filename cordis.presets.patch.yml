@@ -12,7 +12,7 @@
         config:
           prefix: 你是协助用户完成软件工作的工程助手。遵守当前任务、工作区规范及宿主权限，先核实事实，再完成实现与验证。
       - id: agent-instructions
-        name: '@local/dsh-nexus/project-rules'
+        name: 'dsh-noemaloom/project-rules'
         config:
           maxBytes: 65536
           instructionFileCandidates: [DEEPSEEK.md, AGENT.md, AGENTS.md, CLAUDE.md]
@@ -72,7 +72,7 @@
           toolResultPruner: true
         config:
           - id: compaction-basic
-            name: '@local/dsh-nexus/compaction'
+            name: 'dsh-noemaloom/compaction'
           - id: command-compact
             name: '@deepseek-ai/dsh-command-compact'
           - id: tool-result-pruner
@@ -92,13 +92,13 @@
           - id: tool-subagent-list-agents
             name: '@deepseek-ai/dsh-tool-subagent-control/list-agents'
           - id: tool-subagent
-            name: '@local/dsh-nexus/subagent'
+            name: 'dsh-noemaloom/subagent'
             config:
               provider: spawn
               toolName: subagent
               modelSelectionSettings: true
           - id: tool-subagent-fork
-            name: '@local/dsh-nexus/subagent'
+            name: 'dsh-noemaloom/subagent'
             config:
               provider: fork
               toolName: subagent_fork
@@ -139,7 +139,7 @@
         config:
           prefix: 你是协助用户完成软件工作的工程助手。遵守当前任务、工作区规范及宿主权限，先核实事实，再完成实现与验证。
       - id: agent-instructions
-        name: '@local/dsh-nexus/project-rules'
+        name: 'dsh-noemaloom/project-rules'
         config:
           maxBytes: 65536
           instructionFileCandidates: [DEEPSEEK.md, AGENT.md, AGENTS.md, CLAUDE.md]
@@ -199,7 +199,7 @@
           toolResultPruner: true
         config:
           - id: compaction-basic
-            name: '@local/dsh-nexus/compaction'
+            name: 'dsh-noemaloom/compaction'
           - id: command-compact
             name: '@deepseek-ai/dsh-command-compact'
           - id: tool-result-pruner
@@ -219,13 +219,13 @@
           - id: tool-subagent-list-agents
             name: '@deepseek-ai/dsh-tool-subagent-control/list-agents'
           - id: tool-subagent
-            name: '@local/dsh-nexus/subagent'
+            name: 'dsh-noemaloom/subagent'
             config:
               provider: spawn
               toolName: subagent
               modelSelectionSettings: true
           - id: tool-subagent-fork
-            name: '@local/dsh-nexus/subagent'
+            name: 'dsh-noemaloom/subagent'
             config:
               provider: fork
               toolName: subagent_fork
@@ -287,7 +287,7 @@
           compaction: true
         config:
           - id: compaction-basic
-            name: '@local/dsh-nexus/compaction'
+            name: 'dsh-noemaloom/compaction'
           - id: command-compact
             name: '@deepseek-ai/dsh-command-compact'
       - id: persistent-shell
@@ -349,7 +349,7 @@
         config:
           prefix: 你是协助用户完成软件工作的工程助手。遵守当前任务、工作区规范及宿主权限，先核实事实，再完成实现与验证。
       - id: agent-instructions
-        name: '@local/dsh-nexus/project-rules'
+        name: 'dsh-noemaloom/project-rules'
         config:
           maxBytes: 65536
           instructionFileCandidates: [DEEPSEEK.md, AGENT.md, AGENTS.md, CLAUDE.md]
@@ -405,7 +405,7 @@
           toolResultPruner: true
         config:
           - id: compaction-basic
-            name: '@local/dsh-nexus/compaction'
+            name: 'dsh-noemaloom/compaction'
           - id: command-compact
             name: '@deepseek-ai/dsh-command-compact'
           - id: tool-result-pruner
@@ -425,13 +425,13 @@
           - id: tool-subagent-list-agents
             name: '@deepseek-ai/dsh-tool-subagent-control/list-agents'
           - id: tool-subagent
-            name: '@local/dsh-nexus/subagent'
+            name: 'dsh-noemaloom/subagent'
             config:
               provider: spawn
               toolName: subagent
               modelSelectionSettings: true
           - id: tool-subagent-fork
-            name: '@local/dsh-nexus/subagent'
+            name: 'dsh-noemaloom/subagent'
             config:
               provider: fork
               toolName: subagent_fork
@@ -480,13 +480,13 @@
         order: 10
         plugins:
           - id: nexus-preset-policy
-            name: '@local/dsh-nexus/preset-runtime'
+            name: 'dsh-noemaloom/preset-runtime'
             config:
               presetId: suite.windows-coding
               shellId: pwsh7
               registerShell: false
           - id: agent-instructions
-            name: '@local/dsh-nexus/project-rules'
+            name: 'dsh-noemaloom/project-rules'
             config:
               maxBytes: 65536
               instructionFileCandidates: [DEEPSEEK.md, AGENT.md, AGENTS.md, CLAUDE.md]
@@ -515,7 +515,7 @@
               compaction: true
             config:
               - id: compaction-basic
-                name: '@local/dsh-nexus/compaction'
+                name: 'dsh-noemaloom/compaction'
               - id: command-compact
                 name: '@deepseek-ai/dsh-command-compact'
           - id: persistent-shell
@@ -551,7 +551,7 @@
             config:
               prefix: 你是协助用户完成软件工作的工程助手。遵守当前任务、工作区规范及宿主权限，先核实事实，再完成实现与验证。
           - id: agent-instructions
-            name: '@local/dsh-nexus/project-rules'
+            name: 'dsh-noemaloom/project-rules'
             config:
               maxBytes: 65536
               instructionFileCandidates: [DEEPSEEK.md, AGENT.md, AGENTS.md, CLAUDE.md]
@@ -559,7 +559,7 @@
           - id: time-context
             name: '@deepseek-ai/dsh-time-context'
           - id: nexus-preset-policy
-            name: '@local/dsh-nexus/preset-runtime'
+            name: 'dsh-noemaloom/preset-runtime'
             config:
               presetId: suite.windows-gitbash
               shellId: git-bash
@@ -578,7 +578,7 @@
               toolResultPruner: true
             config:
               - id: compaction-basic
-                name: '@local/dsh-nexus/compaction'
+                name: 'dsh-noemaloom/compaction'
               - id: command-compact
                 name: '@deepseek-ai/dsh-command-compact'
               - id: tool-result-pruner
@@ -596,7 +596,7 @@
         order: 12
         plugins:
           - id: nexus-preset-policy
-            name: '@local/dsh-nexus/preset-runtime'
+            name: 'dsh-noemaloom/preset-runtime'
             config:
               presetId: suite.adaptive-standard
               shellId: platform-default
@@ -606,7 +606,7 @@
             config:
               prefix: 你是协助用户完成软件工作的工程助手。遵守当前任务、工作区规范及宿主权限，先核实事实，再完成实现与验证。
           - id: agent-instructions
-            name: '@local/dsh-nexus/project-rules'
+            name: 'dsh-noemaloom/project-rules'
             config:
               maxBytes: 65536
               instructionFileCandidates: [DEEPSEEK.md, AGENT.md, AGENTS.md, CLAUDE.md]
@@ -666,7 +666,7 @@
               toolResultPruner: true
             config:
               - id: compaction-basic
-                name: '@local/dsh-nexus/compaction'
+                name: 'dsh-noemaloom/compaction'
               - id: command-compact
                 name: '@deepseek-ai/dsh-command-compact'
               - id: tool-result-pruner
@@ -686,13 +686,13 @@
               - id: tool-subagent-list-agents
                 name: '@deepseek-ai/dsh-tool-subagent-control/list-agents'
               - id: tool-subagent
-                name: '@local/dsh-nexus/subagent'
+                name: 'dsh-noemaloom/subagent'
                 config:
                   provider: spawn
                   toolName: subagent
                   modelSelectionSettings: true
               - id: tool-subagent-fork
-                name: '@local/dsh-nexus/subagent'
+                name: 'dsh-noemaloom/subagent'
                 config:
                   provider: fork
                   toolName: subagent_fork

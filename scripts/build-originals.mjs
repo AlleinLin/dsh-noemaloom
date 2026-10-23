@@ -99,7 +99,7 @@ function adaptSidebar(factory) {
 
 function adaptContext(factory) {
   let source = replaceOnce(factory, 'var t={exports:{}}',
-    'const nexusNativeNavigation=e("@local/dsh-nexus/original-navigation");var t={exports:{}}',
+    'const nexusNativeNavigation=e("dsh-noemaloom/original-navigation");var t={exports:{}}',
     'Context native navigation module');
   source = replaceOnce(source, 'function _u(e){return e.defaultPlacement()!==`sidebar`}',
     'function _u(e){return true}', 'Context fixed conversation placement gate');
@@ -233,7 +233,7 @@ async function addClient(definition, installed) {
   }
   if (manifest.name === 'dsh-better-sidebar') {
     factory = adaptSidebar(factory);
-    parsed.requires.push('@local/dsh-nexus/agent-insights');
+    parsed.requires.push('dsh-noemaloom/agent-insights');
     factory = replaceOnce(factory, 'absolute/home/me/x.txt', 'absolute/workspace/x.txt', 'Sidebar generic path documentation');
     factory = replaceOnce(factory, 'vscode://file//home/u/f.ts` or `vscode://file/C:/Users/u/f.ts',
       'vscode://file//workspace/f.ts` or `vscode://file/C:/work/f.ts', 'Sidebar generic editor URL documentation');
@@ -247,7 +247,7 @@ async function addClient(definition, installed) {
   }
   if (manifest.name === 'dsh-context') {
     factory = adaptContext(factory);
-    parsed.requires.push('@local/dsh-nexus/original-navigation');
+    parsed.requires.push('dsh-noemaloom/original-navigation');
     adaptations.push('single-original-context-and-fleet-conversation-surface', 'native-session-view-navigation-without-DOM-clicks');
   }
   if (manifest.name === 'dsh-better-display') {

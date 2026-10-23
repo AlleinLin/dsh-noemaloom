@@ -31,7 +31,7 @@ import { registerEditorAssets } from './editor-assets.js';
 import { registerAgentCommunications } from './communications/index.js';
 export { hostAuthority } from './host-adapter.js';
 
-export const name = 'dsh-nexus';
+export const name = 'dsh-noemaloom';
 // Keep both dependencies declared so a provider change rebuilds this consumer.
 // The registration context below carries its injected webServer into rc.2 RPC.
 export const inject = ['connection', 'tools', 'webServer'];
@@ -72,7 +72,7 @@ async function installedPackageRoot(): Promise<string> {
   let candidate = dirname(fileURLToPath(import.meta.url));
   for (let depth = 0; depth < 5; depth++) {
     const manifest = await readFile(join(candidate, 'package.json'), 'utf8').then(text => JSON.parse(text)).catch(() => undefined);
-    if (manifest?.name === '@local/dsh-nexus') return candidate;
+    if (manifest?.name === 'dsh-noemaloom') return candidate;
     const parent = dirname(candidate);
     if (parent === candidate) break;
     candidate = parent;

@@ -84,9 +84,10 @@ session settings. By default the main agent reports every 10 steps, then
 continues in the same response while preserving task format constraints.
 It never interrupts a running tool; its prompt remains in conversation history.
 
-> The repository is named `dsh-noemaloom`. Runtime identifiers remain
-> `@local/dsh-nexus` and `nexus-*` to preserve preset and adapter compatibility.
-> Some host surfaces therefore still show the Nexus name.
+> The package and plugin registration now use `dsh-noemaloom`. The installer
+> verifies the replacement before removing `@local/dsh-nexus`; existing data,
+> settings keys and stable entry IDs remain compatible. See
+> [registration and migration](docs/PLUGIN-REGISTRATION.md).
 
 ## How the pieces connect
 

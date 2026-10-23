@@ -43,7 +43,7 @@ interface DockRuntime {
   inherit(sessionId: string): void;
 }
 const DOCK_KIND = 'nexus.dock-target';
-const DOCK_PROVIDER = '@local/dsh-nexus/native-dock-target';
+const DOCK_PROVIDER = 'dsh-noemaloom/native-dock-target';
 const runtimes = new WeakMap<object, DockRuntime>();
 const controllerFor = (ctx: any) => ctx.sidebarRight ?? ctx.get?.('sidebarRight');
 const runtimeFor = (ctx: any) => {

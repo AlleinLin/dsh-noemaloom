@@ -7,15 +7,15 @@ import { readFile, writeFile } from 'node:fs/promises';
 const sourceRoot = new URL('../assets/presets/upstream/', import.meta.url);
 const prefix = '你是协助用户完成软件工作的工程助手。遵守当前任务、工作区规范及宿主权限，先核实事实，再完成实现与验证。';
 function deepseekRules(row) {
-  return row.replaceAll("'@deepseek-ai/dsh-tool-subagent'", "'@local/dsh-nexus/subagent'")
+  return row.replaceAll("'@deepseek-ai/dsh-tool-subagent'", "'dsh-noemaloom/subagent'")
     .replace(/(^[ \t]*name: '@deepseek-ai\/dsh-agent-instructions'\n[ \t]*config:\n)([ \t]*)maxBytes: 65536$/gm,
-    (_, header, indent) => `${header.replace("'@deepseek-ai/dsh-agent-instructions'", "'@local/dsh-nexus/project-rules'")}${indent}maxBytes: 65536\n${indent}instructionFileCandidates: [DEEPSEEK.md, AGENT.md, AGENTS.md, CLAUDE.md]\n${indent}localInstructionFileCandidates: []`);
+    (_, header, indent) => `${header.replace("'@deepseek-ai/dsh-agent-instructions'", "'dsh-noemaloom/project-rules'")}${indent}maxBytes: 65536\n${indent}instructionFileCandidates: [DEEPSEEK.md, AGENT.md, AGENTS.md, CLAUDE.md]\n${indent}localInstructionFileCandidates: []`);
 }
 async function upstream(name) {
   const source = await readFile(new URL(`${name}.patch.yml`, sourceRoot), 'utf8');
   const lines = source.slice(source.indexOf('- insert:\n') + '- insert:\n'.length).trimEnd().split('\n');
   return lines.map(line => line.startsWith('    ') ? line.slice(4) : line).join('\n')
-    .replaceAll("'@deepseek-ai/dsh-compaction-basic'", "'@local/dsh-nexus/compaction'")
+    .replaceAll("'@deepseek-ai/dsh-compaction-basic'", "'dsh-noemaloom/compaction'")
     .replace(/prefix: (?:>-.*\n\s+)?You are a coding agent powered by the \{\{model\}\} model\./g, `prefix: ${prefix}`)
     .replace('prefix: You are a helpful software engineer assistant.', `prefix: ${prefix}`) + '\n';
 }
@@ -29,12 +29,12 @@ const adaptive = standard
   .replace('- id: preset-standard', '- id: preset-suite-adaptive-standard')
   .replace('    id: standard\n', '    id: suite.adaptive-standard\n    name: 自适应标准\n    description: 六核心能力起步，按需发现完整能力目录，保持同一会话工具 schema 稳定。\n')
   .replace('    order: 1\n', '    order: 12\n')
-  .replace('    plugins:\n', `    plugins:\n      - id: nexus-preset-policy\n        name: '@local/dsh-nexus/preset-runtime'\n        config:\n          presetId: suite.adaptive-standard\n          shellId: platform-default\n          registerShell: false\n`);
+  .replace('    plugins:\n', `    plugins:\n      - id: nexus-preset-policy\n        name: 'dsh-noemaloom/preset-runtime'\n        config:\n          presetId: suite.adaptive-standard\n          shellId: platform-default\n          registerShell: false\n`);
 const coding = originals.minimal
   .replace('- id: preset-minimal', '- id: preset-suite-windows-coding')
   .replace('    id: minimal\n', '    id: suite.windows-coding\n    name: Windows 编码\n    description: PowerShell 7 持久终端与精确文本编辑；其余能力按需发现。\n')
   .replace('    order: 3\n', '    order: 10\n')
-  .replace('    plugins:\n', `    plugins:\n      - id: nexus-preset-policy\n        name: '@local/dsh-nexus/preset-runtime'\n        config:\n          presetId: suite.windows-coding\n          shellId: pwsh7\n          registerShell: false\n      - id: agent-instructions\n        name: '@deepseek-ai/dsh-agent-instructions'\n        config:\n          maxBytes: 65536\n      - id: time-context\n        name: '@deepseek-ai/dsh-time-context'\n      - id: precise-editor\n        name: '@deepseek-ai/dsh-tool-str-replace-editor'\n`)
+  .replace('    plugins:\n', `    plugins:\n      - id: nexus-preset-policy\n        name: 'dsh-noemaloom/preset-runtime'\n        config:\n          presetId: suite.windows-coding\n          shellId: pwsh7\n          registerShell: false\n      - id: agent-instructions\n        name: '@deepseek-ai/dsh-agent-instructions'\n        config:\n          maxBytes: 65536\n      - id: time-context\n        name: '@deepseek-ai/dsh-time-context'\n      - id: precise-editor\n        name: '@deepseek-ai/dsh-tool-str-replace-editor'\n`)
   .replace(/      - id: terminal-bash\n[\s\S]*?(?=      - id: terminal-pwsh)/, '')
   .replace(/      - id: persistent-bash\n[\s\S]*?(?=      - id: terminal-pwsh)/, '')
   .replace(/              description: \|-[\s\S]*$/, '              description: 在 PowerShell 7 持久终端执行命令。正常调用之间保留工作目录、变量、函数与环境；权限或预设代际变更后重建，不自动重跑。\n');
@@ -59,7 +59,7 @@ const gitbash = `- id: preset-suite-windows-gitbash
       - id: time-context
         name: '@deepseek-ai/dsh-time-context'
       - id: nexus-preset-policy
-        name: '@local/dsh-nexus/preset-runtime'
+        name: 'dsh-noemaloom/preset-runtime'
         config:
           presetId: suite.windows-gitbash
           shellId: git-bash
@@ -78,7 +78,7 @@ const gitbash = `- id: preset-suite-windows-gitbash
           toolResultPruner: true
         config:
           - id: compaction-basic
-            name: '@local/dsh-nexus/compaction'
+            name: 'dsh-noemaloom/compaction'
           - id: command-compact
             name: '@deepseek-ai/dsh-command-compact'
           - id: tool-result-pruner

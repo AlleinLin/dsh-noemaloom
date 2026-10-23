@@ -87,7 +87,7 @@ export class DebugRuntime {
         this.event(run, 'state', run.snapshot); void this.cleanup(run).catch(() => {});
       }
     });
-    const capabilities = await protocol.request('initialize', { clientID: 'dsh-nexus', clientName: 'Noemaloom native editor', adapterID: String(launch.type),
+    const capabilities = await protocol.request('initialize', { clientID: 'dsh-noemaloom', clientName: 'Noemaloom native editor', adapterID: String(launch.type),
       pathFormat: 'path', linesStartAt1: true, columnsStartAt1: true, supportsVariableType: true, supportsVariablePaging: true,
       supportsRunInTerminalRequest: true, supportsStartDebuggingRequest: Boolean(run.adapter?.connectChild), supportsProgressReporting: true,
       supportsMemoryReferences: false, supportsInvalidatedEvent: true });

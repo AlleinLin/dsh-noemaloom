@@ -10,7 +10,7 @@ const harnessDirectory = process.env.NEXUS_DSH_ROOT ?? join(process.env.ProgramF
 const executable = join(harnessDirectory, 'DeepSeek Harness.exe');
 const cli = join(harnessDirectory, 'resources/app.asar/dsh/node_modules/@deepseek-ai/dsh-desktop-host/lib/cli.js');
 const manifest = JSON.parse(await readFile('package.json', 'utf8'));
-const packagePath = resolve(process.argv[2] ?? `artifacts/local-dsh-nexus-${manifest.version}.tgz`);
+const packagePath = resolve(process.argv[2] ?? `artifacts/dsh-noemaloom-${manifest.version}.tgz`);
 const temporary = await mkdtemp(join(tmpdir(), 'nexus-original-desktop-'));
 const productHome = join(temporary, 'home'), userData = join(temporary, 'electron');
 const profile = join(productHome, 'profiles', 'desktop'), workspace = join(temporary, 'workspace');

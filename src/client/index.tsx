@@ -22,7 +22,7 @@ import { registerCompanionConversation } from './Companion.js';
 import { registerEditor } from './editor/register.js';
 const WorkflowEditor = React.lazy(() => import('./WorkflowEditor.js').then(module => ({ default: module.WorkflowEditor })));
 
-export const name = 'dsh-nexus-client';
+export const name = 'dsh-noemaloom-client';
 export const inject = ['slots', 'connection', 'locale', 'modules', 'uiWorkspace', 'uiConversation', 'conversation', 'sessions', 'workspaces', 'layout', 'sidebarRight', 'sidebarRightTabs'];
 export { NexusApp, createNexusApi };
 

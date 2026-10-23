@@ -1,7 +1,7 @@
 #requires -Version 5.1
 <#
 .SYNOPSIS
-Install the adjacent DSH Nexus package with the Desktop-bundled CLI.
+Install dsh-noemaloom and migrate the former @local/dsh-nexus registration.
 .EXAMPLE
 .\install-desktop.ps1 -HarnessDirectory 'D:\Program Files\DeepSeek Harness' -CheckOnly
 .EXAMPLE
@@ -24,12 +24,12 @@ if ($CheckOnly -and $VerifyOnly) {
 
 $manifestPath = Join-Path $PSScriptRoot 'install-manifest.json'
 $manifest = Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json
-if ($manifest.schemaVersion -ne 1 -or $manifest.packageName -ne '@local/dsh-nexus') {
+if ($manifest.schemaVersion -ne 1 -or $manifest.packageName -ne 'dsh-noemaloom') {
     throw 'Unexpected installation manifest.'
 }
 if ([IO.Path]::GetFileName($manifest.packageFile) -ne $manifest.packageFile -or
     $manifest.packageSha256 -cnotmatch '^[0-9a-f]{64}$' -or
-    $manifest.packageFile -ne "local-dsh-nexus-$($manifest.version)-$($manifest.packageSha256).tgz") {
+    $manifest.packageFile -ne "dsh-noemaloom-$($manifest.version)-$($manifest.packageSha256).tgz") {
     throw 'Expected a content-addressed .tgz filename and a SHA-256 digest.'
 }
 $packagePath = Join-Path $PSScriptRoot $manifest.packageFile
@@ -75,10 +75,47 @@ if ([string]::IsNullOrWhiteSpace($harnessHome)) {
     $harnessHome = Join-Path $userDirectory $harnessHome.Substring(2)
 }
 $harnessHome = [IO.Path]::GetFullPath($harnessHome)
-$packageRoot = Join-Path $harnessHome 'profiles\desktop\node_modules\@local\dsh-nexus'
+$profileDirectory = Join-Path $harnessHome 'profiles\desktop'
+$profileManifestPath = Join-Path $profileDirectory 'package.json'
+$packageRoot = Join-Path $profileDirectory 'node_modules\dsh-noemaloom'
+$legacyPackage = '@local/dsh-nexus'
 $desktopProcesses = @(Get-Process -Name 'DeepSeek Harness' -ErrorAction SilentlyContinue)
 
+function Get-ProfileManifest {
+    if (!(Test-Path -LiteralPath $profileManifestPath -PathType Leaf)) {
+        throw 'Open DeepSeek Harness Desktop once to initialize its profile, then fully exit it before installing.'
+    }
+    Get-Content -LiteralPath $profileManifestPath -Raw -Encoding UTF8 | ConvertFrom-Json
+}
+
+function Test-Dependency($ProfileManifest, [string] $Name) {
+    $dependencies = $ProfileManifest.PSObject.Properties['dependencies']
+    return ($null -ne $dependencies -and $null -ne $dependencies.Value -and
+        $null -ne $dependencies.Value.PSObject.Properties[$Name])
+}
+
+function Assert-NoLegacyRegistration {
+    $current = Get-ProfileManifest
+    if (Test-Dependency $current $legacyPackage) {
+        throw 'The old @local/dsh-nexus dependency is still registered. Keep Desktop closed and rerun this installer.'
+    }
+    $dsh = $current.PSObject.Properties['dsh']
+    if ($null -ne $dsh -and $null -ne $dsh.Value) {
+        $profile = $dsh.Value.PSObject.Properties['profile']
+        if ($null -ne $profile -and $null -ne $profile.Value) {
+            $bundles = $profile.Value.PSObject.Properties['bundles']
+            if ($null -ne $bundles -and @($bundles.Value) -contains $legacyPackage) {
+                throw 'The Desktop bundle selection still contains @local/dsh-nexus. Remove that stale selection before starting Desktop.'
+            }
+        }
+    }
+}
+
 function Assert-InstalledFiles {
+    $installedManifest = Get-Content -LiteralPath (Join-Path $packageRoot 'package.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+    if ($installedManifest.name -cne $manifest.packageName -or $installedManifest.version -cne $manifest.version) {
+        throw 'Installed package identity differs from the delivered package.'
+    }
     if (@($manifest.keyFiles).Count -lt 7) { throw 'Expected the delivered runtime file identities.' }
     $rootPrefix = [IO.Path]::GetFullPath($packageRoot).TrimEnd('\') + '\'
     foreach ($entry in $manifest.keyFiles) {
@@ -98,6 +135,10 @@ function Assert-InstalledFiles {
     }
 }
 
+$before = Get-ProfileManifest
+$hadLegacy = Test-Dependency $before $legacyPackage
+$hadNoemaloom = Test-Dependency $before $manifest.packageName
+
 if ($CheckOnly) {
     [pscustomobject]@{
         status = 'PRECHECK_OK'
@@ -106,7 +147,9 @@ if ($CheckOnly) {
         hostVersion = $hostVersion
         cli = $cliPath
         profile = 'desktop'
-        profileDirectory = (Join-Path $harnessHome 'profiles\desktop')
+        profileDirectory = $profileDirectory
+        packageName = $manifest.packageName
+        legacyMigrationRequired = $hadLegacy
         desktopRunning = ($desktopProcesses.Count -gt 0)
         readyToInstall = ($desktopProcesses.Count -eq 0)
         profileModified = $false
@@ -118,11 +161,37 @@ if (!$VerifyOnly) {
     if ($desktopProcesses.Count -gt 0) {
         throw 'Exit DeepSeek Harness completely, including its tray process, then rerun. No processes were stopped.'
     }
-    # Use the absolute package path; never call global npm or a different dsh CLI.
-    & $cliPath plugin --profile desktop add $packagePath
-    if ($LASTEXITCODE -ne 0) { throw "Desktop plugin installation failed: exit $LASTEXITCODE" }
+    try {
+        # Install and verify the replacement BEFORE removing the former package.
+        # The native CLI reconciles dsh.profile.bundles and rolls back failed
+        # individual pnpm operations. Preserve the stable `nexus` entry ID/data.
+        & $cliPath plugin --profile desktop add $packagePath
+        if ($LASTEXITCODE -ne 0) { throw "Desktop plugin installation failed: exit $LASTEXITCODE" }
+        $null = @(Assert-InstalledFiles)
+        if ($hadLegacy) {
+            & $cliPath plugin --profile desktop remove $legacyPackage
+            if ($LASTEXITCODE -ne 0) { throw "Legacy plugin removal failed: exit $LASTEXITCODE" }
+        }
+        Assert-NoLegacyRegistration
+    } catch {
+        $failure = $_
+        # If the old registration remains, withdraw a newly added replacement.
+        # Never remove a replacement which was already present before this run.
+        if ($hadLegacy -and !$hadNoemaloom) {
+            $current = Get-ProfileManifest
+            if ((Test-Dependency $current $legacyPackage) -and (Test-Dependency $current $manifest.packageName)) {
+                & $cliPath plugin --profile desktop remove $manifest.packageName
+                if ($LASTEXITCODE -ne 0) {
+                    throw "Migration failed and rollback could not remove the new registration. Keep Desktop closed and rerun this installer. Original failure: $failure"
+                }
+                throw "Migration failed; the old registration was retained and the new registration was withdrawn. Original failure: $failure"
+            }
+        }
+        throw $failure
+    }
 }
 
+Assert-NoLegacyRegistration
 $verified = @(Assert-InstalledFiles)
 [pscustomobject]@{
     status = $(if ($VerifyOnly) { 'INSTALLED_FILES_VERIFIED' } else { 'INSTALLED_AND_FILES_VERIFIED' })
@@ -132,7 +201,8 @@ $verified = @(Assert-InstalledFiles)
     hostVersion = $hostVersion
     profile = 'desktop'
     installedDirectory = $packageRoot
+    legacyRegistrationRemoved = $hadLegacy
     files = $verified
     activationVerified = $false
-    next = 'Open DeepSeek Harness, enable DSH Nexus in Plugin Manager, then verify the Nexus UI and diagnostics.'
+    next = 'Open DeepSeek Harness, confirm dsh-noemaloom in Plugin Manager, then verify the UI and diagnostics.'
 } | ConvertTo-Json -Depth 5

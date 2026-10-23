@@ -15,11 +15,14 @@ if ($HarnessHome.StartsWith('~\') -or $HarnessHome.StartsWith('~/')) {
 }
 $HarnessHome = [IO.Path]::GetFullPath($HarnessHome)
 $profilePath = Join-Path $HarnessHome 'profiles\desktop'
-$pluginPath = Join-Path $profilePath 'node_modules\@local\dsh-nexus'
+$pluginPath = Join-Path $profilePath 'node_modules\dsh-noemaloom'
+if (!(Test-Path -LiteralPath (Join-Path $pluginPath 'package.json') -PathType Leaf)) {
+    $pluginPath = Join-Path $profilePath 'node_modules\@local\dsh-nexus'
+}
 if (!$OutputDirectory) {
     $desktopPath = [Environment]::GetFolderPath('Desktop')
     if (!$desktopPath) { $desktopPath = $env:TEMP }
-    $OutputDirectory = Join-Path $desktopPath ('dsh-nexus-diagnostics-' + (Get-Date -Format 'yyyyMMdd-HHmmss'))
+    $OutputDirectory = Join-Path $desktopPath ('dsh-noemaloom-diagnostics-' + (Get-Date -Format 'yyyyMMdd-HHmmss'))
 }
 New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
 $report = [ordered]@{

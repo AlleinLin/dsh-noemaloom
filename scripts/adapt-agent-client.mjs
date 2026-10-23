@@ -15,7 +15,7 @@ export function adaptAgentClient(factory) {
 \t\t\t\tconst target = event.target;
 \t\t\t\tif (target.closest("[data-graph-node]") !== null) return;`, 'graph click admission');
   source = once(source, 'function SubagentView(props) {',
-    `const nexusAgentFacts = require("@local/dsh-nexus/agent-insights");
+    `const nexusAgentFacts = require("dsh-noemaloom/agent-insights");
     function SubagentView(props) {
       return react_jsx_runtime.jsx(nexusAgentFacts.AgentInsightsProvider, {
         ctx: props.ctx, sessionId: props.sessionId, active: props.active,

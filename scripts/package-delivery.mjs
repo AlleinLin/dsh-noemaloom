@@ -31,7 +31,7 @@ if (results.length !== 1 || basename(packed.filename) !== packed.filename || !pa
   throw new Error('npm pack returned an unexpected filename.');
 const packageBytes = await readFile(join(output, packed.filename));
 const digest = sha256(packageBytes);
-const isWorkbench = manifest.name === '@local/dsh-nexus';
+const isWorkbench = manifest.name === 'dsh-noemaloom';
 let packageFile = packed.filename;
 const deliverables = [];
 if (isWorkbench) {
@@ -42,7 +42,7 @@ if (isWorkbench) {
   });
   if (!audit.report.passed)
     throw new Error(`Package audit failed: ${audit.report.violations.length} findings; see build/package-audit.json.`);
-  packageFile = `local-dsh-nexus-${manifest.version}-${digest}.tgz`;
+  packageFile = `dsh-noemaloom-${manifest.version}-${digest}.tgz`;
   await rename(join(output, packed.filename), join(output, packageFile));
   const keyFiles = await Promise.all([
     'lib/index.js', 'lib/client.js', 'lib/compaction.js', 'lib/project-rules.js',
@@ -71,6 +71,7 @@ deliverables.push(packageFile, 'BUILDING.md');
 if (isWorkbench) {
   for (const [source, destination] of [
     ['docs/WORKFLOWS.md', 'WORKFLOWS.md'],
+    ['docs/PLUGIN-REGISTRATION.md', 'PLUGIN-REGISTRATION.md'],
     ['docs/upstream-maintenance.md', 'UPSTREAM-MAINTENANCE.md'],
     ['upstreams.json', 'upstreams.json'],
   ]) {

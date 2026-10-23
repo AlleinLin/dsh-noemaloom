@@ -1,5 +1,5 @@
 {
-  "name": "@local/dsh-nexus",
+  "name": "dsh-noemaloom",
   "version": "0.4.0",
   "description": "Noemaloom: a memory, context and multi-model orchestration workbench for DeepSeek Harness Desktop.",
   "private": true,

@@ -86,9 +86,9 @@ Object.assign(env, { DSH_HOME: state.productHome, DSH_AGENTS_HOME: join(state.te
 // overwritten at the same path. The shipping installer already uses a digest
 // filename; use that same immutable identity for disposable verification.
 const manifest = JSON.parse(await readFile('package.json', 'utf8'));
-const packageBytes = await readFile(resolve(`artifacts/local-dsh-nexus-${manifest.version}.tgz`));
+const packageBytes = await readFile(resolve(`artifacts/dsh-noemaloom-${manifest.version}.tgz`));
 const packageDigest = createHash('sha256').update(packageBytes).digest('hex');
-const packagePath = join(state.temporary, `local-dsh-nexus-${packageDigest}.tgz`);
+const packagePath = join(state.temporary, `dsh-noemaloom-${packageDigest}.tgz`);
 await writeFile(packagePath, packageBytes);
 const installer = spawn(executable, ['--expose-internals', cli, 'plugin', '--profile', 'desktop', 'add', '--ignore-scripts', '--save-exact', packagePath],
   { env, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
@@ -99,7 +99,7 @@ await writeFile(join(evidence, 'resume-install.log'), output);
 if (exit !== 0) throw new Error(`Synthetic install failed: ${exit}`);
 for (const file of ['lib/client.js', 'lib/canvases.js', 'lib/canvas-original/thoughtdag/dist-app/assets/nexus-entry.js']) {
   const expected = createHash('sha256').update(await readFile(resolve(file))).digest('hex');
-  const actual = createHash('sha256').update(await readFile(join(profile, 'node_modules/@local/dsh-nexus', file))).digest('hex');
+  const actual = createHash('sha256').update(await readFile(join(profile, 'node_modules/dsh-noemaloom', file))).digest('hex');
   if (actual !== expected) throw new Error(`Synthetic Desktop installed stale files: ${file}`);
 }
 delete env.ELECTRON_RUN_AS_NODE;

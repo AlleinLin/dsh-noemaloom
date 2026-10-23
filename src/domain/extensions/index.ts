@@ -471,7 +471,7 @@ export function createExtensionsModule(services: NexusServices): NexusModule {
         case 'uninstall': {
           const running = find(params, request);
           await permission('extensions.uninstall', running.record.id, { profile: running.record.profile, retainData: params.purgeData !== true }, context);
-          if (running.record.packageId === 'dsh-nexus' || running.record.packageId === '@dsh/nexus') throw new NexusError('SELF_MANAGER_PROTECTED', '协调器自身必须由宿主管理器卸载');
+          if (['dsh-noemaloom', '@local/dsh-nexus', 'dsh-nexus', '@dsh/nexus'].includes(running.record.packageId)) throw new NexusError('SELF_MANAGER_PROTECTED', '协调器自身必须由宿主管理器卸载');
           await drainAndDispose(running);
           current.delete(running.record.id);
           if (running.record.persistent) await services.host.sessions('extensions.uninstall', { packageId: running.record.packageId, profile: running.record.profile });

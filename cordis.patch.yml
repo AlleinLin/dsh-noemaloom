@@ -1,47 +1,47 @@
 # Unified desktop composition. Original host entries retain their native IDs.
 - insert:
     - id: nexus
-      name: '@local/dsh-nexus'
+      name: 'dsh-noemaloom'
     - id: better-sidebar
-      name: '@local/dsh-nexus/original/better-sidebar'
+      name: 'dsh-noemaloom/original/better-sidebar'
     - id: dsh-context
-      name: '@local/dsh-nexus/original/context'
+      name: 'dsh-noemaloom/original/context'
       config:
         defaultPlacement: tab
         fleetTab: show
     - id: dsh-better-display
-      name: '@local/dsh-nexus/original/better-display'
+      name: 'dsh-noemaloom/original/better-display'
     - id: ui-task-board
-      name: '@local/dsh-nexus/original/task-board'
+      name: 'dsh-noemaloom/original/task-board'
     - id: ui-git-graph
-      name: '@local/dsh-nexus/original/git-graph'
+      name: 'dsh-noemaloom/original/git-graph'
     - id: usage
-      name: '@local/dsh-nexus/original/usage'
+      name: 'dsh-noemaloom/original/usage'
     - id: agency-agents-remote
-      name: '@local/dsh-nexus/original/agency-agents-remote'
+      name: 'dsh-noemaloom/original/agency-agents-remote'
     - id: agency-agents
-      name: '@local/dsh-nexus/original/agency-agents'
+      name: 'dsh-noemaloom/original/agency-agents'
     - id: turn-rewind
-      name: '@local/dsh-nexus/original/turn-rewind'
+      name: 'dsh-noemaloom/original/turn-rewind'
     - id: dsh-codinput
-      name: '@local/dsh-nexus/original/codinput'
+      name: 'dsh-noemaloom/original/codinput'
       config: {}
     - id: thoughtdag
-      name: '@local/dsh-nexus/original/thoughtdag'
+      name: 'dsh-noemaloom/original/thoughtdag'
       config:
         mountPrefix: /thoughtdag
         whyTools: true
         whyPrompt: true
     - id: synapse
-      name: '@local/dsh-nexus/original/synapse'
+      name: 'dsh-noemaloom/original/synapse'
     - id: superpowers
-      name: '@local/dsh-nexus/original/superpowers'
+      name: 'dsh-noemaloom/original/superpowers'
     - id: ponytail
-      name: '@local/dsh-nexus/original/ponytail'
+      name: 'dsh-noemaloom/original/ponytail'
     - id: dsh-openspec
-      name: '@local/dsh-nexus/original/openspec'
+      name: 'dsh-noemaloom/original/openspec'
     - id: dsh-karpathy-methodology
-      name: '@local/dsh-nexus/original/karpathy'
+      name: 'dsh-noemaloom/original/karpathy'
 
 # Mount the Mnemon bridge into a DSH profile. A profile's final patch may
 # replace this config row as a whole; use user settings or environment
@@ -53,7 +53,7 @@
     # recursing through this ancestor gate. The group itself prepares the
     # Starter's dependency resolution before it imports its children.
     - id: mnemon-bundle
-      name: '@local/dsh-nexus/original/mnemon-bundle'
+      name: 'dsh-noemaloom/original/mnemon-bundle'
       group: true
       disabled: !!js >-
         ((entry) => entry.options.disabled?.__jsExpr
@@ -63,7 +63,7 @@
       config:
         - id: mnemon
           # Core/Host and default settings. Sources own their independent Entries.
-          name: '@local/dsh-nexus/original/mnemon'
+          name: 'dsh-noemaloom/original/mnemon'
           config:
             routingGuidance: true
             lifecycleEnabled: true
@@ -87,54 +87,54 @@
               maxMediumResults: 4
               maxUnknownResults: 2
         - id: mnemon-source-runtime
-          name: '@local/dsh-nexus/original/mnemon-source-runtime'
+          name: 'dsh-noemaloom/original/mnemon-source-runtime'
         - id: mnemon-source-documents
-          name: '@local/dsh-nexus/original/mnemon-source-documents'
+          name: 'dsh-noemaloom/original/mnemon-source-documents'
         - id: mnemon-source-memory-spaces
-          name: '@local/dsh-nexus/original/mnemon-source-memory-spaces'
+          name: 'dsh-noemaloom/original/mnemon-source-memory-spaces'
           config:
             # Every default Provider is an
             # explicit child. A custom parent composition may choose a subset.
             providers:
-              - use: '@local/dsh-nexus/original/mnemon-provider-mnemon-native'
+              - use: 'dsh-noemaloom/original/mnemon-provider-mnemon-native'
                 instanceId: mnemon-native
-              - use: '@local/dsh-nexus/original/mnemon-provider-openviking'
+              - use: 'dsh-noemaloom/original/mnemon-provider-openviking'
                 instanceId: openviking
-              - use: '@local/dsh-nexus/original/mnemon-provider-honcho'
+              - use: 'dsh-noemaloom/original/mnemon-provider-honcho'
                 instanceId: honcho
-              - use: '@local/dsh-nexus/original/mnemon-provider-mem0'
+              - use: 'dsh-noemaloom/original/mnemon-provider-mem0'
                 instanceId: mem0
-              - use: '@local/dsh-nexus/original/mnemon-provider-hindsight'
+              - use: 'dsh-noemaloom/original/mnemon-provider-hindsight'
                 instanceId: hindsight
-              - use: '@local/dsh-nexus/original/mnemon-provider-holographic'
+              - use: 'dsh-noemaloom/original/mnemon-provider-holographic'
                 instanceId: holographic
-              - use: '@local/dsh-nexus/original/mnemon-provider-retaindb'
+              - use: 'dsh-noemaloom/original/mnemon-provider-retaindb'
                 instanceId: retaindb
-              - use: '@local/dsh-nexus/original/mnemon-provider-byterover'
+              - use: 'dsh-noemaloom/original/mnemon-provider-byterover'
                 instanceId: byterover
-              - use: '@local/dsh-nexus/original/mnemon-provider-supermemory'
+              - use: 'dsh-noemaloom/original/mnemon-provider-supermemory'
                 instanceId: supermemory
         # Skills keep DSH's own files and their evolution data; the page lives
         # in the Memory System and nothing joins a model View.
         - id: mnemon-source-skills
-          name: '@local/dsh-nexus/original/mnemon-source-skills'
+          name: 'dsh-noemaloom/original/mnemon-source-skills'
         - id: mnemon-strategy-default-three-tier
-          name: '@local/dsh-nexus/original/mnemon-strategy-default-three-tier'
+          name: 'dsh-noemaloom/original/mnemon-strategy-default-three-tier'
         # A second main Strategy; memoryView.strategyTypeId selects which one
         # composes the View. It stays off until selected.
         - id: mnemon-strategy-general
-          name: '@local/dsh-nexus/original/mnemon-strategy-general'
+          name: 'dsh-noemaloom/original/mnemon-strategy-general'
           disabled: true
         # v0.5 ships these narrowly scoped enhancements with the Starter so the
         # Settings switches are always available. They remain opt-in.
         - id: mnemon-strategy-auto-capture
-          name: '@local/dsh-nexus/original/mnemon-strategy-auto-capture'
+          name: 'dsh-noemaloom/original/mnemon-strategy-auto-capture'
           disabled: true
         - id: mnemon-strategy-light-context
-          name: '@local/dsh-nexus/original/mnemon-strategy-light-context'
+          name: 'dsh-noemaloom/original/mnemon-strategy-light-context'
           disabled: true
         - id: mnemon-strategy-scoped
-          name: '@local/dsh-nexus/original/mnemon-strategy-scoped'
+          name: 'dsh-noemaloom/original/mnemon-strategy-scoped'
           disabled: true
 
 # Seven stable component IDs. Saved profile row overrides take precedence.
@@ -246,41 +246,41 @@
 
     # Browser half of the `terminal` Conversation target.
     - id: dshell-conversation
-      name: '@local/dsh-nexus/native/dshell-conversation'
+      name: 'dsh-noemaloom/native/dshell-conversation'
 
     # Browser↔host PTY wire bridge.
     - id: dshell-terminal-bridge
-      name: '@local/dsh-nexus/native/dshell-terminal-bridge'
+      name: 'dsh-noemaloom/native/dshell-terminal-bridge'
 
     # The per-session terminal-mode flag, its blank-session switch, and the
     # integrated terminal view (an additive `conversation.view` entry that
     # exists only for opted-in sessions).
     - id: dshell-mode
-      name: '@local/dsh-nexus/native/dshell-mode'
+      name: 'dsh-noemaloom/native/dshell-mode'
 
     # /new on ctx.commands, plus the agent-terminal model tools
     # (dshell_get_agent_terminal, dshell_terminal_read, dshell_terminal_output).
     - id: dshell-commands
-      name: '@local/dsh-nexus/native/dshell-commands'
+      name: 'dsh-noemaloom/native/dshell-commands'
 
     # SSH devices: durable device/key registry, per-session assignment through
     # the stock session row's hover strip, and routing of a bound session's
     # shell commands to that device.
     - id: dshell-ssh
-      name: '@local/dsh-nexus/native/dshell-ssh'
+      name: 'dsh-noemaloom/native/dshell-ssh'
 
     # Cross-session pipe: user-established links between sessions, deferred
     # requests one agent hands to another, scoped revocable folder grants, and
     # the watchdog that guarantees the requester is always woken.
     - id: dshell-buffer
-      name: '@local/dsh-nexus/native/dshell-buffer'
+      name: 'dsh-noemaloom/native/dshell-buffer'
 
     # Right-sidebar file navigator: takes over the `files` tab kind (dsh's
     # registry keeps one builtin and one extension per kind, and the extension
     # is the one in force) — but only while the current session opted in, so a
     # stock session keeps the shipped pane.
     - id: dshell-files
-      name: '@local/dsh-nexus/native/dshell-files'
+      name: 'dsh-noemaloom/native/dshell-files'
 
     # Token usage: a durable per-model index over every session's reported
     # usage, and the settings page that charts it. Host half only — the page
@@ -288,7 +288,7 @@
     # the client bundle loader picks up from this row like every other dshell
     # plugin's.
     - id: dshell-usage
-      name: '@local/dsh-nexus/native/dshell-usage'
+      name: 'dsh-noemaloom/native/dshell-usage'
 
 # ── the one stock row dshell must own ──────────────────────────────────
 # `ctx.fs` has exactly one provider, and a session bound to an SSH device needs
@@ -322,4 +322,4 @@
 
 - insert:
     - id: agent-procedures
-      name: '@local/dsh-nexus/native/agent-procedures'
+      name: 'dsh-noemaloom/native/agent-procedures'

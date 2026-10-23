@@ -559,7 +559,7 @@ export async function auditPackage({ packagePath, outputPath = resolve(root, 'ev
     });
     check('packageManifest', () => {
       manifest = JSON.parse(decoder.decode(files.get('package.json')?.data ?? Buffer.alloc(0)));
-      if (manifest.name !== '@local/dsh-nexus' || typeof manifest.version !== 'string' || !manifest.version || manifest.type !== 'module' || manifest.private !== true) throw new Error('Unexpected package identity/type/privacy');
+      if (manifest.name !== 'dsh-noemaloom' || typeof manifest.version !== 'string' || !manifest.version || manifest.type !== 'module' || manifest.private !== true) throw new Error('Unexpected package identity/type/privacy');
       if (manifest.engines?.dsh !== '0.2.1-rc.2') throw new Error('Package must target exact DSH 0.2.1-rc.2');
       if (expectedManifest && (manifest.name !== expectedManifest.name || manifest.version !== expectedManifest.version || JSON.stringify(manifest.exports) !== JSON.stringify(expectedManifest.exports) || JSON.stringify(manifest.dsh) !== JSON.stringify(expectedManifest.dsh))) throw new Error('Tarball manifest differs from the packing source manifest');
       report.package = { name: manifest.name, version: manifest.version, dsh: manifest.engines.dsh };

@@ -12,12 +12,12 @@ import { existsSync } from 'node:fs';
 const exec = promisify(execFile);
 const script = resolve(existsSync('scripts/session-rescue.mjs') ? 'scripts/session-rescue.mjs' : 'session-rescue.mjs');
 const session = 'session-rescue-fixture';
-async function fixture(owner = { status: 'reconciliation-required', phase: 'decision-started' }) {
+async function fixture(owner = { status: 'reconciliation-required', phase: 'decision-started' }, packageName = '@local/dsh-nexus') {
   const root = await mkdtemp(join(tmpdir(), 'nexus-rescue-test-'));
   const packageRoot = join(root, 'package'), dataRoot = join(root, 'data');
   await mkdir(join(packageRoot, 'lib'), { recursive: true });
   await mkdir(join(dataRoot, 'database'), { recursive: true });
-  await writeFile(join(packageRoot, 'package.json'), JSON.stringify({ name: '@local/dsh-nexus', version: '0.1.0', engines: { dsh: '0.2.1-rc.2' } }));
+  await writeFile(join(packageRoot, 'package.json'), JSON.stringify({ name: packageName, version: '0.1.0', engines: { dsh: '0.2.1-rc.2' } }));
   // The fixture exercises the inserted runtime code, including dynamic dispatch.
   const source = `import { BasicCompactionEngine } from "@deepseek-ai/dsh-compaction-basic";
 class Fixture extends BasicCompactionEngine {
@@ -40,6 +40,13 @@ class Fixture extends BasicCompactionEngine {
     close: () => rm(root, { recursive: true, force: true }),
   };
 }
+test('session rescue recognizes the renamed package while retaining the same data directory', async t => {
+  const f = await fixture(undefined, 'dsh-noemaloom');
+  t.after(f.close);
+  await f.run('inspect');
+  assert.equal(JSON.parse(await readFile(f.output, 'utf8')).databaseRead, true);
+  assert.equal(await readFile(f.file, 'utf8'), f.source);
+});
 test('rescue is session scoped, preserves receipts, handles overflow through the host, and undoes exactly', async () => {
   const f = await fixture();
   try {

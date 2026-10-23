@@ -24,7 +24,7 @@
       "sha256": "efb33ccfb0258e7a81b7a57cf70c1cb09d608fe1081c2dd323204c8a92eb7d70",
       "source": "vendor/agent-procedures",
       "license": "MIT",
-      "registration": "@local/dsh-nexus/native/agent-procedures"
+      "registration": "dsh-noemaloom/native/agent-procedures"
     },
     {
       "identity": "Nexus-Aethra/Nexus-Terminal",
@@ -33,7 +33,7 @@
       "source": "vendor/nexus-terminal",
       "license": "MIT",
       "version": "0.1.14",
-      "registration": "@local/dsh-nexus/native/dshell-*",
+      "registration": "dsh-noemaloom/native/dshell-*",
       "revision": "cdf0e31d51c3abf550b949f2dcc41f02264cdc3b"
     }
   ],

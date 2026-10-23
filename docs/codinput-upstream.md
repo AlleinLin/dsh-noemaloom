@@ -22,7 +22,7 @@ the client and checks the resulting bytes and dependency licenses.
 
 The existing original-client owner runs that factory as a formal Cordis plugin.
 The host patch registers `dsh-codinput` through
-`@local/dsh-nexus/original/codinput`. An ESM wrapper forwards the original
+`dsh-noemaloom/original/codinput`. An ESM wrapper forwards the original
 CommonJS host exports from an unchanged `.cjs` copy. The retained upstream bundle
 patch is evidence only and is not separately loaded.
 

@@ -7,13 +7,13 @@
     order: 10
     plugins:
       - id: nexus-preset-policy
-        name: '@local/dsh-nexus/preset-runtime'
+        name: 'dsh-noemaloom/preset-runtime'
         config:
           presetId: suite.windows-coding
           shellId: pwsh7
           registerShell: false
       - id: agent-instructions
-        name: '@local/dsh-nexus/project-rules'
+        name: 'dsh-noemaloom/project-rules'
         config:
           maxBytes: 65536
           instructionFileCandidates: [DEEPSEEK.md, AGENT.md, AGENTS.md, CLAUDE.md]
@@ -42,7 +42,7 @@
           compaction: true
         config:
           - id: compaction-basic
-            name: '@local/dsh-nexus/compaction'
+            name: 'dsh-noemaloom/compaction'
           - id: command-compact
             name: '@deepseek-ai/dsh-command-compact'
       - id: persistent-shell

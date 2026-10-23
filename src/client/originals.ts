@@ -51,8 +51,8 @@ export function applyOriginalClients(rawContext: ClientContext): () => void {
   const localModules = new Map<string, OriginalClientModule>();
   const sharedModules = new Map<string, unknown>();
   const missingModules = new Map<string, unknown>();
-  sharedModules.set('@local/dsh-nexus/original-navigation', { openView: openOriginalConversationView });
-  sharedModules.set('@local/dsh-nexus/agent-insights', { AgentInsightsProvider, AgentFacts });
+  sharedModules.set('dsh-noemaloom/original-navigation', { openView: openOriginalConversationView });
+  sharedModules.set('dsh-noemaloom/agent-insights', { AgentInsightsProvider, AgentFacts });
   let stopNavigation: unknown;
 
   for (const entry of registrations) publish({
@@ -72,8 +72,8 @@ export function applyOriginalClients(rawContext: ClientContext): () => void {
     }
     stopNavigation = installOriginalViewNavigation(ctx);
     const localNames = new Set(registrations.flatMap(entry => [entry.packageName, `${entry.packageName}/client`]));
-    localNames.add('@local/dsh-nexus/original-navigation');
-    localNames.add('@local/dsh-nexus/agent-insights');
+    localNames.add('dsh-noemaloom/original-navigation');
+    localNames.add('dsh-noemaloom/agent-insights');
     const shared = [...new Set(registrations.flatMap(entry => [...entry.requires]))]
       .filter(specifier => !localNames.has(specifier));
     // A failed optional require must retain its original try/catch semantics.

@@ -70,7 +70,7 @@ npm run pack:delivery
 
 [ThoughtDAG 0.5.21 上游适配](docs/thoughtdag-upstream.md) 保留网页搜索、问题表单、工具授权与权限模式，并由集成插件管理更新。
 
-> **名称兼容性**：GitHub 仓库名为 `dsh-noemaloom`。当前运行时沿用 `@local/dsh-nexus` 与现有 `nexus-*` 注册标识，保留预设、适配器和已安装配置的兼容性。宿主部分入口仍会显示旧名称 Nexus。
+插件注册名、安装包名与仓库名统一为 **`dsh-noemaloom`**。安装器会先校验新包，再移除旧的 `@local/dsh-nexus` 注册。原有数据目录、设置键和稳定入口 ID 继续沿用，详见[注册名与升级](docs/PLUGIN-REGISTRATION.md)。
 
 ## 工作原理
 

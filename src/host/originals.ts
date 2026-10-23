@@ -4,7 +4,7 @@
  * This keeps settings entry IDs, remote discovery, injection, restart and
  * teardown under the desktop Loader's authority.
  */
-export const ORIGINAL_HOST_ENTRY_PREFIX = '@local/dsh-nexus/original/';
+export const ORIGINAL_HOST_ENTRY_PREFIX = 'dsh-noemaloom/original/';
 
 export const ORIGINAL_HOST_IDS = [
   'better-sidebar', 'context', 'better-display', 'mnemon',

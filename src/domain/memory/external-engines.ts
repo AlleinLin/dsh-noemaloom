@@ -91,7 +91,7 @@ export class ExternalMemoryEngines {
     else if (method === 'text') Object.assign(args, { query: String(params.query ?? ''), limit: Math.min(200, Number(params.limit ?? 50)) });
     assertNoSecret(args);
     const messages = [
-      { jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2024-11-05', capabilities: {}, clientInfo: { name: 'dsh-nexus', version: '0.1.0' } } },
+      { jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2024-11-05', capabilities: {}, clientInfo: { name: 'dsh-noemaloom', version: '0.1.0' } } },
       { jsonrpc: '2.0', method: 'notifications/initialized' },
       { jsonrpc: '2.0', id: 2, method: 'tools/call', params: { name: tool, arguments: args } },
     ];
