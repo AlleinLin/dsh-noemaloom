@@ -5,17 +5,17 @@ import { existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve, dirname, basename } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { spawn } from 'node:child_process';
 import { build } from 'esbuild';
 import { adaptCodinputSource } from '../scripts/build-codinput.mjs';
-import { connectTarget, until } from '../scripts/desktop-cdp.mjs';
+import { until } from '../scripts/desktop-cdp.mjs';
+import { launchValidationBrowser } from '../scripts/desktop-browser.mjs';
 
 const browser = process.env.NEXUS_BROWSER_EXECUTABLE ?? 'C:/Program Files/Google/Chrome/Application/chrome.exe';
 test('desktop renderer menu anchor, native tab gestures and resizable agent dialog use their real DOM paths', {
-  skip: existsSync(browser) ? false : 'Local Chromium required', timeout: 45000,
+  skip: existsSync(browser) ? false : 'Local Chromium required', timeout: 90000,
 }, async () => {
   const directory = await mkdtemp(join(tmpdir(), 'nexus-interactions-'));
-  let child, cdp;
+  let launched, cdp;
   try {
     const upstream = await readFile('vendor/codinput/src/client/index.tsx');
     const adapted = adaptCodinputSource('src/client/index.tsx', upstream);
@@ -33,17 +33,10 @@ test('desktop renderer menu anchor, native tab gestures and resizable agent dial
     });
     await writeFile(join(directory, 'fixture.js'), bundle.outputFiles[0].contents);
     await writeFile(join(directory, 'fixture.html'), '<!doctype html><meta charset="utf-8"><div id="root"></div><script src="fixture.js"></script>');
-    child = spawn(browser, ['--headless=new', '--disable-gpu', '--disable-extensions',
-      '--disable-background-networking', '--no-first-run', '--no-default-browser-check',
-      `--user-data-dir=${join(directory, 'browser')}`, '--remote-debugging-port=0',
-      '--allow-file-access-from-files', pathToFileURL(join(directory, 'fixture.html')).href],
-    { windowsHide: true, stdio: 'ignore' });
-    const port = Number((await until(async () => {
-      try { return await readFile(join(directory, 'browser/DevToolsActivePort'), 'utf8'); }
-      catch (error) { if (error.code !== 'ENOENT') throw error; }
-    }, 12000)).split('\n')[0]);
-    const targets = await (await fetch(`http://127.0.0.1:${port}/json/list`)).json();
-    cdp = await connectTarget(targets.find(target => target.type === 'page'));
+    launched = await launchValidationBrowser({
+      executable: browser, directory, url: pathToFileURL(join(directory, 'fixture.html')).href,
+    });
+    cdp = launched.cdp;
     const exceptions = [];
     cdp.onEvent((method, params) => { if (method === 'Runtime.exceptionThrown') exceptions.push(params.exceptionDetails?.exception?.description); });
     await cdp.call('Runtime.enable');
@@ -108,11 +101,7 @@ test('desktop renderer menu anchor, native tab gestures and resizable agent dial
     await until(() => cdp.evaluate('!document.querySelector("dialog:modal")'), 2000);
     await cdp.evaluate('window.__interactions.dispose()');
   } finally {
-    if (cdp) { await cdp.call('Browser.close').catch(() => {}); cdp.close(); }
-    if (child && child.exitCode === null) await new Promise(resolveExit => {
-      const timer = setTimeout(() => { child.kill(); resolveExit(); }, 3000);
-      child.once('exit', () => { clearTimeout(timer); resolveExit(); });
-    });
+    await launched?.close();
     if (dirname(resolve(directory)) !== resolve(tmpdir()) || !basename(directory).startsWith('nexus-interactions-')) throw new Error('Unexpected cleanup target');
     await rm(directory, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
   }
