@@ -1,6 +1,6 @@
-DSH Nexus
+DSH Noemaloom
 
-A unified integration for DeepSeek Harness Desktop 0.2.1-rc.2.
+A unified integration for DeepSeek Harness Desktop 0.2.1-rc.3.
 The Nexus composition, adapters and user interface combine components with
 different license conditions; consult LICENSE and THIRD-PARTY-NOTICES.md.
 
@@ -13,7 +13,8 @@ Product attribution:
 Selected source families include dsh-memory and memory-evolve, dsh-mnemon,
 memsearch, turn-rewind, Agency Agents, dsh-web and its 19 subpackages,
 ThoughtDAG, Synapse, Archify, Aegis, Superpowers, J-Space, the qiudeng
-engineering methods, Metis, dsh-step-pause, and DSH-Codinput. The complete 38-unit source identities,
+engineering methods, Metis, dsh-step-pause, DSH-Codinput, Motion UI,
+Cross-Session Approval, and Computer Use. The complete source identities,
 selected paths, revisions, notices and outstanding runtime validation
 are listed in sources.lock.json and the delivery coverage report.
 
@@ -36,11 +37,16 @@ dsh-step-pause 0.3.0 is MIT, Copyright (c) 2026 dsh-step-pause contributors.
 Its periodic progress behavior is adapted in Nexus; the full MIT text,
 original host source and exact commit/hash provenance remain in notices/step-pause/.
 
-DSH-Codinput 0.3.2 is MIT, Copyright (c) 2026 Witherwithwinter.
+DSH-Codinput 0.3.5 is MIT, Copyright (c) 2026 Witherwithwinter.
 Its original source, prebuilt client and CommonJS host are retained in
-vendor/codinput/ at commit a32da33ce4d50616bf490d360ae3dfe784e8aa50.
+vendor/codinput/ at commit f5449ed247559de2d0f19fc70870864fa93adfcf.
 The full license, upstream NOTICE (including DeepSeek attribution) and bundled
 dependency license texts remain under notices/originals/codinput/.
+
+Motion UI 0.8.7 and Cross-Session Approval 0.3.10 retain their MIT licenses
+under notices/originals/. The complete LJL454 Computer Use 1.40.2
+source-only runtime retains its MIT license under vendor/computer-use/.
+Yu-tao-Li Computer Use Windows remains a separately tracked comparison source.
 
 No user account credentials, private sessions, machine profiles or
 deployment recovery snapshots are part of this distribution.

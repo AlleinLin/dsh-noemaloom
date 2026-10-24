@@ -214,6 +214,7 @@ test('inactive frames pause history and projection GETs, then resume each reques
     context.fetch('/thoughtdag/api/disksessions/a/log'),
     context.fetch('/thoughtdag/api/roots/claude/list'),
     context.fetch('/synapse/api/workspaces'),
+    context.fetch('/synapse/api/threads/thread-a/full?seqs=0,1'),
     context.fetch(new Request('http://localhost/synapse/api/workspaces/graph-a', { headers: { 'x-read': 'preserved' } })),
   ];
   await Promise.resolve();

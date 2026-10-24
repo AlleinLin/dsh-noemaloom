@@ -1,4 +1,4 @@
-# Generated from public DeepSeek Harness commit 687f282e8625c6b8d11ff58211a90524be2e4317.
+# Generated from public DeepSeek Harness commit 1f81c047fc48fa190a683e469daa699857e9afe8.
 # Every matching row replaces its COMPLETE config; not a nested deep merge.
 # Contains no local profile, private session, account configuration or backup.
 - id: preset-standard

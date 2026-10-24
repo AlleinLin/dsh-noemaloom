@@ -78,6 +78,15 @@ if (isWorkbench) {
     await copyFile(source, join(output, destination));
     deliverables.push(destination);
   }
+  const upstreams = JSON.parse(await readFile('upstreams.json', 'utf8'));
+  const review = upstreams.host?.sourceReview;
+  if (typeof review !== 'string' || !/^docs\/upstream-audit-\d{4}-\d{2}-\d{2}\.json$/u.test(review))
+    throw new Error('Expected a versioned complete upstream review for this Desktop package.');
+  for (const path of [review, review.replace(/\.json$/u, '.md')]) {
+    const destination = basename(path);
+    await copyFile(path, join(output, destination));
+    deliverables.push(destination);
+  }
 }
 const checksums = [];
 for (const file of deliverables.sort())

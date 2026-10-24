@@ -15,6 +15,7 @@ import NexusCompactionEngine, { nativeSurfaceProjection } from '../src/host/comp
 import { registerRpcRoute } from '../src/host/routes.js';
 import { OperationController } from '../src/host/lifecycle.js';
 import { NexusError, type NexusServices } from '../src/ports/contracts.js';
+import { EXPECTED_DSH_VERSION } from '../src/shared/host-compatibility.js';
 
 const RECEIPTS = '__nexus_operation_receipts_v1';
 async function fixture(t: TestContext, gateIntegrity = false) {
@@ -275,7 +276,7 @@ test('native sync with a fresh explicit intent still reuses its exact existing p
   const first = await h.sync();
   const params = { sessionId: h.agent.id, purpose: 'main', lane: 'main',
     nodes: h.nodes, surfaceSeqs: h.nodes.map(node => node.seq),
-    route: { providerId: 'fixture-provider', modelId: 'fixture-model', adapterVersion: 'dsh-0.2.1-rc.2' },
+    route: { providerId: 'fixture-provider', modelId: 'fixture-model', adapterVersion: `dsh-${EXPECTED_DSH_VERSION}` },
     windowTokens: 1_000_000, outputReserveTokens: 1000, tools: [], system: '' };
   const context = { actorId: 'native-compaction-owner', sessionId: h.agent.id,
     workspaceRoot: f.root, permissions: new Set(['context.native/sync']) };

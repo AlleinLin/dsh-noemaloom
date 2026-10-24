@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "checkedAt": "2026-10-21T10:05:16.254Z",
+  "checkedAt": "2026-10-24T07:06:29.578Z",
   "policy": {
     "schedule": "Monday 10:00 Asia/Shanghai",
     "independentUpdateUi": false,
     "autoInstall": false,
-    "hostVersion": "0.2.1-rc.2",
+    "hostVersion": "0.2.1-rc.3",
     "process": "Review sources → finish all changes → build/typecheck/test together → desktop acceptance → audited package → source commit/push",
     "rules": "Never overwrite sessions, restart a running host, silently downgrade or treat reference/external services as an installed upgrade."
   },
@@ -17,14 +17,14 @@
       "package": "dsh-codinput",
       "repository": "https://github.com/Witherwithwinter/DSH-Codinput",
       "pinned": {
-        "version": "0.3.2",
-        "revision": "a32da33ce4d50616bf490d360ae3dfe784e8aa50",
-        "integrity": null
+        "version": "0.3.5",
+        "revision": "f5449ed247559de2d0f19fc70870864fa93adfcf",
+        "integrity": "sha512-BRf5CO03pA1nllE+oYtx9rPbsAACF0tHlDPNQmugBeIwtwyZXm0VOaFK4dNQJbVMAnpfBce0mFG0gt4O24VqQg=="
       },
       "observed": {
-        "version": "0.3.2",
-        "head": "a32da33ce4d50616bf490d360ae3dfe784e8aa50",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.3.5",
+        "head": "20bc14e301234d4c58c2cb9148eb9b755d78f340",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
       "decision": "Reference tracked separately from actual runtime; acquired source identity is preserved.",
       "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
@@ -41,9 +41,8 @@
         "integrity": null
       },
       "observed": {
-        "version": "0.3.0",
-        "head": "eeb93a7ff027e4beba94b8089dfb72dfe45b2550",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "head": "08419d19efffeb49f22d0723f1f8069d2744660f",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
       "decision": "Reference tracked separately from actual runtime; acquired source identity is preserved.",
       "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
@@ -62,7 +61,7 @@
       "observed": {
         "version": "0.13.10",
         "head": "19fdcc1ca694f7a8bc16a2b7b614713af4550eb8",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
       "decision": "Reference only: upstream index formatting changed; Nexus owns its transactional memory implementation.",
       "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
@@ -74,16 +73,16 @@
       "package": "@furongjun1999/dsh-memory",
       "repository": "https://github.com/FuRongJun-1999/dsh-memory",
       "pinned": {
-        "version": "0.9.8",
-        "revision": "00c0cb028e8cc543d21356c97506d9a2d98a135e",
-        "integrity": null
+        "version": "0.9.13",
+        "revision": "2710114be671d655056f1c503f973262c8855453",
+        "integrity": "sha512-hKeVrlvlZWwegzyAuEGOTeD1uHtSH9Zmm8nI4t+agCOCOKvH34W/tib9y2hNaLFFT88ns41tg/GB+gF1BTJrnA=="
       },
       "observed": {
-        "version": "0.9.8",
-        "head": "b8b424b019fc41bc88fabec58bf9e0555974c62e",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.9.13",
+        "head": "2710114be671d655056f1c503f973262c8855453",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
-      "decision": "Pinned source updated or unchanged; coordinated validation recorded separately.",
+      "decision": "Updated to the verified published release; local adapters rebased; final coordinated acceptance recorded separately.",
       "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
     },
     {
@@ -98,9 +97,8 @@
         "integrity": null
       },
       "observed": {
-        "version": "0.1.0",
         "head": "e6f6b84c56f0fc18ba4a6a1a5959fbf86ea9ec8b",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
       "decision": "Reference tracked separately from actual runtime; acquired source identity is preserved.",
       "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
@@ -119,7 +117,7 @@
       "observed": {
         "version": "0.5.34",
         "head": "a7e3bc549c777ada56ca703099eb61a7340b1da3",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
       "decision": "Pinned source updated or unchanged; coordinated validation recorded separately.",
       "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
@@ -136,9 +134,8 @@
         "integrity": null
       },
       "observed": {
-        "version": null,
-        "head": "401c1f7ef1e42388c4326a293081b786db4cc162",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "head": "4ab22a4923452362b60aef2826c2083ce36168d2",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
       "decision": "Adapter tracked; server is external and is not installed or upgraded by this package.",
       "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
@@ -155,9 +152,8 @@
         "integrity": null
       },
       "observed": {
-        "version": null,
-        "head": "771b9455e0c3626d262b7952d91be3d7229ef7a7",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "head": "ed124cc37d4c40d17768fb52a824654a1cd34a9f",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
       "decision": "Pinned source updated or unchanged; coordinated validation recorded separately.",
       "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
@@ -174,9 +170,9 @@
         "integrity": null
       },
       "observed": {
-        "version": null,
-        "head": "8d59b22a8bd33d2f2167bb54691c7eb99347fe5e",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.0.1-alpha.1",
+        "head": "b4a0da1e9fd2dfd052843e4f95fcf368301f6a73",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
       "decision": "Adapter tracked; server is external and is not installed or upgraded by this package.",
       "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
@@ -195,7 +191,7 @@
       "observed": {
         "version": "0.1.55",
         "head": "39157ba1128a460eec22892fc68372c327169937",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
       "decision": "Copied discovery/redaction modules unchanged; upstream change is codebase-memory skill documentation, not copied code.",
       "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
@@ -214,7 +210,7 @@
       "observed": {
         "version": "0.28.0",
         "head": "83faf70940160e5cd4c5332f5400aa8f4dbbb6d6",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
       "decision": "Pinned source updated or unchanged; coordinated validation recorded separately.",
       "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
@@ -233,7 +229,7 @@
       "observed": {
         "version": "0.3.8",
         "head": "fbf7baebc2cdb0678a1899fa22fec7ec79c6f9d1",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
       "decision": "Pinned source updated or unchanged; coordinated validation recorded separately.",
       "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
@@ -252,7 +248,7 @@
       "observed": {
         "version": "1.2.4",
         "head": "a3212f57d78fcc1a55342afb261cef3dd38b6454",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
       "decision": "Reference tracked separately from actual runtime; acquired source identity is preserved.",
       "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
@@ -264,17 +260,26 @@
       "package": "dsh-skin-market",
       "repository": "https://github.com/kingOfSoySauce/dsh-skin-market",
       "pinned": {
-        "version": "0.1.66",
-        "revision": "55611fe3333834ebc8d9239b7a262c983cb2d726",
-        "integrity": "sha512-rSn8msWknJ2H1ip/okfA9Jn/taAQeiv34TuFFP9h3gcek9xHQ2hNLMA9LgRwyMnJSNkWiojUiiVlonI+iDcTsw=="
+        "version": "0.1.67",
+        "revision": null,
+        "integrity": "sha512-aqEFVk7q3UIIghtIxLnwqwaPlX9ubOgDLBMqFVhCXeAb22w91al94v/wsc8KhEocBRWy5d6B2rE/Q4BKHcfk7g==",
+        "revisionKind": "npm-integrity",
+        "npmGitHead": "62e2af2554ec735ce138b2a8782bb3042a272a3e"
       },
       "observed": {
-        "version": "0.1.66",
-        "head": "2a6c762f6373249e8fc05adf8f6a8a6e16973b1d",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.1.67",
+        "head": "ff013afcdc083d86ecf0edb01bf009e89e622a79",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
-      "decision": "Pinned source updated or unchanged; coordinated validation recorded separately.",
-      "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
+      "decision": "Refresh the actual offline catalog from 0.1.67 data/catalog.json. Preserve the unified resource market, host-owned plugin installation and independent asset licenses; do not mount a duplicate upstream shell.",
+      "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim.",
+      "registry": {
+        "version": "0.1.67",
+        "integrity": "sha512-aqEFVk7q3UIIghtIxLnwqwaPlX9ubOgDLBMqFVhCXeAb22w91al94v/wsc8KhEocBRWy5d6B2rE/Q4BKHcfk7g==",
+        "npmGitHead": "62e2af2554ec735ce138b2a8782bb3042a272a3e",
+        "checkedAt": "2026-10-24T07:35:09.334Z"
+      },
+      "sourceReview": "docs/npm-runtime-rebase-2026-10-24.json"
     },
     {
       "id": "SRC-13",
@@ -288,9 +293,9 @@
         "integrity": null
       },
       "observed": {
-        "version": "0.4.7",
-        "head": "8b78996bda3a3564eac3ab61a7baff3fc3639768",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.0.1",
+        "head": "fe63c8b3d8d8790dd126ff50f2b4641d3755b9f4",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
       "decision": "Reference tracked separately from actual runtime; acquired source identity is preserved.",
       "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
@@ -307,9 +312,9 @@
         "integrity": null
       },
       "observed": {
-        "version": "0.4.7",
-        "head": "8b78996bda3a3564eac3ab61a7baff3fc3639768",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.0.1",
+        "head": "fe63c8b3d8d8790dd126ff50f2b4641d3755b9f4",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
       "decision": "Reference tracked separately from actual runtime; acquired source identity is preserved.",
       "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
@@ -326,9 +331,9 @@
         "integrity": null
       },
       "observed": {
-        "version": "0.85.6",
-        "head": "9b0f05582fee48a202317f7ad24be50bb9842031",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.86.1",
+        "head": "14bb41260093ce47c021b1a0af664302c865a68f",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
       "decision": "Restricted source remains excluded. Independent Nexus review implementation; no source copied.",
       "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
@@ -345,9 +350,9 @@
         "integrity": null
       },
       "observed": {
-        "version": "2.14.1",
+        "version": "0.1.0",
         "head": "a95fa4bf00281e617a7a042c8a419af963dd3800",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
       "decision": "Pinned source updated or unchanged; coordinated validation recorded separately.",
       "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
@@ -359,17 +364,26 @@
       "package": "@michengai/dsh-agency-agents",
       "repository": "https://github.com/MichengAI/dsh-agency-agents",
       "pinned": {
-        "version": "1.2.9",
-        "revision": "4504e593e52286045c62a424d70423350d461d5b",
-        "integrity": "sha512-9DIktYFw9r2Sr+kY0EiyHYKdUarRSkOeM7COO4U346bPfGx2J/0fIYD9z7pXl0DPNtuIAcO9dx5jGhEl2QfzVA=="
+        "version": "1.2.11",
+        "revision": null,
+        "integrity": "sha512-05ZTC0FG452IiMyJ22T0ttaEXPAEjEic8psg5Qp3HJODaXsq/uZNjrTVBTOhmfV6IH6FGSTuPz8+SH7Q0i7bQA==",
+        "revisionKind": "npm-integrity",
+        "npmGitHead": "294daac981bad9b7e32dc0816b458ff820a7940a"
       },
       "observed": {
-        "version": "1.2.9",
-        "head": "4504e593e52286045c62a424d70423350d461d5b",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "1.2.11",
+        "head": "e7082ab50a43f4ec34b29893afef2613ccf88c8d",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
-      "decision": "Pinned source updated or unchanged; coordinated validation recorded separately.",
-      "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
+      "decision": "Preserve the 1.2.11 host/remote/client, roster, sidebar option, locale fallback and authenticated base-URI endpoints. Lock its official updater=false option and suppress only the standalone update dialog.",
+      "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim.",
+      "registry": {
+        "version": "1.2.11",
+        "integrity": "sha512-05ZTC0FG452IiMyJ22T0ttaEXPAEjEic8psg5Qp3HJODaXsq/uZNjrTVBTOhmfV6IH6FGSTuPz8+SH7Q0i7bQA==",
+        "npmGitHead": "294daac981bad9b7e32dc0816b458ff820a7940a",
+        "checkedAt": "2026-10-24T07:35:10.421Z"
+      },
+      "sourceReview": "docs/npm-runtime-rebase-2026-10-24.json"
     },
     {
       "id": "SRC-18",
@@ -384,8 +398,8 @@
       },
       "observed": {
         "version": "0.4.1",
-        "head": "ef7f8d63a7e469ccf680592e11ef9baa999eabb4",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "head": "b963fb29e03ad21ebe76d6f552c70f0544ca92b9",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
       "decision": "Pinned source updated or unchanged; coordinated validation recorded separately.",
       "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
@@ -404,7 +418,7 @@
       "observed": {
         "version": "0.3.0",
         "head": "426e7c4e727084374616ebd942a7e69567036d3a",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
       "decision": "Historical LayneChai adapter retained as reference; selected runtime is Wenaixi SRC-39, not two competing providers.",
       "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
@@ -421,9 +435,9 @@
         "integrity": null
       },
       "observed": {
-        "version": null,
         "head": "25cf37080fc8b1dbe758a4efc3935b55f3327083",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z",
+        "npmError": "HTTP 404: https://registry.npmjs.org/archify-repository/latest"
       },
       "decision": "Copied renderers unchanged; upstream delta is website documentation.",
       "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
@@ -435,17 +449,25 @@
       "package": "dsh-synapse",
       "repository": null,
       "pinned": {
-        "version": "0.4.2",
+        "version": "0.5.0",
         "revision": null,
-        "integrity": "sha512-PVzGpICD7bueTA4psmG9zFQYtdm+uzDtQngmLPpH4zHcJzewXpphsd6YeilJ75uYZ8NKSPysNI8nX1PA40neYQ=="
+        "integrity": "sha512-9tOqqAmGG2E2gJhZTLRWGKl2jU0fTlUW+pkncm8iTOJu2sbM4GOH5Bj3UxTiVxKDIwxuO5WQgj0kjMAxUhMhfQ==",
+        "revisionKind": "npm-integrity",
+        "npmGitHead": null
       },
       "observed": {
-        "version": "0.4.2",
-        "head": null,
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.5.0",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
-      "decision": "npm source available; upstream repository URL absent from published metadata.",
-      "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
+      "decision": "Preserve 0.5.0 v5 preview-only persistence, migration backup, visible-card hydration, native archive filtering and 0.2 minimum zoom. Full bodies use the native scoped archive reader plus the original bodiesFromEvents projector.",
+      "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim.",
+      "registry": {
+        "version": "0.5.0",
+        "integrity": "sha512-9tOqqAmGG2E2gJhZTLRWGKl2jU0fTlUW+pkncm8iTOJu2sbM4GOH5Bj3UxTiVxKDIwxuO5WQgj0kjMAxUhMhfQ==",
+        "npmGitHead": null,
+        "checkedAt": "2026-10-24T07:35:09.334Z"
+      },
+      "sourceReview": "docs/npm-runtime-rebase-2026-10-24.json"
     },
     {
       "id": "SRC-22",
@@ -459,9 +481,8 @@
         "integrity": null
       },
       "observed": {
-        "version": "0.5.1",
         "head": "83cbbd0cb4c8083782777f456a8603575bc774a6",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
       "decision": "Independent Windows command guard; upstream new checker rules are reference material, not falsely represented as loaded code.",
       "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
@@ -478,9 +499,8 @@
         "integrity": null
       },
       "observed": {
-        "version": "2.0.0",
         "head": "2e81d79a189563d96610903aeafad32200ffdaba",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
       "decision": "Reference tracked separately from actual runtime; acquired source identity is preserved.",
       "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
@@ -499,7 +519,7 @@
       "observed": {
         "version": "0.1.2",
         "head": "6e873bb6a1ee3add78f8e2ecce42dabaeb445e09",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
       "decision": "npm latest is older than acquired Git version. No downgrade.",
       "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
@@ -516,9 +536,8 @@
         "integrity": null
       },
       "observed": {
-        "version": "0.1.2",
         "head": "a8e6c7d50fa9c27173acd95987d046241f5386f7",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
       "decision": "Independent preset implementation; reference reviewed separately from pinned host declarations.",
       "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
@@ -535,9 +554,8 @@
         "integrity": null
       },
       "observed": {
-        "version": "0.3.3",
         "head": "e2fca6e2dc5d926bb33fbd1376780bb5e93f4974",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
       "decision": "Independent extension manager; upstream loader/profile fixes reviewed without importing unsafe runtime injection.",
       "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
@@ -554,9 +572,8 @@
         "integrity": null
       },
       "observed": {
-        "version": "0.2.1",
         "head": "eafe881594a6c0ecac9e1e5e94323a1db992de87",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
       "decision": "Independent adaptive preset; official rc.2 host contracts remain authoritative.",
       "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
@@ -575,7 +592,7 @@
       "observed": {
         "version": "0.3.10",
         "head": "5b33fd51925dbd615836d72323e89262796efae5",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
       "decision": "Pinned source updated or unchanged; coordinated validation recorded separately.",
       "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
@@ -587,17 +604,26 @@
       "package": "dsh-context",
       "repository": "https://github.com/bowenliang123/dsh-context",
       "pinned": {
-        "version": "0.74.0",
-        "revision": "77749653063ab282287583c3de02fa7da092c335",
-        "integrity": "sha512-BfqdeRBvZw+AgBMrTXp4SE8Iky6n5LRqVRUttwBZZ27sYW6jaJX2bjrFybO3QGddHioqA2rHZcc2Bb9q5vYPnw=="
+        "version": "0.75.1",
+        "revision": null,
+        "integrity": "sha512-gHpusP9i5hqepogAkZnAL9qyu+P5cwngW3ij5SKqHFyVUSN8sGvsIuSeL9foFaF7TpRHo1/C+nk4WLHVISWcvQ==",
+        "revisionKind": "npm-integrity",
+        "npmGitHead": "7f96208db61589d1a6efe22edfc1e0dece777be9"
       },
       "observed": {
-        "version": "0.74.0",
-        "head": "14aa60d33e829eb6bbcc8bdcea9f97819b24caea",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.75.1",
+        "head": "7f96208db61589d1a6efe22edfc1e0dece777be9",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
-      "decision": "Pinned source updated or unchanged; coordinated validation recorded separately.",
-      "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
+      "decision": "Rebased the 0.75.1 dynamic placement registration to the single native conversation view; preserve original Context/Fleet analytics and native session navigation. Suppress the reviewed update hooks.",
+      "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim.",
+      "registry": {
+        "version": "0.75.1",
+        "integrity": "sha512-gHpusP9i5hqepogAkZnAL9qyu+P5cwngW3ij5SKqHFyVUSN8sGvsIuSeL9foFaF7TpRHo1/C+nk4WLHVISWcvQ==",
+        "npmGitHead": "7f96208db61589d1a6efe22edfc1e0dece777be9",
+        "checkedAt": "2026-10-24T07:42:35.094Z"
+      },
+      "sourceReview": "docs/npm-runtime-rebase-2026-10-24.json"
     },
     {
       "id": "SRC-30",
@@ -606,16 +632,17 @@
       "package": "billion-context",
       "repository": "https://github.com/ranxianglei/billion-context",
       "pinned": {
-        "version": "0.0.147",
-        "revision": "7790bea9178884e70a32bdf7629fd65314b0773e",
-        "integrity": null
+        "version": "0.0.161",
+        "revision": "f161c51894bad4b9e0da15e29353abf5710689c9",
+        "integrity": "sha512-0UlwulpeHwbsuYeyWLpwAtOzHBm8kWMpW8d46rYkgb+mc6Ig5gfN8GAs5y3a7e+COeUOuRRz/2xh3VF8V7apcQ==",
+        "publishedPackageVersion": "0.1.206"
       },
       "observed": {
-        "version": "0.1.203",
-        "head": "7790bea9178884e70a32bdf7629fd65314b0773e",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.1.206",
+        "head": "02f544da0a85bad4a4d20068ee7bb08b5b7830db",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
-      "decision": "Pinned source updated or unchanged; coordinated validation recorded separately.",
+      "decision": "Updated to the verified published release; local adapters rebased; final coordinated acceptance recorded separately.",
       "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
     },
     {
@@ -630,9 +657,8 @@
         "integrity": null
       },
       "observed": {
-        "version": "0.1.0",
-        "head": "439e1069e9dea5f3c10610c7e2d235e99f2dcdee",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "head": "1f1bcb27fb8154c58f4b3190c00050efa09cb014",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
       "decision": "Independent provider router; no second web takeover or duplicated provider pool.",
       "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
@@ -644,17 +670,26 @@
       "package": "dsh-thoughtdag",
       "repository": "https://github.com/chenxiachan/thoughtdag",
       "pinned": {
-        "version": "0.5.22",
-        "revision": "dc09fb4171bf05ae8f582801e75563c96d67373c",
-        "integrity": "sha512-R5sw7kF4bpzvIvp0v8prLLYyaYxlL8OuYz/p5u47yuuZnekuewxIcCNJDVbD7MqMJLMsEUIKiV3udt31J4SudQ=="
+        "version": "0.5.24",
+        "revision": null,
+        "integrity": "sha512-Qx+3n0JcSiAXZm0XESYsSUEk0bOmaWii0xqW1Zt6vqTUp1VPEgazR0EQ9tvrfdbtD0P53+PtiWEcJCtulJRGMg==",
+        "revisionKind": "npm-integrity",
+        "npmGitHead": null
       },
       "observed": {
-        "version": "0.5.22",
-        "head": "7d9ba5e3db2e5cf26bdb25c529e2c2f55b12d10f",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.5.24",
+        "head": "62900d12ac8f2979148b23ac444b8da31d2ff964",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
-      "decision": "Pinned source updated or unchanged; coordinated validation recorded separately.",
-      "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
+      "decision": "Rebased the exact 0.5.24 host, HTML and Vite entry hashes and local symbol mapping. Preserve new own-provider cancellation/quiet-fallback behavior, graph algorithms and lazy chunk closure; retain native live mirror, graph compile bridge and viewport controls.",
+      "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim.",
+      "registry": {
+        "version": "0.5.24",
+        "integrity": "sha512-Qx+3n0JcSiAXZm0XESYsSUEk0bOmaWii0xqW1Zt6vqTUp1VPEgazR0EQ9tvrfdbtD0P53+PtiWEcJCtulJRGMg==",
+        "npmGitHead": null,
+        "checkedAt": "2026-10-24T07:35:10.357Z"
+      },
+      "sourceReview": "docs/npm-runtime-rebase-2026-10-24.json"
     },
     {
       "id": "SRC-33",
@@ -669,8 +704,8 @@
       },
       "observed": {
         "version": "0.1.16",
-        "head": "faeb2af5ade773fe842724b6d14502b5e0ae4ce3",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "head": "0fd27f60be98de454e6996330b8628ddc1e85a6a",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
       "decision": "Independent usage implementation; newer Git project is reorganized. npm tag is older, no downgrade.",
       "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
@@ -687,9 +722,8 @@
         "integrity": null
       },
       "observed": {
-        "version": null,
         "head": "c6e2b5180917b8fd8952a0338d77c5318856e4a3",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
       "decision": "Reference tracked separately from actual runtime; acquired source identity is preserved.",
       "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
@@ -706,9 +740,8 @@
         "integrity": null
       },
       "observed": {
-        "version": null,
         "head": "31a7b16a14c4d801bb491700df3d1509ac31b5c4",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
       "decision": "Reference tracked separately from actual runtime; acquired source identity is preserved.",
       "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
@@ -727,7 +760,7 @@
       "observed": {
         "version": "2.0.2",
         "head": "8b1eda95afea3592e08a315e29dc7746ee57ca25",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
       "decision": "Reference tracked separately from actual runtime; acquired source identity is preserved.",
       "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
@@ -745,8 +778,8 @@
       },
       "observed": {
         "version": "8.0.0",
-        "head": "ff94aeb2f9379c8431665ed671a48f988e39baa9",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "head": "629dfff09b2808255b0e407913f86b5b3cdcd30a",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
       "decision": "Pinned source updated or unchanged; coordinated validation recorded separately.",
       "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
@@ -764,8 +797,8 @@
       },
       "observed": {
         "version": "5.6.1",
-        "head": "429f074018c61fcf6bc9d547a45cea8733a77898",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "head": "9b91c151d8838fd55c541d6f6424267d07c6bf7d",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
       "decision": "Pinned source updated or unchanged; coordinated validation recorded separately.",
       "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
@@ -784,7 +817,7 @@
       "observed": {
         "version": "0.4.0",
         "head": "ff8a0b30e0f9280826afe6150bec7388aa46afab",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
       "decision": "Pinned source updated or unchanged; coordinated validation recorded separately.",
       "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
@@ -796,17 +829,26 @@
       "package": "@fission-ai/openspec",
       "repository": "https://github.com/Fission-AI/OpenSpec",
       "pinned": {
-        "version": "1.14.3",
+        "version": "1.15.0",
         "revision": null,
-        "integrity": "sha512-ALFW1d5bSm6t27Kmcle93SDFuqUc8fLwy5ZdBfIiNffo0Yk9AEOJxw6xDqBv38eMM7l7TeOZBB/7C08luxYGfg=="
+        "integrity": "sha512-lG/EPEiL22bB70yKJhWWSPk1UQGLnwO7Dp+hNc/jUmBwb0qxPLzHCUkXEfkny4iYDOsgnsNQmc39/g9QcvnBnA==",
+        "revisionKind": "npm-integrity",
+        "npmGitHead": null
       },
       "observed": {
-        "version": "1.14.3",
-        "head": null,
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "1.15.0",
+        "head": "6d04a1b58dedc95729d34e4f223d9d483aae210a",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
-      "decision": "Pinned source updated or unchanged; coordinated validation recorded separately.",
-      "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
+      "decision": "Use the packaged 1.15.0 CLI through the original 0.4.0 skill provider and Windows-safe absolute command quoting. Rebase the command inventory, including install/version/templates/change/experimental.",
+      "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim.",
+      "registry": {
+        "version": "1.15.0",
+        "integrity": "sha512-lG/EPEiL22bB70yKJhWWSPk1UQGLnwO7Dp+hNc/jUmBwb0qxPLzHCUkXEfkny4iYDOsgnsNQmc39/g9QcvnBnA==",
+        "npmGitHead": null,
+        "checkedAt": "2026-10-24T07:35:09.263Z"
+      },
+      "sourceReview": "docs/npm-runtime-rebase-2026-10-24.json"
     },
     {
       "id": "SRC-43",
@@ -821,8 +863,8 @@
       },
       "observed": {
         "version": "0.1.0",
-        "head": "609964f5db6f3f60ffa845a3ef75041330fb69d5",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z",
+        "gitError": "Public repository check failed: Command failed: git -c credential.interactive=false -c credential.helper= ls-remote https://github.com/satan9394/dsh-karpathy-methodology HEAD\nfatal: unable to get password from user\n"
       },
       "decision": "Pinned source updated or unchanged; coordinated validation recorded separately.",
       "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
@@ -839,9 +881,8 @@
         "integrity": null
       },
       "observed": {
-        "version": "1.0.0",
         "head": "2c606141936f1eeef17fa3043a72095b4765b9c2",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
       "decision": "Pinned source updated or unchanged; coordinated validation recorded separately.",
       "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
@@ -856,8 +897,8 @@
         "revision": "b739a8af570e10a95898f2bdf6cec97467fa6c12"
       },
       "observed": {
-        "head": "b739a8af570e10a95898f2bdf6cec97467fa6c12",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "head": "2ce8aa15d05bd57213e6f746f953aafb7ded7a8b",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
       "decision": "Original upstream tracked separately from DSH adapter version."
     },
@@ -872,7 +913,7 @@
       },
       "observed": {
         "head": "09c434ab73ca43761c5d8b0c5d341926c2fba710",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
       "decision": "Original upstream tracked separately from DSH adapter version."
     },
@@ -887,8 +928,8 @@
         "archiveSha256": "efb33ccfb0258e7a81b7a57cf70c1cb09d608fe1081c2dd323204c8a92eb7d70"
       },
       "observed": {
-        "head": null,
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z",
+        "unavailable": "Upstream location was not supplied."
       },
       "decision": "Only user-supplied archive is verified; no upstream URL supplied. Kept intact; cannot claim remote update."
     },
@@ -903,10 +944,94 @@
         "archiveSha256": "0b196ab723860f9d25c6535ac64c096d5e91981fd1ba01bdb009f2227362170f"
       },
       "observed": {
-        "head": "cdf0e31d51c3abf550b949f2dcc41f02264cdc3b",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "head": "72e5c33f882d62c05715c8773df927f6048b8c18",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
       "decision": "Runtime identical to archive; latest docs/lockfile synced; Windows adapter preserved."
+    },
+    {
+      "id": "SRC-45",
+      "identity": "Scorp1o117__dsh-motion-ui",
+      "kind": "original-published-runtime",
+      "package": "dsh-motion-ui",
+      "repository": "https://github.com/Scorp1o117/dsh-motion-ui",
+      "pinned": {
+        "version": "0.8.8",
+        "revision": null,
+        "integrity": "sha512-VWh3Sm3rLI4oQvOepfej6Mp67sE/uUYlHrAJS6MaUX1wbuVQkDPkO8aJ64bgr64Fh219os/9XBz60EO8Xv/6pw==",
+        "revisionKind": "npm-integrity",
+        "npmGitHead": "52ad63919cd1b40b26f80a65102ca1459b4a7ec4"
+      },
+      "observed": {
+        "version": "0.8.8",
+        "head": "52ad63919cd1b40b26f80a65102ca1459b4a7ec4",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      },
+      "decision": "Upgrade to 0.8.8. Published host source is byte-identical to 0.8.7; the generated client changes only BUILD_INFO. Retain the bounded CSS/reduced-motion adaptation and all original tool/media behavior.",
+      "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim.",
+      "registry": {
+        "version": "0.8.8",
+        "integrity": "sha512-VWh3Sm3rLI4oQvOepfej6Mp67sE/uUYlHrAJS6MaUX1wbuVQkDPkO8aJ64bgr64Fh219os/9XBz60EO8Xv/6pw==",
+        "npmGitHead": "52ad63919cd1b40b26f80a65102ca1459b4a7ec4",
+        "checkedAt": "2026-10-24T07:43:15.896Z"
+      },
+      "sourceReview": "docs/npm-runtime-rebase-2026-10-24.json"
+    },
+    {
+      "id": "SRC-46",
+      "identity": "zsjs110110-cpu__dsh-cross-session-approval",
+      "kind": "original-published-runtime",
+      "package": "dsh-cross-session-approval",
+      "repository": "https://github.com/zsjs110110-cpu/dsh-cross-session-approval",
+      "pinned": {
+        "version": "0.3.10",
+        "revision": "e6206d105bf72f73f4ad5e087948da3e049e22f0",
+        "integrity": "sha512-37hRKYWvgPkjLH7p7MONIelXNMb8fyYagGAPYHsq/I4ohS1JGP5Nz6ocWciP4ik5bVOYMcKo+uouSaTSUdlJKA=="
+      },
+      "observed": {
+        "version": "0.3.10",
+        "head": "e6206d105bf72f73f4ad5e087948da3e049e22f0",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      },
+      "decision": "All ten original native tools, original approval audit and native permission caps retained. Agent traffic uses existing unified mailbox with separately authorized cross-session directory, durable receipts, user-stop guards and no fabricated native ancestry. Published npm gitHead differs from current checkout, but all installed JS byte comparisons are recorded.",
+      "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
+    },
+    {
+      "id": "SRC-47",
+      "identity": "LJL454__dsh-computer-use",
+      "kind": "original-vendored-runtime",
+      "package": "@local/dsh-computer-use",
+      "repository": "https://github.com/LJL454/dsh-computer-use",
+      "pinned": {
+        "version": "1.40.2",
+        "revision": "20bfa1442bbe6f9f43a3e6ebcd9bff4403ecce7a",
+        "integrity": null
+      },
+      "observed": {
+        "head": "20bfa1442bbe6f9f43a3e6ebcd9bff4403ecce7a",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      },
+      "decision": "Selected complete native Windows and CDP production closure, immutable commit and file SHA256s. Native session opt-in chip remains default off; four HTTP endpoints moved to owner-only rc3 Connection. No second desktop control stack is mounted.",
+      "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
+    },
+    {
+      "id": "SRC-48",
+      "identity": "Yu-tao-Li__dsh-computer-use-win",
+      "kind": "reference-or-adapted-source",
+      "package": "dsh-computer-use-win",
+      "repository": "https://github.com/Yu-tao-Li/dsh-computer-use-win",
+      "pinned": {
+        "version": "0.5.1",
+        "revision": "d9e4605c4fe45215555da386a4a84a699443791a",
+        "integrity": null
+      },
+      "observed": {
+        "version": "0.5.0",
+        "head": "d9e4605c4fe45215555da386a4a84a699443791a",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      },
+      "decision": "Reference tracked only. Rich OCR, takeover/Escape indicators and MCP integration; not mounted alongside the native per-session Windows control. Advertised npm 0.5.1 unavailable during acquisition.",
+      "validation": "Acceptance is recorded by final build/test/Desktop evidence; this inventory alone is not a pass claim."
     }
   ],
   "npmPlugins": [
@@ -922,7 +1047,7 @@
       "observed": {
         "version": "0.3.10",
         "head": "5b33fd51925dbd615836d72323e89262796efae5",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       }
     },
     {
@@ -936,8 +1061,8 @@
       },
       "observed": {
         "version": "0.4.8",
-        "head": "8b78996bda3a3564eac3ab61a7baff3fc3639768",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "head": "fe63c8b3d8d8790dd126ff50f2b4641d3755b9f4",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       }
     },
     {
@@ -951,8 +1076,8 @@
       },
       "observed": {
         "version": "0.4.8",
-        "head": "8b78996bda3a3564eac3ab61a7baff3fc3639768",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "head": "fe63c8b3d8d8790dd126ff50f2b4641d3755b9f4",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       }
     },
     {
@@ -966,8 +1091,8 @@
       },
       "observed": {
         "version": "0.4.8",
-        "head": "8b78996bda3a3564eac3ab61a7baff3fc3639768",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "head": "fe63c8b3d8d8790dd126ff50f2b4641d3755b9f4",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       }
     },
     {
@@ -976,13 +1101,19 @@
       "kind": "npm-runtime",
       "repository": "https://github.com/MichengAI/dsh-agency-agents",
       "pinned": {
-        "version": "1.2.9",
-        "integrity": "sha512-9DIktYFw9r2Sr+kY0EiyHYKdUarRSkOeM7COO4U346bPfGx2J/0fIYD9z7pXl0DPNtuIAcO9dx5jGhEl2QfzVA=="
+        "version": "1.2.11",
+        "integrity": "sha512-05ZTC0FG452IiMyJ22T0ttaEXPAEjEic8psg5Qp3HJODaXsq/uZNjrTVBTOhmfV6IH6FGSTuPz8+SH7Q0i7bQA=="
       },
       "observed": {
-        "version": "1.2.9",
-        "head": "4504e593e52286045c62a424d70423350d461d5b",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "1.2.11",
+        "head": "e7082ab50a43f4ec34b29893afef2613ccf88c8d",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      },
+      "registry": {
+        "version": "1.2.11",
+        "integrity": "sha512-05ZTC0FG452IiMyJ22T0ttaEXPAEjEic8psg5Qp3HJODaXsq/uZNjrTVBTOhmfV6IH6FGSTuPz8+SH7Q0i7bQA==",
+        "npmGitHead": "294daac981bad9b7e32dc0816b458ff820a7940a",
+        "checkedAt": "2026-10-24T07:35:10.421Z"
       }
     },
     {
@@ -997,7 +1128,7 @@
       "observed": {
         "version": "0.3.8",
         "head": "fbf7baebc2cdb0678a1899fa22fec7ec79c6f9d1",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       }
     },
     {
@@ -1012,7 +1143,7 @@
       "observed": {
         "version": "0.28.0",
         "head": "83faf70940160e5cd4c5332f5400aa8f4dbbb6d6",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       }
     },
     {
@@ -1021,13 +1152,19 @@
       "kind": "npm-runtime",
       "repository": "https://github.com/bowenliang123/dsh-context",
       "pinned": {
-        "version": "0.74.0",
-        "integrity": "sha512-BfqdeRBvZw+AgBMrTXp4SE8Iky6n5LRqVRUttwBZZ27sYW6jaJX2bjrFybO3QGddHioqA2rHZcc2Bb9q5vYPnw=="
+        "version": "0.75.1",
+        "integrity": "sha512-gHpusP9i5hqepogAkZnAL9qyu+P5cwngW3ij5SKqHFyVUSN8sGvsIuSeL9foFaF7TpRHo1/C+nk4WLHVISWcvQ=="
       },
       "observed": {
-        "version": "0.74.0",
-        "head": "14aa60d33e829eb6bbcc8bdcea9f97819b24caea",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.75.1",
+        "head": "7f96208db61589d1a6efe22edfc1e0dece777be9",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      },
+      "registry": {
+        "version": "0.75.1",
+        "integrity": "sha512-gHpusP9i5hqepogAkZnAL9qyu+P5cwngW3ij5SKqHFyVUSN8sGvsIuSeL9foFaF7TpRHo1/C+nk4WLHVISWcvQ==",
+        "npmGitHead": "7f96208db61589d1a6efe22edfc1e0dece777be9",
+        "checkedAt": "2026-10-24T07:42:35.094Z"
       }
     },
     {
@@ -1042,7 +1179,7 @@
       "observed": {
         "version": "0.5.34",
         "head": "a7e3bc549c777ada56ca703099eb61a7340b1da3",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       }
     },
     {
@@ -1057,7 +1194,7 @@
       "observed": {
         "version": "0.5.5",
         "head": "a7e3bc549c777ada56ca703099eb61a7340b1da3",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       }
     },
     {
@@ -1072,7 +1209,7 @@
       "observed": {
         "version": "0.5.6",
         "head": "a7e3bc549c777ada56ca703099eb61a7340b1da3",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       }
     },
     {
@@ -1087,7 +1224,7 @@
       "observed": {
         "version": "0.5.6",
         "head": "a7e3bc549c777ada56ca703099eb61a7340b1da3",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       }
     },
     {
@@ -1102,7 +1239,7 @@
       "observed": {
         "version": "0.5.5",
         "head": "a7e3bc549c777ada56ca703099eb61a7340b1da3",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       }
     },
     {
@@ -1117,7 +1254,7 @@
       "observed": {
         "version": "0.5.5",
         "head": "a7e3bc549c777ada56ca703099eb61a7340b1da3",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       }
     },
     {
@@ -1132,7 +1269,7 @@
       "observed": {
         "version": "0.5.9",
         "head": "a7e3bc549c777ada56ca703099eb61a7340b1da3",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       }
     },
     {
@@ -1147,7 +1284,7 @@
       "observed": {
         "version": "0.5.8",
         "head": "a7e3bc549c777ada56ca703099eb61a7340b1da3",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       }
     },
     {
@@ -1162,7 +1299,7 @@
       "observed": {
         "version": "0.5.6",
         "head": "a7e3bc549c777ada56ca703099eb61a7340b1da3",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       }
     },
     {
@@ -1177,7 +1314,7 @@
       "observed": {
         "version": "0.5.5",
         "head": "a7e3bc549c777ada56ca703099eb61a7340b1da3",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       }
     },
     {
@@ -1192,7 +1329,7 @@
       "observed": {
         "version": "0.5.11",
         "head": "a7e3bc549c777ada56ca703099eb61a7340b1da3",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       }
     },
     {
@@ -1207,7 +1344,7 @@
       "observed": {
         "version": "0.5.22",
         "head": "a7e3bc549c777ada56ca703099eb61a7340b1da3",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       }
     },
     {
@@ -1222,7 +1359,7 @@
       "observed": {
         "version": "0.5.15",
         "head": "a7e3bc549c777ada56ca703099eb61a7340b1da3",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       }
     },
     {
@@ -1237,7 +1374,7 @@
       "observed": {
         "version": "0.5.5",
         "head": "a7e3bc549c777ada56ca703099eb61a7340b1da3",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       }
     },
     {
@@ -1252,7 +1389,7 @@
       "observed": {
         "version": "0.5.10",
         "head": "a7e3bc549c777ada56ca703099eb61a7340b1da3",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       }
     },
     {
@@ -1267,7 +1404,7 @@
       "observed": {
         "version": "0.5.1",
         "head": "a7e3bc549c777ada56ca703099eb61a7340b1da3",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       }
     },
     {
@@ -1282,7 +1419,7 @@
       "observed": {
         "version": "0.5.6",
         "head": "a7e3bc549c777ada56ca703099eb61a7340b1da3",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       }
     },
     {
@@ -1297,7 +1434,7 @@
       "observed": {
         "version": "0.5.5",
         "head": "a7e3bc549c777ada56ca703099eb61a7340b1da3",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       }
     },
     {
@@ -1306,13 +1443,19 @@
       "kind": "npm-runtime",
       "repository": "https://github.com/kingOfSoySauce/dsh-skin-market",
       "pinned": {
-        "version": "0.1.66",
-        "integrity": "sha512-rSn8msWknJ2H1ip/okfA9Jn/taAQeiv34TuFFP9h3gcek9xHQ2hNLMA9LgRwyMnJSNkWiojUiiVlonI+iDcTsw=="
+        "version": "0.1.67",
+        "integrity": "sha512-aqEFVk7q3UIIghtIxLnwqwaPlX9ubOgDLBMqFVhCXeAb22w91al94v/wsc8KhEocBRWy5d6B2rE/Q4BKHcfk7g=="
       },
       "observed": {
-        "version": "0.1.66",
-        "head": "2a6c762f6373249e8fc05adf8f6a8a6e16973b1d",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.1.67",
+        "head": "ff013afcdc083d86ecf0edb01bf009e89e622a79",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      },
+      "registry": {
+        "version": "0.1.67",
+        "integrity": "sha512-aqEFVk7q3UIIghtIxLnwqwaPlX9ubOgDLBMqFVhCXeAb22w91al94v/wsc8KhEocBRWy5d6B2rE/Q4BKHcfk7g==",
+        "npmGitHead": "62e2af2554ec735ce138b2a8782bb3042a272a3e",
+        "checkedAt": "2026-10-24T07:35:09.334Z"
       }
     },
     {
@@ -1321,13 +1464,18 @@
       "kind": "npm-runtime",
       "repository": null,
       "pinned": {
-        "version": "0.4.2",
-        "integrity": "sha512-PVzGpICD7bueTA4psmG9zFQYtdm+uzDtQngmLPpH4zHcJzewXpphsd6YeilJ75uYZ8NKSPysNI8nX1PA40neYQ=="
+        "version": "0.5.0",
+        "integrity": "sha512-9tOqqAmGG2E2gJhZTLRWGKl2jU0fTlUW+pkncm8iTOJu2sbM4GOH5Bj3UxTiVxKDIwxuO5WQgj0kjMAxUhMhfQ=="
       },
       "observed": {
-        "version": "0.4.2",
-        "head": null,
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.5.0",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      },
+      "registry": {
+        "version": "0.5.0",
+        "integrity": "sha512-9tOqqAmGG2E2gJhZTLRWGKl2jU0fTlUW+pkncm8iTOJu2sbM4GOH5Bj3UxTiVxKDIwxuO5WQgj0kjMAxUhMhfQ==",
+        "npmGitHead": null,
+        "checkedAt": "2026-10-24T07:35:09.334Z"
       }
     },
     {
@@ -1336,13 +1484,19 @@
       "kind": "npm-runtime",
       "repository": "https://github.com/chenxiachan/thoughtdag",
       "pinned": {
-        "version": "0.5.22",
-        "integrity": "sha512-R5sw7kF4bpzvIvp0v8prLLYyaYxlL8OuYz/p5u47yuuZnekuewxIcCNJDVbD7MqMJLMsEUIKiV3udt31J4SudQ=="
+        "version": "0.5.24",
+        "integrity": "sha512-Qx+3n0JcSiAXZm0XESYsSUEk0bOmaWii0xqW1Zt6vqTUp1VPEgazR0EQ9tvrfdbtD0P53+PtiWEcJCtulJRGMg=="
       },
       "observed": {
-        "version": "0.5.22",
-        "head": "7d9ba5e3db2e5cf26bdb25c529e2c2f55b12d10f",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.5.24",
+        "head": "62900d12ac8f2979148b23ac444b8da31d2ff964",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      },
+      "registry": {
+        "version": "0.5.24",
+        "integrity": "sha512-Qx+3n0JcSiAXZm0XESYsSUEk0bOmaWii0xqW1Zt6vqTUp1VPEgazR0EQ9tvrfdbtD0P53+PtiWEcJCtulJRGMg==",
+        "npmGitHead": null,
+        "checkedAt": "2026-10-24T07:35:10.357Z"
       }
     },
     {
@@ -1356,8 +1510,8 @@
       },
       "observed": {
         "version": "8.0.0",
-        "head": null,
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "head": "629dfff09b2808255b0e407913f86b5b3cdcd30a",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       }
     },
     {
@@ -1371,8 +1525,8 @@
       },
       "observed": {
         "version": "5.6.1",
-        "head": null,
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "head": "9b91c151d8838fd55c541d6f6424267d07c6bf7d",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       }
     },
     {
@@ -1386,8 +1540,8 @@
       },
       "observed": {
         "version": "0.4.0",
-        "head": null,
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "head": "ff8a0b30e0f9280826afe6150bec7388aa46afab",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       }
     },
     {
@@ -1401,8 +1555,8 @@
       },
       "observed": {
         "version": "0.1.0",
-        "head": null,
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "checkedAt": "2026-10-24T07:06:29.578Z",
+        "gitError": "Public repository check failed: Command failed: git -c credential.interactive=false -c credential.helper= ls-remote https://github.com/satan9394/dsh-karpathy-methodology HEAD\nfatal: unable to get password from user\n"
       }
     },
     {
@@ -1416,8 +1570,8 @@
       },
       "observed": {
         "version": "0.4.1",
-        "head": "ef7f8d63a7e469ccf680592e11ef9baa999eabb4",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "head": "b963fb29e03ad21ebe76d6f552c70f0544ca92b9",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       }
     },
     {
@@ -1431,57 +1585,48 @@
       },
       "observed": {
         "version": "0.5.1",
-        "head": null,
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "head": "a7e3bc549c777ada56ca703099eb61a7340b1da3",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      }
+    },
+    {
+      "id": "npm:dsh-motion-ui",
+      "package": "dsh-motion-ui",
+      "kind": "npm-runtime",
+      "repository": "https://github.com/Scorp1o117/dsh-motion-ui",
+      "pinned": {
+        "version": "0.8.8",
+        "integrity": "sha512-VWh3Sm3rLI4oQvOepfej6Mp67sE/uUYlHrAJS6MaUX1wbuVQkDPkO8aJ64bgr64Fh219os/9XBz60EO8Xv/6pw=="
+      },
+      "observed": {
+        "version": "0.8.8",
+        "head": "52ad63919cd1b40b26f80a65102ca1459b4a7ec4",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      },
+      "registry": {
+        "version": "0.8.8",
+        "integrity": "sha512-VWh3Sm3rLI4oQvOepfej6Mp67sE/uUYlHrAJS6MaUX1wbuVQkDPkO8aJ64bgr64Fh219os/9XBz60EO8Xv/6pw==",
+        "npmGitHead": "52ad63919cd1b40b26f80a65102ca1459b4a7ec4",
+        "checkedAt": "2026-10-24T07:43:15.896Z"
+      }
+    },
+    {
+      "id": "npm:dsh-cross-session-approval",
+      "package": "dsh-cross-session-approval",
+      "kind": "npm-runtime",
+      "repository": "https://github.com/zsjs110110-cpu/dsh-cross-session-approval",
+      "pinned": {
+        "version": "0.3.10",
+        "integrity": "sha512-37hRKYWvgPkjLH7p7MONIelXNMb8fyYagGAPYHsq/I4ohS1JGP5Nz6ocWciP4ik5bVOYMcKo+uouSaTSUdlJKA=="
+      },
+      "observed": {
+        "version": "0.3.10",
+        "head": "e6206d105bf72f73f4ad5e087948da3e049e22f0",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       }
     }
   ],
   "hostPackages": [
-    {
-      "id": "host:@deepseek-ai/dsh-home-paths",
-      "package": "@deepseek-ai/dsh-home-paths",
-      "kind": "host-peer",
-      "repository": "https://github.com/deepseek-ai/deepseek-harness",
-      "pinned": {
-        "version": "0.2.1-rc.2"
-      },
-      "observed": {
-        "version": "0.2.1-rc.2",
-        "head": "687f282e8625c6b8d11ff58211a90524be2e4317",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
-      },
-      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure."
-    },
-    {
-      "id": "host:@deepseek-ai/dsh-ssh",
-      "package": "@deepseek-ai/dsh-ssh",
-      "kind": "host-peer",
-      "repository": "https://github.com/deepseek-ai/deepseek-harness",
-      "pinned": {
-        "version": "0.2.1-rc.2"
-      },
-      "observed": {
-        "version": "0.2.1-rc.2",
-        "head": "687f282e8625c6b8d11ff58211a90524be2e4317",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
-      },
-      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure."
-    },
-    {
-      "id": "host:@deepseek-ai/dsh-util-values",
-      "package": "@deepseek-ai/dsh-util-values",
-      "kind": "host-peer",
-      "repository": "https://github.com/deepseek-ai/deepseek-harness",
-      "pinned": {
-        "version": "0.2.1-rc.2"
-      },
-      "observed": {
-        "version": "0.2.1-rc.2",
-        "head": "687f282e8625c6b8d11ff58211a90524be2e4317",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
-      },
-      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure."
-    },
     {
       "id": "host:@deepseek-ai/cordis",
       "package": "@deepseek-ai/cordis",
@@ -1492,10 +1637,14 @@
       },
       "observed": {
         "version": "4.0.5",
-        "head": "687f282e8625c6b8d11ff58211a90524be2e4317",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
-      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure."
+      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure.",
+      "declaredIn": [
+        "peerDependencies",
+        "devDependencies"
+      ]
     },
     {
       "id": "host:@deepseek-ai/dsh-agent",
@@ -1503,14 +1652,72 @@
       "kind": "host-peer",
       "repository": "https://github.com/deepseek-ai/deepseek-harness",
       "pinned": {
-        "version": "0.2.1-rc.2"
+        "version": "0.2.1-rc.3"
       },
       "observed": {
-        "version": "0.2.1-rc.2",
-        "head": "687f282e8625c6b8d11ff58211a90524be2e4317",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
-      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure."
+      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure.",
+      "declaredIn": [
+        "peerDependencies",
+        "devDependencies"
+      ]
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-agent-loop",
+      "package": "@deepseek-ai/dsh-agent-loop",
+      "kind": "host-peer",
+      "repository": "https://github.com/deepseek-ai/deepseek-harness",
+      "pinned": {
+        "version": "0.2.1-rc.3"
+      },
+      "observed": {
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      },
+      "declaredIn": [
+        "devDependencies"
+      ],
+      "decision": "Host boundary dependency; upgrade only with a validated matching Desktop release."
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-api-gateway",
+      "package": "@deepseek-ai/dsh-api-gateway",
+      "kind": "host-peer",
+      "repository": "https://github.com/deepseek-ai/deepseek-harness",
+      "pinned": {
+        "version": "0.2.1-rc.3"
+      },
+      "observed": {
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      },
+      "declaredIn": [
+        "dsh.client.inject"
+      ],
+      "decision": "Host boundary dependency; upgrade only with a validated matching Desktop release."
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-api-remotes",
+      "package": "@deepseek-ai/dsh-api-remotes",
+      "kind": "host-peer",
+      "repository": "https://github.com/deepseek-ai/deepseek-harness",
+      "pinned": {
+        "version": "0.2.1-rc.3"
+      },
+      "observed": {
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      },
+      "declaredIn": [
+        "dsh.client.inject"
+      ],
+      "decision": "Host boundary dependency; upgrade only with a validated matching Desktop release."
     },
     {
       "id": "host:@deepseek-ai/dsh-api-session-controller",
@@ -1518,14 +1725,19 @@
       "kind": "host-peer",
       "repository": "https://github.com/deepseek-ai/deepseek-harness",
       "pinned": {
-        "version": "0.2.1-rc.2"
+        "version": "0.2.1-rc.3"
       },
       "observed": {
-        "version": "0.2.1-rc.2",
-        "head": "687f282e8625c6b8d11ff58211a90524be2e4317",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
-      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure."
+      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure.",
+      "declaredIn": [
+        "peerDependencies",
+        "devDependencies",
+        "dsh.client.inject"
+      ]
     },
     {
       "id": "host:@deepseek-ai/dsh-api-workspace-controller",
@@ -1533,14 +1745,37 @@
       "kind": "host-peer",
       "repository": "https://github.com/deepseek-ai/deepseek-harness",
       "pinned": {
-        "version": "0.2.1-rc.2"
+        "version": "0.2.1-rc.3"
       },
       "observed": {
-        "version": "0.2.1-rc.2",
-        "head": "687f282e8625c6b8d11ff58211a90524be2e4317",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
-      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure."
+      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure.",
+      "declaredIn": [
+        "peerDependencies",
+        "devDependencies",
+        "dsh.client.inject"
+      ]
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-attachment",
+      "package": "@deepseek-ai/dsh-attachment",
+      "kind": "host-peer",
+      "repository": "https://github.com/deepseek-ai/deepseek-harness",
+      "pinned": {
+        "version": "0.2.1-rc.3"
+      },
+      "observed": {
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      },
+      "declaredIn": [
+        "devDependencies"
+      ],
+      "decision": "Host boundary dependency; upgrade only with a validated matching Desktop release."
     },
     {
       "id": "host:@deepseek-ai/dsh-client-connection",
@@ -1548,44 +1783,345 @@
       "kind": "host-peer",
       "repository": "https://github.com/deepseek-ai/deepseek-harness",
       "pinned": {
-        "version": "0.2.1-rc.2"
+        "version": "0.2.1-rc.3"
       },
       "observed": {
-        "version": "0.2.1-rc.2",
-        "head": "687f282e8625c6b8d11ff58211a90524be2e4317",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
-      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure."
+      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure.",
+      "declaredIn": [
+        "peerDependencies",
+        "devDependencies",
+        "dsh.client.inject"
+      ]
     },
     {
-      "id": "host:@deepseek-ai/dsh-compaction",
-      "package": "@deepseek-ai/dsh-compaction",
+      "id": "host:@deepseek-ai/dsh-client-locale",
+      "package": "@deepseek-ai/dsh-client-locale",
       "kind": "host-peer",
       "repository": "https://github.com/deepseek-ai/deepseek-harness",
       "pinned": {
-        "version": "0.2.1-rc.2"
+        "version": "0.2.1-rc.3"
       },
       "observed": {
-        "version": "0.2.1-rc.2",
-        "head": "687f282e8625c6b8d11ff58211a90524be2e4317",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
-      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure."
+      "declaredIn": [
+        "dsh.client.inject"
+      ],
+      "decision": "Host boundary dependency; upgrade only with a validated matching Desktop release."
     },
     {
-      "id": "host:@deepseek-ai/dsh-compaction-basic",
-      "package": "@deepseek-ai/dsh-compaction-basic",
+      "id": "host:@deepseek-ai/dsh-client-modules",
+      "package": "@deepseek-ai/dsh-client-modules",
       "kind": "host-peer",
       "repository": "https://github.com/deepseek-ai/deepseek-harness",
       "pinned": {
-        "version": "0.2.1-rc.2"
+        "version": "0.2.1-rc.3"
       },
       "observed": {
-        "version": "0.2.1-rc.2",
-        "head": "687f282e8625c6b8d11ff58211a90524be2e4317",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
-      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure."
+      "declaredIn": [
+        "dsh.client.inject"
+      ],
+      "decision": "Host boundary dependency; upgrade only with a validated matching Desktop release."
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-client-ui-chat",
+      "package": "@deepseek-ai/dsh-client-ui-chat",
+      "kind": "host-peer",
+      "repository": "https://github.com/deepseek-ai/deepseek-harness",
+      "pinned": {
+        "version": "0.2.1-rc.3"
+      },
+      "observed": {
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      },
+      "declaredIn": [
+        "dsh.client.inject"
+      ],
+      "decision": "Host boundary dependency; upgrade only with a validated matching Desktop release."
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-client-ui-conversation",
+      "package": "@deepseek-ai/dsh-client-ui-conversation",
+      "kind": "host-peer",
+      "repository": "https://github.com/deepseek-ai/deepseek-harness",
+      "pinned": {
+        "version": "0.2.1-rc.3"
+      },
+      "observed": {
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      },
+      "declaredIn": [
+        "devDependencies",
+        "dsh.client.inject"
+      ],
+      "decision": "Host boundary dependency; upgrade only with a validated matching Desktop release."
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-client-ui-input-trigger",
+      "package": "@deepseek-ai/dsh-client-ui-input-trigger",
+      "kind": "host-peer",
+      "repository": "https://github.com/deepseek-ai/deepseek-harness",
+      "pinned": {
+        "version": "0.2.1-rc.3"
+      },
+      "observed": {
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      },
+      "declaredIn": [
+        "dsh.client.inject"
+      ],
+      "decision": "Host boundary dependency; upgrade only with a validated matching Desktop release."
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-client-ui-layout",
+      "package": "@deepseek-ai/dsh-client-ui-layout",
+      "kind": "host-peer",
+      "repository": "https://github.com/deepseek-ai/deepseek-harness",
+      "pinned": {
+        "version": "0.2.1-rc.3"
+      },
+      "observed": {
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      },
+      "declaredIn": [
+        "dsh.client.inject"
+      ],
+      "decision": "Host boundary dependency; upgrade only with a validated matching Desktop release."
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-client-ui-model-selection",
+      "package": "@deepseek-ai/dsh-client-ui-model-selection",
+      "kind": "host-peer",
+      "repository": "https://github.com/deepseek-ai/deepseek-harness",
+      "pinned": {
+        "version": "0.2.1-rc.3"
+      },
+      "observed": {
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      },
+      "declaredIn": [
+        "dsh.client.inject"
+      ],
+      "decision": "Host boundary dependency; upgrade only with a validated matching Desktop release."
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-client-ui-plugin-manager",
+      "package": "@deepseek-ai/dsh-client-ui-plugin-manager",
+      "kind": "host-peer",
+      "repository": "https://github.com/deepseek-ai/deepseek-harness",
+      "pinned": {
+        "version": "0.2.1-rc.3"
+      },
+      "observed": {
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      },
+      "declaredIn": [
+        "dsh.client.inject"
+      ],
+      "decision": "Host boundary dependency; upgrade only with a validated matching Desktop release."
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-client-ui-primitives",
+      "package": "@deepseek-ai/dsh-client-ui-primitives",
+      "kind": "host-peer",
+      "repository": "https://github.com/deepseek-ai/deepseek-harness",
+      "pinned": {
+        "version": "0.2.1-rc.3"
+      },
+      "observed": {
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      },
+      "declaredIn": [
+        "dsh.client.inject"
+      ],
+      "decision": "Host boundary dependency; upgrade only with a validated matching Desktop release."
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-client-ui-renderer",
+      "package": "@deepseek-ai/dsh-client-ui-renderer",
+      "kind": "host-peer",
+      "repository": "https://github.com/deepseek-ai/deepseek-harness",
+      "pinned": {
+        "version": "0.2.1-rc.3"
+      },
+      "observed": {
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      },
+      "declaredIn": [
+        "dsh.client.inject"
+      ],
+      "decision": "Host boundary dependency; upgrade only with a validated matching Desktop release."
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-client-ui-session",
+      "package": "@deepseek-ai/dsh-client-ui-session",
+      "kind": "host-peer",
+      "repository": "https://github.com/deepseek-ai/deepseek-harness",
+      "pinned": {
+        "version": "0.2.1-rc.3"
+      },
+      "observed": {
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      },
+      "declaredIn": [
+        "dsh.client.inject"
+      ],
+      "decision": "Host boundary dependency; upgrade only with a validated matching Desktop release."
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-client-ui-settings",
+      "package": "@deepseek-ai/dsh-client-ui-settings",
+      "kind": "host-peer",
+      "repository": "https://github.com/deepseek-ai/deepseek-harness",
+      "pinned": {
+        "version": "0.2.1-rc.3"
+      },
+      "observed": {
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      },
+      "declaredIn": [
+        "dsh.client.inject"
+      ],
+      "decision": "Host boundary dependency; upgrade only with a validated matching Desktop release."
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-client-ui-settings-plugins",
+      "package": "@deepseek-ai/dsh-client-ui-settings-plugins",
+      "kind": "host-peer",
+      "repository": "https://github.com/deepseek-ai/deepseek-harness",
+      "pinned": {
+        "version": "0.2.1-rc.3"
+      },
+      "observed": {
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      },
+      "declaredIn": [
+        "dsh.client.inject"
+      ],
+      "decision": "Host boundary dependency; upgrade only with a validated matching Desktop release."
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-client-ui-sidebar",
+      "package": "@deepseek-ai/dsh-client-ui-sidebar",
+      "kind": "host-peer",
+      "repository": "https://github.com/deepseek-ai/deepseek-harness",
+      "pinned": {
+        "version": "0.2.1-rc.3"
+      },
+      "observed": {
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      },
+      "declaredIn": [
+        "dsh.client.inject"
+      ],
+      "decision": "Host boundary dependency; upgrade only with a validated matching Desktop release."
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-client-ui-sidebar-right",
+      "package": "@deepseek-ai/dsh-client-ui-sidebar-right",
+      "kind": "host-peer",
+      "repository": "https://github.com/deepseek-ai/deepseek-harness",
+      "pinned": {
+        "version": "0.2.1-rc.3"
+      },
+      "observed": {
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      },
+      "declaredIn": [
+        "dsh.client.inject"
+      ],
+      "decision": "Host boundary dependency; upgrade only with a validated matching Desktop release."
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-client-ui-slots",
+      "package": "@deepseek-ai/dsh-client-ui-slots",
+      "kind": "host-peer",
+      "repository": "https://github.com/deepseek-ai/deepseek-harness",
+      "pinned": {
+        "version": "0.2.1-rc.3"
+      },
+      "observed": {
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      },
+      "declaredIn": [
+        "devDependencies",
+        "dsh.client.inject"
+      ],
+      "decision": "Host boundary dependency; upgrade only with a validated matching Desktop release."
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-client-ui-subagent",
+      "package": "@deepseek-ai/dsh-client-ui-subagent",
+      "kind": "host-peer",
+      "repository": "https://github.com/deepseek-ai/deepseek-harness",
+      "pinned": {
+        "version": "0.2.1-rc.3"
+      },
+      "observed": {
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      },
+      "declaredIn": [
+        "devDependencies"
+      ],
+      "decision": "Host boundary dependency; upgrade only with a validated matching Desktop release."
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-client-ui-workspace",
+      "package": "@deepseek-ai/dsh-client-ui-workspace",
+      "kind": "host-peer",
+      "repository": "https://github.com/deepseek-ai/deepseek-harness",
+      "pinned": {
+        "version": "0.2.1-rc.3"
+      },
+      "observed": {
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      },
+      "declaredIn": [
+        "dsh.client.inject"
+      ],
+      "decision": "Host boundary dependency; upgrade only with a validated matching Desktop release."
     },
     {
       "id": "host:@deepseek-ai/dsh-commands",
@@ -1593,14 +2129,56 @@
       "kind": "host-peer",
       "repository": "https://github.com/deepseek-ai/deepseek-harness",
       "pinned": {
-        "version": "0.2.1-rc.2"
+        "version": "0.2.1-rc.3"
       },
       "observed": {
-        "version": "0.2.1-rc.2",
-        "head": "687f282e8625c6b8d11ff58211a90524be2e4317",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
-      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure."
+      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure.",
+      "declaredIn": [
+        "peerDependencies",
+        "devDependencies"
+      ]
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-compaction",
+      "package": "@deepseek-ai/dsh-compaction",
+      "kind": "host-peer",
+      "repository": "https://github.com/deepseek-ai/deepseek-harness",
+      "pinned": {
+        "version": "0.2.1-rc.3"
+      },
+      "observed": {
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      },
+      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure.",
+      "declaredIn": [
+        "peerDependencies",
+        "devDependencies"
+      ]
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-compaction-basic",
+      "package": "@deepseek-ai/dsh-compaction-basic",
+      "kind": "host-peer",
+      "repository": "https://github.com/deepseek-ai/deepseek-harness",
+      "pinned": {
+        "version": "0.2.1-rc.3"
+      },
+      "observed": {
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      },
+      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure.",
+      "declaredIn": [
+        "peerDependencies",
+        "devDependencies"
+      ]
     },
     {
       "id": "host:@deepseek-ai/dsh-fs",
@@ -1608,14 +2186,18 @@
       "kind": "host-peer",
       "repository": "https://github.com/deepseek-ai/deepseek-harness",
       "pinned": {
-        "version": "0.2.1-rc.2"
+        "version": "0.2.1-rc.3"
       },
       "observed": {
-        "version": "0.2.1-rc.2",
-        "head": "687f282e8625c6b8d11ff58211a90524be2e4317",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
-      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure."
+      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure.",
+      "declaredIn": [
+        "peerDependencies",
+        "devDependencies"
+      ]
     },
     {
       "id": "host:@deepseek-ai/dsh-fs-local",
@@ -1623,14 +2205,18 @@
       "kind": "host-peer",
       "repository": "https://github.com/deepseek-ai/deepseek-harness",
       "pinned": {
-        "version": "0.2.1-rc.2"
+        "version": "0.2.1-rc.3"
       },
       "observed": {
-        "version": "0.2.1-rc.2",
-        "head": "687f282e8625c6b8d11ff58211a90524be2e4317",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
-      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure."
+      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure.",
+      "declaredIn": [
+        "peerDependencies",
+        "devDependencies"
+      ]
     },
     {
       "id": "host:@deepseek-ai/dsh-fs-sandbox",
@@ -1638,14 +2224,54 @@
       "kind": "host-peer",
       "repository": "https://github.com/deepseek-ai/deepseek-harness",
       "pinned": {
-        "version": "0.2.1-rc.2"
+        "version": "0.2.1-rc.3"
       },
       "observed": {
-        "version": "0.2.1-rc.2",
-        "head": "687f282e8625c6b8d11ff58211a90524be2e4317",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
-      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure."
+      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure.",
+      "declaredIn": [
+        "peerDependencies",
+        "devDependencies"
+      ]
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-home-paths",
+      "package": "@deepseek-ai/dsh-home-paths",
+      "kind": "host-peer",
+      "repository": "https://github.com/deepseek-ai/deepseek-harness",
+      "pinned": {
+        "version": "0.2.1-rc.3"
+      },
+      "observed": {
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      },
+      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure.",
+      "declaredIn": [
+        "dependencies"
+      ]
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-http-proxy",
+      "package": "@deepseek-ai/dsh-http-proxy",
+      "kind": "host-peer",
+      "repository": "https://github.com/deepseek-ai/deepseek-harness",
+      "pinned": {
+        "version": "0.2.1-rc.3"
+      },
+      "observed": {
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      },
+      "declaredIn": [
+        "devDependencies"
+      ],
+      "decision": "Host boundary dependency; upgrade only with a validated matching Desktop release."
     },
     {
       "id": "host:@deepseek-ai/dsh-llm",
@@ -1653,14 +2279,18 @@
       "kind": "host-peer",
       "repository": "https://github.com/deepseek-ai/deepseek-harness",
       "pinned": {
-        "version": "0.2.1-rc.2"
+        "version": "0.2.1-rc.3"
       },
       "observed": {
-        "version": "0.2.1-rc.2",
-        "head": "687f282e8625c6b8d11ff58211a90524be2e4317",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
-      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure."
+      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure.",
+      "declaredIn": [
+        "peerDependencies",
+        "devDependencies"
+      ]
     },
     {
       "id": "host:@deepseek-ai/dsh-llm-retry",
@@ -1668,14 +2298,36 @@
       "kind": "host-peer",
       "repository": "https://github.com/deepseek-ai/deepseek-harness",
       "pinned": {
-        "version": "0.2.1-rc.2"
+        "version": "0.2.1-rc.3"
       },
       "observed": {
-        "version": "0.2.1-rc.2",
-        "head": "687f282e8625c6b8d11ff58211a90524be2e4317",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
-      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure."
+      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure.",
+      "declaredIn": [
+        "peerDependencies",
+        "devDependencies"
+      ]
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-ptc-runtime",
+      "package": "@deepseek-ai/dsh-ptc-runtime",
+      "kind": "host-peer",
+      "repository": "https://github.com/deepseek-ai/deepseek-harness",
+      "pinned": {
+        "version": "0.2.1-rc.3"
+      },
+      "observed": {
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      },
+      "declaredIn": [
+        "devDependencies"
+      ],
+      "decision": "Host boundary dependency; upgrade only with a validated matching Desktop release."
     },
     {
       "id": "host:@deepseek-ai/dsh-pwsh-local",
@@ -1683,14 +2335,18 @@
       "kind": "host-peer",
       "repository": "https://github.com/deepseek-ai/deepseek-harness",
       "pinned": {
-        "version": "0.2.1-rc.2"
+        "version": "0.2.1-rc.3"
       },
       "observed": {
-        "version": "0.2.1-rc.2",
-        "head": "687f282e8625c6b8d11ff58211a90524be2e4317",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
-      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure."
+      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure.",
+      "declaredIn": [
+        "peerDependencies",
+        "devDependencies"
+      ]
     },
     {
       "id": "host:@deepseek-ai/dsh-sandbox",
@@ -1698,14 +2354,18 @@
       "kind": "host-peer",
       "repository": "https://github.com/deepseek-ai/deepseek-harness",
       "pinned": {
-        "version": "0.2.1-rc.2"
+        "version": "0.2.1-rc.3"
       },
       "observed": {
-        "version": "0.2.1-rc.2",
-        "head": "687f282e8625c6b8d11ff58211a90524be2e4317",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
-      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure."
+      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure.",
+      "declaredIn": [
+        "peerDependencies",
+        "devDependencies"
+      ]
     },
     {
       "id": "host:@deepseek-ai/dsh-sandbox-policy",
@@ -1713,14 +2373,18 @@
       "kind": "host-peer",
       "repository": "https://github.com/deepseek-ai/deepseek-harness",
       "pinned": {
-        "version": "0.2.1-rc.2"
+        "version": "0.2.1-rc.3"
       },
       "observed": {
-        "version": "0.2.1-rc.2",
-        "head": "687f282e8625c6b8d11ff58211a90524be2e4317",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
-      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure."
+      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure.",
+      "declaredIn": [
+        "peerDependencies",
+        "devDependencies"
+      ]
     },
     {
       "id": "host:@deepseek-ai/dsh-scope",
@@ -1728,14 +2392,18 @@
       "kind": "host-peer",
       "repository": "https://github.com/deepseek-ai/deepseek-harness",
       "pinned": {
-        "version": "0.2.1-rc.2"
+        "version": "0.2.1-rc.3"
       },
       "observed": {
-        "version": "0.2.1-rc.2",
-        "head": "687f282e8625c6b8d11ff58211a90524be2e4317",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
-      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure."
+      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure.",
+      "declaredIn": [
+        "peerDependencies",
+        "devDependencies"
+      ]
     },
     {
       "id": "host:@deepseek-ai/dsh-session",
@@ -1743,14 +2411,36 @@
       "kind": "host-peer",
       "repository": "https://github.com/deepseek-ai/deepseek-harness",
       "pinned": {
-        "version": "0.2.1-rc.2"
+        "version": "0.2.1-rc.3"
       },
       "observed": {
-        "version": "0.2.1-rc.2",
-        "head": "687f282e8625c6b8d11ff58211a90524be2e4317",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
-      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure."
+      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure.",
+      "declaredIn": [
+        "peerDependencies",
+        "devDependencies"
+      ]
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-session-persistence",
+      "package": "@deepseek-ai/dsh-session-persistence",
+      "kind": "host-peer",
+      "repository": "https://github.com/deepseek-ai/deepseek-harness",
+      "pinned": {
+        "version": "0.2.1-rc.3"
+      },
+      "observed": {
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      },
+      "declaredIn": [
+        "devDependencies"
+      ],
+      "decision": "Host boundary dependency; upgrade only with a validated matching Desktop release."
     },
     {
       "id": "host:@deepseek-ai/dsh-session-projection",
@@ -1758,14 +2448,18 @@
       "kind": "host-peer",
       "repository": "https://github.com/deepseek-ai/deepseek-harness",
       "pinned": {
-        "version": "0.2.1-rc.2"
+        "version": "0.2.1-rc.3"
       },
       "observed": {
-        "version": "0.2.1-rc.2",
-        "head": "687f282e8625c6b8d11ff58211a90524be2e4317",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
-      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure."
+      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure.",
+      "declaredIn": [
+        "peerDependencies",
+        "devDependencies"
+      ]
     },
     {
       "id": "host:@deepseek-ai/dsh-session-stats",
@@ -1773,14 +2467,18 @@
       "kind": "host-peer",
       "repository": "https://github.com/deepseek-ai/deepseek-harness",
       "pinned": {
-        "version": "0.2.1-rc.2"
+        "version": "0.2.1-rc.3"
       },
       "observed": {
-        "version": "0.2.1-rc.2",
-        "head": "687f282e8625c6b8d11ff58211a90524be2e4317",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
-      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure."
+      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure.",
+      "declaredIn": [
+        "peerDependencies",
+        "devDependencies"
+      ]
     },
     {
       "id": "host:@deepseek-ai/dsh-settings",
@@ -1788,14 +2486,18 @@
       "kind": "host-peer",
       "repository": "https://github.com/deepseek-ai/deepseek-harness",
       "pinned": {
-        "version": "0.2.1-rc.2"
+        "version": "0.2.1-rc.3"
       },
       "observed": {
-        "version": "0.2.1-rc.2",
-        "head": "687f282e8625c6b8d11ff58211a90524be2e4317",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
-      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure."
+      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure.",
+      "declaredIn": [
+        "peerDependencies",
+        "devDependencies"
+      ]
     },
     {
       "id": "host:@deepseek-ai/dsh-shell",
@@ -1803,14 +2505,54 @@
       "kind": "host-peer",
       "repository": "https://github.com/deepseek-ai/deepseek-harness",
       "pinned": {
-        "version": "0.2.1-rc.2"
+        "version": "0.2.1-rc.3"
       },
       "observed": {
-        "version": "0.2.1-rc.2",
-        "head": "687f282e8625c6b8d11ff58211a90524be2e4317",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
-      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure."
+      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure.",
+      "declaredIn": [
+        "peerDependencies",
+        "devDependencies"
+      ]
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-skill",
+      "package": "@deepseek-ai/dsh-skill",
+      "kind": "host-peer",
+      "repository": "https://github.com/deepseek-ai/deepseek-harness",
+      "pinned": {
+        "version": "0.2.1-rc.3"
+      },
+      "observed": {
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      },
+      "declaredIn": [
+        "devDependencies"
+      ],
+      "decision": "Host boundary dependency; upgrade only with a validated matching Desktop release."
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-ssh",
+      "package": "@deepseek-ai/dsh-ssh",
+      "kind": "host-peer",
+      "repository": "https://github.com/deepseek-ai/deepseek-harness",
+      "pinned": {
+        "version": "0.2.1-rc.3"
+      },
+      "observed": {
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      },
+      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure.",
+      "declaredIn": [
+        "dependencies"
+      ]
     },
     {
       "id": "host:@deepseek-ai/dsh-subagent",
@@ -1818,14 +2560,18 @@
       "kind": "host-peer",
       "repository": "https://github.com/deepseek-ai/deepseek-harness",
       "pinned": {
-        "version": "0.2.1-rc.2"
+        "version": "0.2.1-rc.3"
       },
       "observed": {
-        "version": "0.2.1-rc.2",
-        "head": "687f282e8625c6b8d11ff58211a90524be2e4317",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
-      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure."
+      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure.",
+      "declaredIn": [
+        "peerDependencies",
+        "devDependencies"
+      ]
     },
     {
       "id": "host:@deepseek-ai/dsh-subprocess",
@@ -1833,14 +2579,18 @@
       "kind": "host-peer",
       "repository": "https://github.com/deepseek-ai/deepseek-harness",
       "pinned": {
-        "version": "0.2.1-rc.2"
+        "version": "0.2.1-rc.3"
       },
       "observed": {
-        "version": "0.2.1-rc.2",
-        "head": "687f282e8625c6b8d11ff58211a90524be2e4317",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
-      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure."
+      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure.",
+      "declaredIn": [
+        "peerDependencies",
+        "devDependencies"
+      ]
     },
     {
       "id": "host:@deepseek-ai/dsh-system-prompt",
@@ -1848,14 +2598,18 @@
       "kind": "host-peer",
       "repository": "https://github.com/deepseek-ai/deepseek-harness",
       "pinned": {
-        "version": "0.2.1-rc.2"
+        "version": "0.2.1-rc.3"
       },
       "observed": {
-        "version": "0.2.1-rc.2",
-        "head": "687f282e8625c6b8d11ff58211a90524be2e4317",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
-      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure."
+      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure.",
+      "declaredIn": [
+        "peerDependencies",
+        "devDependencies"
+      ]
     },
     {
       "id": "host:@deepseek-ai/dsh-terminal",
@@ -1863,14 +2617,18 @@
       "kind": "host-peer",
       "repository": "https://github.com/deepseek-ai/deepseek-harness",
       "pinned": {
-        "version": "0.2.1-rc.2"
+        "version": "0.2.1-rc.3"
       },
       "observed": {
-        "version": "0.2.1-rc.2",
-        "head": "687f282e8625c6b8d11ff58211a90524be2e4317",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
-      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure."
+      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure.",
+      "declaredIn": [
+        "peerDependencies",
+        "devDependencies"
+      ]
     },
     {
       "id": "host:@deepseek-ai/dsh-token-meter",
@@ -1878,14 +2636,18 @@
       "kind": "host-peer",
       "repository": "https://github.com/deepseek-ai/deepseek-harness",
       "pinned": {
-        "version": "0.2.1-rc.2"
+        "version": "0.2.1-rc.3"
       },
       "observed": {
-        "version": "0.2.1-rc.2",
-        "head": "687f282e8625c6b8d11ff58211a90524be2e4317",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
-      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure."
+      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure.",
+      "declaredIn": [
+        "peerDependencies",
+        "devDependencies"
+      ]
     },
     {
       "id": "host:@deepseek-ai/dsh-tools",
@@ -1893,14 +2655,72 @@
       "kind": "host-peer",
       "repository": "https://github.com/deepseek-ai/deepseek-harness",
       "pinned": {
-        "version": "0.2.1-rc.2"
+        "version": "0.2.1-rc.3"
       },
       "observed": {
-        "version": "0.2.1-rc.2",
-        "head": "687f282e8625c6b8d11ff58211a90524be2e4317",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
-      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure."
+      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure.",
+      "declaredIn": [
+        "peerDependencies",
+        "devDependencies"
+      ]
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-user-approval",
+      "package": "@deepseek-ai/dsh-user-approval",
+      "kind": "host-peer",
+      "repository": "https://github.com/deepseek-ai/deepseek-harness",
+      "pinned": {
+        "version": "0.2.1-rc.3"
+      },
+      "observed": {
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      },
+      "declaredIn": [
+        "devDependencies"
+      ],
+      "decision": "Host boundary dependency; upgrade only with a validated matching Desktop release."
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-util-time",
+      "package": "@deepseek-ai/dsh-util-time",
+      "kind": "host-peer",
+      "repository": "https://github.com/deepseek-ai/deepseek-harness",
+      "pinned": {
+        "version": "0.2.1-rc.3"
+      },
+      "observed": {
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      },
+      "declaredIn": [
+        "devDependencies"
+      ],
+      "decision": "Host boundary dependency; upgrade only with a validated matching Desktop release."
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-util-values",
+      "package": "@deepseek-ai/dsh-util-values",
+      "kind": "host-peer",
+      "repository": "https://github.com/deepseek-ai/deepseek-harness",
+      "pinned": {
+        "version": "0.2.1-rc.3"
+      },
+      "observed": {
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
+      },
+      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure.",
+      "declaredIn": [
+        "dependencies"
+      ]
     },
     {
       "id": "host:@deepseek-ai/dsh-working-directory",
@@ -1908,14 +2728,18 @@
       "kind": "host-peer",
       "repository": "https://github.com/deepseek-ai/deepseek-harness",
       "pinned": {
-        "version": "0.2.1-rc.2"
+        "version": "0.2.1-rc.3"
       },
       "observed": {
-        "version": "0.2.1-rc.2",
-        "head": "687f282e8625c6b8d11ff58211a90524be2e4317",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "version": "0.2.1-rc.3",
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
-      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure."
+      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure.",
+      "declaredIn": [
+        "peerDependencies",
+        "devDependencies"
+      ]
     },
     {
       "id": "host:@deepseek-ai/schemastery",
@@ -1927,10 +2751,33 @@
       },
       "observed": {
         "version": "3.18.5",
-        "head": "687f282e8625c6b8d11ff58211a90524be2e4317",
-        "checkedAt": "2026-10-21T10:05:16.254Z"
+        "head": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+        "checkedAt": "2026-10-24T07:06:29.578Z"
       },
-      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure."
+      "decision": "Upgrade only with compatible Desktop host; npm dist-tag alone must not downgrade or split the host closure.",
+      "declaredIn": [
+        "peerDependencies",
+        "devDependencies"
+      ]
     }
-  ]
+  ],
+  "host": {
+    "supportedVersion": "0.2.1-rc.3",
+    "release": {
+      "status": "observed",
+      "repository": "https://github.com/deepseek-ai/deepseek-harness",
+      "version": "0.2.1-rc.3",
+      "tag": "dsh-v0.2.1-rc.3",
+      "revision": "1f81c047fc48fa190a683e469daa699857e9afe8",
+      "publishedAt": "2026-10-23T15:26:39Z",
+      "prerelease": true,
+      "url": "https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.1-rc.3",
+      "channel": "published-including-prereleases",
+      "compatibility": "not-validated"
+    },
+    "previousVersion": "0.2.1-rc.2",
+    "previousRevision": "687f282e8625c6b8d11ff58211a90524be2e4317",
+    "sourceReview": "docs/upstream-audit-2026-10-24.json",
+    "validation": "Current-source receipts and real Desktop observations are required; a release observation is not acceptance."
+  }
 }

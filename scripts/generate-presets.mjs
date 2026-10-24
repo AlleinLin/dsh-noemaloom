@@ -3,6 +3,7 @@
  * definitions; never opens or copies a user's DSH profile.
  */
 import { readFile, writeFile } from 'node:fs/promises';
+import { EXPECTED_DSH_VERSION, EXPECTED_DSH_REVISION } from '../src/shared/host-compatibility.ts';
 
 const sourceRoot = new URL('../assets/presets/upstream/', import.meta.url);
 const prefix = '你是协助用户完成软件工作的工程助手。遵守当前任务、工作区规范及宿主权限，先核实事实，再完成实现与验证。';
@@ -89,7 +90,7 @@ const gitbash = `- id: preset-suite-windows-gitbash
               tailChars: 1024
 `;
 const rows = [...officialNames.map(name => originals[name])];
-const patch = `# Generated from public DeepSeek Harness commit 687f282e8625c6b8d11ff58211a90524be2e4317.
+const patch = `# Generated from public DeepSeek Harness commit ${EXPECTED_DSH_REVISION}.
 # Every matching row replaces its COMPLETE config; not a nested deep merge.
 # Contains no local profile, private session, account configuration or backup.
 ${rows.map(deepseekRules).join('\n')}
@@ -100,4 +101,4 @@ await writeFile(new URL('../cordis.presets.patch.yml', import.meta.url), patch);
 for (const [name, row] of [['windows-coding', coding], ['windows-gitbash', gitbash], ['adaptive-standard', adaptive]]) {
   await writeFile(new URL(`../assets/presets/${name}.declaration.yml`, import.meta.url), deepseekRules(row));
 }
-await writeFile(new URL('../assets/presets/PROVENANCE.md', import.meta.url), `# 预设来源\n\n完整预设基于 MIT 许可的 DeepSeek Harness 公开 commit \`687f282e8625c6b8d11ff58211a90524be2e4317\`。\n原始声明在 \`upstream/*.patch.yml\`，宿主配置合同与 provider 源文件亦保留用于继续开发。\n独立 persona 描述替代官方 persona 文案；全部 compaction provider 绑定 Nexus。\n项目规则适配官方 agent-instructions 0.2.1-rc.2，源码与 MIT 许可在 \`vendor/agent-instructions/\`。\n每目录依次查找 \`DEEPSEEK.md → AGENT.md → AGENTS.md → CLAUDE.md\`，首个命中即停止，禁用本地 overlay；保留官方预算、嵌套作用域和刷新。\n子智能体工具适配官方 tool-subagent 0.2.1-rc.2，源码与许可在 \`vendor/tool-subagent/\`；按会话授权自动提供可用模型代号，空白 effort 默认所选模型最高支持强度，保留授权与生命周期合同。\n生成脚本只读公开源码，不读取本机 profile，也不生成部署恢复备份。\n\n`);
+await writeFile(new URL('../assets/presets/PROVENANCE.md', import.meta.url), `# 预设来源\n\n完整预设基于 MIT 许可的 DeepSeek Harness 公开 commit \`${EXPECTED_DSH_REVISION}\`。\n原始声明在 \`upstream/*.patch.yml\`，宿主配置合同与 provider 源文件亦保留用于继续开发。\n独立 persona 描述替代官方 persona 文案；全部 compaction provider 绑定 Nexus。\n项目规则适配官方 agent-instructions ${EXPECTED_DSH_VERSION}，源码与 MIT 许可在 \`vendor/agent-instructions/\`。\n每目录依次查找 \`DEEPSEEK.md → AGENT.md → AGENTS.md → CLAUDE.md\`，首个命中即停止，禁用本地 overlay；保留官方预算、嵌套作用域和刷新。\n子智能体工具适配官方 tool-subagent ${EXPECTED_DSH_VERSION}，源码与许可在 \`vendor/tool-subagent/\`；按会话授权自动提供可用模型代号，空白 effort 默认所选模型最高支持强度，保留授权与生命周期合同。\n生成脚本只读公开源码，不读取本机 profile，也不生成部署恢复备份。\n\n`);

@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import ts from 'typescript';
 
-const REVIEWED_HOST_SHA256 = '97db3817e8cd18581fe3222d264f1ad8038fc774c603197159a3d54ac008ef75';
+const REVIEWED_HOST_SHA256 = '47e3bc21e38c28c5f41dcdb42c7b8eef9cd3e1369468e8cfc35d6af8d8e5650d';
 const ORIGINAL_WHY_IMPORT = "why = await import('./why.mjs')";
 const ADAPTED_WHY_IMPORT = "why = await import(new URL('./why.mjs', import.meta.resolve('dsh-thoughtdag')).href)";
 const parse = source => {
@@ -26,7 +26,7 @@ function replaceFunction(source, name, replacement) {
 /** Reviewed package adaptation only; never executes the original plugin. */
 export function adaptThoughtdagHost(original) {
   if (createHash('sha256').update(original).digest('hex') !== REVIEWED_HOST_SHA256) {
-    throw new Error('ThoughtDAG host adapter requires the reviewed 0.5.22 host SHA256');
+    throw new Error('ThoughtDAG host adapter requires the reviewed 0.5.24 host SHA256');
   }
   let adapted = original;
   const change = (anchor, replacement, label) => {

@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
   "package": "@deepseek-ai/dsh-compaction-basic",
-  "version": "0.2.1-rc.2",
+  "version": "0.2.1-rc.3",
   "license": "MIT",
   "upstreamFile": "index.upstream.mjs",
   "upstreamSha256": "b7ac52f20a36430cf01a66b3a36f23a48ffdb22708d714dbe1fff541b5df4ec5",
   "derivedFile": "region.mjs",
-  "derivedSha256": "d8721c90779745f3959da2a68c3ad110cf1df94591716bb4eed6a208e8cff44e",
+  "derivedSha256": "7a7a5a0b17a139e64e901b85b6a19cdb90b279cc0ef51b42552675199ac9f608",
   "adaptation": "Only the export list was changed to expose compactSurfaceRegion, selectCompactableRange and buildSummarizationInput. esbuild removed unrelated exports; function bodies are upstream. Called under the actual Agent.runMaintenance with owner=null for idle UI requests; complete source prefixes are selected before a transaction starts."
 }

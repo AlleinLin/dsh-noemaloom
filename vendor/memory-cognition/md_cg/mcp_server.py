@@ -227,6 +227,9 @@ TOOLS = [
                          semantic=_p("boolean", "启用第 6 路条件空间结构化匹配"
                                                "（白箱语义路：CCG 生效条件 + condition_space "
                                                "四槽，不适用条件命中即剔除；默认否）"),
+                          exclude_doc=_p("boolean", "检索面排除 doc_ 索引节点（会话日志切片；"
+                                                "默认 false = 保持既有契约——test_p27_docindex ⑤ 断言"
+                                                "文档节点必须可被检索到；需要「只看真记忆卡」的调用方显式传 true）"),
                           expand=_p("array", "LLM 查询侧扩展词：[{term,weight}] 或 [\"词\"]；"
                                              "仅在查询时刻生效，索引侧仍白箱"),
                           session=_p("string", "会话归属过滤（frontmatter.session；"
@@ -262,11 +265,12 @@ TOOLS = [
         "inputSchema": _s("", query=_p("string", "查询", True), k=_p("integer", "条数"),
                           layer=_p("string", "限定层"), context=_p("object", "情境"),
                           roles=_p("array", "限定角色"), include_work=_p("boolean", "含工作角色"),
-                          session=_p("string", "会话归属过滤（frontmatter.session；"
-                                     "缺省不过滤）"),
-                          validity=_p("boolean", "时效过滤（显式启用，缺省不过滤）：仅排除"
-                                                 "**已过期**（valid_until 已过）节点，"
-                                                 "未生效（valid_from 未到）保留")),
+                          session=_p("string", "会话归属过滤（frontmatter.session；缺省不过滤）"),
+                          validity=_p("boolean", "时效过滤（显式启用，缺省不过滤）：仅排除已过期（valid_until 已过）节点，未生效（valid_from 未到）保留"),
+                          # 异步检索（2026-10-21）：怕 MCP 超时的客户端用它——提交后立刻拿
+                          # job_id，隔若干秒带 job_id 再来取结果（后台线程跑同一条检索）。
+                          defer_s=_p("number", "异步检索：大于 0 时立刻返回工单（job_id），检索在后台跑"),
+                          job_id=_p("string", "取异步检索结果：传上次返回的 job_id")),
     },
     {
         "name": "mdcg_get",
@@ -850,9 +854,9 @@ KERNEL_TOOLS = [
             heal_interval=_p("number", "sustain start：巡检间隔秒（默认 300）"),
             auto_heal=_p("boolean", "sustain start：巡检异常时自动修复（默认是）"),
             scrub_interval=_p("number", "sustain start：自净间隔秒（默认 3600）"),
-            auto_scrub=_p("boolean", "sustain start：自净执行去污染（默认否，只巡检）"),
+            auto_scrub=_p("boolean", "sustain start：自净执行去污染（默认是；auto_scrub=false 可退回只巡检）"),
             evolve_interval=_p("number", "sustain start：演化巡检间隔秒（默认 7200）"),
-            auto_evolve=_p("boolean", "sustain start：演化巡检自动落盘确定性动作"
+            auto_evolve=_p("boolean", "sustain start：演化巡检自动落盘确定性动作（默认是）"
                                       "（仅重要性重算；固化需 LLM 仍交人工。默认否）"),
             allow_evolve=_p("boolean", "sustain heal：放行演化类修复"
                                       "（确定性动作才执行；默认否）"),
@@ -2645,7 +2649,7 @@ def _cg_dispatch(cg, a):
                              recent_limit=int(a.get("limit") or 10),
                              session=a.get("session"),
                              validity=a.get("validity"),
-                             **({"paths": ("bm25",)} if a.get("bm25") else {}), **_tkw)
+                             **({"paths": ("bm25",)} if a.get("bm25", True) and hasattr(cg, "search_rrf") else {}), **_tkw)
             if _kwarn and isinstance(_out, dict):
                 _out = dict(_out)
                 _out["warning"] = _kwarn
@@ -2654,11 +2658,22 @@ def _cg_dispatch(cg, a):
         search_args = dict(layer=a.get("layer"), k=_int_arg(a, "k", 20),
                            context=a.get("context"), session=a.get("session"),
                            validity=a.get("validity"), **_tkw)
-        if a.get("bm25"):
+        if a.get("bm25", True) and hasattr(cg, "search_rrf"):
             ranked, meta = cg.search_rrf(q, paths=("bm25",), **search_args)
             res = [(n, s, qual) for n, s, qual, _provenance in ranked]
         else:
             res, meta = cg.search(q, **search_args)
+        # read 面过滤 doc_ 索引节点（2026-10-23 使用者批准）：doc_ 为会话日志切片，
+        # 与真记忆卡同分（0.016）且占 top5 的 60–80%，稀释可达性。默认 true，可显式关。
+        _excluded_doc = 0
+        if a.get("exclude_doc", False):
+            _before = len(res)
+            res = [x for x in res if not str((x[0] or {}).get("id", "")).startswith("doc_")]
+            _excluded_doc = _before - len(res)
+        if _excluded_doc and isinstance(meta, dict):
+            meta = dict(meta)
+            meta["excluded_doc"] = _excluded_doc
+            meta["exclude_doc"] = True
         _out = {"meta": meta, "results": [
             {"node": _node_view(n), "score": s, "state": q2.get("state"),
              "reason": q2.get("reason"), **refindex.ref_fields(n)}
@@ -3684,6 +3699,84 @@ def _stg_call(cg, a):
 # --------------------------------------------------------------------------
 
 # 生效条件：a=args or {}，unit=(a.get("as_unit") or "").strip()，sess=_declared_session(a.get("session"))；cg.principal 为 None 或 unit 与 sess 皆为空时直接返回 _dispatch(cg,name,a)；否则先 narrowed_principal(cg.principal, unit)（TokenError 时返回 {"ok":False,"error":f"as_unit 非法：{e}"}），sess 非空时再以 copy 出的 Principal 覆盖 session，暂存 cg.principal/cg.session、置为作用域值、try 返回 _dispatch、finally 还原。
+# 生效条件：cg 为已构造的安全客户端、args 为 mdcg_search 的原始入参、defer_s>0 时——
+# 立即返回 {job_id,status=pending,hint}，并在守护线程里以**同一份入参（去掉 defer_s/job_id）**
+# 调 call_tool(cg,"mdcg_search",...)；失败也落进工单（status=error），不抛到调用方。
+_SEARCH_JOBS = {}
+_SEARCH_JOBS_LOCK = __import__("threading").Lock()
+_SEARCH_JOB_TTL = 600.0      # 秒：工单保留时长（过期即丢，防常驻进程无限涨）
+_SEARCH_JOB_MAX = 64         # 条：同时保留的工单上限
+
+
+def _search_job_gc(now=None, reserve=0):
+    """清过期/超量工单（调用方持锁）。TTL 与条数双闸，防常驻进程内存无界。"""
+    import time as _t
+    now = _t.time() if now is None else now
+    for _k in [k for k, v in _SEARCH_JOBS.items()
+               if now - float(v.get("created") or 0) > _SEARCH_JOB_TTL]:
+        _SEARCH_JOBS.pop(_k, None)
+    _keep = max(0, _SEARCH_JOB_MAX - int(reserve or 0))
+    if len(_SEARCH_JOBS) > _keep:
+        for _k, _v in sorted(_SEARCH_JOBS.items(),
+                             key=lambda kv: float(kv[1].get("created") or 0))[:len(_SEARCH_JOBS) - _keep]:
+            _SEARCH_JOBS.pop(_k, None)
+
+
+def _search_job_submit(cg, args, defer_s):
+    """提交异步检索：返回工单，不等待检索完成。"""
+    import random as _rnd
+    import threading as _th
+    import time as _t
+    with _SEARCH_JOBS_LOCK:
+        _search_job_gc(reserve=1)      # 给自己预留一格，插入后不超过上限
+        jid = "sjob_%d_%04d" % (int(_t.time() * 1000), _rnd.randint(0, 9999))
+        rec = {"job_id": jid, "status": "pending", "created": _t.time(),
+               "query": args.get("query"), "result": None, "error": None,
+               "elapsed_s": None}
+        _SEARCH_JOBS[jid] = rec
+    payload = {k: v for k, v in args.items() if k not in ("defer_s", "job_id")}
+
+    def _run():
+        _t0 = _t.time()
+        try:
+            out = call_tool(cg, "mdcg_search", payload)
+            with _SEARCH_JOBS_LOCK:
+                rec["status"] = "done"
+                rec["result"] = out
+                rec["elapsed_s"] = round(_t.time() - _t0, 3)
+        except Exception as exc:      # noqa: BLE001 —— 工单承接失败，不抛给调用方
+            with _SEARCH_JOBS_LOCK:
+                rec["status"] = "error"
+                rec["error"] = "%s: %s" % (type(exc).__name__, exc)
+                rec["elapsed_s"] = round(_t.time() - _t0, 3)
+
+    _th.Thread(target=_run, name="mdcg-search-job", daemon=True).start()
+    return {"job_id": jid, "status": "pending",
+            "poll_after_s": int(defer_s) if defer_s else 10,
+            "hint": "检索在后台进行；请约 %d 秒后再用 job_id 调用一次 mdcg_search 取结果"
+                    % (int(defer_s) if defer_s else 10)}
+
+
+def _search_job_result(jid):
+    """取异步检索结果：pending 原样回报，done 带 result，error 带 error。"""
+    with _SEARCH_JOBS_LOCK:
+        _search_job_gc()
+        rec = _SEARCH_JOBS.get(str(jid))
+        if rec is None:
+            return {"job_id": str(jid), "status": "unknown",
+                    "error": "未知或已过期的 job_id（工单保留 %d 秒）" % int(_SEARCH_JOB_TTL)}
+        snap = dict(rec)
+    out = {"job_id": snap["job_id"], "status": snap["status"],
+           "elapsed_s": snap.get("elapsed_s")}
+    if snap["status"] == "done":
+        out["result"] = snap.get("result")
+    elif snap["status"] == "error":
+        out["error"] = snap.get("error")
+    else:
+        out["poll_after_s"] = 10
+    return out
+
+
 def call_tool(cg, name, args):
     """MCP tools/call 入口：按 `as_unit` 做**请求级身份收窄**（单进程多身份），
     按 `session` 做**请求级会话归因**（单进程多会话）。
@@ -3769,6 +3862,12 @@ _MDCG_TOOL_OP = {
     "mdcg_health": "read",
     "mdcg_whoami": "read", "mdcg_watermarks": "read",
     "mdcg_whitebox": "read",
+    # issue #578 / dsh-bounty#435：本入口**不在这张表里** ⇒ _dispatch 取
+    # `_MDCG_OP_REQUIRE.get(name)` 得 None ⇒ 跳过 require_op。而它回吐的
+    # `principal.as_dict()` 与受 read 闸管着的 `mdcg_whoami` 是**同一份**身份清单
+    # （含 token_id / session / ops_allow），外加库根绝对路径 ⇒ 只读访客与
+    # 「被 --ops-allow 收窄到不含 read」的令牌都能拿到。闸词对齐 whoami 的 read。
+    "mdcg_service_info": "read",
     # 治理/裁决面（仅高权角色域含 verify/review/protect/evolution）
     "mdcg_verify": "verify",
     # N228（2026-09-28）：写保护面此前被映射到**粗粒度 write**，而 protect 在
@@ -4131,7 +4230,10 @@ def _dispatch(cg, name, args):
         return out
 
     if name == "mdcg_recall":
-        use_bm25 = bool(a.get("bm25"))
+        # recall 面保持词法默认：其「缺省六路」与 sum/max 融合口径都是**已登记契约**
+        # （test_time_core_lint G8b/G8c、test_p3 A2）。BM25 默认开只落在检索面
+        # （mdcg_search / cg(op=read) 回退），recall 仍 opt-in。
+        use_bm25 = bool(a.get("bm25")) and hasattr(cg, "search_rrf")
         use_fuzzy = bool(a.get("fuzzy"))
         use_semantic = bool(a.get("semantic"))
         use_goal = bool(a.get("goal_path") or a.get("goal"))
@@ -4171,7 +4273,10 @@ def _dispatch(cg, name, args):
         # 默认单条上限从 mdcos 取（该模块只在 main() 里惰性导入，模块级没有名字，
         # 直接引用 mdcos.DEFAULT_MAX_ITEM_TOKENS 会 NameError —— 故此处按需导入）。
         from .mdcos import DEFAULT_MAX_ITEM_TOKENS as _DEFAULT_MAX_ITEM
-        return cg.recall(a.get("query", ""),
+        # 注入面强制闸（使用者裁定 2026-10-21「未验证、未信任的信息本来就不应该执行」）：
+        # recall 是**进上下文**的通路，故此处把带 untrusted 标记的条目剔出 pack，
+        # 并在 meta 记数。检索面（mdcg_search）仍可查见它们——查得到但不进提示词。
+        _pack = cg.recall(a.get("query", ""),
                          # `is not None`：显式 0 不再被吞成默认 1200（2026-09-24 修复）
                          budget_tokens=int(a["budget_tokens"])
                          if a.get("budget_tokens") is not None else 1200,
@@ -4188,9 +4293,88 @@ def _dispatch(cg, name, args):
                          query_expand=_make_query_expand(a.get("expand")),
                          session=a.get("session"),
                          validity=a.get("validity"))
+        # 注入面强制闸（使用者裁定 2026-10-21「未验证、未信任的信息本来就不应该执行」）：
+        # recall 是进上下文的通路，故把带 untrusted 标记的条目剔出 pack 并记数；
+        # 检索面（mdcg_search）仍可查见——查得到，但不进提示词。
+        try:
+            _items = _pack.get("pack") if isinstance(_pack, dict) else None
+            if isinstance(_items, list):
+                _kept, _drop = [], 0
+                for _it in _items:
+                    _fm = {}
+                    if isinstance(_it, dict):
+                        _node = _it.get("node") if isinstance(_it.get("node"), dict) else _it
+                        _fm = _node.get("frontmatter") or {}
+                    if _fm.get("untrusted"):
+                        _drop += 1
+                        continue
+                    _kept.append(_it)
+                if _drop:
+                    _pack["pack"] = _kept
+                    _pack.setdefault("meta", {})["untrusted_excluded"] = _drop
+        except Exception:
+            pass
+        return _pack
 
     if name == "mdcg_search":
+        # ---- 异步检索（2026-10-21）：把「怕超时」变成「先拿工单，过几秒来取」----
+        # 背景：真实库首次检索曾要 8.4 秒、握手 5 秒，客户端 hook 若把超时设得较短
+        # 就会整单失败。异步面不改检索语义：后台线程跑的是**同一个** call_tool，
+        # 只是把「等待」从客户端挪到工单上。默认关（不带 defer_s 即同步）。
+        if a.get("job_id"):
+            return _search_job_result(str(a.get("job_id")))
+        try:
+            _defer = float(a.get("defer_s") or 0)
+        except (TypeError, ValueError):
+            _defer = 0.0
+        if _defer > 0:
+            return _search_job_submit(cg, a, _defer)
         from . import refindex
+        # ---- query 级热缓存（默认面接线，2026-10-21）----
+        # 热缓存的读写在 search_rrf 内，而默认检索面走 cg.search（本分支）——
+        # 故此处补一层工具级缓存：键按 hotcache 既有口径 + 全部入参 + 环境开关 + 索引代际。
+        # 命中直接返回上一次的**整个工具返回体**（形状与未命中一致）；
+        # 显式 node_id / op 的调用一律绕过（那是"读某条"，不是"查一次"）。
+        from . import hotcache as _hc
+        # 工具层用**独立实例**：与 search_rrf 共用同一 _queries 字典会让两种值形状
+        # 共处一个键空间——一旦键相等就是「静默错答/解包炸裂」（蜂巢反思单元 P0）。
+        if not hasattr(cg, "_hotcache_tool"):
+            cg._hotcache_tool = _hc.HotCache()
+        # validity=True 的查询需要时钟窗，工具层不带窗口语义 ⇒ 一律不缓存（P1）。
+        _hcobj = None if ("node_id" in a or a.get("op") or a.get("validity")) else cg._hotcache_tool
+        _ckw = None
+        if _hcobj is not None:
+            try:
+                _extra = {k: v for k, v in a.items() if k not in ("query", "bm25")}
+                _extra["env_switch"] = _hc.env_switch_key()
+                if hasattr(cg, "_index_generation"):
+                    _extra["index_gen"] = cg._index_generation()
+                # 安全自检（2026-10-21）：检索结果按 **调用者身份** 过滤
+                # （MdCGSecure._candidates → _readable 按 session/密级判可见），
+                # 故缓存键必须含**有效身份**，否则高密级/他会话的结果会被低密级命中。
+                # 口径：principal(tenant/actor/clearance) + 有效 session（cg.session 覆盖入参）。
+                _pr = getattr(cg, "principal", None)
+                _eff_sess = getattr(cg, "session", None) or a.get("session")
+                _extra["identity"] = (
+                    getattr(_pr, "tenant", None), getattr(_pr, "actor", None),
+                    getattr(_pr, "clearance", None), _eff_sess)
+                # 键里直接用原始 k（不调 _int_arg：那是「六处委托单点」的守卫计数面，
+                # 多一处调用会被 test_read_face_input_gates M1-B2 判成第二份实现）。
+                _ckw = dict(k=a.get("k"), layer=a.get("layer"),
+                            session=a.get("session"), validity=a.get("validity"),
+                            extra=_extra or None)
+                _hit = _hcobj.get_query(a.get("query", ""), **_ckw)
+            except Exception:
+                _hit = None
+            if _hit is not None:
+                import copy as _copy
+                _rows, _tag = (_hit if isinstance(_hit, tuple) and len(_hit) == 2 else (None, {}))
+                if (isinstance(_tag, dict) and _tag.get("surface") == "mdcg_search"
+                        and _tag.get("v") == 1 and isinstance(_rows, list) and len(_rows) == 1
+                        and isinstance(_rows[0], dict)):
+                    # 深拷贝：hotcache 的 _copy_row 只浅一层，_out["results"] 列表会共享
+                    return _copy.deepcopy(_rows[0])
+                _hit = None          # 形状/版本不符 ⇒ 当未命中，不猜
         res, meta = cg.search(a.get("query", ""), layer=a.get("layer"),
                               k=_int_arg(a, "k", 20), context=a.get("context"),
                               roles=tuple(a["roles"]) if a.get("roles") else None,
@@ -4198,10 +4382,28 @@ def _dispatch(cg, name, args):
                               pools=a.get("pools"),
                               session=a.get("session"),
                               validity=a.get("validity"))
-        return {"meta": meta,
+        from . import conflict_surface
+        _cf = conflict_surface.as_meta([n for n, _s, _q in res])
+        if _cf:
+            meta = dict(meta or {})
+            meta.update(_cf)
+        _out = {"meta": meta,
                 "results": [{"node": _node_view(n), "score": s, "state": q.get("state"),
-                             "reason": q.get("reason"), **refindex.ref_fields(n)}
+                             "reason": q.get("reason"),
+                             # 未信任标记透出到结果行：上层据此把它当数据、不当指令
+                             "untrusted": bool((n.get("frontmatter") or {}).get("untrusted")),
+                             **refindex.ref_fields(n)}
                             for n, s, q in res]}
+        if _hcobj is not None and _ckw is not None:
+            try:
+                # 写入时深拷贝：否则**未命中那一次**返回给调用方的对象与缓存同一份，
+                # 调用方原地改（append/改 score）就污染了缓存（蜂巢验证单元指出 _copy_row 只浅一层）。
+                import copy as _copy2
+                _hcobj.put_query(a.get("query", ""), [_copy2.deepcopy(_out)],
+                                 {"surface": "mdcg_search", "v": 1}, **_ckw)
+            except Exception:
+                pass
+        return _out
 
     if name == "mdcg_get":
         _nid = a.get("node_id", "")
@@ -4878,7 +5080,26 @@ def _serve_line(cg, msg) -> bool:
                          "serverInfo": {"name": SERVER_NAME,
                                         "version": SERVER_VERSION}})
         elif method in ("notifications/initialized", "initialized"):
-            pass                          # 通知，无响应
+            # 2026-10-21 冷启动预热（MCP 读写超时的实测根因之一）：
+            # 本进程**首次**检索要读 26k 个候选文档（真实库实测 8.4 秒），
+            # 而读过一次之后**任意**新查询只要 0.26 秒（readcache 已热）。
+            # 故在握手完成后立刻起一个后台线程做一次"暖查询"，把这次一次性成本
+            # 挪到客户端等 initialize 之后的空档里；用户真正发起检索时通常已热。
+            # 不改变任何检索语义（record=False、结果丢弃），失败静默。
+            try:
+                if os.environ.get("MDCG_WARM_SEARCH", "1") != "0" and not globals().get("_warm_started"):
+                    globals()["_warm_started"] = True
+                    import threading as _th
+
+                    def _warm():
+                        try:
+                            cg.search("灵枢", k=1, record=False)
+                        except Exception:
+                            pass
+
+                    _th.Thread(target=_warm, name="mdcg-warm", daemon=True).start()
+            except Exception:
+                pass
         elif method == "tools/list":
             _reply(rid, {"tools": tools_for_surface()})
         elif method == "tools/call":
@@ -5108,11 +5329,23 @@ def main():
     # 真源自身损坏只告警留痕不自动改写（T9 边界：结构合法≠内容正确）。告警与
     # 留痕由模块发声（diff 非空才输出，干净库零噪声）；MDCG_RECONCILE=0 关闭
     # （缺省开，开关真源 reconcile.enabled）。失败不阻塞启动，与③同风格。
-    try:
-        cg.reconcile_state()
-    except Exception as _exc:         # 对账故障不得影响服务可用性
-        sys.stderr.write("[mdcg-mcp] 启动对账 v0 失败（不阻塞启动）: %r\n"
-                         % (_exc,))
+    # 2026-10-21 启动耗时：reconcile_state 实测 2.92 秒（真实库 31,688 节点），
+    # 是 initialize 5.18 秒里最大的一块。它自己的注释与 reconcile 模块都写明
+    # 「失败不阻塞启动、属增益」，故默认放到**后台线程**跑：握手不再等它。
+    # MDCG_RECONCILE_BG=0 可退回同步（旧行为，便于对照与排障）。
+    def _reconcile_bg():              # noqa: D401 —— 承接面：cg.reconcile_state()
+        try:
+            cg.reconcile_state()
+        except Exception as _exc:     # 对账故障不得影响服务可用性
+            sys.stderr.write("[mdcg-mcp] 启动对账 v0 失败（不阻塞启动）: %r\n"
+                             % (_exc,))
+
+    if os.environ.get("MDCG_RECONCILE_BG", "1") == "0":
+        _reconcile_bg()
+    else:
+        import threading as _thr
+        _thr.Thread(target=_reconcile_bg, name="mdcg-reconcile",
+                    daemon=True).start()
     # 进程自报（诊断设施，fail-safe）：把「md_cg 实际加载源 + render 契约代际」
     # 落成 `<tempdir>/md_cg_servers/<pid>.json`，供 `scripts/mdcg_stale_servers.py`
     # 机械判定**活进程代际**。根因（第4条取证）：原先只能比「进程启动时间 vs

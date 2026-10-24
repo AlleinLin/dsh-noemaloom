@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { strict as assert } from 'node:assert';
 import { createHash } from 'node:crypto';
+import { EXPECTED_DSH_VERSION } from '../src/shared/host-compatibility.ts';
 
 const manifest = JSON.parse(await readFile('package.json', 'utf8'));
 for (const required of ['lib/index.js', 'lib/client.js', 'lib/compaction.js', 'lib/project-rules.js', 'lib/subagent.js', 'lib/preset-runtime.js', 'cordis.patch.yml', 'cordis.presets.patch.yml', 'locale/zh-CN.json', 'locale/en.json', 'locale/ru.json', 'assets/icon.svg', 'LICENSE', 'NOTICE']) {
@@ -20,7 +21,7 @@ for (const asset of editor.assets) {
 assert(browser.startsWith('window.__ModuleLoader__.load('), 'Client must be official lazy factory');
 assert(!/\brequire\(["'](?:node:|fs["']|child_process|path["'])/.test(browser), 'Browser contains host module');
 assert(!/react\.production\.min|__SECRET_INTERNALS/.test(browser), 'React must use shared module identity');
-assert(manifest.engines.dsh === '0.2.1-rc.2', 'DSH version must be exact');
+assert(manifest.engines.dsh === EXPECTED_DSH_VERSION, 'DSH version must match the reviewed release exactly');
 assert.deepEqual(manifest.dsh.bundle.patch, ['./cordis.patch.yml', './cordis.presets.patch.yml'], 'Both official composition patches must be installed');
 assert.equal(manifest.exports['./native/*'], './lib/native/*.js', 'Native capabilities must have formal package exports');
 const native = JSON.parse(await readFile('lib/native-capabilities-manifest.json', 'utf8'));

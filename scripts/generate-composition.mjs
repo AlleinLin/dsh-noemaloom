@@ -3,6 +3,7 @@ import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { nativeComposition } from './native-composition.mjs';
 import { configureOpsComposition } from './ops-composition.mjs';
+import { newPluginsComposition } from './new-plugins-composition.mjs';
 
 const require = createRequire(import.meta.url);
 const root = new URL('../', import.meta.url);
@@ -69,4 +70,5 @@ patch += '\n' + memoryPatch;
 // Retain the original components, defaults and opt-in UI of dsh-ops.
 patch += '\n' + configureOpsComposition(await readFile(join(packageRoot('dsh-ops').root, 'cordis.patch.yml'), 'utf8'));
 patch += '\n' + await nativeComposition();
+patch += '\n' + await newPluginsComposition();
 await writeFile(new URL('cordis.patch.yml', root), patch);

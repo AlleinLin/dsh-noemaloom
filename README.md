@@ -45,7 +45,7 @@
 
 ## 快速开始
 
-目标宿主为 **DeepSeek Harness Desktop 0.2.1-rc.2**。推荐使用 Node.js 24 LTS；Windows 桌面安装流程使用 PowerShell。
+目标宿主为 **DeepSeek Harness Desktop 0.2.1-rc.3**。推荐使用 Node.js 24 LTS；Windows 桌面安装流程使用 PowerShell。
 
 ```powershell
 npm ci --ignore-scripts

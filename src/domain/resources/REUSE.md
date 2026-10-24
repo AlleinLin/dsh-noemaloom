@@ -10,6 +10,9 @@
 `market-catalog.ts` 来自 `kingOfSoySauce/dsh-skin-market/data/catalog.json`，
 其项目 MIT 条款见 `LICENSE.skin-market`。目录保留源许可、素材说明、
 固定版本、上游检查与统计快照；上游的“验证”字段不代表 Nexus 实测通过。
+当前离线目录来自经 npm SHA512 核对的 `dsh-skin-market@0.1.67`，
+目录原文 SHA256 为 `1857a8742b6f40bd049049774e6c893676abce7cb788e52fc13ccd54aa0958a8`；
+查询时间与逐包差异记录见 `docs/npm-runtime-rebase-2026-10-24.json`。
 
 安装包 `assets/market/{skins,pets,plugins,presets}.json` 来自上述 dsh-web
 仓库 `market/dist/manifest`，根项目 Apache-2.0 条款另保留在

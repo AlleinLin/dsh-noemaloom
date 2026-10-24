@@ -1,7 +1,7 @@
 # Original Codinput integration
 
-DSH-Codinput is pinned to version 0.3.2 and commit
-`a32da33ce4d50616bf490d360ae3dfe784e8aa50` from
+DSH-Codinput is pinned to version 0.3.5 and commit
+`f5449ed247559de2d0f19fc70870864fa93adfcf` from
 https://github.com/Witherwithwinter/DSH-Codinput.
 
 `vendor/codinput/` retains the complete acquired checkout, excluding `.git`.
@@ -35,11 +35,16 @@ targeted fixes above.
 Preferences keep the upstream `dsh-codinput.prefs.v2` key. The default send key is
 Ctrl/Cmd+Enter; Enter inserts a line break.
 
-The original implementation installs a global `console.error` diagnostic hook
-and a document capture listener suppressing dockkit tab-drag gestures. Several
-original subscriptions and global handlers lack unload cleanup, and original
-slot retries use timers. These behaviors are retained. A full Desktop restart
-is the reliable boundary when disabling/reloading this original plugin.
+The original implementation installs a global `console.error` diagnostic hook.
+The separate gesture adaptation allows native dockkit tab drags through its
+capture listener. Original slot retries use timers. A full Desktop restart
+remains the reliable boundary when disabling/reloading the enhanced input.
+
+Version 0.3.5 also preserves the host's left/right native input slots, including
+the computer-use toggle. Slot entries retain their original components,
+ordering, priority and session-bound input actions; they are not copied into
+an unrelated settings panel. The renderer regression uses the actual host
+SlotCore, original input-seat components and adapted computer-use client.
 
 Desktop verification should cover:
 

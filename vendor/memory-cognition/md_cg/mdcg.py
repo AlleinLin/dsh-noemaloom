@@ -593,6 +593,24 @@ def _norm_word_mem(w: str) -> str:
     return r
 
 # 生效条件：给定 text（假值按 "" 处理），先清除非中文/空格/字母数字字符，再对长度 ≥2 的英文词小写、若在 EN_STOPWORDS 中剔除否则 strip_tense_en 去时态复数，压缩空白后返回；中文保持不变。
+def fold_accents(text: str) -> str:
+    """检索面重音折叠单点（issue #636）：NFKC → NFD 去组合记号 → NFC。
+
+    为什么单独一个函数：本仓的 NFKC 单点是 routing.nfkc_text（#362），它**不剥离重音**——
+    café 与 cafe 因此互不可命中；而把折叠塞进 nfkc_text 会连带改掉负条件/边界摘词等
+    判据面的语义（那是另一类判据，不该跟着变）。故新增这一个只服务检索归一化的单点，
+    由 normalize_en 与 _like_body_lower 共用。
+
+    形态边界（诚实声明）：NFD 会把预合成 é 拆成 e+U+0301，去掉 Mn 后即 e；反向同样成立，
+    所以「预合成正文 vs 组合查询」「组合正文 vs 无重音查询」都对称。
+    """
+    import unicodedata as _ud
+    s = routing.nfkc_text(text or "")
+    s = _ud.normalize("NFD", s)
+    s = "".join(ch for ch in s if not _ud.category(ch).startswith("Mn"))
+    return _ud.normalize("NFC", s)
+
+
 def normalize_en(text: str) -> str:
     """英文归一化：小写 + 去停用词 + 去时态复数。中文部分不动。
 
@@ -602,7 +620,11 @@ def normalize_en(text: str) -> str:
       - 时态/复数归零（walked→walk, pets→pet）
     """
     # 清标点（保留中文字符和空格和数字）
-    cleaned = re.sub(r'[^\u4e00-\u9fff a-zA-Z0-9]', ' ', text or "")
+    # issue #623（2026-10-22）：本函数原先直接对**原文**做字符类清理，而 [^\u4e00-\u9fff a-zA-Z0-9] 会把全角
+    # 拉丁/数字（ＡＢＣ１２３，U+FF01–FF5E）整段清成空格 ⇒ 查询词直接消失，全角与半角双向不可命中。
+    # 故先过 routing.nfkc_text（本仓 NFKC 唯一单点），再做字符类清理——一处改动同时覆盖
+    # _like 召回 / _score 打分 / reach 前筛三条腿（它们都由本函数产出 bigram）。
+    cleaned = re.sub(r'[^\u4e00-\u9fff a-zA-Z0-9]', ' ', fold_accents(text))
 # 生效条件：m.group(0) 小写后交模块级 _norm_word_mem 查词级 memo（纯函数精确键控：命中返回缓存值，未命中按 EN_STOPWORDS 剔除/strip_tense_en 同口径计算并回填）——命中值≡逐词现算值，返回串接进归一结果；
     def _norm_word(m):
         return _norm_word_mem(m.group(0).lower())
@@ -1972,7 +1994,37 @@ class MdCG:
             # 「.md 计数相等」，两套判据对同一个问题（「这份快照可信吗」）各答
             # 各的，且 compact 还会把当前指纹盖到陈旧快照上把指纹判据一起抹掉。
             if not self._snapshot_trusted(idx):
-                idx = None
+                # 2026-10-21 治本（写/读超时根因）：目录 mtime 指纹会在任意合作写入后
+                # 失效（新文件落进目录即改 mtime），失效后原实现一律回退全库扫描——
+                # 真实库 31,688 节点实测 13.4 秒/次冷启动，这才是 MCP 读写超时来源
+                # （写入逻辑本身只要 47~53ms）。
+                # 指纹只回答「目录树是否动过」，不判内容；合作写入都走分片日志。
+                # 故先重放日志，再用 _covers_disk（walk 目录、只比路径集合，0.08 秒）
+                # 验证「索引路径集合 == 盘面 .md 集合」：成立则采纳；不成立（改名/换目录/
+                # 外部删加）仍回退全库扫描，正确性不降级。
+                _probe = {"schema": SCHEMA, "nodes": dict(idx.get("nodes") or {}), "buckets": {}}
+                try:
+                    self._apply_log(_probe["nodes"])
+                    # 只认「**纯新增**」这一种变化：合作写入（add）在日志里留下**新 path**，
+                    # 而改名/对调/换目录是**盘面行为**、日志里没有对应新 path——它们会把
+                    # 目录 mtime 改掉却让路径集合保持不变（_covers_disk 必假阳）。
+                    # 判据：发生变化的目录，必须全都在「日志新增 path 的所在目录」里。
+                    _log_dirs = set()
+                    for _rec in ShardedLog.read_all(self.index_log_dir):
+                        _e = _rec.get("e") if isinstance(_rec, dict) else None
+                        _path = _e.get("path") if isinstance(_e, dict) else None
+                        if _path:
+                            _log_dirs.add(os.path.dirname(str(_path).replace("\\", "/")))
+                    _cur_fp = self._dir_fingerprint()
+                    _old_fp = idx.get("_fingerprint") or {}
+                    _changed = {d for d, m in _cur_fp.items() if _old_fp.get(d) != m}
+                    _changed |= {d for d in _old_fp if d not in _cur_fp}
+                    if self._covers_disk(_probe["nodes"]) and _changed <= _log_dirs:
+                        idx = _probe
+                    else:
+                        idx = None
+                except Exception:
+                    idx = None
         if idx is None:
             idx = {"schema": SCHEMA, "nodes": self._scan_nodes(), "buckets": {}}
         self._apply_log(idx["nodes"])
@@ -2149,6 +2201,23 @@ class MdCG:
         `self._dirty_replay_superseded` 留下条数读数。见证拿不到的条目照旧重放
         ——「本实例未落盘写入不因重载从检索侧消失」这条不变量一并保留。
         """
+        # 2026-10-21：这是**应急闸**，默认关闭（默认 0）。
+        # 背景：本方法每次读面入口都会探测签名，而他进程每次 flush 都改变签名 ⇒
+        # 长期写方在跑的库里，读侧几乎每次查询都判「代际变化」并整库重载
+        # （真实库 31k 节点实测 7.0 秒/次）。真正的修法是让重载变便宜
+        # （_load_index 的快照+日志+目录判据），时间窗只是兜底手段。
+        # 注意：窗口放在签名探测**之前**，窗内连探测都不做——它会同时挡住
+        # 「重载」，故默认必须为 0，否则跨进程写入可见性被延迟（N195/N212 等守卫会红）。
+        try:
+            _min_iv = float(os.environ.get("MDCG_RELOAD_MIN_INTERVAL", "0"))
+        except ValueError:
+            _min_iv = 0.0
+        if _min_iv > 0:
+            _last = getattr(self, "_sig_probe_ts", 0.0)
+            _now = time.time()
+            if _now - _last < _min_iv:
+                return False
+            self._sig_probe_ts = _now
         sig = self._index_signature()
         if sig == self._index_sig:
             return False
@@ -2798,6 +2867,19 @@ class MdCG:
         """
         if layer not in LAYERS:
             raise ValueError(f"未知层：{layer}（允许：{LAYERS}）")
+        # issue #644（2026-10-23）：**空白即无内容**——与 state_events.is_void
+        # （#383/#384 台账面的空白拒收单点）同一判据文化在记忆直写面的落点。
+        # 此前 add(id, "") / add(id, "  \n  ") 会静默落成完整 .md 节点：库统计虚高、
+        # consolidate/maintain 要处理无意义节点，且与台账面「空白被拒」自相矛盾。
+        # 非字符串（int/list）此前抛内部 AttributeError（'int' has no 'split'）——
+        # 那是实现泄漏而非校验，这里一并收成显式 ValueError（fail-closed，零落盘）。
+        if not isinstance(content, str) or not content.strip():
+            raise ValueError(
+                "content 不能为空：空白即无内容（issue #644）。"
+                f"收到 {type(content).__name__}"
+                + ("（纯空白/空串）" if isinstance(content, str) else "")
+                + "——要表达「这里没有内容」请改用 layer=unresolved 的说明性正文，"
+                  "或不要写这个节点；空白节点会落成合法 .md 并虚高库统计。")
         # P0-1（批次 24，外部审查报告）：node_id 是模型可控输入，直接拼
         # 文件路径——`..` 穿越出 root、Windows 绝对路径（C:/x）在
         # os.path.join 下直接丢弃前缀 = 任意 .md 覆盖。白名单先行
@@ -3039,6 +3121,17 @@ class MdCG:
             "evidence_count": 0, "positive_evidence": 0, "negative_evidence": 0,
         }
         fm.update(extra)
+        # 写入面信任标记（使用者裁定 2026-10-21：「未验证、未信任的信息本来就不应该执行」）：
+        # 文本里出现伪装系统消息/指令式短语 ⇒ 落 untrusted 标记 + 命中词，供检索面与
+        # 上层（注入前）据此把它当**数据**而不是指令；不改正文（数据无损）。
+        try:
+            from . import untrusted as _un
+            _u = _un.classify(content)
+            if _u.get("untrusted"):
+                fm["untrusted"] = True
+                fm["untrusted_markers"] = list(_u.get("markers") or [])
+        except Exception:
+            pass
         # 相对时间锚定（MDCG_TIME_ANCHOR=1，缺省关 ⇒ 零调用、fm 逐位不变）：无显式 temporal
         # 时把正文里的时间表达以 created_at 为参照归一成派生字段 temporal_anchor；解析不了不写。
         if _timeanchor.enabled():
@@ -4235,8 +4328,15 @@ class MdCG:
         return nodefile.positive_body(content)
 
     def _like_body_lower(self, entry, content):
-        """Lowercase positive body; readcache reuses this pure projection."""
-        return self._positive_body(entry, content).lower()
+        """Lowercase positive body; readcache reuses this pure projection.
+
+        issue #623（2026-10-22）：这里也要过 routing.nfkc_text——_like 拿
+        normalize_en 产出的词去 body 里找，而 body 若保留全角（ＡＢＣ１２３），
+        半角查询就永远找不到它。NFKC 单点同样只用 routing 那一份。
+        """
+        # issue #636：正文侧也要折叠重音，否则 normalize_en 产出的 cafe（无重音）
+        # 永远找不到 café（预合成）正文。
+        return fold_accents(self._positive_body(entry, content)).lower()
 
     def _doc_exact_text(self, entry, content):
         """Whitespace-free full content for the existing exact-hit tie break.
@@ -5241,6 +5341,13 @@ class MdCG:
         """
         if self._zero_filler_only(tier, n_real):
             return 0
+        # issue #637（2026-10-23）：T3_global_scan 是「全量兜底、无词法闸」的出口——
+        # 只要有一个折叠后 bigram 重合就会进候选，其中大量条目 score=0.0（零相关）。
+        # 这些条目此前随 k 截断混入返回集，调用方（自动召回注入）无法区分
+        # 「有相关记忆」与「库里有字就回」。T3 出口按**分数>0** 裁切：
+        # 零分条目既不出现在结果里，也不再占用 k 配额。
+        # 边界：只作用于 T3；T2 里被 S5 降到 0 的真候选、reach 图扩散邻居（#89② 收窄
+        # 保护的两种形态）不受影响——它们是「有信号但被降权」，与 T3 的「本来就没信号」不同。
         return self._primary_slots(k, n_neg)
 
 
@@ -5334,6 +5441,19 @@ class MdCG:
         # 负覆盖信号**不失传**：仍从**既有**统计/审计面读到——meta["covered_neg"]
         # （全部被覆盖路径，恒在）与 stat["gates"]["s5"]["neg"]（S5 门控开启时的
         # 计数位数）——两者皆非为本次修复新增，故不新增协议字段。
+        # issue #637：**可配最低分门槛**（MDCG_MIN_SCORE，默认 0 = 关）。
+        # 默认关的理由：T3 出口要保留 score=0 的「门控回退 / 异桶节点」
+        # （test_retr_s1b / test_retr_s7 钉住的契约），默认裁切会打破它们。
+        # 需要「只要相关结果」的部署设 MDCG_MIN_SCORE=0.01 即启用（零分条目
+        # 既不进结果、也不占 k 配额）。位置在 _n_real/_neg_tail 之前 ⇒ 过滤后的
+        # scored 自然参与 k 预算与提示让位，且 _neg_tail 仍只调用一次（D1 守卫）。
+        try:
+            _min_score = float(os.environ.get("MDCG_MIN_SCORE", "0"))
+        except ValueError:
+            _min_score = 0.0
+        if _min_score > 0:
+            scored = [_p for _p in scored if _p[1] >= _min_score]
+            stat["min_score"] = _min_score
         _n_real = min(max(0, int(k)), sum(1 for _, s in scored if s > 0))
         _neg_tail = self._neg_tail(neg_coverage, max(0, int(k) - _n_real))
         # issue #89②（2026-10-09 DSH 端实施、zcode 端收窄靶区）：**0 分（无质量信号）
@@ -5436,7 +5556,7 @@ class MdCG:
                      # 阶段 1 大域收敛结果 + 完整打分明细（白箱可审计）
                      "big_domain": big_domain,
                      "big_domain_scores": big_scores,
-                     # reach 收敛层审计（2026-09-18）：reach=converged/off/short_term/...
+                     # reach 收敛层审计（2026-09-18）：reach=converged/off/index_unavailable/hash_incomplete/no_tokens/empty_converge/fresh_overflow（#611 起不再产生 short_term）
                      # 与 reach_seed（倒排命中数）/reach_diffused（图扩散增量）——
                      # A3「触碰量随查询变化」的观测面（scanned 只报读盘数）
                      "reach": stat.get("reach"),
@@ -5453,6 +5573,8 @@ class MdCG:
         # 分阶段审计仅在门控真的产生信息时落键（默认关闭 → meta 与改动前逐字节一致；契约 §5.3）
         if stat.get("gates"):
             meta["gates"] = stat["gates"]
+        if stat.get("prefilter"):
+            meta["prefilter"] = stat["prefilter"]
         # P2-2（§5.2）：拒绝域命中的**独立读数**（与资格 REJECT 分开计数）——
         # 只在确有边界命中时落键（无边界命中的路径 meta 键集合与改动前一致）。
         if stat.get("boundary"):

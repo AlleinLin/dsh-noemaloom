@@ -1,8 +1,8 @@
 {
   "package": "@deepseek-ai/dsh-agent-instructions",
-  "version": "0.2.1-rc.2",
-  "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-agent-instructions/-/dsh-agent-instructions-0.2.1-rc.2.tgz",
-  "integrity": "sha512-a1VQsocz34VvkwYMNc/zolMXrLXWIClhZ62kb3pi8hYd/8MSgjuE09YcoqX6ZmU8i4tmaroC9W1PdUEIksSgiQ==",
+  "version": "0.2.1-rc.3",
+  "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-agent-instructions/-/dsh-agent-instructions-0.2.1-rc.3.tgz",
+  "integrity": "sha512-w0eRfEp+7oN92ai2GNJpZTom+IZrh20A6PvZ+2nLKkL4Sz+2EaQIH3jNL7gMmVw1OmT/xnF0rq+xAcxsduB1xQ==",
   "originalEntry": "package/lib/index.js",
   "originalEntrySha256": "4011f6e4c08228601bd4348ac78e322913142264f6e491ffdf9dcfda97393988",
   "license": "MIT",

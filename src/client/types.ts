@@ -27,7 +27,9 @@ export interface ClientContext {
   uiWorkspace?: {
     selection: SnapshotSource<{ sessionId?: string; subagentAddress?: unknown }>;
     openSession(sessionId: string): void;
-    startSession(workspaceId?: string, options?: { prompt?: string; clearPreviousDraft?: boolean; agentPreset?: string }): void;
+    startSession(workspaceId?: string, options?: {
+      prompt?: string; clearPreviousDraft?: boolean; whenDraftExists?: 'replace' | 'append' | 'keep'; agentPreset?: string;
+    }): void;
   };
   locale?: { register?: (...args: any[]) => (() => void); bind?(name: string): (key: string) => string; addLanguage?(registration: Data): () => void; language?: any };
   effect(effect: () => any, label?: string): any;

@@ -1023,6 +1023,11 @@ class MdCGOS(MdCG):
             hc = _hc.get(self)
             if hc is not None and node_id:
                 hc.invalidate_node(node_id)   # 节点级 O(1)，非 invalidate_node_and_queries
+            # 工具层 query 缓存（mcp_server.mdcg_search）是**独立实例**，主缓存失效管不到它；
+            # 索引一突变就整清——否则 forget 之后 TTL 内还能被同参 query 读回正文。
+            _tool_hc = getattr(self, "_hotcache_tool", None)
+            if _tool_hc is not None:
+                _tool_hc.clear()
         except Exception:                                  # noqa: BLE001
             pass
         return self._index_gen
@@ -1289,7 +1294,56 @@ class MdCGOS(MdCG):
         return out
 
 # 生效条件：query strip 后为空即返回 ([], {"tier": None, "reason": "empty_query", "scanned": 0})；pool_cfg 由 pooling.resolve(pooling.from_env(pools)) 解析；_candidates 为空即返回 no_candidates；其余与 MdCG.search 同构（T0–T3 阶梯 + 资格判定），并按 roles/include_work 默认剔除工具输出与命令类 role，view 真值时移交 role 维度裁决权给 roleviews.matches（见 _candidates），validity 真值时候选层剔除已过期节点；
-    def search(self, query: str, layer: str = None, k: int = 20,
+    # 生效条件：预筛（_prefilter_entries）生效且结果不足时——自动退回全量再查一次，
+    # 保证「先试快路、不自信就退回」；命中充足时零额外成本。
+    def search(self, *args, **kwargs):
+        """检索外层：分层预筛 + 置信回退（2026-10-22）。
+
+        背景：预筛把 26k 候选降到数百，代价是「标签不匹配就查不到」——实测已两次
+        挡住自己的归档读回（写进去的节点按关键词搜不到，按 id 能读到）。
+        这里加一道回退：预筛生效且（结果为空 或 条数不足 k）时，禁用预筛重查一次，
+        并把 meta.prefilter_fallback=True 如实标出，便于事后核对。
+        """
+        res, meta = self._search_impl(*args, **kwargs)
+        # 置信判据：预筛生效时，看**查询词在结果里的覆盖率**。
+        # 实测：标签不匹配的查询会返回 5 条「格式对但内容不对」的结果（覆盖率 2/3、2/4），
+        # 而真正命中的查询覆盖 3/3。故 < 75% 视为不自信 ⇒ 禁用预筛重查一次。
+        if isinstance(meta, dict) and meta.get("prefilter"):
+            try:
+                q = args[0] if args else kwargs.get("query", "")
+                terms = [t for t in re.split(r"[\s,，、;；]+", str(q or "")) if len(t) >= 2]
+                blob = []
+                for _item in (res or ()):
+                    _n = _item[0] if isinstance(_item, tuple) else _item
+                    if not isinstance(_n, dict):
+                        continue
+                    blob.append(str(_n.get("title") or ""))
+                    _fm = _n.get("frontmatter") or {}
+                    if isinstance(_fm, dict):
+                        blob.append(str(_fm.get("tags") or ""))
+                        blob.append(str(_fm.get("title") or ""))
+                    blob.append(str(_n.get("tags") or ""))
+                    blob.append(str(_n.get("content") or _n.get("snippet") or "")[:600])
+                _text = " ".join(blob).lower()
+                _need = max(1, int(len(terms) * 0.75 + 0.999))
+                _hit = sum(1 for t in terms if t.lower() in _text)
+                _weak = bool(terms) and _hit < _need
+            except Exception:
+                _weak = False
+            if _weak:
+                self._pf_off = True
+                try:
+                    res2, meta2 = self._search_impl(*args, **kwargs)
+                finally:
+                    self._pf_off = False
+                if isinstance(meta2, dict):
+                    meta2["prefilter_fallback"] = True
+                    meta2["prefilter_skipped"] = meta.get("prefilter")
+                    meta2["prefilter_coverage"] = "%d/%d" % (_hit, len(terms))
+                return res2, meta2
+        return res, meta
+
+    def _search_impl(self, query: str, layer: str = None, k: int = 20,
                context=None, min_results: int = 1, record: bool = True,
                include_neg: bool = True, judge: bool = True,
                roles=None, include_work: bool = False, pools=None,
@@ -1362,6 +1416,54 @@ class MdCGOS(MdCG):
         if gates:
             stat["gates"] = gates
         neg_coverage = self._neg_coverage(terms) if include_neg else []
+        # ---- 融合统一（2026-10-21）：BM25 并入默认检索阶梯的全局阶段 ----
+        # 背景：默认读面走本函数（词法打分），BM25 只在 search_rrf 里作一路；
+        # 使用者裁定「BM25+ 实测提精度，应当默认使用」。此处把 BM25 打分接到
+        # 全局阶段（T1' reach / T2 / T3）的 scored 上——桶阶段（T0/T1）保持原口径，
+        # 因为它们本就是「域桶内精确命中」，改它会让桶优先级语义漂移。
+        # 失败一律回落原 _score（信息不足不得中断检索）。
+        _bm_scored = None
+        # 2026-10-21 回归：默认开时实测 19~27 秒/查询（真实库 26k 候选），
+        # 而 bm25.search 直接调用第 2 次只需 0.02s ⇒ 每次 search 都重建块布局（
+        # entries 对象每轮都新建，缓存键命中不了）。在修好这条缓存前，
+        # 默认关（opt-in），避免检索面 20x 回退。
+        if os.environ.get("MDCG_BM25", "0") == "1":
+            try:
+                from . import bm25 as _bm
+                # 用**独立 stat**：bm25.search 会累加 scanned/build 计数，
+                # 记进主 stat 会把「候选面收敛」的读数污染成「全库扫描」。
+                _bm_scored, _bm_meta = _bm.search(self, q, entries, {"scanned": 0, "query": q})
+            except Exception:
+                _bm_scored = None
+        _bm_by_path = {}
+        for _d, _sc in (_bm_scored or ()):
+            try:
+                _bm_by_path[_d.get("path")] = _sc
+            except Exception:
+                break
+
+        def _path_of(d):
+            """docs 元素可能是 dict，也可能是 (doc, fm, content) 元组——两形都取 path。"""
+            if isinstance(d, tuple):
+                d = d[0] if d else {}
+            return d.get("path") if isinstance(d, dict) else None
+
+        def _bm_for(docs):
+            """把 BM25 分数映射到本阶段的 docs 上（缺失按 0，保持长度一致）。
+
+            docs 元素若为 (doc, fm, content) 元组形态则**不接管**——下游
+            cut_by_relevance 期望 scored[i][0] 是 dict；形态不符时一律回落 _score。
+            """
+            if not _bm_by_path:
+                return None
+            if any(isinstance(d, tuple) for d in docs):
+                return None
+            return [(d, _bm_by_path.get(_path_of(d), 0.0)) for d in docs]
+
+        def _score_bm(docs, *a, **kw):
+            """全局阶段优先用 BM25 分数；无 BM25 结果时回落原 _score。"""
+            _bm = _bm_for(docs)
+            return _bm if _bm is not None else self._score(docs, *a, **kw)
 
 # 生效条件：scored 为 None 时对 docs 调 self._score(docs, q, qb, pool_cfg)，非 None 时直接以之为打分结果；分数 >0 的条数达到（search 作用域内的）min_results 就返回 self._emit(scored, k, tier, stat, route_bucket, record, len(docs), ...)，否则返回 None。
         def try_stage(docs, tier, scored=None):
@@ -1371,7 +1473,7 @@ class MdCGOS(MdCG):
             # try_stage（mdcg.py P2-4，批次 31）同模板；_score 在单次 search 内
             # 是纯函数（docs/q/qb/pool_cfg 均不变），透传不改变任何分值与输出。
             if scored is None:
-                scored = self._score(docs, q, qb, pool_cfg)
+                scored = _score_bm(docs, q, qb, pool_cfg)
             valid = sum(1 for _, s in scored if s > 0)
             if valid >= min_results:
                 return self._emit(scored, k, tier, stat, route_bucket, record,
@@ -1442,7 +1544,7 @@ class MdCGOS(MdCG):
             stat["cap"] = GLOBAL_CAP
             # 与 T2 **无条件**同序调用（不可按 cap 短路：cut_by_relevance 还会写
             # 池账 pool_taken/cands/lost，短路会让 meta.pools.taken 缺失 → test_p43(13) 红）
-            scored_r = self._score(hits_r, q, qb, pool_cfg)
+            scored_r = _score_bm(hits_r, q, qb, pool_cfg)
             hits_r, _rep = cut_by_relevance(hits_r, scored_r,
                                             GLOBAL_CAP, pools=pool_cfg,
                                             key_of=pooling.doc_key, stat=stat)
@@ -1465,6 +1567,17 @@ class MdCGOS(MdCG):
                 stat.pop(_k, None)
 
         # 截断依据=相关度（同 MdCG.search：cap 值不变，改的是拿什么排序）
+        # ---- 候选预筛（2026-10-21，使用者指出的分层检索）----
+        # 现状：T2 无条件 _read_many(entries) 读全量正文（真实库 26k 文档 6.4 秒），
+        # 这是「每进程首查 8 秒」的主因。既然**全局索引里已有元数据**（tags/桶），
+        # 就先按索引元数据筛一轮：把词项与 tags/bucket_zh 命中的条目当候选，
+        # 命中太少（默认 <50）再回退全量，并用 meta.prefilter 如实暴露是否筛过。
+        # 只用**原始查询词**（>=2 字）：扩展词里有单字（库/记），substring 匹配会命中几乎所有 tag，等于没筛。
+        _raw_terms = [t for t in re.split(r"[\s,，、;；]+", q or "") if len(t) >= 2]
+        _pf_entries, _pf_meta = self._prefilter_entries(entries, _raw_terms)
+        if _pf_entries is not None:
+            stat["prefilter"] = _pf_meta
+            entries = _pf_entries
         docs_all = self._read_many(entries, stat)
         # 语义资格（MDCG_SEMANTIC=1）：fm.semantic 节点无条件入池
         hits = [d for d in docs_all
@@ -1476,7 +1589,7 @@ class MdCGOS(MdCG):
                 or (semantic_on() and d[1].get("semantic"))]
         stat["pre_cap"] = len(hits)
         stat["cap"] = GLOBAL_CAP
-        scored_h = self._score(hits, q, qb, pool_cfg)
+        scored_h = _score_bm(hits, q, qb, pool_cfg)
         hits, _rep = cut_by_relevance(hits, scored_h,
                                       GLOBAL_CAP, pools=pool_cfg,
                                       key_of=pooling.doc_key, stat=stat)
@@ -1489,7 +1602,7 @@ class MdCGOS(MdCG):
 
         stat["pre_cap"] = len(docs_all)
         stat["cap"] = GLOBAL_CAP
-        scored_a = self._score(docs_all, q, qb, pool_cfg)
+        scored_a = _score_bm(docs_all, q, qb, pool_cfg)
         picked, _rep = cut_by_relevance(docs_all, scored_a,
                                         GLOBAL_CAP, pools=pool_cfg,
                                         key_of=pooling.doc_key, stat=stat)
@@ -1502,6 +1615,42 @@ class MdCGOS(MdCG):
                           context, neg_coverage, big_domain, big_scores, pool_cfg)
 
 # 生效条件：当 query、entries、stat 传入时，先以 terms/qb 从 entries 读取文档并保留 LIKE 命中或（semantic_on 且 frontmatter.semantic）的项；若 hits 为空则按 importance/created_at 降序取前 GLOBAL_CAP 作为兜底；随后对 hits 打分并按相关度与 importance 降序排序，超过 GLOBAL_CAP 时截断并更新 stat，否则返回全部 scored；
+    # 生效条件：terms 非空、entries 为候选条目列表；词项与条目的 tags / bucket_zh 有交集且命中数
+    # 达到 MDCG_PREFILTER_MIN（默认 50）时返回（筛后条目, {"prefilter": "tags", ...}），否则返回 (None, None)
+    # 表示「不筛、走全量」——命中太少说明索引元数据不足以支撑该查询，不能拿它当召回面。
+    def _prefilter_entries(self, entries, terms):
+        """按**索引元数据**预筛候选（分层检索的第二级：全局索引 → 正文）。
+
+        为什么用它：T2 无条件读全量正文是真实库 26k 文档 6.4 秒的主因；
+        而全局索引里已带 tags/bucket_zh，先按词项筛一轮通常能把候选降到数百。
+        边界（诚实声明）：这是**召回取舍**——只在元数据命中足够多时启用，
+        并把 prefilter 读数写进 meta，便于事后核对是否漏召回；显式 MDCG_PREFILTER=0 可关。
+        """
+        try:
+            if getattr(self, "_pf_off", False):
+                return None, None
+            if os.environ.get("MDCG_PREFILTER", "0") != "1":
+                return None, None
+            try:
+                need = int(os.environ.get("MDCG_PREFILTER_MIN", "50"))
+            except ValueError:
+                need = 50
+            ts = [str(t).lower() for t in (terms or []) if t]
+            if not ts:
+                return None, None
+            out = []
+            for e in entries or ():
+                blob = " ".join(str(x) for x in (e.get("tags") or ())).lower()
+                blob += " " + str(e.get("bucket_zh") or "").lower()
+                if any(t in blob for t in ts):
+                    out.append(e)
+            if len(out) < need:
+                return None, None
+            return out, {"prefilter": "tags", "matched": len(out),
+                         "pool": len(entries or ()), "min": need}
+        except Exception:
+            return None, None
+
     def _lexical(self, query, entries, stat):
         """词法路径：LIKE 预筛 + 二元组相似度（口径见 mdcg.SCORE_MODE）。
 
@@ -2566,6 +2715,17 @@ class MdCGOS(MdCG):
                     skipped.append({"id": node["id"], "tokens": t,
                                     "reason": "oversize_or_over_budget"})
                     continue          # 关闭截断或预算不足：跳过，继续尝试更小的
+            # issue #637：**召回面可配最低分**（MDCG_RECALL_MIN_SCORE，默认 -1 = 关）。
+            # 默认关的理由：test_validity_filter ⑤⑦ 依赖 RRF 旁系低分条目可见；
+            # 需要「只装相关记忆」的部署设 0.01 即启用（零分条目连同 reason 记账跳过）。
+            try:
+                _rmin = float(os.environ.get("MDCG_RECALL_MIN_SCORE", "-1"))
+            except ValueError:
+                _rmin = -1.0
+            if _rmin >= 0 and score < _rmin:
+                skipped.append({"id": node["id"], "tokens": t,
+                                "reason": "below_min_score", "score": score})
+                continue
             used += t
             # Only summarize already available qualification/frontmatter data;
             # query suitability and persistent verification are distinct states.
@@ -2884,7 +3044,8 @@ class MdCGOS(MdCG):
 
 # 生效条件：stat inbox_log 失败（OSError）时把 _inbox_recs 置空列表、两扫描键置 -1 并返回它；size 与 mtime_ns 均与缓存键一致时直接返回 _inbox_recs（零解析）；缓存键为 -1（首装）或当前 size 小于已扫描偏移时以 read_jsonl_tail(path, 0) 全量重建，否则以 read_jsonl_tail(offset) 结果 extend 增量并入；水位存 read_jsonl_tail 返回的已提交完整行偏移（end 为 None 时回落 stat size），mtime_ns 存读前 stat 值，返回 _inbox_recs（内部缓存，调用方只读不得变更）。
 # 生效条件：node_id 为非空字符串时，遍历 inbox 全记录（`_inbox_records` 缓存）取
-# `rec["id"] == node_id` 且其 pid **尚未出现**在裁决台账（`_pid_status` 缓存）里的记录，
+# `rec["id"] == node_id` 且其 pid **尚未被终态裁决关闭**的记录（`_pid_status` 缓存；
+# needs_reapproval 仍待再审批，与 _closed_pids/review_list 使用同一终态闭集），
 # 按文件序返回最多 limit 个 pid；node_id 为空/无匹配返回空列表。只读、零写、不抛。
     def pending_proposals(self, node_id, limit: int = 5) -> list:
         """该节点在审核队列里**待裁决**的提案 id（读面标注用，issue #561 第①项）。
@@ -2904,7 +3065,8 @@ class MdCGOS(MdCG):
             if str(rec.get("id") or "") != node_id:
                 continue
             pid = rec.get("pid")
-            if not pid or pid in decided:
+            if (not pid or (decided.get(pid) or {}).get("status")
+                    in TERMINAL_DECISION_STATUS):
                 continue
             out.append(pid)
             if len(out) >= int(limit or 5):

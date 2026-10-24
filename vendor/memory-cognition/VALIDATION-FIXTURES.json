@@ -1,0 +1,18 @@
+{
+  "revision": "2710114be671d655056f1c503f973262c8855453",
+  "purpose": "Exact public upstream source/document fixtures used by unchanged Python regressions; the Rust file is not a runtime adapter.",
+  "files": [
+    {
+      "file": "docs/plans/真源索引_通用机制_v0.3.md",
+      "sha256": "0707799e13196b45fdcfb846f058d5b2b30b31e2e3a4c894687fdc2f5903a2f6"
+    },
+    {
+      "file": "docs/hive/检索路径与认知结构契约_v0.1.md",
+      "sha256": "192b0dd99314cecca991fe21cd0df376b412562710e9cc82b95d7af0ba5e738c"
+    },
+    {
+      "file": "rust/src/engine.rs",
+      "sha256": "f9c9fed1a22158773724315f00c9bdde31671df6ef97b972f7ace6bbf5ef51c2"
+    }
+  ]
+}

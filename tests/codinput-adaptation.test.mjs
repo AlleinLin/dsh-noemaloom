@@ -121,22 +121,27 @@ test('delivery factory is rebuilt from adapted source and bundles the patched sa
 test('long model menus fit the available desktop viewport and keep native wheel scrolling', async () => {
   const element = {
     style: {},
+    offsetWidth: 280,
     getBoundingClientRect: () => ({ width: 280 }),
     querySelector: () => ({ scrollHeight: 2400 }),
   };
+  let menuPosition = null;
   const jsx = (type, props) => ({ type, props });
   const api = await loadAdapted('src/client/components/MenuSurface.tsx', {
     react: {
       useRef: () => ({ current: element }),
+      useState: () => [menuPosition, update => { menuPosition = update(menuPosition); }],
       useLayoutEffect: effect => effect(), useEffect() {},
     },
     'react/jsx-runtime': { jsx, jsxs: jsx },
   }, { window: { innerHeight: 500, innerWidth: 900, addEventListener() {} } });
-  const rendered = api.MenuSurface({
+  const props = {
     anchor: { left: 50, right: 330, top: 45, bottom: 75 },
     side: 'top', children: 'long model catalog', onClose() {},
-  });
-  const height = parseFloat(element.style.height), top = parseFloat(element.style.top);
+  };
+  api.MenuSurface(props); // The layout effect measures, then React renders its state update.
+  const rendered = api.MenuSurface(props);
+  const height = parseFloat(element.style.height), top = rendered.props.style.top;
   assert.ok(top >= 12 && top + height <= 488, 'menu must stay inside the viewport');
   assert.ok(height > 300, 'a crowded preferred side must use the roomier side');
   let stopped = false;

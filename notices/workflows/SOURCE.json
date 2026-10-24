@@ -39,9 +39,9 @@
     },
     {
       "name": "@fission-ai/openspec",
-      "version": "1.14.3",
+      "version": "1.15.0",
       "license": "MIT",
-      "integrity": "sha512-ALFW1d5bSm6t27Kmcle93SDFuqUc8fLwy5ZdBfIiNffo0Yk9AEOJxw6xDqBv38eMM7l7TeOZBB/7C08luxYGfg==",
+      "integrity": "sha512-lG/EPEiL22bB70yKJhWWSPk1UQGLnwO7Dp+hNc/jUmBwb0qxPLzHCUkXEfkny4iYDOsgnsNQmc39/g9QcvnBnA==",
       "licenses": [
         {
           "file": "LICENSE",
@@ -74,6 +74,30 @@
         {
           "file": "NOTICE",
           "sha256": "3f873e6e5497e660dd20303ee91d6253979888f12a5a7452ca3294641f638f4f"
+        }
+      ]
+    },
+    {
+      "name": "dsh-motion-ui",
+      "version": "0.8.8",
+      "license": "MIT",
+      "integrity": "sha512-VWh3Sm3rLI4oQvOepfej6Mp67sE/uUYlHrAJS6MaUX1wbuVQkDPkO8aJ64bgr64Fh219os/9XBz60EO8Xv/6pw==",
+      "licenses": [
+        {
+          "file": "LICENSE",
+          "sha256": "0109b46039beab643748e3eb9e4aa5d3c6bf17145167fe48a257d77490fdcd4f"
+        }
+      ]
+    },
+    {
+      "name": "dsh-cross-session-approval",
+      "version": "0.3.10",
+      "license": "MIT",
+      "integrity": "sha512-37hRKYWvgPkjLH7p7MONIelXNMb8fyYagGAPYHsq/I4ohS1JGP5Nz6ocWciP4ik5bVOYMcKo+uouSaTSUdlJKA==",
+      "licenses": [
+        {
+          "file": "LICENSE",
+          "sha256": "599176dcfc83ced5b59f88cf2160ae967f80df0da0fc399b21e1c315466fd3e2"
         }
       ]
     },
@@ -211,9 +235,9 @@
     },
     {
       "name": "zod",
-      "version": "4.4.3",
+      "version": "4.6.6",
       "license": "MIT",
-      "integrity": "sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==",
+      "integrity": "sha512-4UmzQUF5fxvfcYHlbjBmejU+w+hbDnWFx4aS8kBx7nPBHcO2SqPbpAG8snbdg+Xse4pRefR98hgjFgIMCI/UhA==",
       "licenses": [
         {
           "file": "LICENSE",
@@ -230,6 +254,22 @@
         {
           "file": "LICENSE.txt",
           "sha256": "5b2198d1645f767585e8a88ac0499b04472164c0d2da22e75ecf97ef443ab32e"
+        }
+      ]
+    },
+    {
+      "name": "playwright-core",
+      "version": "1.64.1",
+      "license": "Apache-2.0",
+      "integrity": "sha512-BC4s8y6SEVA6Q1rSxZTto8hI1KUI3xXlHGZgvGqP4IqPdI/a6FX9H29IDNz7vKo9l21b6LfYosScPL6M3xxyDQ==",
+      "licenses": [
+        {
+          "file": "LICENSE",
+          "sha256": "45873d00a0dd243596deb4aa23b2493b3d1f0671921bf2538ea431d7380220eb"
+        },
+        {
+          "file": "NOTICE",
+          "sha256": "6d602191187b35b9b01d2cffa01c8469c2c8d9de8a96f1bf868e0f264f51c81d"
         }
       ]
     },

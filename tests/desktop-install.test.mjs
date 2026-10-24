@@ -38,7 +38,7 @@ async function fixture({ legacy = true, current = false, scenario = '', running 
     path: `lib/runtime-${index}.js`, sha256: sha256(`runtime-${index}`),
   }));
   await writeFile(join(delivery, 'install-manifest.json'), JSON.stringify({
-    schemaVersion: 1, packageName: newName, version: '0.4.0', hostVersion: '0.2.1-rc.2',
+    schemaVersion: 1, packageName: newName, version: '0.4.0', hostVersion: '0.2.1-rc.3',
     packageFile, packageSha256: digest, keyFiles,
   }));
   const initial = { name: 'isolated-installer-fixture', private: true,
@@ -61,7 +61,7 @@ async function fixture({ legacy = true, current = false, scenario = '', running 
     const profile = join(root, 'home/profiles/desktop');
     const scenario = process.env.NOEMALOOM_INSTALL_SCENARIO;
     await appendFile(join(root, 'calls.jsonl'), JSON.stringify(args) + '\\n');
-    if (args[0] === '--version') { console.log('0.2.1-rc.2'); process.exit(0); }
+    if (args[0] === '--version') { console.log('0.2.1-rc.3'); process.exit(0); }
     const oldName = '@local/dsh-nexus', newName = 'dsh-noemaloom';
     const manifestPath = join(profile, 'package.json');
     const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));

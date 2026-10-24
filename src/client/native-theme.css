@@ -12,7 +12,7 @@ body:has(style[data-nexus-native-theme]) [role="tooltip"] {
 body:has(style[data-nexus-native-theme]) :where(button, input, select, textarea) {
   accent-color: var(--dsw-alias-brand-primary);
 }
-/* rc.2 exposes no panel-list size token. Match the semantic CSS-module suffix
+/* The host exposes no panel-list size token. Match the semantic CSS-module suffix
    and our own icon marker, leaving the native workspace tree flexible. */
 body [class$="_panelList"]:has([data-nexus-native-entry]) {
   max-height: min(38vh, 360px);
@@ -29,25 +29,115 @@ body [class$="_panelList"]:has([data-nexus-native-entry]) {
 .nexus-native-actions button:hover { background: var(--dsw-alias-interactive-bg-hover); }
 .nexus-native-actions button:focus-visible { outline: 2px solid var(--dsw-alias-state-business-primary); }
 
-/* rc.2 native seats: change presentation while retaining native behavior. */
+/* Native seats: semantic suffixes survive the rc.3 CSS-module hash changes. */
 body:has(style[data-nexus-native-theme]) [data-chat-running] {
   color: var(--dsw-alias-brand-primary);
   --dsw-alias-label-shimmer: var(--dsw-alias-label-deep-diving-shimmer);
 }
-body:has(style[data-nexus-native-theme]) ._2H3hWW_root { border-right:1px solid var(--dsw-alias-border-l3); padding-inline:14px; }
-body:has(style[data-nexus-native-theme]) ._2H3hWW_panelList { gap:5px; padding-block:12px; border-block:1px solid var(--dsw-alias-border-l3); margin-block:10px 16px; }
-body:has(style[data-nexus-native-theme]) ._2H3hWW_panelTitle { font-size:13px; letter-spacing:.015em; }
-body:has(style[data-nexus-native-theme]) .Dc7zOa_header:not(.Dc7zOa_headerBlank) { background:var(--dsw-alias-bg-base); border-bottom:1px solid var(--dsw-alias-border-l3); min-height:54px; padding-inline:24px; }
-body:has(style[data-nexus-native-theme]) .Dc7zOa_titleRow { font-weight:500; letter-spacing:.01em; }
-body:has(style[data-nexus-native-theme]) .Dc7zOa_composerStack { box-sizing:border-box; min-width:0; padding:16px 24px 22px; }
+body:has(style[data-nexus-native-theme]) [class$="_panelList"]:has([data-nexus-native-entry]) {
+  gap:2px; padding-block:8px; margin-block:6px 12px;
+}
+body:has(style[data-nexus-native-theme]) [class$="_panelList"]:has([data-nexus-native-entry]) [class$="_panelRow"] {
+  min-height:34px; padding:7px 10px; gap:10px;
+}
+body:has(style[data-nexus-native-theme]) [class$="_panelList"]:has([data-nexus-native-entry]) [class*="_panelTitle"] {
+  font-size:13px; line-height:20px; letter-spacing:0;
+}
+body:has(style[data-nexus-native-theme]) [data-slot="conversation.header"] > header:not([class*="_headerBlank"]) {
+  background:var(--dsw-alias-bg-base); border-bottom:1px solid var(--dsw-alias-border-l3); min-height:54px; padding-inline:24px;
+}
+body:has(style[data-nexus-native-theme]) [data-slot="conversation.session.header"] > [class$="_titleRow"] {
+  font-weight:500; letter-spacing:0;
+}
+body:has(style[data-nexus-native-theme]) [class*="_composerStack"] { box-sizing:border-box; min-width:0; padding:16px 24px 22px; }
 /* The input bar is a flex item. Auto inline margins would disable its native
    stretch and collapse the percentage-sized card to its minimum content size.
    Constrain the complete hero stack, never the editable text node. */
-body:has(style[data-nexus-native-theme]) .Dc7zOa_composerHero { width:min(100%, 820px); gap:24px; }
-body:has(style[data-nexus-native-theme]) .RlGAzG_root { min-width:0; align-self:stretch; }
+body:has(style[data-nexus-native-theme]) [class$="_composerHero"] { width:min(100%, 780px); gap:16px; padding-bottom:28px; }
+body:has(style[data-nexus-native-theme]) [class$="_composerHero"] > [class$="_heroWorkspaceRow"] {
+  padding-inline:4px; margin-block:4px 6px;
+}
 body:has(style[data-nexus-native-theme]) [data-composer-card] { border:1px solid var(--dsw-alias-border-l2); border-radius:20px; box-shadow:0 3px 16px #00000009; }
 body:has(style[data-nexus-native-theme]) [data-composer-card]:focus-within { border-color:var(--dsw-alias-state-business-primary); box-shadow:0 0 0 2px color-mix(in srgb,var(--dsw-alias-state-business-primary) 12%,transparent); }
-body:has(style[data-nexus-native-theme]) .Dc7zOa_heroWorkspaceRow { border-radius:10px; }
+body:has(style[data-nexus-native-theme]) [class$="_heroWorkspaceRow"] { border-radius:10px; }
+/* Native fullscreen extends across the center column. Give the entire right
+   column a stacking context above conversation chrome, with an opaque surface;
+   shell overlays and the browser's top-layer menus retain their ownership. */
+body:has(style[data-nexus-native-theme]) [data-rightbar-col]:has([data-sidebar-right-panel="fullscreen"][data-sidebar-right-open="true"]) {
+  z-index:16;
+}
+body:has(style[data-nexus-native-theme]) [data-sidebar-right-panel="fullscreen"][data-sidebar-right-open="true"] {
+  background:var(--dsw-alias-bg-base); isolation:isolate;
+}
+/* The native Start guide is a quiet launcher rail, with its original buttons,
+   terminal split trigger, keyboard shortcuts and menu ownership intact. */
+body:has(style[data-nexus-native-theme]) [data-sidebar-right-guide] {
+  box-sizing:border-box; width:100%; max-width:100%; min-width:0;
+  align-items:stretch; justify-content:flex-start; gap:3px; padding:20px 16px;
+}
+body:has(style[data-nexus-native-theme]) [data-sidebar-right-guide] > [class$="_hero"] { display:none; }
+body:has(style[data-nexus-native-theme]) [data-sidebar-right-guide] > [class$="_entryCell"],
+body:has(style[data-nexus-native-theme]) [data-sidebar-right-guide] > [class*="_moreAnchor"] { min-height:0; flex:none; }
+body:has(style[data-nexus-native-theme]) :is([data-sidebar-right-guide-entry],[data-sidebar-right-guide] button[class$="_entry"]) {
+  box-sizing:border-box; min-width:0; width:100%; min-height:44px; height:44px; gap:12px;
+  padding:10px 12px; border:1px solid transparent; background:transparent; box-shadow:none;
+  color:var(--dsw-alias-label-secondary); font-size:13px; line-height:22px;
+}
+body:has(style[data-nexus-native-theme]) :is([data-sidebar-right-guide-entry],[data-sidebar-right-guide] button[class$="_entry"]):is(:hover,:focus-within) {
+  background:var(--dsw-alias-interactive-bg-hover); color:var(--dsw-alias-label-primary);
+}
+body:has(style[data-nexus-native-theme]) :is([data-sidebar-right-guide-entry],[data-sidebar-right-guide] button[class$="_entry"]):focus-visible {
+  outline:2px solid var(--dsw-focus-ring-color); outline-offset:1px;
+}
+body:has(style[data-nexus-native-theme]) :is([data-sidebar-right-guide-entry],[data-sidebar-right-guide] button[class$="_entry"]) :is([class$="_entryTitle"],[class$="_title"]) {
+  font-size:13px; font-weight:500; line-height:22px;
+}
+body:has(style[data-nexus-native-theme]) :is([data-sidebar-right-guide-entry],[data-sidebar-right-guide] button[class$="_entry"]) :is([class$="_entryIcon"],[class$="_icon"]) {
+  width:20px; height:20px; flex:0 0 20px; color:var(--dsw-alias-brand-primary);
+}
+body:has(style[data-nexus-native-theme]) :is([data-sidebar-right-guide-entry],[data-sidebar-right-guide] button[class$="_entry"]) :is([class$="_entryIcon"],[class$="_icon"]) svg {
+  width:19px; height:19px; color:inherit; stroke:currentColor;
+}
+body:has(style[data-nexus-native-theme]) :is([data-sidebar-right-guide-entry],[data-sidebar-right-guide] button[class$="_entry"]) [stroke^="#"] {
+  stroke:var(--dsw-alias-brand-primary);
+}
+body:has(style[data-nexus-native-theme]) :is([data-sidebar-right-guide-entry],[data-sidebar-right-guide] button[class$="_entry"]) [fill^="#"]:not([fill="#fff"]):not([fill="#ffffff"]) {
+  fill:var(--dsw-alias-brand-primary);
+}
+body:has(style[data-nexus-native-theme]) :is([data-sidebar-right-guide-entry],[data-sidebar-right-guide] button[class$="_entry"]) [class*="_keys_"] {
+  font-size:10px; color:var(--dsw-alias-label-tertiary);
+}
+body:has(style[data-nexus-native-theme]) [class$="_composerHero"] .nexus-companion {
+  margin:0; gap:6px;
+}
+body:has(style[data-nexus-native-theme]) [class$="_composerHero"] > [data-slot="conversation.input.dock"]:has(> .nexus-companion,> .nexus-autonomy) {
+  display:flex !important; flex-wrap:wrap; align-items:center; gap:6px 16px; min-width:0; padding-inline:6px;
+}
+body:has(style[data-nexus-native-theme]) [class$="_composerHero"] > [data-slot="conversation.input.dock"] > .nexus-autonomy-compact {
+  flex:1 1 220px; min-width:0; padding:0; border:0; border-radius:0; background:transparent;
+}
+body:has(style[data-nexus-native-theme]) [class$="_composerHero"] > [data-slot="conversation.input.dock"] > .nexus-companion:has(.nexus-companion-note,.nexus-companion-gate,.nexus-companion-reflection,details[open],p[role="alert"]),
+body:has(style[data-nexus-native-theme]) [class$="_composerHero"] > [data-slot="conversation.input.dock"] > .nexus-autonomy-compact:has(> details[open]) {
+  flex-basis:100%;
+}
+body:has(style[data-nexus-native-theme]) [class$="_composerHero"] .nexus-autonomy-strip {
+  min-height:26px; padding:3px 0; gap:7px; font-size:11px;
+}
+body:has(style[data-nexus-native-theme]) [class$="_composerHero"] .nexus-autonomy-strip > strong {
+  font-weight:500; font-size:11px; color:var(--dsw-alias-label-secondary);
+}
+body:has(style[data-nexus-native-theme]) [class$="_composerHero"] .nexus-autonomy-strip:has(> .nexus-autonomy-status[data-status="empty"]) > .nexus-autonomy-strip-objective {
+  display:none;
+}
+body:has(style[data-nexus-native-theme]) [class$="_composerHero"] .nexus-companion-status {
+  border:0; padding:0 4px;
+}
+body:has(style[data-nexus-native-theme]) [class$="_composerHero"] .nexus-companion-status > summary {
+  width:fit-content; padding:3px 0; font-size:11px; color:var(--dsw-alias-label-tertiary);
+}
+body:has(style[data-nexus-native-theme]) [class$="_composerHero"] .nexus-autonomy-compact {
+  margin:0; border-color:var(--dsw-alias-border-l3); background:transparent;
+}
 /* Keep the host's view strip usable as plugins add peer views. */
 body:has(style[data-nexus-native-theme]) header[data-window-drag] [class$="_tabs"] {
   min-width:0; overflow-x:auto; overflow-y:hidden; gap:22px;
@@ -57,6 +147,6 @@ body:has(style[data-nexus-native-theme]) header[data-window-drag] [class$="_tabs
   flex:0 0 auto; white-space:nowrap; letter-spacing:0;
 }
 @media(max-width:720px) {
-  body:has(style[data-nexus-native-theme]) .Dc7zOa_header:not(.Dc7zOa_headerBlank) { padding-inline:12px; }
-  body:has(style[data-nexus-native-theme]) .Dc7zOa_composerStack { padding:10px 12px; }
+  body:has(style[data-nexus-native-theme]) [data-slot="conversation.header"] > header:not([class*="_headerBlank"]) { padding-inline:12px; }
+  body:has(style[data-nexus-native-theme]) [class*="_composerStack"] { padding:10px 12px; }
 }

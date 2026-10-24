@@ -4,7 +4,7 @@
 
 - Node.js **24.22.1** LTS recommended (pinned in `.nvmrc`); patched 22.x and
   26.x releases listed in `package.json` are also supported.
-- DeepSeek Harness Desktop **0.2.1-rc.2** for runtime installation.
+- DeepSeek Harness Desktop **0.2.1-rc.3** for runtime installation.
 - Windows and PowerShell for the supplied Desktop installer.
 - Python 3.10+ for the optional Python memory bridges; check each vendored component's
   `pyproject.toml` or `package.json` and install the dependencies for the feature you enable.
@@ -14,6 +14,7 @@
 npm ci --ignore-scripts
 npm run audit:security
 npm run check
+node tools/acceptance/cognition-upstream.mjs --output evidence/cognition
 npm run pack:delivery
 ```
 
@@ -33,6 +34,14 @@ The build creates the original client adapters and native capability entries bef
 bundling the host and client. Type checking and tests then run against this build.
 Desktop GUI, external-model requests and optional Python/service behavior are not
 covered by a successful JavaScript CI job.
+
+The separate cognition check compiles every vendored Python source and executes
+all 31 regression modules selected from the 0.9.13 changes and retained source
+completion. Each module runs in a separate Python process with isolated memory
+roots and an isolated copy of the complete public source. Its report records individual exit codes and optional upstream baseline
+skips. Windows desktop control is checked separately with
+`node tools/acceptance/computer-use-windows.mjs --fixture-input --output evidence/computer-use`;
+that check writes to and captures only its own temporary WinForms window.
 
 ## Packaging
 

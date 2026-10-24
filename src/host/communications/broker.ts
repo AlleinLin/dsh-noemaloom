@@ -33,11 +33,14 @@ export interface SendMail {
   content: Array<{ type: 'text'; text: string }>;
   requestId: string;
   delivery?: 'steer' | 'queue';
+  wake?: boolean;
   replyTo?: string;
 }
 export type MailNotice = { cursor: number; kind: string; agentId?: string; mailId?: string };
 export interface MailTransport {
   child(parent: any, targetId: string, content: ContentBlock[], source: any, signal: AbortSignal, delivery: 'steer' | 'queue'): Promise<string>;
+  directory?(caller: any, signal: AbortSignal, requestedTarget?: string): Promise<AgentDirectory>;
+  direct?(target: any, content: ContentBlock[], source: any, signal: AbortSignal, mail: AgentMail): Promise<string>;
 }
 
 /** Durable sender outbox and exact recipient receipts; never starts replacement agents. */
@@ -121,8 +124,11 @@ export class AgentMailbox {
     if (this.events.length > 512) this.events.shift();
     for (const wake of this.waiters) wake();
   }
-  async directory(caller: any, signal: AbortSignal) {
-    const directory = await agentDirectory(this.ctx, caller, AbortSignal.any([signal, this.stop.signal]));
+  async directory(caller: any, signal: AbortSignal, requestedTarget?: string) {
+    const combined = AbortSignal.any([signal, this.stop.signal]);
+    const directory = this.transport.directory
+      ? await this.transport.directory(caller, combined, requestedTarget)
+      : await agentDirectory(this.ctx, caller, combined);
     for (const row of directory.agents) this.roots.set(row.id, directory.rootId);
     // This map is only an event-routing cache, never authorization.
     while (this.roots.size > 4096) this.roots.delete(this.roots.keys().next().value!);
@@ -141,10 +147,12 @@ export class AgentMailbox {
     const replyTo = typeof input.replyTo === 'string' ? input.replyTo.trim() || undefined : input.replyTo;
     if (replyTo !== undefined && !/^mail_[a-f0-9]{64}$/.test(replyTo)) throw communicationError('NX_MAIL_REPLY_DENIED',
       'No message was sent. For a NEW message omit reply_to or use "". For a reply, call read_agent_messages and copy the received message_id (mail_ followed by 64 hexadecimal characters), targeting its sender. Never use request_id, an agent id, parent or lead as reply_to. Correct the arguments and retry with the same request_id.');
-    const directory = await this.directory(caller, signal), target = resolveAgent(directory, input.target, input.alternateTarget);
+    if (input.wake !== undefined && typeof input.wake !== 'boolean') throw communicationError('NX_MAIL_INVALID_ARGUMENT', 'wake must be boolean.');
+    const directory = await this.directory(caller, signal, input.target), target = resolveAgent(directory, input.target, input.alternateTarget);
     if (target.id === caller.id) throw communicationError('NX_MAIL_SELF_MESSAGE', 'Send to another agent; this operation does not steer yourself.');
     const id = `mail_${digest([directory.rootId, caller.id, input.requestId])}`;
-    const fingerprint = digest([caller.id, target.id, input.content, input.delivery ?? 'steer', replyTo ?? null]);
+    const fingerprint = digest([caller.id, target.id, input.content, input.delivery ?? 'steer', replyTo ?? null,
+      ...(input.wake === undefined ? [] : [input.wake])]);
     return this.serial(id, async () => {
       signal.throwIfAborted();
       const old = await this.store.get<AgentMail>(this.collection(directory.rootId), id);
@@ -161,6 +169,7 @@ export class AgentMailbox {
       const mail: AgentMail = {
         id, rootId: directory.rootId, workspaceRoot: directory.workspaceRoot, senderId: caller.id, targetId: target.id,
         requestId: input.requestId, fingerprint, content: structuredClone(input.content), delivery: input.delivery ?? 'steer',
+        ...(input.wake === undefined ? {} : { wake: input.wake }),
         ...(replyTo ? { replyTo } : {}), state: 'queued', createdAt: timestamp(), updatedAt: timestamp(),
       };
       // Durable outbox acceptance precedes any recipient effect.
@@ -175,7 +184,7 @@ export class AgentMailbox {
       });
       try {
         const saved = await this.save(mail, 0);
-        return this.deliver(directory, mail, saved.revision, signal);
+        return await this.deliver(directory, mail, saved.revision, signal);
       } catch (error: any) {
         if (error?.code !== 'REVISION_CONFLICT') throw error;
         const concurrent = await this.store.get<AgentMail>(this.collection(directory.rootId), id);
@@ -228,12 +237,40 @@ export class AgentMailbox {
     }
     return false;
   }
+  /** Cold resume must obey the same human-stop evidence as an admitted send. */
+  async beforeResume(caller: any, targetId: string, signal: AbortSignal) {
+    const directory = await this.directory(caller, signal, targetId);
+    resolveAgent(directory, targetId);
+    const root = directory.kind === 'cross-session' ? caller.id : directory.rootId;
+    if (await this.stoppedByHuman(root, signal) || await this.stoppedByHuman(targetId, signal)) {
+      throw communicationError('NX_MAIL_USER_STOPPED', 'A human must resume the stopped session; no cold resume or message delivery was attempted.');
+    }
+  }
   private async deliver(directory: AgentDirectory, mail: AgentMail, revision: number, signal: AbortSignal) {
+    try {
+      return await this.dispatch(directory, mail, revision, signal);
+    } catch (error) {
+      if (signal.aborted || this.stop.signal.aborted) {
+        // A cancellation before the durable dispatch boundary must not leave
+        // a queued row for a later activity pump with an unrelated signal.
+        const current = await this.store.get<AgentMail>(this.collection(mail.rootId), mail.id);
+        if (current && ['queued', 'held'].includes(current.value.state)) {
+          current.value.state = 'discarded';
+          current.value.code = 'NX_MAIL_SEND_CANCELLED';
+          await this.save(current.value, current.revision);
+        }
+      }
+      throw error;
+    }
+  }
+  private async dispatch(directory: AgentDirectory, mail: AgentMail, revision: number, signal: AbortSignal) {
+    signal.throwIfAborted();
     const registry = this.ctx.get('agents');
     const target = directory.agents.find(row => row.id === mail.targetId)!;
     const liveTarget = registry.get(mail.targetId);
     // A queued message never wakes a manually stopped agent or a stopped task.
-    if (await this.stoppedByHuman(mail.rootId, signal) || await this.stoppedByHuman(mail.targetId, signal)) {
+    const stopRoot = directory.kind === 'cross-session' ? mail.senderId : mail.rootId;
+    if (await this.stoppedByHuman(stopRoot, signal) || await this.stoppedByHuman(mail.targetId, signal)) {
       mail.state = 'held'; mail.code = 'NX_MAIL_USER_STOPPED'; await this.save(mail, revision); return this.receipt(mail);
     }
     const parent = target.parentId ? registry.get(target.parentId) : undefined;
@@ -241,7 +278,7 @@ export class AgentMailbox {
       mail.state = 'queued'; mail.code = 'NX_MAIL_PARENT_UNAVAILABLE'; await this.save(mail, revision); return this.receipt(mail);
     }
     if (parent && pathIdentity(await realpath(parent.session.header.cwd)) !== pathIdentity(mail.workspaceRoot)) throw communicationError('NX_MAIL_SCOPE_DENIED', 'Recipient owner changed workspace.');
-    if (!target.parentId && (!liveTarget || liveTarget !== registry.get(mail.rootId))) throw communicationError('NX_MAIL_TARGET_UNAVAILABLE', 'Task root is not live.');
+    if (!target.parentId && (!liveTarget || !this.transport.direct && liveTarget !== registry.get(mail.rootId))) throw communicationError('NX_MAIL_TARGET_UNAVAILABLE', 'Task root is not live.');
     const source: AgentMessageSource & { nexusMessageId: string } = {
       kind: 'agent-message', form: 'relay', senderSessionId: SessionId(mail.senderId), nexusMessageId: mail.id,
     };
@@ -250,20 +287,28 @@ export class AgentMailbox {
     // Crash after this commit is ambiguous until the recipient inbox/log is observed.
     mail.state = 'unknown'; delete mail.code;
     let saved = await this.save(mail, revision);
+    let dispatchAttempted = false;
     try {
       // A user may stop the task while the durable unknown boundary is being committed.
-      if (this.pauseOverflow || this.paused.has(mail.rootId) || this.paused.has(mail.targetId)) {
+      if (this.pauseOverflow || this.paused.has(stopRoot) || this.paused.has(mail.targetId)) {
         mail.state = 'held'; mail.code = 'NX_MAIL_USER_STOPPED'; saved = await this.save(mail, saved.revision); return this.receipt(saved.value);
       }
       const deliverySignal = AbortSignal.any([signal, this.stop.signal]);
-      if (parent && registry.get(target.parentId!) !== parent || !parent && registry.get(mail.rootId) !== liveTarget) {
+      deliverySignal.throwIfAborted();
+      if (parent && registry.get(target.parentId!) !== parent
+        || !parent && registry.get(this.transport.direct ? target.id : mail.rootId) !== liveTarget) {
         mail.state = 'queued'; mail.code = 'NX_MAIL_PARENT_UNAVAILABLE'; saved = await this.save(mail, saved.revision); return this.receipt(saved.value);
       }
-      if (target.parentId) {
+      if (this.transport.direct && directory.kind === 'cross-session') {
+        dispatchAttempted = true;
+        mail.messageId = await this.transport.direct(liveTarget, content, source, deliverySignal, mail);
+      } else if (target.parentId) {
+        dispatchAttempted = true;
         mail.messageId = await this.transport.child(parent, mail.targetId, content, source, deliverySignal, mail.delivery);
       } else {
         deliverySignal.throwIfAborted();
         const message = createUserMessage({ content, source });
+        dispatchAttempted = true;
         if (mail.delivery === 'queue') liveTarget.followup(message); else liveTarget.steer(message);
         mail.messageId = message.id;
       }
@@ -271,7 +316,8 @@ export class AgentMailbox {
       saved = await this.save(mail, saved.revision);
     } catch (error) {
       // Never guess whether an adapter that threw had already accepted a message.
-      mail.state = 'unknown'; mail.code = 'NX_MAIL_DELIVERY_UNCONFIRMED';
+      mail.state = !dispatchAttempted && (signal.aborted || this.stop.signal.aborted) ? 'discarded' : 'unknown';
+      mail.code = mail.state === 'discarded' ? 'NX_MAIL_SEND_CANCELLED' : 'NX_MAIL_DELIVERY_UNCONFIRMED';
       try { saved = await this.save(mail, saved.revision); } catch { /* Prior durable unknown remains authoritative. */ }
     }
     return this.receipt(saved.value);
@@ -281,6 +327,7 @@ export class AgentMailbox {
       status: SETTLED.has(mail.state) && mail.state === 'failed' ? 'error' : ['queued', 'held', 'unknown', 'discarded'].includes(mail.state) ? 'warning' : 'success',
       state: mail.state, message_id: mail.id, messageId: mail.messageId ?? null,
       sender_id: mail.senderId, target: mail.targetId, request_id: mail.requestId,
+      ...(mail.wake === undefined ? {} : { wake: mail.wake }),
       ...(mail.code ? { code: mail.code } : {}),
       summary: mail.state === 'consumed' ? 'Recipient claimed this message; no answer is implied.'
         : mail.state === 'accepted' ? 'Recipient inbox accepted this message; no answer is implied.'
@@ -328,6 +375,24 @@ export class AgentMailbox {
       const row = await this.store.get<AgentMail>(this.collection(directory.rootId), id);
       if (!row || row.value.senderId !== caller.id && row.value.targetId !== caller.id) throw communicationError('NX_MAIL_RECEIPT_NOT_FOUND', 'No authorized mailbox receipt for this message_id.');
       return this.reconcile(row.value, row.revision, signal);
+    });
+  }
+  /** Retire an owned pending notice after its request ended; never replay or
+   * retract a dispatch whose recipient acceptance is already ambiguous. */
+  async cancelPending(caller: any, id: string) {
+    if (typeof id !== 'string' || !/^mail_[a-f0-9]{64}$/.test(id))
+      throw communicationError('NX_MAIL_RECEIPT_NOT_FOUND', 'Provide an exact mailbox message_id.');
+    const directory = await this.directory(caller, AbortSignal.timeout(30000));
+    return this.serial(id, async () => {
+      const current = await this.store.get<AgentMail>(this.collection(directory.rootId), id);
+      if (!current || current.value.senderId !== caller.id)
+        throw communicationError('NX_MAIL_RECEIPT_NOT_FOUND', 'Only the original sender may retire this pending message.');
+      if (['queued', 'held'].includes(current.value.state)) {
+        current.value.state = 'discarded';
+        current.value.code = 'NX_MAIL_SEND_CANCELLED';
+        return this.receipt((await this.save(current.value, current.revision)).value);
+      }
+      return this.receipt(current.value);
     });
   }
   async read(caller: any, signal: AbortSignal, offset = 0, limit = 30) {

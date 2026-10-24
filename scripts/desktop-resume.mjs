@@ -6,7 +6,7 @@ import { join, relative, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { zstdDecompressSync, zstdCompressSync, constants as zstdConstants } from 'node:zlib';
 import { Session } from '@deepseek-ai/dsh-session';
-import { until } from './desktop-cdp.mjs';
+import { until, completeSyntheticOnboarding } from './desktop-cdp.mjs';
 
 const evidence = resolve('evidence/private-desktop-inspection');
 const statePath = join(evidence, 'smoke-state.json');
@@ -86,7 +86,10 @@ Object.assign(env, { DSH_HOME: state.productHome, DSH_AGENTS_HOME: join(state.te
 // overwritten at the same path. The shipping installer already uses a digest
 // filename; use that same immutable identity for disposable verification.
 const manifest = JSON.parse(await readFile('package.json', 'utf8'));
-const packageBytes = await readFile(resolve(`artifacts/dsh-noemaloom-${manifest.version}.tgz`));
+const packageIndex = process.argv.indexOf('--package');
+if (packageIndex >= 0 && !process.argv[packageIndex + 1]) throw new Error('--package requires a tarball path');
+const packageBytes = await readFile(resolve(packageIndex < 0
+  ? `artifacts/dsh-noemaloom-${manifest.version}.tgz` : process.argv[packageIndex + 1]));
 const packageDigest = createHash('sha256').update(packageBytes).digest('hex');
 const packagePath = join(state.temporary, `dsh-noemaloom-${packageDigest}.tgz`);
 await writeFile(packagePath, packageBytes);
@@ -106,9 +109,14 @@ delete env.ELECTRON_RUN_AS_NODE;
 // Separate Chromium data avoids an old DevToolsActivePort discovery race.
 state.userData = join(state.temporary, `electron-${Date.now()}`);
 await mkdir(state.userData);
-const child = spawn(executable, [`--user-data-dir=${state.userData}`, '--remote-debugging-port=0'], { env, windowsHide: true, detached: true, stdio: 'ignore' });
+const child = spawn(executable, [`--user-data-dir=${state.userData}`, '--remote-debugging-port=0'], { env, windowsHide: false, detached: true, stdio: 'ignore' });
 child.unref(); state.pid = child.pid;
 const text = await until(async () => { try { return await readFile(join(state.userData, 'DevToolsActivePort'), 'utf8'); } catch (error) { if (error.code !== 'ENOENT') throw error; } }, 60000);
 state.port = Number(text.split('\n')[0]);
+await until(async () => {
+  const targets = await (await fetch(`http://127.0.0.1:${state.port}/json/list`)).json();
+  return targets.some(row => row.type === 'page' && row.url.startsWith('dsh-app://app'));
+}, 60000);
+state.onboarding = await completeSyntheticOnboarding(state.port);
 await writeFile(statePath, JSON.stringify(state, null, 2));
 console.log(JSON.stringify({ pid: state.pid, port: state.port, fixtureSessionId: state.fixtureSessionId, modelRequestsSent: 0 }));

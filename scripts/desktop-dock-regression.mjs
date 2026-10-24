@@ -4,6 +4,7 @@ import { dirname, join, relative, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { build } from 'esbuild';
 import { connectTarget, delay, until } from './desktop-cdp.mjs';
+import { sourceIdentity } from '../tools/acceptance/core.mjs';
 
 // Run against an already launched, disposable Desktop, once per old/new
 // package. Never opens a real profile or sends a conversation/model request.
@@ -24,9 +25,10 @@ const targets = await (await fetch(`http://127.0.0.1:${state.port}/json/list`)).
 const target = targets.find(row => row.type === 'page' && row.url.startsWith('dsh-app://app'));
 if (!target) throw new Error('Synthetic Desktop page not available');
 const cdp = await connectTarget(target);
+const source = await sourceIdentity(resolve('.'));
 await cdp.call('Runtime.enable');
 const report = { schemaVersion: 1, statePath: resolve(statePath), startedAt: new Date().toISOString(),
-  copiedUserData: false, modelRequestsSent: 0, cases: [], inputAttempts: [] };
+  copiedUserData: false, modelRequestsSent: 0, cases: [], inputAttempts: [], sourceHash: source.sha256 };
 const checks = async (name, callback) => {
   const started = Date.now();
   try { const result = await callback(); report.cases.push({ name, passed: true, elapsedMs: Date.now() - started, ...result }); }
@@ -199,8 +201,11 @@ try {
         ?? panel.querySelector('[data-dockkit-pane]');
       const probe = document.createElement('div');
       probe.id = 'nexus-r24-native-probe';
-      probe.style.cssText = 'position:absolute;left:16px;top:110px;width:180px;z-index:30;background:#eee;color:#111;padding:8px';
-      probe.innerHTML = '<button id="nexus-r24-native-target" type="button" style="width:160px;height:36px">R24交互探针</button><div id="nexus-r24-native-scroll" style="height:180px;width:160px;overflow:auto;margin-top:12px"><div style="height:2000px">R24滚动探针</div></div>';
+      // The compact rail's popover can naturally cover its left side. Keep the
+      // outside-pointer probe in the right gutter beyond the menu, so a normal
+      // visible popover is not mistaken for a document-wide input lock.
+      probe.style.cssText = 'position:absolute;right:8px;top:110px;width:60px;z-index:30;background:#eee;color:#111';
+      probe.innerHTML = '<button id="nexus-r24-native-target" type="button" style="width:60px;height:36px">R24交互探针</button><div id="nexus-r24-native-scroll" style="height:180px;width:60px;overflow:auto;margin-top:12px"><div style="height:2000px">R24滚动探针</div></div>';
       pane.append(probe);
       const state = window.__nexusR24NativeProbe = { clicks: 0, panel, probe };
       probe.querySelector('button').addEventListener('click', () => { state.clicks++; });
@@ -327,7 +332,8 @@ try {
   catch {}
   cdp.close();
   report.finishedAt = new Date().toISOString();
-  report.passed = report.cases.length > 0 && report.cases.every(row => row.passed);
+  report.sourceUnchangedDuringRun = (await sourceIdentity(resolve('.'))).sha256 === source.sha256;
+  report.passed = report.cases.length > 0 && report.cases.every(row => row.passed) && report.sourceUnchangedDuringRun;
   await mkdir(dirname(output), { recursive: true });
   await writeFile(output, JSON.stringify(report, null, 2) + '\n', { flag: 'wx' });
 }

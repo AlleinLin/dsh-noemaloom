@@ -4,7 +4,7 @@ body:has(style[data-nexus-native-appearance]) [class$="_headline"]:has([data-nex
 }
 body:has(style[data-nexus-native-appearance]) [class$="_headline"]:has([data-nexus-brand-mark]) [class$="_titleGroup"] {
   display: inline-flex; flex-wrap: wrap; align-items: baseline; justify-content: center;
-  gap: 8px 12px; min-width: 0; max-width: 100%; white-space: normal; font-size: 32px; line-height: 1.35;
+  gap: 8px 12px; min-width: 0; max-width: 100%; white-space: normal; font-size: 28px; line-height: 1.35;
 }
 body:has(style[data-nexus-native-appearance]) [class$="_headline"]:has([data-nexus-brand-mark]) [class$="_titleGroup"] > span {
   max-width: 100%; overflow-wrap: anywhere; white-space: normal;

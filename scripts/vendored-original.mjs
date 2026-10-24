@@ -20,7 +20,11 @@ export async function vendoredOriginal(root, definition) {
     || !/^[a-f0-9]{40}$/u.test(definition.revision ?? '') || source.revision !== definition.revision) {
     throw new Error(`${definition.packageName}: pinned vendor identity changed`);
   }
-  for (const path of ['package.json', 'lib/client.js', 'lib/index.js', 'LICENSE', 'NOTICE']) {
+  const requiredFiles = source.requiredFiles ?? ['package.json', 'lib/client.js', 'lib/index.js', 'LICENSE', 'NOTICE'];
+  if (!Array.isArray(requiredFiles) || !requiredFiles.includes('package.json') || !requiredFiles.includes('LICENSE')) {
+    throw new Error(`${manifest.name}: invalid required source files`);
+  }
+  for (const path of requiredFiles) {
     if (!source.files?.[path]) throw new Error(`${manifest.name}: missing upstream hash for ${path}`);
   }
   for (const [path, expected] of Object.entries(source.files)) {

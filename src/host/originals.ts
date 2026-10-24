@@ -11,4 +11,5 @@ export const ORIGINAL_HOST_IDS = [
   'task-board', 'git-graph', 'usage', 'agency-agents',
   'agency-agents-remote', 'turn-rewind', 'codinput', 'thoughtdag', 'synapse',
   'superpowers', 'ponytail', 'openspec', 'karpathy',
+  'motion-ui', 'cross-session-approval', 'computer-use',
 ] as const;

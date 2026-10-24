@@ -8,6 +8,11 @@
 DSH 原生同版本依赖、用户归档和外部服务。原项目和 DSH 移植包分别记录，
 例如 Ponytail 原项目 5.3.2 与 Wenaixi 适配包 5.6.1 是不同版本。
 
+当前宿主目标为 Desktop **0.2.1-rc.3**。本体发布、全部来源、
+输入/菜单/模型目录变化及新增插件的适配见
+[2026-10-24 审查报告](upstream-audit-2026-10-24.md)和同名 JSON。
+Computer Use 两个上游分别追踪，仅加载选中的 Windows 实现。
+
 运行只读检查：
 
 ```powershell
@@ -15,6 +20,8 @@ node scripts/check-upstreams.mjs --output upstream-report.json
 ```
 
 报告将区分升级、未变化、较旧 dist-tag 和无法获取。网络失败不能当成无更新。
+宿主检测包括正式发布的 RC，并解析发布 tag 的 commit；DSH 同源包按该
+发布版本查询精确元数据。客户端 inject 和仅开发时引用的宿主包也纳入检查。
 检查结果不直接覆盖固定版本；评估公开差异、原生 API、Windows 支持、许可证、
 既有兼容补丁和运行入口后，更新依赖或明确拥有的源码目录。
 DSH 同源原生包必须随桌面宿主一起升级，不能逐包追随 npm latest。

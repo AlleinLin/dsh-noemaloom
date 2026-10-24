@@ -20,6 +20,7 @@ import { registerRecoveryDiagnostics } from './RecoveryDiagnostics.js';
 import { registerAutonomyConversation } from './AutonomyPlan.js';
 import { registerCompanionConversation } from './Companion.js';
 import { registerEditor } from './editor/register.js';
+import { installAdaptiveRightbar } from './adaptive-rightbar.js';
 const WorkflowEditor = React.lazy(() => import('./WorkflowEditor.js').then(module => ({ default: module.WorkflowEditor })));
 
 export const name = 'dsh-noemaloom-client';
@@ -36,6 +37,7 @@ export function apply(ctx: ClientContext) {
   ctx.effect(() => applyExtensionClientBridge(ctx), 'nexus extension browser generations');
   ctx.effect(() => {
     const disposers: (() => void)[] = [];
+    disposers.push(installAdaptiveRightbar(ctx));
     if (ctx.locale?.addLanguage) {
       try { disposers.push(ctx.locale.addLanguage({ id: 'ru', label: 'Русский', fallback: 'en' })); } catch { /* An existing language provider keeps ownership. */ }
     }

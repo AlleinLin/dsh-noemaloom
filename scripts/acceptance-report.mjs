@@ -3,6 +3,7 @@ import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { BASELINE_SHA256, sha256, slash, json, optionalJson, filesUnder, sourceIdentity, readFrozenDefinitions, readJUnit, validateReceipt, evaluateObservation } from '../tools/acceptance/core.mjs';
 import { domainCandidates, sourceCandidates, webSubpackages, testBindings, idsInTitle } from '../tools/acceptance/coverage-map.mjs';
+import { EXPECTED_DSH_VERSION } from '../src/shared/host-compatibility.ts';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const args = process.argv.slice(2);
@@ -85,7 +86,7 @@ for (const definition of definitions) {
       const issues = [];
       if (assertion.definitionSha256 !== definition.sha256) issues.push('claim-not-bound-to-frozen-definition');
       if (!checks.length) issues.push('empty-observation-checks');
-      if (kind === 'desktop' && (item.receipt.environment?.observedFrom !== 'desktop-process' || item.receipt.environment?.hostVersion !== '0.2.1-rc.2' || !item.receipt.environment?.node || !item.receipt.environment?.abi)) issues.push('missing-actual-desktop-runtime-facts');
+      if (kind === 'desktop' && (item.receipt.environment?.observedFrom !== 'desktop-process' || item.receipt.environment?.hostVersion !== EXPECTED_DSH_VERSION || !item.receipt.environment?.node || !item.receipt.environment?.abi)) issues.push('missing-actual-desktop-runtime-facts');
       if (['online-model', 'cache-experiment'].includes(kind) && (item.receipt.environment?.synthetic !== false || !(item.receipt.actualModelCalls > 0) || !Array.isArray(item.receipt.providerRequestIds) || !item.receipt.providerRequestIds.length)) issues.push('missing-actual-provider-attempt-evidence');
       if (kind === 'cache-experiment' && !(item.receipt.pairedSampleCount > 0)) issues.push('missing-paired-samples');
       if (item.receipt.exitCode !== undefined && item.receipt.exitCode !== 0) issues.push('command-failed');

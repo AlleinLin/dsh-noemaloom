@@ -12,6 +12,9 @@ import { suppressManagedUpdateUi } from './managed-updates.mjs';
 import { workflowNotices } from './workflow-notices.mjs';
 import { buildCodinputClient } from './build-codinput.mjs';
 import { nativeEditorExtensions } from '../src/shared/editor-extensions.ts';
+import { buildComputerUseHost } from './build-computer-use.mjs';
+import { adaptMotionClient, adaptComputerUseClient } from './adapt-new-originals.mjs';
+import { buildCrossSessionHost } from './build-cross-session.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const require = createRequire(join(root, 'package.json'));
@@ -101,20 +104,31 @@ function adaptContext(factory) {
   let source = replaceOnce(factory, 'var t={exports:{}}',
     'const nexusNativeNavigation=e("dsh-noemaloom/original-navigation");var t={exports:{}}',
     'Context native navigation module');
-  source = replaceOnce(source, 'function _u(e){return e.defaultPlacement()!==`sidebar`}',
-    'function _u(e){return true}', 'Context fixed conversation placement gate');
-  source = replaceOnce(source, 'let s=_u(e),c=o!==`tab`;',
-    'let s=true,c=false;', 'Context single conversation surface');
-  source = replaceOnce(source, 'Vl(e)||Hl(n(`tab.context`))',
-    'nexusNativeNavigation.openView(r,"context",a===null?"":String(a))',
+  const ast = ts.createSourceFile('context-reviewed.js', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
+  const placements = [];
+  const visit = node => {
+    if (ts.isFunctionDeclaration(node) && node.name?.text === 'cd') placements.push(node);
+    ts.forEachChild(node, visit);
+  };
+  visit(ast);
+  if (placements.length !== 1 || !placements[0].getText(ast).includes('o(e.defaultPlacement())')
+    || !placements[0].getText(ast).includes('t.tab()') || !placements[0].getText(ast).includes('t.sidebar()')) {
+    throw new Error('Context reviewed dynamic placement registration changed');
+  }
+  source = replaceOnce(source, placements[0].getText(ast), 'function cd(e,t){return t.tab()}',
+    'Context single native conversation registration');
+  source = replaceOnce(source, 'let c=sd(o);if(!c.tab&&!c.sidebar)return null;', '',
+    'Context native jump remains available with fixed placement');
+  source = replaceOnce(source, 'Qu(e)||$u(r(`tab.context`))',
+    'nexusNativeNavigation.openView(t.sessionId,"context",l===null?"":String(l))',
     'Context message jump uses native session view action');
-  source = replaceOnce(source, 'Hl(i(`tab.fleet`))||Vl(e)',
+  source = replaceOnce(source, '$u(i(`tab.fleet`))||Qu(e)',
     'nexusNativeNavigation.openView(o,"fleet","")',
     'Context fleet jump uses native session view action');
-  const oldChromeClick = 'function Hl(e){let t=document.querySelectorAll(`button[role="tab"]`);for(let n of t)if(n.textContent.trim()===e)return n.getAttribute(`aria-selected`)!==`true`&&n.click(),!0;return!1}';
-  source = replaceOnce(source, oldChromeClick, 'function Hl(){return false}',
+  const oldChromeClick = 'function $u(e){let t=document.querySelectorAll(`button[role="tab"]`);for(let n of t)if(n.textContent.trim()===e)return n.getAttribute(`aria-selected`)!==`true`&&n.click(),!0;return!1}';
+  source = replaceOnce(source, oldChromeClick, 'function $u(){return false}',
     'Context remove obsolete chrome-click helper');
-  const placementChoice = '(0,d.jsx)($s,{label:t(`settings.placement`),value:n.placement,disabled:i,options:[{id:`all`,label:t(`placement.all`)},{id:`tab`,label:t(`placement.tab`)},{id:`sidebar`,label:t(`placement.sidebar`)}],onPick:e=>{r?.(`defaultPlacement`,e)}}),';
+  const placementChoice = '(0,d.jsx)(bc,{label:t(`settings.placement`),value:n.placement,disabled:i,options:[{id:`all`,label:t(`placement.all`)},{id:`tab`,label:t(`placement.tab`)},{id:`sidebar`,label:t(`placement.sidebar`)},{id:`hide`,label:t(`placement.hide`)}],onPick:e=>{r?.(`defaultPlacement`,e)}}),';
   source = replaceOnce(source, placementChoice, '', 'Context remove inactive placement preference');
   return source;
 }
@@ -137,7 +151,20 @@ const clientPrerequisites = new Set();
 async function addHost(id, packageName, version, subpath = '.', installed) {
   let specifier = subpath === '.' ? packageName : `${packageName}${subpath.slice(1)}`;
   const filename = `${id}.js`;
-  if (installed?.source) {
+  let adaptation;
+  if (id === 'cross-session-approval') {
+    adaptation = await buildCrossSessionHost(root, installed, hostOutput);
+    specifier = adaptation.specifier;
+    await writeFile(join(hostOutput, filename),
+      `// Original ${packageName}@${version}; native permissions and tools with the shared task mailbox.\n`
+      + `export * from ${JSON.stringify(specifier)};\n`);
+  } else if (id === 'computer-use') {
+    adaptation = await buildComputerUseHost(root, installed, hostOutput);
+    specifier = adaptation.specifier;
+    await writeFile(join(hostOutput, filename),
+      `// Original ${packageName}@${version}, commit ${installed.source.revision}; authenticated rc.3 carrier adaptation.\n`
+      + `export * from ${JSON.stringify(specifier)};\n`);
+  } else if (installed?.source) {
     // Preserve the original CommonJS module under .cjs in our ESM package.
     // This wrapper only forwards exports; the upstream host stays untouched.
     if (installed.manifest.type === 'module') throw new Error(`${packageName}: expected the reviewed CommonJS host`);
@@ -160,7 +187,7 @@ async function addHost(id, packageName, version, subpath = '.', installed) {
       + `export function apply(ctx, config) {\n`
       + `  const registry = ctx.skills;\n`
       + `  const skills = new Proxy(registry, { get(target, key) {\n`
-      + `    if (key === "register") return definition => registry.register({ ...definition, content: definition.content.replace(/\\bopenspec(?=\\s+(?:(?:store|new|status|instructions|list|show|validate|archive|doctor|context|schemas|view|init|update|config|completion|feedback|telemetry)\\b|--(?:version|help)\\b))/g, () => command) });\n`
+      + `    if (key === "register") return definition => registry.register({ ...definition, content: definition.content.replace(/\\bopenspec(?=\\s+(?:(?:store|new|status|instructions|list|show|validate|archive|doctor|context|schemas|templates|view|init|update|install|version|change|experimental|config|completion|feedback|telemetry)\\b|--(?:version|help)\\b))/g, () => command) });\n`
       + `    const value = Reflect.get(target, key); return typeof value === "function" ? value.bind(target) : value;\n`
       + `  } });\n`
       + `  return original.apply(new Proxy(ctx, { get(target, key) { return key === "skills" ? skills : Reflect.get(target, key); } }), config);\n`
@@ -182,6 +209,12 @@ async function addHost(id, packageName, version, subpath = '.', installed) {
       "new URL('../../assets/methods/karpathy/skills/', import.meta.url)",
       'Karpathy original skill provider asset root');
     await writeFile(join(hostOutput, filename), adapted);
+  } else if (id === 'agency-agents') {
+    await writeFile(join(hostOutput, filename),
+      `// Original ${packageName}@${version}; Nexus owns package updates.\n`
+      + `import * as original from ${JSON.stringify(specifier)};\n`
+      + `export * from ${JSON.stringify(specifier)};\n`
+      + 'export function apply(ctx, config) { return original.apply(ctx, { ...config, updater: false }); }\n');
   } else if (id === 'thoughtdag' || id === 'synapse') {
     const applyName = id === 'thoughtdag' ? 'applyThoughtdag' : 'applySynapse';
     await writeFile(join(hostOutput, filename),
@@ -200,7 +233,10 @@ async function addHost(id, packageName, version, subpath = '.', installed) {
   hostRows.push({
     id, packageName, version, specifier,
     export: `./original/${id}`, target: `./lib/original/${filename}`,
-    ...(installed?.source ? { revision: installed.source.revision, upstreamSha256: installed.source.files['lib/index.js'], commonjsTarget: `./lib/original/${id}.cjs` } : {}),
+    ...(!installed?.source && adaptation ? adaptation : {}),
+    ...(installed?.source ? { revision: installed.source.revision,
+      upstreamSha256: installed.source.files['lib/index.js'] ?? installed.source.files['index.js'],
+      ...(adaptation ? adaptation : { commonjsTarget: `./lib/original/${id}.cjs` }) } : {}),
   });
 }
 
@@ -216,6 +252,14 @@ async function addClient(definition, installed) {
   let factory = parsed.factory;
   const adaptations = [];
   let rebuiltDependencies;
+  if (definition.id === 'motion-ui') {
+    factory = adaptMotionClient(factory);
+    adaptations.push('native-Claude-orange-rounded-appearance-with-reduced-motion');
+  }
+  if (definition.id === 'computer-use') {
+    factory = adaptComputerUseClient(factory);
+    adaptations.push('rc3-owner-only-authenticated-route', 'native-Claude-orange-rounded-chip', 'lifecycle-owned-style-cleanup');
+  }
   if (definition.id === 'codinput') {
     const rebuilt = await buildCodinputClient();
     factory = rebuilt.factory;
@@ -289,7 +333,8 @@ async function copyNotice(installed, id) {
     upstreamLicenseFile: found,
     ...(installed.source ? {
       revision: installed.source.revision, source: `vendor/${id}/SOURCE.json`,
-      clientSha256: installed.source.files['lib/client.js'], hostSha256: installed.source.files['lib/index.js'],
+      clientSha256: installed.source.files['lib/client.js'] ?? installed.source.files['client.js'],
+      hostSha256: installed.source.files['lib/index.js'] ?? installed.source.files['index.js'],
       dependencyNotices: installed.source.dependencyNotices,
     } : {}),
   };
@@ -309,7 +354,7 @@ for (const definition of originals) {
 
 const mnemon = await packageRoot('dsh-mnemon');
 await addHost('mnemon-bundle', 'dsh-mnemon', mnemon.manifest.version, './bundle');
-await addHost('agency-agents-remote', '@michengai/dsh-agency-agents', '1.2.9', './remote');
+await addHost('agency-agents-remote', '@michengai/dsh-agency-agents', '1.2.11', './remote');
 
 // The original Starter's full source/strategy/provider closure is fixed by its
 // own exact dependency versions. Each host remains a formal Loader entry.

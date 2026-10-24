@@ -22,6 +22,7 @@ import { NATIVE_SYNC_CHECKPOINTS, nativeSyncStateHash, type NativeSyncCheckpoint
 import type { ContextArchiveHead } from '../domain/context/archive-types.js';
 import type { ContextSession } from '../domain/context/types.js';
 import { summaryRequestBudget } from './auxiliary-input.js';
+import { EXPECTED_DSH_VERSION } from '../shared/host-compatibility.js';
 
 export function manualSummaryRequest(input: any, sessionId: string,
   policy: { provider: string; model: string; summaryMaxTokens: number }, signal?: AbortSignal): ModelRequest {
@@ -399,7 +400,7 @@ export default class NexusCompactionEngine extends BasicCompactionEngine {
     const params = {
       sessionId: agent.id, purpose: 'main', lane: 'main',
       nodes, surfaceSeqs: [...current],
-      route: { providerId: route.provider, modelId: route.model, adapterVersion: 'dsh-0.2.1-rc.2' },
+      route: { providerId: route.provider, modelId: route.model, adapterVersion: `dsh-${EXPECTED_DSH_VERSION}` },
       windowTokens, outputReserveTokens: pressure.outputReserveTokens,
       tools: header?.tools ?? [], system: '',
     };

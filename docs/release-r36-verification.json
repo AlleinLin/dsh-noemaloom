@@ -1,0 +1,1617 @@
+{
+  "schemaVersion": 1,
+  "release": "R36",
+  "recordedAt": "2026-10-24T10:44:33.434Z",
+  "source": {
+    "algorithm": "sha256:path-and-content-v1",
+    "sha256": "bde566a15300e70a5a67babd08c4cfe32919e39a28386a4836df740d5c76bcca",
+    "files": 2743
+  },
+  "host": "0.2.1-rc.3",
+  "batch": {
+    "startedAt": "2026-10-24T10:30:44.227Z",
+    "sourceHash": "bde566a15300e70a5a67babd08c4cfe32919e39a28386a4836df740d5c76bcca",
+    "results": [
+      {
+        "name": "typecheck",
+        "path": "artifacts/rc3-typecheck-round12.log",
+        "startedAt": "2026-10-24T10:30:44.228Z",
+        "finishedAt": "2026-10-24T10:30:56.818Z",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "security",
+        "path": "artifacts/rc3-security-round12.log",
+        "startedAt": "2026-10-24T10:30:56.819Z",
+        "finishedAt": "2026-10-24T10:30:58.604Z",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "tests",
+        "path": "artifacts/rc3-tests-round12.log",
+        "startedAt": "2026-10-24T10:30:58.605Z",
+        "finishedAt": "2026-10-24T10:35:59.575Z",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "artifacts",
+        "path": "artifacts/rc3-artifacts-round12.log",
+        "startedAt": "2026-10-24T10:35:59.576Z",
+        "finishedAt": "2026-10-24T10:35:59.857Z",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "windows",
+        "path": "artifacts/rc3-windows-round12.log",
+        "startedAt": "2026-10-24T10:35:59.858Z",
+        "finishedAt": "2026-10-24T10:36:10.575Z",
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "cognition",
+        "path": "artifacts/rc3-cognition-round12.log",
+        "startedAt": "2026-10-24T10:36:10.576Z",
+        "finishedAt": "2026-10-24T10:37:10.230Z",
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "finishedAt": "2026-10-24T10:37:10.231Z",
+    "sourceUnchangedDuringRun": true
+  },
+  "javascript": {
+    "files": 252,
+    "tests": 2339,
+    "passed": 2339,
+    "failed": 0,
+    "skipped": 0,
+    "junitTestcases": 2338,
+    "countingNote": "Node reports 2339 passing tests; its JUnit reporter serializes 2338 leaf testcase elements. The test-with-subtests named \"fallback waits cancel immediately on user stop, parent stop, disposal and unload\" is represented as a testsuite rather than an additional testcase. Original stdout and XML are both retained.",
+    "receipt": "evidence/receipts/rc3-round12.json"
+  },
+  "cognition": {
+    "compiledPythonFiles": 824,
+    "regressionModules": 31,
+    "allModuleExitCodesZero": true,
+    "optionalBaselines": [
+      {
+        "module": "test_conformance",
+        "reason": [
+          "  [集成] SKIP 真源库不可用（设 MDCG_CONFORMANCE_ROOT=<库根> 可跑集成）"
+        ],
+        "countedAsPassedBaseline": false
+      },
+      {
+        "module": "test_mr_m1",
+        "reason": [
+          "  SKIP 真源库不可用（外部 clone 环境）——非失败"
+        ],
+        "countedAsPassedBaseline": false
+      }
+    ],
+    "report": "evidence/rc3-cognition-round12/report.json"
+  },
+  "desktop": {
+    "boot": {
+      "path": "evidence/rc3-desktop-boot-final.json",
+      "sha256": "0f84edf5393c5fcb59a6ba11a818e84397a7a9863c5ebc3011e64f0b1f069ff1",
+      "result": {
+        "schemaVersion": 1,
+        "recordedAt": "2026-10-24T10:42:17.256Z",
+        "sourceHash": "bde566a15300e70a5a67babd08c4cfe32919e39a28386a4836df740d5c76bcca",
+        "sourceUnchangedDuringRun": true,
+        "passed": true,
+        "copiedUserData": false,
+        "modelRequestsSent": 0,
+        "observed": {
+          "desktopProtocolVersion": 1,
+          "title": "DeepSeek Harness",
+          "visible": "visible",
+          "theme": "#262624",
+          "brand": 2,
+          "agencyUpdateRequests": 0,
+          "viewport": {
+            "width": 1279,
+            "height": 820
+          },
+          "guideRows": [
+            {
+              "id": "codinput",
+              "height": 44
+            },
+            {
+              "id": "files",
+              "height": 44
+            },
+            {
+              "id": "terminal",
+              "height": 44
+            },
+            {
+              "id": "git",
+              "height": 44
+            },
+            {
+              "id": "browser",
+              "height": 44
+            },
+            {
+              "id": "subagent",
+              "height": 44
+            },
+            {
+              "id": "sidechat",
+              "height": 44
+            },
+            {
+              "id": "dsh-generative-ui",
+              "height": 44
+            },
+            {
+              "id": "dsh-mnemon:memory",
+              "height": 44
+            }
+          ]
+        },
+        "files": [
+          {
+            "path": "lib/client.js",
+            "expected": "cd4459bec278799b499f5a9f6794255140448dd76564f8915d78469afbc83cab",
+            "installed": "cd4459bec278799b499f5a9f6794255140448dd76564f8915d78469afbc83cab",
+            "matched": true
+          },
+          {
+            "path": "lib/index.js",
+            "expected": "a7c9e388ef02198949453459e840101ebec02a7429923d8846935933ccc18b45",
+            "installed": "a7c9e388ef02198949453459e840101ebec02a7429923d8846935933ccc18b45",
+            "matched": true
+          },
+          {
+            "path": "lib/canvases.js",
+            "expected": "5809c60d6decc95ffcc90ba35e037f232271638d8cea6e3f2fab86d3531fb994",
+            "installed": "5809c60d6decc95ffcc90ba35e037f232271638d8cea6e3f2fab86d3531fb994",
+            "matched": true
+          }
+        ],
+        "environment": {
+          "hostVersion": "0.2.1-rc.3",
+          "node": "24.21.0",
+          "electron": "44.7.0",
+          "chrome": "152.0.7977.130",
+          "abi": "149"
+        },
+        "screenshot": "evidence/rc3-home-final.png"
+      }
+    },
+    "originals": {
+      "path": "evidence/rc3-new-originals-final.json",
+      "sha256": "460891096c7d24ac3d48ec0afe9dc812d8dc4795038168fb56f8a5ef061150a6",
+      "result": {
+        "schemaVersion": 1,
+        "startedAt": "2026-10-24T10:41:34.256Z",
+        "sourceHash": "bde566a15300e70a5a67babd08c4cfe32919e39a28386a4836df740d5c76bcca",
+        "host": "0.2.1-rc.3",
+        "copiedUserData": false,
+        "modelRequestsSent": 0,
+        "desktopInputsSent": 0,
+        "cases": [
+          {
+            "name": "open the offline native fixture without submitting a model request",
+            "passed": true,
+            "observed": {
+              "sessionId": "session-6c5abbec-db23-413f-8793-e2ca24a35c4b",
+              "syntheticArchive": true
+            }
+          },
+          {
+            "name": "native rc3 composer retains the original session computer switch",
+            "passed": true,
+            "observed": {
+              "x": 558.5,
+              "y": 744,
+              "state": "off",
+              "disabled": false,
+              "aria": "电脑操作（已关闭）",
+              "text": "电脑操作"
+            }
+          },
+          {
+            "name": "original switch toggles only its exact session through the authenticated connection",
+            "passed": true,
+            "observed": {
+              "sessionId": "session-6c5abbec-db23-413f-8793-e2ca24a35c4b",
+              "enabledThenDisabled": true,
+              "route": "/api/plugins/dsh-noemaloom/computer-use/state"
+            }
+          },
+          {
+            "name": "native input and desktop keep the Claude theme and bounded input layout",
+            "passed": true,
+            "observed": {
+              "chipRadius": "9px",
+              "chipColor": "rgb(240, 238, 230)",
+              "themeRadius": "9px",
+              "theme": "#262624",
+              "width": 644,
+              "right": 948,
+              "viewport": 1279,
+              "inputCount": 1
+            }
+          },
+          {
+            "name": "native rc3 header retains its own view action menus",
+            "passed": true,
+            "observed": {
+              "items": [
+                "上下文图谱",
+                "会话图谱",
+                "工作流",
+                "执行计划",
+                "压缩与恢复",
+                "质量检查",
+                "代码审查",
+                "恢复点",
+                "会话产物",
+                "会话搜索",
+                "浏览更多插件",
+                "创建你的插件"
+              ],
+              "closedByEscape": true
+            }
+          },
+          {
+            "name": "native Start guide keeps compact original entries and an operable shell menu",
+            "passed": true,
+            "observed": {
+              "entries": [
+                {
+                  "id": "codinput",
+                  "text": "Codinput",
+                  "width": 268,
+                  "height": 44,
+                  "fontSize": "13px",
+                  "background": "rgba(0, 0, 0, 0)",
+                  "viewport": 1279,
+                  "right": 1263
+                },
+                {
+                  "id": "files",
+                  "text": "文件",
+                  "width": 268,
+                  "height": 44,
+                  "fontSize": "13px",
+                  "background": "rgba(0, 0, 0, 0)",
+                  "viewport": 1279,
+                  "right": 1263
+                },
+                {
+                  "id": "terminal",
+                  "text": "新建终端\nCtrl\n+\n`",
+                  "width": 268,
+                  "height": 44,
+                  "fontSize": "13px",
+                  "background": "rgba(0, 0, 0, 0)",
+                  "viewport": 1279,
+                  "right": 1263
+                },
+                {
+                  "id": "git",
+                  "text": "Git",
+                  "width": 268,
+                  "height": 44,
+                  "fontSize": "13px",
+                  "background": "rgba(0, 0, 0, 0)",
+                  "viewport": 1279,
+                  "right": 1263
+                },
+                {
+                  "id": "browser",
+                  "text": "浏览器\nCtrl\n+\nT",
+                  "width": 268,
+                  "height": 44,
+                  "fontSize": "13px",
+                  "background": "rgba(0, 0, 0, 0)",
+                  "viewport": 1279,
+                  "right": 1263
+                },
+                {
+                  "id": "subagent",
+                  "text": "任务管理",
+                  "width": 268,
+                  "height": 44,
+                  "fontSize": "13px",
+                  "background": "rgba(0, 0, 0, 0)",
+                  "viewport": 1279,
+                  "right": 1263
+                },
+                {
+                  "id": "sidechat",
+                  "text": "侧边对话(beta)",
+                  "width": 268,
+                  "height": 44,
+                  "fontSize": "13px",
+                  "background": "rgba(0, 0, 0, 0)",
+                  "viewport": 1279,
+                  "right": 1263
+                },
+                {
+                  "id": "dsh-generative-ui",
+                  "text": "智能 UI",
+                  "width": 268,
+                  "height": 44,
+                  "fontSize": "13px",
+                  "background": "rgba(0, 0, 0, 0)",
+                  "viewport": 1279,
+                  "right": 1263
+                },
+                {
+                  "id": "dsh-mnemon:memory",
+                  "text": "记忆系统",
+                  "width": 268,
+                  "height": 44,
+                  "fontSize": "13px",
+                  "background": "rgba(0, 0, 0, 0)",
+                  "viewport": 1279,
+                  "right": 1263
+                }
+              ],
+              "guideWidth": 300,
+              "tracks": {
+                "panel": {
+                  "x": 979,
+                  "y": 40,
+                  "width": 300,
+                  "height": 780,
+                  "top": 40,
+                  "right": 1279,
+                  "bottom": 820,
+                  "left": 979
+                },
+                "column": {
+                  "x": 979,
+                  "y": 40,
+                  "width": 300,
+                  "height": 780,
+                  "top": 40,
+                  "right": 1279,
+                  "bottom": 820,
+                  "left": 979
+                },
+                "center": {
+                  "x": 280,
+                  "y": 40,
+                  "width": 699,
+                  "height": 780,
+                  "top": 40,
+                  "right": 979,
+                  "bottom": 820,
+                  "left": 280
+                },
+                "grid": "280px 699px 300px"
+              },
+              "responsive": [
+                {
+                  "viewport": 960,
+                  "panel": 300,
+                  "column": 300,
+                  "right": 960,
+                  "expected": 300
+                },
+                {
+                  "viewport": 1440,
+                  "panel": 348,
+                  "column": 348,
+                  "right": 1440,
+                  "expected": 348
+                }
+              ],
+              "shells": [
+                "正在读取 Shell…"
+              ],
+              "fileDefault": {
+                "width": 300,
+                "configured": 300
+              },
+              "nativeDrag": {
+                "width": 400,
+                "column": 400
+              },
+              "automaticReset": {
+                "width": 300
+              }
+            }
+          },
+          {
+            "name": "native fullscreen covers conversation chrome and restores the automatic tool width",
+            "passed": true,
+            "observed": {
+              "before": 300,
+              "fullscreen": {
+                "width": 999,
+                "height": 780,
+                "left": 280,
+                "right": 1279,
+                "background": "rgb(38, 38, 36)",
+                "layer": "16",
+                "hits": [
+                  {
+                    "x": 340,
+                    "y": 52,
+                    "inPanel": true
+                  },
+                  {
+                    "x": 360,
+                    "y": 220,
+                    "inPanel": true
+                  },
+                  {
+                    "x": 1259,
+                    "y": 790,
+                    "inPanel": true
+                  }
+                ]
+              },
+              "restored": {
+                "width": 300
+              }
+            }
+          }
+        ],
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/api/plugins/dsh-noemaloom/computer-use/state",
+            "body": {
+              "sessionId": "session-6c5abbec-db23-413f-8793-e2ca24a35c4b",
+              "enabled": true
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/plugins/dsh-noemaloom/computer-use/state"
+          },
+          {
+            "method": "GET",
+            "path": "/api/plugins/dsh-noemaloom/computer-use/state"
+          },
+          {
+            "method": "POST",
+            "path": "/api/plugins/dsh-noemaloom/computer-use/state",
+            "body": {
+              "sessionId": "session-6c5abbec-db23-413f-8793-e2ca24a35c4b",
+              "enabled": false
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/api/plugins/dsh-noemaloom/computer-use/state"
+          }
+        ],
+        "finishedAt": "2026-10-24T10:41:37.061Z",
+        "sourceUnchangedDuringRun": true,
+        "passed": true
+      }
+    },
+    "dock": {
+      "path": "evidence/rc3-dock-final.json",
+      "sha256": "5446a7947111aacddc50cd6bfaafba4e6b5a851f6e2d6a89702be7ab1fcfc3e3",
+      "result": {
+        "schemaVersion": 1,
+        "statePath": "D:\\dshplugin\\opensource\\dsh-noemaloom\\evidence\\private-desktop-inspection\\smoke-state.json",
+        "startedAt": "2026-10-24T10:41:55.453Z",
+        "copiedUserData": false,
+        "modelRequestsSent": 0,
+        "cases": [
+          {
+            "name": "foreground the isolated renderer before sending input",
+            "passed": true,
+            "elapsedMs": 2,
+            "visibilityState": "visible",
+            "hasFocus": true
+          },
+          {
+            "name": "open a synthetic native conversation and its dock without submitting a message",
+            "passed": true,
+            "elapsedMs": 4,
+            "usedNativeNewSession": false,
+            "sentMessages": 0,
+            "modelRequestsSent": 0,
+            "sessionId": "session-6c5abbec-db23-413f-8793-e2ca24a35c4b",
+            "archive": "C:\\Users\\Allei\\AppData\\Local\\Temp\\nexus-original-desktop-EzylUW\\home\\sessions\\--C-Users-Allei-AppData-Local-Temp-nexus-original-desktop-EzylUW-workspace-deepseek-harness-default-workspace--\\session-6c5abbec-db23-413f-8793-e2ca24a35c4b\\session.v4.jsonl.zstd",
+            "trigger": {
+              "x": 1187,
+              "y": 64,
+              "hit": true,
+              "hitTag": "BUTTON",
+              "hitId": "",
+              "hitClass": "",
+              "hitPath": [
+                "BUTTON#.",
+                "DIV#.nexus-native-dock-controls",
+                "DIV#._stripChrome_6nhg2_296",
+                "DIV#._tabStrip_6nhg2_237",
+                "SECTION#._pane_6nhg2_209",
+                "DIV#._surface_6nhg2_125"
+              ],
+              "inert": false,
+              "pointerEvents": "auto",
+              "visibilityState": "visible"
+            }
+          },
+          {
+            "name": "native sidebar has a visible layout trigger and interactive probe",
+            "passed": true,
+            "elapsedMs": 362,
+            "hit": {
+              "x": 1241,
+              "y": 206,
+              "hit": true,
+              "hitTag": "BUTTON",
+              "hitId": "nexus-r24-native-target",
+              "hitClass": "",
+              "hitPath": [
+                "BUTTON#nexus-r24-native-target.",
+                "DIV#nexus-r24-native-probe.",
+                "DIV#.nexus-native-dock-portal",
+                "DIV#.nexus-native-dock-landing",
+                "DIV#._paneBody_6nhg2_318",
+                "SECTION#._pane_6nhg2_209"
+              ],
+              "inert": false,
+              "pointerEvents": "auto",
+              "visibilityState": "visible"
+            },
+            "result": {
+              "clicks": 1,
+              "scrollTop": 240,
+              "open": false,
+              "panelOpen": true,
+              "pointerEvents": "none",
+              "bodyInert": false,
+              "bodyPointerEvents": "auto",
+              "rootInert": false,
+              "rootPointerEvents": "auto",
+              "visibilityState": "visible",
+              "hasFocus": true,
+              "inertCount": 0,
+              "menuRect": {
+                "x": 0,
+                "y": 0,
+                "width": 0,
+                "height": 0
+              },
+              "pointerCaptures": 0
+            }
+          },
+          {
+            "name": "opening layout preserves clicks and wheel, and outside pointer dismisses",
+            "passed": true,
+            "elapsedMs": 452,
+            "before": {
+              "clicks": 1,
+              "scrollTop": 240,
+              "open": false,
+              "panelOpen": true,
+              "pointerEvents": "none",
+              "bodyInert": false,
+              "bodyPointerEvents": "auto",
+              "rootInert": false,
+              "rootPointerEvents": "auto",
+              "visibilityState": "visible",
+              "hasFocus": true,
+              "inertCount": 0,
+              "menuRect": {
+                "x": 0,
+                "y": 0,
+                "width": 0,
+                "height": 0
+              },
+              "pointerCaptures": 0
+            },
+            "menuHit": {
+              "x": 1085,
+              "y": 172,
+              "hit": true,
+              "hitTag": "BUTTON",
+              "hitId": "",
+              "hitClass": "",
+              "hitPath": [
+                "BUTTON#.",
+                "DIV#:r19:.nexus-native-dock-menu",
+                "DIV#.nexus-native-dock-controls",
+                "DIV#._stripChrome_6nhg2_296",
+                "DIV#._tabStrip_6nhg2_237",
+                "SECTION#._pane_6nhg2_209"
+              ],
+              "inert": false,
+              "pointerEvents": "auto",
+              "visibilityState": "visible"
+            },
+            "hit": {
+              "x": 1241,
+              "y": 206,
+              "hit": true,
+              "hitTag": "BUTTON",
+              "hitId": "nexus-r24-native-target",
+              "hitClass": "",
+              "hitPath": [
+                "BUTTON#nexus-r24-native-target.",
+                "DIV#nexus-r24-native-probe.",
+                "DIV#.nexus-native-dock-portal",
+                "DIV#.nexus-native-dock-landing",
+                "DIV#._paneBody_6nhg2_318",
+                "SECTION#._pane_6nhg2_209"
+              ],
+              "inert": false,
+              "pointerEvents": "auto",
+              "visibilityState": "visible"
+            },
+            "wheelHit": {
+              "x": 1241,
+              "y": 299.5,
+              "hit": true,
+              "hitTag": "DIV",
+              "hitId": "",
+              "hitClass": "",
+              "hitPath": [
+                "DIV#.",
+                "DIV#nexus-r24-native-scroll.",
+                "DIV#nexus-r24-native-probe.",
+                "DIV#.nexus-native-dock-portal",
+                "DIV#.nexus-native-dock-landing",
+                "DIV#._paneBody_6nhg2_318"
+              ],
+              "inert": false,
+              "pointerEvents": "auto",
+              "visibilityState": "visible"
+            },
+            "result": {
+              "clicks": 2,
+              "scrollTop": 480,
+              "open": false,
+              "panelOpen": true,
+              "pointerEvents": "none",
+              "bodyInert": false,
+              "bodyPointerEvents": "auto",
+              "rootInert": false,
+              "rootPointerEvents": "auto",
+              "visibilityState": "visible",
+              "hasFocus": true,
+              "inertCount": 0,
+              "menuRect": {
+                "x": 0,
+                "y": 0,
+                "width": 0,
+                "height": 0
+              },
+              "pointerCaptures": 0
+            }
+          },
+          {
+            "name": "diagnose blocked mouse trigger with auxiliary keyboard activation",
+            "passed": true,
+            "elapsedMs": 1,
+            "skipped": true,
+            "reason": "native mouse target is hit-testable"
+          },
+          {
+            "name": "Escape dismisses without leaving the pane inert or capturing input",
+            "passed": true,
+            "elapsedMs": 340,
+            "result": {
+              "clicks": 3,
+              "scrollTop": 480,
+              "open": false,
+              "panelOpen": true,
+              "pointerEvents": "none",
+              "bodyInert": false,
+              "bodyPointerEvents": "auto",
+              "rootInert": false,
+              "rootPointerEvents": "auto",
+              "visibilityState": "visible",
+              "hasFocus": true,
+              "inertCount": 0,
+              "menuRect": {
+                "x": 0,
+                "y": 0,
+                "width": 0,
+                "height": 0
+              },
+              "pointerCaptures": 0
+            }
+          },
+          {
+            "name": "collapse and reopen on the same page releases the menu and preserves input",
+            "passed": true,
+            "elapsedMs": 1366,
+            "hit": {
+              "x": 1241,
+              "y": 206,
+              "hit": true,
+              "hitTag": "BUTTON",
+              "hitId": "nexus-r24-native-target",
+              "hitClass": "",
+              "hitPath": [
+                "BUTTON#nexus-r24-native-target.",
+                "DIV#nexus-r24-native-probe.",
+                "DIV#.nexus-native-dock-portal",
+                "DIV#.nexus-native-dock-landing",
+                "DIV#._paneBody_6nhg2_318",
+                "SECTION#._pane_6nhg2_209"
+              ],
+              "inert": false,
+              "pointerEvents": "auto",
+              "visibilityState": "visible"
+            },
+            "wheelHit": {
+              "x": 1241,
+              "y": 299.5,
+              "hit": true,
+              "hitTag": "DIV",
+              "hitId": "",
+              "hitClass": "",
+              "hitPath": [
+                "DIV#.",
+                "DIV#nexus-r24-native-scroll.",
+                "DIV#nexus-r24-native-probe.",
+                "DIV#.nexus-native-dock-portal",
+                "DIV#.nexus-native-dock-landing",
+                "DIV#._paneBody_6nhg2_318"
+              ],
+              "inert": false,
+              "pointerEvents": "auto",
+              "visibilityState": "visible"
+            },
+            "result": {
+              "clicks": 4,
+              "scrollTop": 720,
+              "open": false,
+              "panelOpen": true,
+              "pointerEvents": "none",
+              "bodyInert": false,
+              "bodyPointerEvents": "auto",
+              "rootInert": false,
+              "rootPointerEvents": "auto",
+              "visibilityState": "visible",
+              "hasFocus": true,
+              "inertCount": 0,
+              "menuRect": {
+                "x": 0,
+                "y": 0,
+                "width": 0,
+                "height": 0
+              },
+              "pointerCaptures": 0
+            }
+          },
+          {
+            "name": "production popover escapes clipped chrome and does not start native drag",
+            "passed": true,
+            "elapsedMs": 277,
+            "menuHit": {
+              "x": 536,
+              "y": 137.75,
+              "hit": true,
+              "hitTag": "BUTTON",
+              "hitId": "nexus-r24-action",
+              "hitClass": "",
+              "hitPath": [
+                "BUTTON#nexus-r24-action.",
+                "DIV#_r_0_.nexus-native-dock-menu",
+                "DIV#.nexus-native-dock-controls",
+                "DIV#.fixture-strip",
+                "DIV#.fixture-pane",
+                "DIV#.fixture-panel"
+              ],
+              "inert": false,
+              "pointerEvents": "auto",
+              "visibilityState": "visible"
+            },
+            "result": {
+              "clicks": 0,
+              "drags": 0,
+              "active": true,
+              "mounted": true,
+              "identity": "synthetic-owner-a",
+              "open": false,
+              "menus": 1,
+              "scrollTop": 0,
+              "bodyInert": false,
+              "bodyPointerEvents": "auto"
+            }
+          },
+          {
+            "name": "production popover cleans up on hidden retained owner",
+            "passed": true,
+            "elapsedMs": 479,
+            "result": {
+              "clicks": 1,
+              "drags": 0,
+              "active": false,
+              "mounted": true,
+              "identity": "synthetic-owner-a",
+              "open": false,
+              "menus": 1,
+              "scrollTop": 240,
+              "bodyInert": false,
+              "bodyPointerEvents": "auto"
+            }
+          },
+          {
+            "name": "production popover cleans up on changed owner identity",
+            "passed": true,
+            "elapsedMs": 452,
+            "result": {
+              "clicks": 2,
+              "drags": 0,
+              "active": true,
+              "mounted": true,
+              "identity": "synthetic-owner-b",
+              "open": false,
+              "menus": 1,
+              "scrollTop": 480,
+              "bodyInert": false,
+              "bodyPointerEvents": "auto"
+            }
+          },
+          {
+            "name": "production popover cleans up on component unmount",
+            "passed": true,
+            "elapsedMs": 464,
+            "result": {
+              "clicks": 3,
+              "drags": 0,
+              "active": true,
+              "mounted": false,
+              "identity": "synthetic-owner-b",
+              "open": false,
+              "menus": 0,
+              "scrollTop": 720,
+              "bodyInert": false,
+              "bodyPointerEvents": "auto"
+            }
+          }
+        ],
+        "inputAttempts": [
+          {
+            "action": "click",
+            "selector": "#nexus-r24-native-target",
+            "fixture": false,
+            "x": 1241,
+            "y": 206,
+            "hit": true,
+            "hitTag": "BUTTON",
+            "hitId": "nexus-r24-native-target",
+            "hitClass": "",
+            "hitPath": [
+              "BUTTON#nexus-r24-native-target.",
+              "DIV#nexus-r24-native-probe.",
+              "DIV#.nexus-native-dock-portal",
+              "DIV#.nexus-native-dock-landing",
+              "DIV#._paneBody_6nhg2_318",
+              "SECTION#._pane_6nhg2_209"
+            ],
+            "inert": false,
+            "pointerEvents": "auto",
+            "visibilityState": "visible"
+          },
+          {
+            "action": "wheel",
+            "selector": "#nexus-r24-native-scroll",
+            "fixture": false,
+            "x": 1241,
+            "y": 299.5,
+            "hit": true,
+            "hitTag": "DIV",
+            "hitId": "",
+            "hitClass": "",
+            "hitPath": [
+              "DIV#.",
+              "DIV#nexus-r24-native-scroll.",
+              "DIV#nexus-r24-native-probe.",
+              "DIV#.nexus-native-dock-portal",
+              "DIV#.nexus-native-dock-landing",
+              "DIV#._paneBody_6nhg2_318"
+            ],
+            "inert": false,
+            "pointerEvents": "auto",
+            "visibilityState": "visible"
+          },
+          {
+            "action": "click",
+            "selector": ".nexus-native-dock-controls > button, .nexus-native-dock-controls > summary",
+            "fixture": false,
+            "x": 1187,
+            "y": 64,
+            "hit": true,
+            "hitTag": "BUTTON",
+            "hitId": "",
+            "hitClass": "",
+            "hitPath": [
+              "BUTTON#.",
+              "DIV#.nexus-native-dock-controls",
+              "DIV#._stripChrome_6nhg2_296",
+              "DIV#._tabStrip_6nhg2_237",
+              "SECTION#._pane_6nhg2_209",
+              "DIV#._surface_6nhg2_125"
+            ],
+            "inert": false,
+            "pointerEvents": "auto",
+            "visibilityState": "visible"
+          },
+          {
+            "action": "click",
+            "selector": "#nexus-r24-native-target",
+            "fixture": false,
+            "x": 1241,
+            "y": 206,
+            "hit": true,
+            "hitTag": "BUTTON",
+            "hitId": "nexus-r24-native-target",
+            "hitClass": "",
+            "hitPath": [
+              "BUTTON#nexus-r24-native-target.",
+              "DIV#nexus-r24-native-probe.",
+              "DIV#.nexus-native-dock-portal",
+              "DIV#.nexus-native-dock-landing",
+              "DIV#._paneBody_6nhg2_318",
+              "SECTION#._pane_6nhg2_209"
+            ],
+            "inert": false,
+            "pointerEvents": "auto",
+            "visibilityState": "visible"
+          },
+          {
+            "action": "wheel",
+            "selector": "#nexus-r24-native-scroll",
+            "fixture": false,
+            "x": 1241,
+            "y": 299.5,
+            "hit": true,
+            "hitTag": "DIV",
+            "hitId": "",
+            "hitClass": "",
+            "hitPath": [
+              "DIV#.",
+              "DIV#nexus-r24-native-scroll.",
+              "DIV#nexus-r24-native-probe.",
+              "DIV#.nexus-native-dock-portal",
+              "DIV#.nexus-native-dock-landing",
+              "DIV#._paneBody_6nhg2_318"
+            ],
+            "inert": false,
+            "pointerEvents": "auto",
+            "visibilityState": "visible"
+          },
+          {
+            "action": "click",
+            "selector": ".nexus-native-dock-controls > button, .nexus-native-dock-controls > summary",
+            "fixture": false,
+            "x": 1187,
+            "y": 64,
+            "hit": true,
+            "hitTag": "BUTTON",
+            "hitId": "",
+            "hitClass": "",
+            "hitPath": [
+              "BUTTON#.",
+              "DIV#.nexus-native-dock-controls",
+              "DIV#._stripChrome_6nhg2_296",
+              "DIV#._tabStrip_6nhg2_237",
+              "SECTION#._pane_6nhg2_209",
+              "DIV#._surface_6nhg2_125"
+            ],
+            "inert": false,
+            "pointerEvents": "auto",
+            "visibilityState": "visible"
+          },
+          {
+            "action": "click",
+            "selector": "#nexus-r24-native-target",
+            "fixture": false,
+            "x": 1241,
+            "y": 206,
+            "hit": true,
+            "hitTag": "BUTTON",
+            "hitId": "nexus-r24-native-target",
+            "hitClass": "",
+            "hitPath": [
+              "BUTTON#nexus-r24-native-target.",
+              "DIV#nexus-r24-native-probe.",
+              "DIV#.nexus-native-dock-portal",
+              "DIV#.nexus-native-dock-landing",
+              "DIV#._paneBody_6nhg2_318",
+              "SECTION#._pane_6nhg2_209"
+            ],
+            "inert": false,
+            "pointerEvents": "auto",
+            "visibilityState": "visible"
+          },
+          {
+            "action": "click",
+            "selector": ".nexus-native-dock-controls > button, .nexus-native-dock-controls > summary",
+            "fixture": false,
+            "x": 1187,
+            "y": 64,
+            "hit": true,
+            "hitTag": "BUTTON",
+            "hitId": "",
+            "hitClass": "",
+            "hitPath": [
+              "BUTTON#.",
+              "DIV#.nexus-native-dock-controls",
+              "DIV#._stripChrome_6nhg2_296",
+              "DIV#._tabStrip_6nhg2_237",
+              "SECTION#._pane_6nhg2_209",
+              "DIV#._surface_6nhg2_125"
+            ],
+            "inert": false,
+            "pointerEvents": "auto",
+            "visibilityState": "visible"
+          },
+          {
+            "action": "click",
+            "selector": "[data-sidebar-right-toggle]",
+            "fixture": false,
+            "x": 1259,
+            "y": 64,
+            "hit": true,
+            "hitTag": "svg",
+            "hitId": "",
+            "hitClass": {},
+            "hitPath": [
+              "svg#.[object SVGAnimatedString]",
+              "BUTTON#.acoR2W_iconButton",
+              "DIV#._stripChrome_6nhg2_296",
+              "DIV#._tabStrip_6nhg2_237",
+              "SECTION#._pane_6nhg2_209",
+              "DIV#._surface_6nhg2_125"
+            ],
+            "inert": false,
+            "pointerEvents": "auto",
+            "visibilityState": "visible"
+          },
+          {
+            "action": "click",
+            "selector": "[data-sidebar-right-expand]",
+            "fixture": false,
+            "x": 1257,
+            "y": 65.7734375,
+            "hit": true,
+            "hitTag": "svg",
+            "hitId": "",
+            "hitClass": {},
+            "hitPath": [
+              "svg#.[object SVGAnimatedString]",
+              "BUTTON#._button_1rv3m_2 _ghost_1rv3m_45 _sm_1rv3m_28 RwosdG_button",
+              "DIV#.",
+              "DIV#.an3WzG_headerCorner",
+              "DIV#.an3WzG_titleRow",
+              "DIV#."
+            ],
+            "inert": false,
+            "pointerEvents": "auto",
+            "visibilityState": "visible"
+          },
+          {
+            "action": "click",
+            "selector": "#nexus-r24-native-target",
+            "fixture": false,
+            "x": 1241,
+            "y": 206,
+            "hit": true,
+            "hitTag": "BUTTON",
+            "hitId": "nexus-r24-native-target",
+            "hitClass": "",
+            "hitPath": [
+              "BUTTON#nexus-r24-native-target.",
+              "DIV#nexus-r24-native-probe.",
+              "DIV#.nexus-native-dock-portal",
+              "DIV#.nexus-native-dock-landing",
+              "DIV#._paneBody_6nhg2_318",
+              "SECTION#._pane_6nhg2_209"
+            ],
+            "inert": false,
+            "pointerEvents": "auto",
+            "visibilityState": "visible"
+          },
+          {
+            "action": "wheel",
+            "selector": "#nexus-r24-native-scroll",
+            "fixture": false,
+            "x": 1241,
+            "y": 299.5,
+            "hit": true,
+            "hitTag": "DIV",
+            "hitId": "",
+            "hitClass": "",
+            "hitPath": [
+              "DIV#.",
+              "DIV#nexus-r24-native-scroll.",
+              "DIV#nexus-r24-native-probe.",
+              "DIV#.nexus-native-dock-portal",
+              "DIV#.nexus-native-dock-landing",
+              "DIV#._paneBody_6nhg2_318"
+            ],
+            "inert": false,
+            "pointerEvents": "auto",
+            "visibilityState": "visible"
+          },
+          {
+            "action": "click",
+            "selector": ".nexus-native-dock-controls > button, .nexus-native-dock-controls > summary",
+            "fixture": true,
+            "x": 646,
+            "y": 94,
+            "hit": true,
+            "hitTag": "BUTTON",
+            "hitId": "",
+            "hitClass": "",
+            "hitPath": [
+              "BUTTON#.",
+              "DIV#.nexus-native-dock-controls",
+              "DIV#.fixture-strip",
+              "DIV#.fixture-pane",
+              "DIV#.fixture-panel",
+              "DIV#root."
+            ],
+            "inert": false,
+            "pointerEvents": "auto",
+            "visibilityState": "visible"
+          },
+          {
+            "action": "click",
+            "selector": "#nexus-r24-action",
+            "fixture": true,
+            "x": 536,
+            "y": 137.75,
+            "hit": true,
+            "hitTag": "BUTTON",
+            "hitId": "nexus-r24-action",
+            "hitClass": "",
+            "hitPath": [
+              "BUTTON#nexus-r24-action.",
+              "DIV#_r_0_.nexus-native-dock-menu",
+              "DIV#.nexus-native-dock-controls",
+              "DIV#.fixture-strip",
+              "DIV#.fixture-pane",
+              "DIV#.fixture-panel"
+            ],
+            "inert": false,
+            "pointerEvents": "auto",
+            "visibilityState": "visible"
+          },
+          {
+            "action": "click",
+            "selector": ".nexus-native-dock-controls > button, .nexus-native-dock-controls > summary",
+            "fixture": true,
+            "x": 646,
+            "y": 94,
+            "hit": true,
+            "hitTag": "BUTTON",
+            "hitId": "",
+            "hitClass": "",
+            "hitPath": [
+              "BUTTON#.",
+              "DIV#.nexus-native-dock-controls",
+              "DIV#.fixture-strip",
+              "DIV#.fixture-pane",
+              "DIV#.fixture-panel",
+              "DIV#root."
+            ],
+            "inert": false,
+            "pointerEvents": "auto",
+            "visibilityState": "visible"
+          },
+          {
+            "action": "click",
+            "selector": "#nexus-r24-target",
+            "fixture": true,
+            "x": 140,
+            "y": 152,
+            "hit": true,
+            "hitTag": "BUTTON",
+            "hitId": "nexus-r24-target",
+            "hitClass": "",
+            "hitPath": [
+              "BUTTON#nexus-r24-target.",
+              "DIV#.fixture-pane",
+              "DIV#.fixture-panel",
+              "DIV#root.",
+              "BODY#.",
+              "HTML#."
+            ],
+            "inert": false,
+            "pointerEvents": "auto",
+            "visibilityState": "visible"
+          },
+          {
+            "action": "wheel",
+            "selector": "#nexus-r24-scroll",
+            "fixture": true,
+            "x": 150,
+            "y": 250,
+            "hit": true,
+            "hitTag": "DIV",
+            "hitId": "",
+            "hitClass": "",
+            "hitPath": [
+              "DIV#.",
+              "DIV#nexus-r24-scroll.",
+              "DIV#.fixture-pane",
+              "DIV#.fixture-panel",
+              "DIV#root.",
+              "BODY#."
+            ],
+            "inert": false,
+            "pointerEvents": "auto",
+            "visibilityState": "visible"
+          },
+          {
+            "action": "click",
+            "selector": ".nexus-native-dock-controls > button, .nexus-native-dock-controls > summary",
+            "fixture": true,
+            "x": 646,
+            "y": 94,
+            "hit": true,
+            "hitTag": "BUTTON",
+            "hitId": "",
+            "hitClass": "",
+            "hitPath": [
+              "BUTTON#.",
+              "DIV#.nexus-native-dock-controls",
+              "DIV#.fixture-strip",
+              "DIV#.fixture-pane",
+              "DIV#.fixture-panel",
+              "DIV#root."
+            ],
+            "inert": false,
+            "pointerEvents": "auto",
+            "visibilityState": "visible"
+          },
+          {
+            "action": "click",
+            "selector": "#nexus-r24-target",
+            "fixture": true,
+            "x": 140,
+            "y": 152,
+            "hit": true,
+            "hitTag": "BUTTON",
+            "hitId": "nexus-r24-target",
+            "hitClass": "",
+            "hitPath": [
+              "BUTTON#nexus-r24-target.",
+              "DIV#.fixture-pane",
+              "DIV#.fixture-panel",
+              "DIV#root.",
+              "BODY#.",
+              "HTML#."
+            ],
+            "inert": false,
+            "pointerEvents": "auto",
+            "visibilityState": "visible"
+          },
+          {
+            "action": "wheel",
+            "selector": "#nexus-r24-scroll",
+            "fixture": true,
+            "x": 150,
+            "y": 250,
+            "hit": true,
+            "hitTag": "DIV",
+            "hitId": "",
+            "hitClass": "",
+            "hitPath": [
+              "DIV#.",
+              "DIV#nexus-r24-scroll.",
+              "DIV#.fixture-pane",
+              "DIV#.fixture-panel",
+              "DIV#root.",
+              "BODY#."
+            ],
+            "inert": false,
+            "pointerEvents": "auto",
+            "visibilityState": "visible"
+          },
+          {
+            "action": "click",
+            "selector": ".nexus-native-dock-controls > button, .nexus-native-dock-controls > summary",
+            "fixture": true,
+            "x": 646,
+            "y": 94,
+            "hit": true,
+            "hitTag": "BUTTON",
+            "hitId": "",
+            "hitClass": "",
+            "hitPath": [
+              "BUTTON#.",
+              "DIV#.nexus-native-dock-controls",
+              "DIV#.fixture-strip",
+              "DIV#.fixture-pane",
+              "DIV#.fixture-panel",
+              "DIV#root."
+            ],
+            "inert": false,
+            "pointerEvents": "auto",
+            "visibilityState": "visible"
+          },
+          {
+            "action": "click",
+            "selector": "#nexus-r24-target",
+            "fixture": true,
+            "x": 140,
+            "y": 152,
+            "hit": true,
+            "hitTag": "BUTTON",
+            "hitId": "nexus-r24-target",
+            "hitClass": "",
+            "hitPath": [
+              "BUTTON#nexus-r24-target.",
+              "DIV#.fixture-pane",
+              "DIV#.fixture-panel",
+              "DIV#root.",
+              "BODY#.",
+              "HTML#."
+            ],
+            "inert": false,
+            "pointerEvents": "auto",
+            "visibilityState": "visible"
+          },
+          {
+            "action": "wheel",
+            "selector": "#nexus-r24-scroll",
+            "fixture": true,
+            "x": 150,
+            "y": 250,
+            "hit": true,
+            "hitTag": "DIV",
+            "hitId": "",
+            "hitClass": "",
+            "hitPath": [
+              "DIV#.",
+              "DIV#nexus-r24-scroll.",
+              "DIV#.fixture-pane",
+              "DIV#.fixture-panel",
+              "DIV#root.",
+              "BODY#."
+            ],
+            "inert": false,
+            "pointerEvents": "auto",
+            "visibilityState": "visible"
+          }
+        ],
+        "sourceHash": "bde566a15300e70a5a67babd08c4cfe32919e39a28386a4836df740d5c76bcca",
+        "foreground": {
+          "afterBringToFront": "visible"
+        },
+        "rendererStart": {
+          "visibilityState": "visible",
+          "hasFocus": true
+        },
+        "nativeOwner": {
+          "sessionId": "session-6c5abbec-db23-413f-8793-e2ca24a35c4b",
+          "archive": "C:\\Users\\Allei\\AppData\\Local\\Temp\\nexus-original-desktop-EzylUW\\home\\sessions\\--C-Users-Allei-AppData-Local-Temp-nexus-original-desktop-EzylUW-workspace-deepseek-harness-default-workspace--\\session-6c5abbec-db23-413f-8793-e2ca24a35c4b\\session.v4.jsonl.zstd",
+          "trigger": {
+            "x": 1187,
+            "y": 64,
+            "hit": true,
+            "hitTag": "BUTTON",
+            "hitId": "",
+            "hitClass": "",
+            "hitPath": [
+              "BUTTON#.",
+              "DIV#.nexus-native-dock-controls",
+              "DIV#._stripChrome_6nhg2_296",
+              "DIV#._tabStrip_6nhg2_237",
+              "SECTION#._pane_6nhg2_209",
+              "DIV#._surface_6nhg2_125"
+            ],
+            "inert": false,
+            "pointerEvents": "auto",
+            "visibilityState": "visible"
+          }
+        },
+        "openingInteraction": {
+          "before": {
+            "clicks": 1,
+            "scrollTop": 240,
+            "open": false,
+            "panelOpen": true,
+            "pointerEvents": "none",
+            "bodyInert": false,
+            "bodyPointerEvents": "auto",
+            "rootInert": false,
+            "rootPointerEvents": "auto",
+            "visibilityState": "visible",
+            "hasFocus": true,
+            "inertCount": 0,
+            "menuRect": {
+              "x": 0,
+              "y": 0,
+              "width": 0,
+              "height": 0
+            },
+            "pointerCaptures": 0
+          },
+          "menuHit": {
+            "x": 1085,
+            "y": 172,
+            "hit": true,
+            "hitTag": "BUTTON",
+            "hitId": "",
+            "hitClass": "",
+            "hitPath": [
+              "BUTTON#.",
+              "DIV#:r19:.nexus-native-dock-menu",
+              "DIV#.nexus-native-dock-controls",
+              "DIV#._stripChrome_6nhg2_296",
+              "DIV#._tabStrip_6nhg2_237",
+              "SECTION#._pane_6nhg2_209"
+            ],
+            "inert": false,
+            "pointerEvents": "auto",
+            "visibilityState": "visible"
+          },
+          "hit": {
+            "x": 1241,
+            "y": 206,
+            "hit": true,
+            "hitTag": "BUTTON",
+            "hitId": "nexus-r24-native-target",
+            "hitClass": "",
+            "hitPath": [
+              "BUTTON#nexus-r24-native-target.",
+              "DIV#nexus-r24-native-probe.",
+              "DIV#.nexus-native-dock-portal",
+              "DIV#.nexus-native-dock-landing",
+              "DIV#._paneBody_6nhg2_318",
+              "SECTION#._pane_6nhg2_209"
+            ],
+            "inert": false,
+            "pointerEvents": "auto",
+            "visibilityState": "visible"
+          },
+          "wheelHit": {
+            "x": 1241,
+            "y": 299.5,
+            "hit": true,
+            "hitTag": "DIV",
+            "hitId": "",
+            "hitClass": "",
+            "hitPath": [
+              "DIV#.",
+              "DIV#nexus-r24-native-scroll.",
+              "DIV#nexus-r24-native-probe.",
+              "DIV#.nexus-native-dock-portal",
+              "DIV#.nexus-native-dock-landing",
+              "DIV#._paneBody_6nhg2_318"
+            ],
+            "inert": false,
+            "pointerEvents": "auto",
+            "visibilityState": "visible"
+          },
+          "result": {
+            "clicks": 2,
+            "scrollTop": 480,
+            "open": false,
+            "panelOpen": true,
+            "pointerEvents": "none",
+            "bodyInert": false,
+            "bodyPointerEvents": "auto",
+            "rootInert": false,
+            "rootPointerEvents": "auto",
+            "visibilityState": "visible",
+            "hasFocus": true,
+            "inertCount": 0,
+            "menuRect": {
+              "x": 0,
+              "y": 0,
+              "width": 0,
+              "height": 0
+            },
+            "pointerCaptures": 0
+          }
+        },
+        "reopenedInteraction": {
+          "before": {
+            "clicks": 3,
+            "scrollTop": 480,
+            "open": false,
+            "panelOpen": true,
+            "pointerEvents": "none",
+            "bodyInert": false,
+            "bodyPointerEvents": "auto",
+            "rootInert": false,
+            "rootPointerEvents": "auto",
+            "visibilityState": "visible",
+            "hasFocus": true,
+            "inertCount": 0,
+            "menuRect": {
+              "x": 0,
+              "y": 0,
+              "width": 0,
+              "height": 0
+            },
+            "pointerCaptures": 0
+          },
+          "hit": {
+            "x": 1241,
+            "y": 206,
+            "hit": true,
+            "hitTag": "BUTTON",
+            "hitId": "nexus-r24-native-target",
+            "hitClass": "",
+            "hitPath": [
+              "BUTTON#nexus-r24-native-target.",
+              "DIV#nexus-r24-native-probe.",
+              "DIV#.nexus-native-dock-portal",
+              "DIV#.nexus-native-dock-landing",
+              "DIV#._paneBody_6nhg2_318",
+              "SECTION#._pane_6nhg2_209"
+            ],
+            "inert": false,
+            "pointerEvents": "auto",
+            "visibilityState": "visible"
+          },
+          "wheelHit": {
+            "x": 1241,
+            "y": 299.5,
+            "hit": true,
+            "hitTag": "DIV",
+            "hitId": "",
+            "hitClass": "",
+            "hitPath": [
+              "DIV#.",
+              "DIV#nexus-r24-native-scroll.",
+              "DIV#nexus-r24-native-probe.",
+              "DIV#.nexus-native-dock-portal",
+              "DIV#.nexus-native-dock-landing",
+              "DIV#._paneBody_6nhg2_318"
+            ],
+            "inert": false,
+            "pointerEvents": "auto",
+            "visibilityState": "visible"
+          },
+          "result": {
+            "clicks": 4,
+            "scrollTop": 720,
+            "open": false,
+            "panelOpen": true,
+            "pointerEvents": "none",
+            "bodyInert": false,
+            "bodyPointerEvents": "auto",
+            "rootInert": false,
+            "rootPointerEvents": "auto",
+            "visibilityState": "visible",
+            "hasFocus": true,
+            "inertCount": 0,
+            "menuRect": {
+              "x": 0,
+              "y": 0,
+              "width": 0,
+              "height": 0
+            },
+            "pointerCaptures": 0
+          }
+        },
+        "rendererEnd": {
+          "visibilityState": "visible",
+          "hasFocus": false
+        },
+        "finishedAt": "2026-10-24T10:41:59.776Z",
+        "sourceUnchangedDuringRun": true,
+        "passed": true
+      }
+    }
+  },
+  "limitations": [
+    "The two optional upstream private-data baselines were unavailable and are not counted as passed baselines.",
+    "The Desktop checks use a disposable profile and an offline synthetic conversation. They send no live model requests and do not certify independently hosted memory services or private model routes.",
+    "Dependency audit reports npm advisories. The plugin does not replace the Desktop distributor’s embedded Electron or Node binary."
+  ]
+}

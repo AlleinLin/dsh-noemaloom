@@ -18,7 +18,7 @@ import { suppressManagedUpdateUi } from '../scripts/managed-updates.mjs';
 import { parseFactory } from '../scripts/original-factory.mjs';
 import ts from 'typescript';
 
-test('original workflow providers work in the real rc.2 skill registry and unload cleanly', async t => {
+test('original workflow providers work in the real rc.3 skill registry and unload cleanly', async t => {
   const directory = await mkdtemp(join(tmpdir(), 'nexus-workflows-'));
   const root = new Context(), fibers = [];
   t.after(async () => { for (const fiber of fibers.reverse()) await fiber.dispose(); await rm(directory, { recursive: true, force: true }); });
@@ -60,7 +60,7 @@ test('packaged OpenSpec CLI runs inside a Windows-style workspace without global
   const cli = fileURLToPath(new URL('../bin/openspec.js', import.meta.resolve('@fission-ai/openspec')));
   const exec = promisify(execFile), env = { ...process.env, OPENSPEC_TELEMETRY: '0', DO_NOT_TRACK: '1', CI: 'true' };
   const version = await exec(process.execPath, [cli, '--version'], { cwd: directory, env, windowsHide: true, timeout: 30_000 });
-  assert.match(version.stdout, /1\.14\.3/);
+  assert.match(version.stdout, /1\.15\.0/);
   await exec(process.execPath, [cli, 'init', '--tools', 'none'], { cwd: directory, env, windowsHide: true, timeout: 30_000 });
   assert.match(await readFile(join(directory, 'openspec/config.yaml'), 'utf8'), /schema:/);
   const definitions = [];
@@ -103,9 +103,27 @@ test('managed update adapters remove independent update entry points and reject 
       assert.doesNotMatch(result.source, /action:.*t\("versions.checkAction"\)/);
       assert.match(result.source, /providers/, 'memory functionality remains');
     }
-    if (name === 'dsh-context') assert.match(result.source, /function Hs\(\)\{return Promise.resolve\(null\)\}/);
-    if (name.includes('agency')) assert.match(result.source, /function xc\(\)\{return null\}/);
-    assert.throws(() => suppressManagedUpdateUi(name,
-      original.replace(/function (Gs|VersionDialog|xc)\(/, 'function renamed_$1(')), /anchor|unique/);
+    if (name === 'dsh-context') assert.match(result.source, /function lc\(\)\{return Promise.resolve\(null\)\}/);
+    if (name.includes('agency')) {
+      assert.match(result.source, /function wc\(\)\{return null\}/);
+      let bootstrap;
+      const findBootstrap = node => {
+        if (ts.isFunctionDeclaration(node) && node.name?.text === 'Tc') bootstrap = node;
+        ts.forEachChild(node, findBootstrap);
+      };
+      findBootstrap(ast);
+      assert.ok(bootstrap);
+      // Execute the retained bootstrap in a realm with no DOM/network globals.
+      // It must install neither the updater's observer nor its eager GET.
+      const dispose = Function(`${bootstrap.getText(ast)}; return Tc({})`)();
+      assert.equal(typeof dispose, 'function');
+      assert.doesNotThrow(dispose);
+    }
+    const symbols = { 'dsh-context': ['fc', 'lc'], 'dsh-mnemon': ['VersionDialog'], '@michengai/dsh-agency-agents': ['wc', 'Tc'] }[name];
+    for (const symbol of symbols) {
+      const drifted = original.replace(`function ${symbol}(`, `function renamed_${symbol}(`);
+      assert.notEqual(drifted, original, 'the mutation must rename this package’s actual managed updater');
+      assert.throws(() => suppressManagedUpdateUi(name, drifted), /anchor|unique/);
+    }
   }
 });

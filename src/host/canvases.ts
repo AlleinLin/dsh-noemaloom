@@ -347,5 +347,11 @@ export async function applySynapse(ctx: Context & any, config: any = {}) {
     for (const result of settled) if (result.status === 'rejected') ctx.logger.error(result.reason);
   }, 'nexus scoped Synapse stores');
   original.apply(ctx.extend({ webServer: scopedWebServer(ctx, 'synapse', prepare), sessions: scopedSessions(ctx) }),
-    { ...config, autoProjection: false, nexusStore: store });
+    { ...config, autoProjection: false, nexusStore: store,
+      async nexusBodies(thread: any, seqs: number[] | null) {
+        assertSession(thread.dshSessionId);
+        const snapshot = await archiveSnapshot(ctx, thread.dshSessionId);
+        return { messages: original.bodiesFromEvents(thread, snapshot.events, seqs) };
+      },
+    });
 }

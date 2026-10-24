@@ -62,9 +62,18 @@ function fixture(t: TestContext, configure?: (fixture: any) => void) {
     assert.equal(arguments.length, 1, 'native sessionQuery.readSession accepts exactly one argument');
     return { events: structuredClone(events.get(id) ?? []), inheritedEventCount: 0 };
   } };
-  const services: any = { agents: registry, tools, subagents, agentTeams: teams, sessionQuery: query };
+  const services: any = {
+    agents: registry, tools, subagents, agentTeams: teams, sessionQuery: query,
+    sessions: { get: (id: string) => agents.get(id)?.session },
+    sandboxPolicy: { resolve: () => ({ mode: 'workspace-write', workspaceRoot: process.cwd() }) },
+  };
   const ctx = {
     get: (name: string) => services[name],
+    provide(name: string, value: unknown) {
+      assert.equal(Object.hasOwn(services, name), false, `Provider ${name} must have a single owner`);
+      services[name] = value;
+      return () => { if (services[name] === value) delete services[name]; };
+    },
     on(name: string, handler: Function) { if (!listeners.has(name)) listeners.set(name, new Set()); listeners.get(name)!.add(handler); return () => listeners.get(name)?.delete(handler); },
     logger: { warn() {} },
   } as unknown as HostContext;
@@ -412,7 +421,11 @@ test('normal admissions never rescan bodies and a mailbox page reads only reques
   assert.equal(bodyLists, 1);
   bodyGets = 0;
   const page = await f.call(f.root, 'read_agent_messages', { offset: 5, limit: 3 });
-  assert.equal(page.messages.length, 3); assert.equal(bodyGets, 3); assert.equal(bodyLists, 1);
+  assert.equal(page.messages.length, 3); assert.equal(bodyGets, 3);
+  assert.equal(bodyLists, 2, 'first combined read initializes the separate empty cross-session index once');
+  const repeated = await f.call(f.root, 'read_agent_messages', { offset: 5, limit: 3 });
+  assert.equal(repeated.messages.length, 3); assert.equal(bodyGets, 6);
+  assert.equal(bodyLists, 2, 'neither warm mailbox rescans bodies on repeated page reads');
 });
 
 test('unknown remains unreplayed after reload and aborted native observation releases only its caller', async t => {
@@ -449,4 +462,78 @@ test('canceling one wait leaves another wait and the recipient running', async t
   f.emit('agent/status', { agent: f.a });
   assert.equal((await two).timedOut, false);
   assert.deepEqual(f.oldCalls, []);
+});
+
+test('canceled admitted mail before native dispatch becomes terminal and cannot be revived by an activity pump or reload', async t => {
+  const f = fixture(t);
+  await f.hook.dispose();
+  const mailbox = new AgentMailbox(f.ctx, f.store);
+  t.after(() => mailbox.dispose());
+  let entered!: () => void, finish!: (value: any) => void;
+  const started = new Promise<void>(resolve => { entered = resolve; });
+  f.services.sessionQuery.readSession = () => {
+    entered();
+    return new Promise(resolve => { finish = resolve; });
+  };
+  const controller = new AbortController();
+  const input = { target: f.a.id, content: [{ type: 'text' as const, text: 'stale notice' }],
+    requestId: 'cancel-before-dispatch' };
+  const sending = mailbox.send(f.root, input, controller.signal);
+  await started;
+  controller.abort(new Error('approval request expired'));
+  await assert.rejects(sending, /approval request expired/);
+  finish({ events: [], inheritedEventCount: 0 });
+  f.services.sessionQuery.readSession = async () => ({ events: [], inheritedEventCount: 0 });
+  mailbox.activity(f.a);
+  await mailbox.dispose();
+  const restarted = new AgentMailbox(f.ctx, f.store);
+  t.after(() => restarted.dispose());
+  const receipt = await restarted.send(f.root, input, signal());
+  assert.equal(receipt.state, 'discarded');
+  assert.equal(receipt.code, 'NX_MAIL_SEND_CANCELLED');
+  restarted.activity(f.a);
+  await restarted.dispose();
+  assert.equal(f.deliveries.length, 0);
+});
+
+test('cancellation during the durable unknown commit is discarded only when the transport has not been invoked', async t => {
+  const f = fixture(t);
+  await f.hook.dispose();
+  const controller = new AbortController(), originalPut = f.store.put.bind(f.store);
+  f.store.put = async (collection: string, id: string, value: any, revision?: number) => {
+    const saved = await originalPut(collection, id, value, revision);
+    if (value.state === 'unknown') controller.abort(new Error('cancel at commit'));
+    return saved;
+  };
+  const mailbox = new AgentMailbox(f.ctx, f.store);
+  t.after(() => mailbox.dispose());
+  const receipt = await mailbox.send(f.root, { target: f.a.id,
+    content: [{ type: 'text', text: 'never dispatch' }], requestId: 'cancel-at-commit' }, controller.signal);
+  assert.equal(receipt.state, 'discarded');
+  assert.equal(receipt.code, 'NX_MAIL_SEND_CANCELLED');
+  assert.equal(f.deliveries.length, 0);
+  assert.equal((await mailbox.status(f.root, receipt.message_id, signal())).state, 'discarded');
+});
+
+test('a completed request can retire its pending notice without retracting accepted or unknown mail', async t => {
+  const f = fixture(t);
+  f.events.get(f.a.id)!.push({ type: 'turn/end', seq: 0,
+    data: { reason: { kind: 'aborted', reason: { kind: 'user' } } } });
+  const held = await f.call(f.root, 'send_message', {
+    target: f.a.id, message: 'approval notice', request_id: 'retire-held-notice',
+  });
+  assert.equal(held.state, 'held');
+  await assert.rejects(f.hook.mailbox.cancelPending(f.a, held.message_id), { code: 'NX_MAIL_RECEIPT_NOT_FOUND' });
+  assert.equal((await f.hook.mailbox.cancelPending(f.root, held.message_id)).state, 'discarded');
+  f.events.set(f.a.id, []);
+  const accepted = await f.call(f.root, 'send_message', {
+    target: f.a.id, message: 'real update', request_id: 'keep-accepted-update',
+  });
+  assert.equal((await f.hook.mailbox.cancelPending(f.root, accepted.message_id)).state, 'accepted');
+  f.setFault('before');
+  const unknown = await f.call(f.root, 'send_message', {
+    target: f.a.id, message: 'uncertain update', request_id: 'keep-unknown-update',
+  });
+  assert.equal((await f.hook.mailbox.cancelPending(f.root, unknown.message_id)).state, 'unknown');
+  assert.equal(f.deliveries.length, 1);
 });

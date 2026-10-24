@@ -45,7 +45,7 @@ const startedAt = new Date().toISOString();
 const log = createWriteStream(stdoutPath);
 console.log(`Running ${nodeTests.length} discovered test files; JUnit: ${junitPath}`);
 const child = spawn(process.execPath, [
-  '--import', 'tsx', '--test', '--test-concurrency=4',
+  '--import', 'tsx', '--test', '--test-concurrency=1',
   '--test-reporter=spec', '--test-reporter-destination=stdout',
   '--test-reporter=junit', `--test-reporter-destination=${junitPath}`,
   ...nodeTests,
@@ -68,6 +68,6 @@ await writeFile(receiptPath, JSON.stringify({
   startedAt, finishedAt: new Date().toISOString(), ...outcome,
   sourceUnchangedDuringRun: after.sha256 === source.sha256,
   runtime: { node: process.version, modules: process.versions.modules, platform: process.platform, arch: process.arch },
-  discoveredTests: nodeTests, testConcurrency: 4, artifacts,
+  discoveredTests: nodeTests, testConcurrency: 1, artifacts,
 }, null, 2) + '\n');
 process.exitCode = outcome.exitCode || (after.sha256 === source.sha256 ? 0 : 1);

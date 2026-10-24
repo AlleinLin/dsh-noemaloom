@@ -55,7 +55,7 @@ ThoughtDAG uses the pinned 0.5.21 upstream release, retaining native web search,
 question forms, tool allowances and permission modes. Noemaloom manages its
 updates; see [the adaptation notes](docs/thoughtdag-upstream.md).
 
-Target host: **DeepSeek Harness Desktop 0.2.1-rc.2**.
+Target host: **DeepSeek Harness Desktop 0.2.1-rc.3**.
 Node.js 24 LTS is recommended. The supplied Desktop installer uses Windows PowerShell.
 
 ```powershell

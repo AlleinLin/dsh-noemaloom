@@ -296,6 +296,8 @@ ENV_ROWS = [
     ('MDCG_SPREAD_HOPS', 'TUNE', 'tune', 'env', True, "'2'", 'str', 'value', 'MDCG_SPREAD_HOPS', 'value', 'env_literal', 'md_cg/mdcg.py', '', 'uncalibrated', '由生成器自 AST 复核（第一批未见标定读数）', 'unknown', ''),
     ('MDCG_LAYER_BOOST', 'TUNE', 'tune', 'env', True, "''", 'str', 'unset', 'MDCG_LAYER_BOOST', 'unset', 'env_literal', 'md_cg/mdcg.py', '', 'uncalibrated', '由生成器自 AST 复核（第一批未见标定读数）', 'unknown', ''),
     ('MDCG_HOTCACHE', 'TUNE', 'tune', 'env', True, 'None', 'str', 'bool:1', 'MDCG_HOTCACHE', 'off', 'env_flag', 'md_cg/mdcos.py', '', 'uncalibrated', '由生成器自 AST 复核（第一批未见标定读数）；有效缺省（盘点文字，未 AST 复核）：未设 = 关（=="1"）', 'unknown', ''),
+    ('MDCG_BM25', 'TUNE', 'tune', 'env', True, 'None', 'str', 'bool:1', 'MDCG_BM25', 'on', 'env_flag', 'md_cg/mdcos.py', '', 'uncalibrated', '2026-10-21 手补：BM25 并入默认检索阶梯后默认开（未设 = 开）；显式 0 关掉', 'unknown', ''),
+    ('MDCG_RELOAD_MIN_INTERVAL', 'TUNE', 'tune', 'env', True, "'0'", 'str', 'value', 'MDCG_RELOAD_MIN_INTERVAL', 'value', 'env_literal', 'md_cg/mdcg.py', '', 'uncalibrated', '2026-10-21 手补：BM25 并入默认检索阶梯后默认开（未设 = 开）；显式 0 关掉', 'unknown', ''),
     ('MDCG_HOTCACHE_MAX_NODES', 'CALIB', 'calib', 'env', True, 'None', 'str', 'value', 'MDCG_HOTCACHE_MAX_NODES', 'value', 'env_helper_default', 'md_cg/hotcache.py', 'MAX_NODES', 'uncalibrated', '由生成器自 AST 复核（第一批未见标定读数）；有效缺省（盘点文字，未 AST 复核）：未设 = 模块常量 MAX_NODES=256', 'unknown', ''),
     ('MDCG_HOTCACHE_MAX_QUERIES', 'TUNE', 'tune', 'env', True, 'None', 'str', 'value', 'MDCG_HOTCACHE_MAX_QUERIES', 'value', 'env_helper_default', 'md_cg/hotcache.py', 'MAX_QUERIES', 'uncalibrated', '由生成器自 AST 复核（第一批未见标定读数）；有效缺省（盘点文字，未 AST 复核）：未设 = 模块常量 MAX_QUERIES=64', 'unknown', ''),
     ('MDCG_READ_CACHE', 'TUNE', 'tune', 'env', True, "'1'", 'str', 'bool:1', 'MDCG_READ_CACHE', 'on', 'env_literal', 'md_cg/readcache.py', '', 'uncalibrated', '由生成器自 AST 复核（第一批未见标定读数）', 'unknown', ''),
@@ -343,6 +345,12 @@ ENV_ROWS = [
      'md_cg/writepipe.py', 'ATTEMPT_LEDGER_DEFAULT', 'uncalibrated',
      '由生成器自 AST 复核（第一批未见标定读数）；有效缺省：未设 = True（尝试账本总开关，缺省开——留痕面与 _audit/_write_2pc 同口径；显式 0/false/no/off 停用，停用不改写入语义）',
      'unknown', ''),
+    ('MDCG_WARM_SEARCH', 'TUNE', 'tune', 'env', True, "'1'", 'str', 'value', 'MDCG_WARM_SEARCH', 'value', 'env_literal', 'md_cg/mcp_server.py', '', 'uncalibrated', '2026-10-21 手补：PR 内新增开关（未设=开/缺省即字面量）', 'unknown', ''),
+    ('MDCG_PREFILTER', 'TUNE', 'tune', 'env', True, "'0'", 'str', 'value', 'MDCG_PREFILTER', 'value', 'env_literal', 'md_cg/mdcos.py', '', 'uncalibrated', '2026-10-21 手补：PR 内新增开关（未设=开/缺省即字面量）', 'unknown', ''),
+    ('MDCG_PREFILTER_MIN', 'TUNE', 'tune', 'env', True, "'50'", 'str', 'value', 'MDCG_PREFILTER_MIN', 'value', 'env_literal', 'md_cg/mdcos.py', '', 'uncalibrated', '2026-10-21 手补：PR 内新增开关（未设=开/缺省即字面量）', 'unknown', ''),
+    ('MDCG_RECONCILE_BG', 'TUNE', 'tune', 'env', True, "'1'", 'str', 'value', 'MDCG_RECONCILE_BG', 'value', 'env_literal', 'md_cg/mcp_server.py', '', 'uncalibrated', '2026-10-21 手补：PR 内新增开关', 'unknown', ''),
+    ('MDCG_MIN_SCORE', 'TUNE', 'tune', 'env', True, "'0'", 'str', 'value', 'MDCG_MIN_SCORE', 'value', 'env_literal', 'md_cg/mdcg.py', '', 'uncalibrated', '2026-10-23 手补：issue #637 可配最低分（0=关）', 'unknown', ''),
+    ('MDCG_RECALL_MIN_SCORE', 'TUNE', 'tune', 'env', True, "'-1'", 'str', 'value', 'MDCG_RECALL_MIN_SCORE', 'value', 'env_literal', 'md_cg/mdcos.py', '', 'uncalibrated', '2026-10-23 手补：issue #637 召回面最低分（-1=关）', 'unknown', ''),
 ]
 
 # 环境面**分类登记**（只登记「属于环境面」与值域类型；**不登记缺省值**）

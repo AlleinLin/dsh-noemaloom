@@ -1,0 +1,309 @@
+[
+  {
+    "id": "billion",
+    "base": "7790bea9178884e70a32bdf7629fd65314b0773e",
+    "target": "f161c51894bad4b9e0da15e29353abf5710689c9",
+    "prefix": "kernel/",
+    "vendor": "vendor/acp-kernel",
+    "package": "billion-context",
+    "integrity": "sha512-0UlwulpeHwbsuYeyWLpwAtOzHBm8kWMpW8d46rYkgb+mc6Ig5gfN8GAs5y3a7e+COeUOuRRz/2xh3VF8V7apcQ==",
+    "packageVersion": "0.1.206",
+    "changed": [
+      {
+        "file": "package.json",
+        "before": "5261a9f98ff5f9427c09faf414fed5b77b4be6a012c3aec8aee3fd30ed0abaa2",
+        "after": "6c8b612347144ea7516f21e0eff0b3b353f0eaa2ebe61b13bc4d2c1aa2f00bbb"
+      },
+      {
+        "file": "src/absorb.ts",
+        "before": "35b225d6f19324281c7fa6490379b1b0603ca0f6d091370bf6791cdad5999e7d",
+        "after": "e2cd0b77c5194f87c300d675b47fdda54a9991d2939f44b513e1ce409e2ba256",
+        "merged": true
+      },
+      {
+        "file": "src/ccr.ts",
+        "before": "edb9f9c3184d455605a3297032a43de041f69f2e17c14f8be16225c53c2935c9",
+        "after": "bfd55d8a00f723be1b82a21217231c0273528a869a7348be29fe2393028ecfc4",
+        "merged": true
+      },
+      {
+        "file": "src/compress-tools.ts",
+        "before": "743d1a3d9ec09b16a6a8971dce6f7ea2786e85e5c28f0f09d6548073940a209c",
+        "after": "048c6db5dd245ebe747b3ed949403efebf024157b9d2fdec36e2dc17c233a201"
+      },
+      {
+        "file": "src/compress.ts",
+        "before": "9f9ac0966463cc111f3eee20f4f8b8370d402322e9b273de9fbfecc4217c2583",
+        "after": "0ef6a5a37b3569da3e317c380c58592a9e1dcd1b0b09fe08c5ba84879c3acefc",
+        "merged": true
+      },
+      {
+        "file": "src/parse-compress-input.ts",
+        "before": "8fa74fc5dc399213065ec83c37989b31c93f92a262813c972e0c7595b1959a58",
+        "after": "9816c9bc7165062d4aa366fc6040e9aff4e4bb7dcd50679cd8f6ef3adda97177"
+      },
+      {
+        "file": "src/protected.ts",
+        "before": "78c6be660ad3ef297476097832e98bbc36a7dd127444232c6b6a133ef17481a8",
+        "after": "dcafc30e5b530360bf35f84295b66f30923d86a8710b5e47082f6255dee3cd1e",
+        "merged": true
+      },
+      {
+        "file": "src/prune.ts",
+        "before": "f2f755cf485833a55cbe616ef9ac3e14d30e0a7247e20d6004d6437c1c48f8db",
+        "after": "50a76ee58961b94eb50a5c9cc2bef0e5acda2aec8055399cd6453a3faf8715cc",
+        "merged": true
+      },
+      {
+        "file": "src/recommend.ts",
+        "before": "9e695ed82b2b167a123c6b33cf8bec307a08e645d907f9bad070e3ad348187b7",
+        "after": "fb9c4ee602bc14e7e02a13ec25048c3dd1228a5ab095ecd36009215ca2c26ce9",
+        "merged": true
+      },
+      {
+        "file": "src/unit-projection.ts",
+        "before": "db6b58ddb3e5795b56935333532851ef9fe4512dce2b25ecad706069520f65a3",
+        "after": "5d0f23773eedcd9eb6e89c025f7f240caf18e995fd1bafc84aa8d4bde525ea44",
+        "merged": true
+      },
+      {
+        "file": "src/wire/anthropic.ts",
+        "before": "a4f738f1ce9573a6ffc0598bf7d9e9c4d16bd3e0f20d4017da13375a0d46fc93",
+        "after": "abe2b9283dfdfa90314352fc4b100f2115d96affb34ce264f3cf78e12d5c062b"
+      },
+      {
+        "file": "src/wire/bili-message.ts",
+        "before": "4358fde183256ee16767759f91937c6a6795a8e7bb6df6fc9b5a7f725e360634",
+        "after": "0308438eb08224f4d4f9cfb29026159daf6018e3166e6d0f1374094e1ba2fb6a",
+        "merged": true
+      },
+      {
+        "file": "src/wire/openai.ts",
+        "before": "d9a94ca82ffbae8805d4c80f933f21e57fc834a55f370c778f1e095558f13216",
+        "after": "e643503c898ea28965c5b9cd27b3c1ecb8ad5f7321d87646f61761db3e619085"
+      },
+      {
+        "file": "src/wire/responses.ts",
+        "before": "a82cbcca391c40bfbefb30944d696ea9acd42407a7b26cf55c73666d4962fc94",
+        "after": "9a2e916a0d628da24a5334f135e09c32eae9a5cab30390933c7ac6c0cfa1f218"
+      },
+      {
+        "file": "tests/parse-compress-input.test.ts",
+        "before": "916b8668486a92dd9bc33c846330c1019d0decc86fb9e8ca6bac1bd64887dede",
+        "after": "211dbb32a00344c68886866e831fc92ad0dd81806247c68317f5914b6ef9cec1"
+      }
+    ],
+    "added": [
+      ".gitignore",
+      ".prettierignore",
+      ".prettierrc",
+      "bench/search/bench.ts",
+      "bench/search/corpus.ts",
+      "scripts/ci/check-pr.sh",
+      "scripts/format-until-stable.mjs",
+      "tests/anthropic-system-message-passthrough.test.ts",
+      "tests/issue4166-openai-midsystem-pins.test.ts",
+      "tests/issue4166-responses-midsystem-pins.test.ts",
+      "tests/issue4289-failed-compress-fold.test.ts",
+      "tests/issue4292-orphan-system-guard.test.ts",
+      "tests/issue4311-summary-dedup.test.ts",
+      "tests/issue4348-receipt-lace.test.ts",
+      "tests/issue4457-sidecar-system-folds.test.ts",
+      "tsup.config.ts"
+    ],
+    "removed": [],
+    "localPreserved": [
+      "src/block-map.ts",
+      "src/boundaries.ts",
+      "src/decompress.ts",
+      "src/hide-consumed.ts",
+      "src/index.ts",
+      "src/instance-reid.ts",
+      "src/nudge-text.ts",
+      "src/pipeline.ts",
+      "src/refold.ts",
+      "src/report.ts",
+      "src/state.ts",
+      "src/sync.ts",
+      "src/types.ts"
+    ],
+    "conflicts": []
+  },
+  {
+    "id": "cognition",
+    "base": "00c0cb028e8cc543d21356c97506d9a2d98a135e",
+    "target": "2710114be671d655056f1c503f973262c8855453",
+    "prefix": "",
+    "vendor": "vendor/memory-cognition",
+    "package": "furongjun1999__dsh-memory",
+    "integrity": "sha512-hKeVrlvlZWwegzyAuEGOTeD1uHtSH9Zmm8nI4t+agCOCOKvH34W/tib9y2hNaLFFT88ns41tg/GB+gF1BTJrnA==",
+    "packageVersion": "0.9.13",
+    "changed": [
+      {
+        "file": "md_cg/autonomy.py",
+        "before": "befb8605073bdaaa8a9593021bb98eea64f2545de2a39984d201626ec07ae273",
+        "after": "ba831ee7079ddf32b5472a24ff0a660bbcd6dec1c3bc3cc84c5d8d631614385a"
+      },
+      {
+        "file": "md_cg/config_registry.py",
+        "before": "5a7fcf1406a6f2168e2ee370c140dbfd6af02d6e15716e783f95db5c308b1058",
+        "after": "5970872b427f69d6e823a871cd9543c89e7a30fa2c080a88befc2d35435324be"
+      },
+      {
+        "file": "md_cg/config_registry_bulk.py",
+        "before": "af7d54f6aa509206ee6abf712223e18662c042273da4470b1b0fee445fca6ff4",
+        "after": "f653f20a115a4f555a269af8568bfec0df4dd9cfe2d77652aba623fcd044be86"
+      },
+      {
+        "file": "md_cg/config_render.py",
+        "before": "04eac6759eb3174b379ed27e904bd9685aeb214ec3e8cd0646b8f14b74b22afd",
+        "after": "c7c5e8714dc5e4d235493fbfd14fd6a78e50ddc6b2c00cca37fe06a4949c430b"
+      },
+      {
+        "file": "md_cg/config_validate.py",
+        "before": "297d1e2cd67f2cb06c36eedc4b8bf42a7100c1ef4e4f4f3522cf09a8573156c8",
+        "after": "e4a95d5750b362b7c300b6c5935e9eeecd232681816d2ed429f53760a5c85fc8"
+      },
+      {
+        "file": "md_cg/mcp_server.py",
+        "before": "c073a90c321b5f49204b05e30fe0d48c84061b542a05712c6261cb3d3f8ac55d",
+        "after": "11a547c8fc6da07953e49aede367398eecb74b01c1e3db8c35d10d2f7188a981"
+      },
+      {
+        "file": "md_cg/mdcg.py",
+        "before": "02f682c5ad8921dc24245d71b5faa1b5719cb1a9ee94f2cea2861796b285ab81",
+        "after": "937fbe9c6026aac31f6e4ba7e59d6ed39dc311380b571f7ddb18296199de778a"
+      },
+      {
+        "file": "md_cg/mdcos.py",
+        "before": "c2a30cb4bce346dedb1c6fb326e1b2c92de7b51ed916699622a7060d04d3c83a",
+        "after": "a3fe01083c7d6c7838fce57fefb6b4b4e5aabce7fb05645cd5ec310e813a407d"
+      },
+      {
+        "file": "md_cg/pooling.py",
+        "before": "3945f618e57d99fab7e35dad4648313a54d2149b2c131191a520a088121cc2e8",
+        "after": "df8254052478b5a4acb1242ad9587f439f07a63de4a1e5234171ac8a4f422a44"
+      },
+      {
+        "file": "md_cg/reach.py",
+        "before": "f77cb27724e181a0b4698035a91394302d8f411232b77a06e6d832180b4382f9",
+        "after": "d2cf4d53dfd9e619d352454ac3ec7301fbb7827946e8cff1da35f472e43a0966"
+      },
+      {
+        "file": "md_cg/refindex.py",
+        "before": "a47a6ac5c6dadff291feea6dede3b2c4fc904d4b01acd55c01c7a3590683c6cd",
+        "after": "429b7ae80484091729e7ea8d108a255ba964cdf2de4ff54abf2af2691e071869"
+      },
+      {
+        "file": "md_cg/sleep.py",
+        "before": "3d1340426a47ba7b2ddf7684d7fd07309c21178b2d7aaa9a04a394fb9309135f",
+        "after": "5d4a80f27619acbf94b61e7f6f02cf455d0793bd757962c7aa8b39edfcd2de4c"
+      },
+      {
+        "file": "md_cg/sustain.py",
+        "before": "1f04200c2233960c34a45bcf5acaa0c9eb6a39664aced03de3dec20bd83d6a5f",
+        "after": "29a076f0468f85f7cca9c56ea766de470af8a7e11b01a95d4ed1da3cbdb456c4"
+      },
+      {
+        "file": "md_cg/test_auto_defaults.py",
+        "before": "aeda09cb29acbcb98f71a5223b82fe3d8e75bd77caa46e32fe36cfd8861b1e10",
+        "after": "a481824b6e7a781034fe09ed1a2833ac6af86d47a9d2e5fcdd7e654a0f309923"
+      },
+      {
+        "file": "md_cg/test_c3_transient_read_negative.py",
+        "before": "fb1b8c709573c8646dd80f5545af988a090560a9d88481b64cc5a541529e1301",
+        "after": "17c287b9410f1208d17dcc6714fe2e403f1f79dad3f7c02ba8f2e2955f1dca10"
+      },
+      {
+        "file": "md_cg/test_c8_search_rrf_gates.py",
+        "before": "abf7d04d12e0a4681daa99e03d26c275e5566c8e14f454d45fbf40e5e87b2b51",
+        "after": "ca65b47836eb10a5b8ddf811711f31f3a21e07a6cadafb3416ee574ef1f6b613"
+      },
+      {
+        "file": "md_cg/test_exact_text_cache.py",
+        "before": "d98ca9e84cab663aae326d2703deaa87cc52c7c698ebce1c4fd1bce142713f83",
+        "after": "30dad303f27ed6024b98ac0a708673dffb181274dab2ca1989246585c3ac40ef"
+      },
+      {
+        "file": "md_cg/test_issue274_read_node_id_none.py",
+        "before": "84a26e04c27ded31dbb0e1ffd518e2490df55d7535d527653b4027710b388921",
+        "after": "1119b07629381f73ff40b730cbe38acf427e5eb4cd33c97a2dd86ba35f9fbe47"
+      },
+      {
+        "file": "md_cg/test_issue561_pending_review.py",
+        "before": "662d980b343e9b337fa76c318a84f3728890934049d4dce7cbf5804cde51e1b2",
+        "after": "3f9ddcdd1df5778e483c0436e4f255817ae5c793e13cf4b01a8eddb4cd8b9177"
+      },
+      {
+        "file": "md_cg/test_p28_refcheck.py",
+        "before": "0a3657bbd72856e4b32432fcd48d9d3c5d792040757ec74b8050d1b149480c58",
+        "after": "b586f038fcfc72cdfbb7e1d2b6e3711850018ca00956d96a3eb14349150232ed"
+      },
+      {
+        "file": "md_cg/test_p3_legacy_closure.py",
+        "before": "ff454b4edea9c78dee2f63a2cc3f9917c32d3913969fe0d28702feff00d2a4c7",
+        "after": "8206bc39f8b8b1598ae5bf1fb3455ed990c0496282c8c0b3bc7bf13e2af8fba1"
+      },
+      {
+        "file": "md_cg/test_p43_pooling.py",
+        "before": "17bd69d793a51d840ff1886ebef46fa4f7b7a69b911d52aea72015a54bf63877",
+        "after": "e50044a5e9829a3d624e31f0bb2dc0ff92bf7697d09dd146ee2d4f0b7e8a30df"
+      },
+      {
+        "file": "md_cg/test_reach.py",
+        "before": "267e7234dfdcf63cb7914d08aba4a5f64961f0fc1d3289ea94e96b4f098b5a87",
+        "after": "3cd341c73fc0ce0c20531562cedef4adef8b8d4fc7cfd7abc14ee7e2b61fd7c8"
+      },
+      {
+        "file": "md_cg/test_retr_gates_prodpath.py",
+        "before": "56f6abc5893937d71e89ac0248f32dd86a51c64fe5ba3b5ae7112a304036df6e",
+        "after": "b85a39ba0b16530bb98a00043a536dfae8e2c56d407e5098a97449ed25d3acb1"
+      },
+      {
+        "file": "md_cg/test_sleep_p1.py",
+        "before": "dd2dc9c11170cc2ebb93e88d91089e4975d445ed23425e139ec36934516ca7b3",
+        "after": "4dcd0c19a61d7323da7027eaf96734428b0a4a95c47435009df73cd36eafb141"
+      },
+      {
+        "file": "md_cg/tokens.py",
+        "before": "80a40e7c20d4005ab1abd10e41ab77ad89ef5e039f44affd8f713fee03398e5a",
+        "after": "ce38567c3b8d22ec698c026ea133851ffe5eec1af544c07906f9c842289a0a57"
+      },
+      {
+        "file": "package.json",
+        "before": "475a8ed1905508ccef753d27aacd6562769972f6c06e1e8232ed3d4a7e454404",
+        "after": "d555ba3c345cb22c28dccb1afe83cc409b6fd1c8a341a0f59ed3b880493476d6"
+      }
+    ],
+    "added": [
+      "md_cg/conflict_surface.py",
+      "md_cg/test_bm25_default.py",
+      "md_cg/test_conflict_surface.py",
+      "md_cg/test_conflict_value_untrusted.py",
+      "md_cg/test_conformance.py",
+      "md_cg/test_domain_granularity.py",
+      "md_cg/test_hotcache_tool.py",
+      "md_cg/test_index_snapshot_fastpath.py",
+      "md_cg/test_issue578_service_info_gate.py",
+      "md_cg/test_issue623_fullwidth_symmetry.py",
+      "md_cg/test_issue644_637_636.py",
+      "md_cg/test_mr_m1.py",
+      "md_cg/test_reach_exits.py",
+      "md_cg/test_reach_single_char.py",
+      "md_cg/test_search_async.py",
+      "md_cg/test_search_bm25_default.py",
+      "md_cg/test_search_prefilter.py",
+      "md_cg/test_untrusted_audit.py",
+      "md_cg/test_untrusted_classifier.py",
+      "md_cg/test_untrusted_enforcement.py",
+      "md_cg/untrusted.py",
+      "md_cg/untrusted_audit.py",
+      "md_cg/value_conflict.py"
+    ],
+    "removed": [],
+    "localPreserved": [
+      "md_cg/.npmignore"
+    ],
+    "conflicts": []
+  }
+]

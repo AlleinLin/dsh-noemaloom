@@ -2,6 +2,62 @@
 
 本项目遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/) 与 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [0.3.5] — 2026-10-23
+
+第三方输入座位补齐（issue #1 之左座）：`conversation.input.left` 条目恢复显示；v0.3.4 的右座实现泛化为「座位镜像」层。
+
+### 新增
+
+- **左座 `conversation.input.left` 槽位转发渲染**：该子槽位位于官方工具行左区 `.tools` 内 modes（权限→计划）之后——issue 截图里的底栏按钮（如「上传视频」）、dsh-qoder-plugin 的额度读数等第三方条目注册在这里；遮蔽官方输入框后渲染点随条目一起消失。接管卡片工具行现于同位置（`.dci-tools` 内、权限触发器之后）复刻官方 renderer 的 list 合成，三形态（普通/悬浮/侧栏标签）同享。已在真实 web 宿主（`0.2.0-rc.2`）实测：座位条目渲染进左区几何正确位置、三形态一致、无横向溢出，卸载条目后零残留。
+- **座位镜像通用引擎**：v0.3.4 的右座实现抽成 `InputSlotSeat`（座位名 + standard props 面参数化），左右两座共用同一套 list 合成（id 首占位去重 + order 升序）、条目 inject/`use<Name>` 钩子、条目 locale 的 `t`、standard props 原样通道与逐条目崩溃隔离；后续座位接入只需再加一片薄壳。
+
+### 说明
+
+- 检测即兼容：槽位无条目或宿主过旧（无该子槽位）时座位不渲染，零样式零行为残留；单个条目崩溃被边界隔离，不连坐输入面。
+- 左右两座的 standard props 面同源：宿主下发给 bar/侧栏 body 条目的 kit 减去 owner props（侧栏再剔除注入的 `useTabInfo`）。
+- **已知限制（本版边界）**：`conversation.input.model` 单座（如 dsh-model-accordion 类替换模型选择器的插件）与自绘模型芯片 UX 冲突，本版不镜像；`conversation.input.attachments` / `overlay` / `dock` 生态暂无租客，留扩展位。
+- **覆盖边界（措辞分界）**：左座转发在真实 web 宿主（`0.2.0-rc.2`）上以确定性探针条目实测通过（渲染位置/三形态/卸载零残留）；dsh-qoder-plugin 的左额度读数与右探针双座条目实测注册成功、无报错，但其组件按官方契约在未选中 Qoder provider 时返回 `null`，可见读数属机制推断、未实测；左座席位的「上传视频」类插件真身未在本环境出现，同属机制覆盖（其注册形态与已实测样本同轴）。右座既有租客（dsh-prompt-enhancer）端到端回归实测不受影响。
+
+[0.3.5]: https://github.com/Witherwithwinter/DSH-Codinput/compare/v0.3.4...v0.3.5
+
+## [0.3.3] — 2026-10-23
+
+主题/皮肤插件兼容：错误色与预览链接逐值对齐官方；README 增补皮肤作者指南。
+
+### 变更
+
+- **错误色回退值逐值对齐官方**：`.dci-error` 与完全权限确认警示图标的错误色回退值由 `#ff6b6b` 改为官方同款 `#d54941`（token 仍走 `--dsw-alias-state-error-primary`，仅无该令牌的宿主回退时可见差异）。
+- **预览链接走官方 alias-link token**：markdown 预览的链接色由写死 `#4c8dff` 改为 `var(--dsw-alias-link, #4c8dff)`，换肤下与官方 markdown 链接同进退。
+
+### 新增
+
+- **README 皮肤作者指南（中英）**：新增「主题 / 皮肤插件兼容」章节——覆写宿主 `--dsw-*` token 即全盘生效（含 token 定义在 body 层、覆写需写同层的注意点）；官方写死的值清单（发送钮图标前景白等，属预期不跟 token）；稳定的 `dci-` 前缀类名契约与注入顺序（皮肤后注入按常规 CSS 权重覆盖）。
+
+## [0.3.4] — 2026-10-23
+
+第三方输入条目兼容（issue #1 之右座）：接管后 `conversation.input.right` 座条目恢复显示（已实测 dsh-prompt-enhancer 的 ✨/🎤）；模型/推理强度弹层恢复官方形态。
+
+### 新增
+
+- **`conversation.input.right` 槽位转发渲染**：该子槽位由官方 InputBar（`conversation.composer.bar` 缺省条目）声明并在其工具行内渲染；Codinput 以 priority -1 遮蔽官方条目后，槽位渲染点随官方输入框一起消失，注册在此槽位的第三方按钮（如 dsh-prompt-enhancer 的 ✨ 提示词优化 / 🎤 语音识别）无处挂载。接管卡片的工具行现于官方同座位（右侧标准控件区、模型选择之前）复刻官方 renderer 的 list 条目合成（id 首占位去重 + order 升序 + priority 遮蔽序、条目 inject/`use<Name>` 钩子、条目 locale 的 `t`、standard props 原样通道、逐条目崩溃隔离），三形态（普通/悬浮/侧栏标签）同享。
+- **检测即兼容**：槽位无条目或宿主过旧（无该子槽位）时座位不渲染，零样式零行为残留；单个条目崩溃被边界隔离，不连坐输入面。
+
+### 修复
+
+- **菜单钻入子页后向下弹出**：`MenuSurface` 旧实现只在打开瞬间定位一次（尺寸变化不重算），从根菜单点进更长的「模型 / 推理强度」列表时，卡片保持小菜单算好的顶边向下生长、盖住触发器，视觉上变成「向下弹出」。现复刻官方 ModelSelect 的 `place()` 三路监听（ResizeObserver 挂卡片 + 页面 scroll/resize），内容尺寸每次变化即重算上方锚位并夹进视口。
+- **模型选择框无滚动条**：旧 `.dci-menu` 把 `max-height: 100vh - 24px` 与 `overflow-y: auto` 压在卡片本体且未注入官方卡片的 `--dsh-scrollbar-thumb`（l2）变量；叠加上一条后卡片伸出视口被浏览器裁切，列表项既够不着也不出条。现按官方两级结构复刻——卡片 `overflow: hidden` + `max-height: min(360px, 100vh - 96px)`，列表在 `.dci-viewport` 内滚、细滚动条按官方 l2 变量着色；`popupSelect` 壳（命令选项弹层）同步内滚结构。
+
+### 说明
+
+- 官方渲染门槛同款复刻：`input === undefined || sessionId === undefined` 时整个座位不渲染。
+- 条目声明 store 的 `useStore`/`actions` 面依赖宿主私有记账，插件侧不可复现；现网此类条目未出现。
+- **覆盖边界**：本版转发的是 `conversation.input.right`（右座）；`conversation.input.left`（左座，如部分插件的「上传视频」按钮与 qoder-plugin 的额度读数）暂未转发，后续版本补齐。
+- **右座覆盖面**：同座其他条目（如各 Qoder 渠道插件的积分/余额读数）按同一合成机制恢复显示——推断自各包源码的槽位注册（五家 Qoder 桥接包均注册于 right 座），未逐一实测。
+
+[0.3.4]: https://github.com/Witherwithwinter/DSH-Codinput/compare/v0.3.3...v0.3.4
+
+[0.3.3]: https://github.com/Witherwithwinter/DSH-Codinput/compare/v0.3.2...v0.3.3
+
 ## [0.3.2] — 2026-10-18
 
 桌面版 0.2.1 模型区同步（官方 1017 发布徽章）；侧栏标签与指南页条目上品牌标。

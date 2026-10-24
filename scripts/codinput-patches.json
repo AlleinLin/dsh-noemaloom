@@ -37,7 +37,7 @@
   },
   {
     "file": "src/client/components/CodinputSurface.tsx",
-    "upstreamSha256": "f94ebcd2a26d28d0c05e35ec6b290c4b3a534a0f9ce9d0b080dc341777561c57",
+    "upstreamSha256": "4cdd70405a0a68aaf83ec6b2f59972f57cf33cab6d4965dad955e43b1c1cbf1f",
     "replacements": [
       {
         "before": " */\n\nimport { useEffect, useMemo, useRef, useState } from 'react';\nimport type { EditorView } from '@codemirror/view';\nimport { marked } from 'marked';\nimport * as DOMPurifyModule from 'dompurify';\n",
@@ -81,21 +81,25 @@
   },
   {
     "file": "src/client/components/MenuSurface.tsx",
-    "upstreamSha256": "bc974a95e1be359492644c0cf323d1b665c3290e981e650ba76c376ce5a40256",
+    "upstreamSha256": "264edc7dd0854c770df9f1962cbb9f9ee0f2a90d15fcd9866fec51ef3cc09c36",
     "replacements": [
       {
-        "before": "  useLayoutEffect(() => {\n    const el = ref.current;\n    if (!el) return;\n    const rect = el.getBoundingClientRect();\n    let top: number;\n    if (side === 'top') {\n      top = Math.max(12, anchor.top - rect.height - 4);\n      el.style.bottom = 'auto';\n    } else {\n      top = Math.min(window.innerHeight - rect.height - 12, anchor.bottom + 4);\n      el.style.bottom = 'auto';\n    }\n    el.style.top = `${top}px`;\n    let left = anchor.left;\n    if (alignEnd) left = anchor.right - rect.width;\n    left = Math.min(Math.max(12, left), window.innerWidth - rect.width - 12);\n    el.style.left = `${left}px`;\n  }, [anchor, alignEnd, side]);\n\n  useEffect(() => {\n    const onDown = (event: PointerEvent): void => {\n",
-        "after": "  useLayoutEffect(() => {\n    const el = ref.current;\n    if (!el) return;\n    const update = (): void => {\n      const rect = el.getBoundingClientRect();\n      const viewport = el.querySelector<HTMLElement>('.dci-viewport');\n      const gutter = 12;\n      const gap = 4;\n      const viewportHeight = window.innerHeight;\n      const maxHeight = Math.max(1, viewportHeight - gutter * 2);\n      const contentHeight = Math.min(maxHeight, (viewport?.scrollHeight ?? el.scrollHeight) + 8);\n      const availableAbove = Math.max(1, anchor.top - gutter - gap);\n      const availableBelow = Math.max(1, viewportHeight - anchor.bottom - gutter - gap);\n      let placeAbove = side === 'top';\n      const preferredSpace = placeAbove ? availableAbove : availableBelow;\n      const alternateSpace = placeAbove ? availableBelow : availableAbove;\n      if (contentHeight > preferredSpace && alternateSpace > preferredSpace) placeAbove = !placeAbove;\n\n      const availableHeight = placeAbove ? availableAbove : availableBelow;\n      const height = Math.min(contentHeight, availableHeight);\n      el.style.height = `${height}px`;\n      el.style.maxHeight = `${height}px`;\n      el.style.bottom = 'auto';\n      const top = placeAbove\n        ? Math.max(gutter, anchor.top - height - gap)\n        : Math.min(viewportHeight - gutter - height, anchor.bottom + gap);\n      el.style.top = `${top}px`;\n      let left = anchor.left;\n      if (alignEnd) left = anchor.right - rect.width;\n      left = Math.min(Math.max(gutter, left), window.innerWidth - rect.width - gutter);\n      el.style.left = `${left}px`;\n      el.style.right = 'auto';\n    };\n\n    update();\n    window.addEventListener('resize', update);\n    return () => window.removeEventListener('resize', update);\n  }, [anchor, alignEnd, side, children]);\n\n  useEffect(() => {\n    const onDown = (event: PointerEvent): void => {\n"
+        "before": "  useLayoutEffect(() => {\n    const el = ref.current;\n    if (!el) return;\n    const place = (): void => {\n      // 尺寸取 offset*（官方同款）：不受自身 top/left 变更反馈影响。\n      const w = el.offsetWidth;\n      const h = el.offsetHeight;\n      let x = alignEnd ? anchor.right - w : anchor.left;\n      let y = side === 'top' ? anchor.top - 8 - h : anchor.bottom + 4;\n      if (w > 0) x = Math.min(Math.max(x, MARGIN), window.innerWidth - w - MARGIN);\n      if (h > 0) y = Math.min(Math.max(y, MARGIN), window.innerHeight - h - MARGIN);\n      setPos((prev) => (prev && prev.left === x && prev.top === y ? prev : { left: x, top: y }));\n    };\n    place();\n    // 内容换页/目录热更/滚动/视口变化都重定位——官方 place 的三路监听。\n    window.addEventListener('scroll', place, true);\n    window.addEventListener('resize', place);\n    const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(place) : null;\n    observer?.observe(el);\n    return () => {\n      observer?.disconnect();\n      window.removeEventListener('scroll', place, true);\n      window.removeEventListener('resize', place);\n    };\n  }, [anchor, alignEnd, side]);\n\n",
+        "after": "  useLayoutEffect(() => {\n    const el = ref.current;\n    if (!el) return;\n    const update = (): void => {\n      const viewport = el.querySelector<HTMLElement>('.dci-viewport');\n      const gutter = 12, gap = 4;\n      const maxHeight = Math.max(1, window.innerHeight - gutter * 2);\n      const contentHeight = Math.min(360, maxHeight, (viewport?.scrollHeight ?? el.scrollHeight) + 8);\n      const above = Math.max(1, anchor.top - gutter - gap);\n      const below = Math.max(1, window.innerHeight - anchor.bottom - gutter - gap);\n      let placeAbove = side === 'top';\n      if (contentHeight > (placeAbove ? above : below) && (placeAbove ? below : above) > (placeAbove ? above : below)) placeAbove = !placeAbove;\n      const height = Math.min(contentHeight, placeAbove ? above : below);\n      el.style.height = String(height) + \"px\";\n      el.style.maxHeight = String(height) + \"px\";\n      const top = placeAbove ? Math.max(gutter, anchor.top - height - gap)\n        : Math.min(window.innerHeight - gutter - height, anchor.bottom + gap);\n      const width = el.offsetWidth;\n      const wantedLeft = alignEnd ? anchor.right - width : anchor.left;\n      const left = Math.max(gutter, Math.min(wantedLeft, window.innerWidth - width - gutter));\n      setPos(previous => previous && previous.left === left && previous.top === top ? previous : { left, top });\n    };\n    update();\n    window.addEventListener('resize', update);\n    window.addEventListener('scroll', update, true);\n    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(update);\n    observer?.observe(el);\n    return () => {\n      observer?.disconnect();\n      window.removeEventListener('resize', update);\n      window.removeEventListener('scroll', update, true);\n    };\n  }, [anchor, alignEnd, side, children]);\n\n"
       },
       {
-        "before": "  return (\n    <div\n      ref={ref}\n      className=\"dci-menu\"\n      style={\n        below\n          ? { top: anchor.bottom + 4, bottom: 'auto', ...(alignEnd ? { left: 'auto', right: window.innerWidth - anchor.right } : { left: anchor.left }), minWidth }\n          : { left: anchor.left, bottom: window.innerHeight - anchor.top + 4, top: 'auto', ...(alignEnd ? { left: 'auto', right: window.innerWidth - anchor.right } : {}), minWidth }\n      }\n    >\n      <div className=\"dci-viewport\">{children}</div>\n    </div>\n  );\n}\n",
-        "after": "  return (\n    <div\n      ref={ref}\n      className=\"dci-menu dci-menuSurface\"\n      style={\n        below\n          ? { top: anchor.bottom + 4, bottom: 'auto', ...(alignEnd ? { left: 'auto', right: window.innerWidth - anchor.right } : { left: anchor.left }), minWidth }\n          : { left: anchor.left, bottom: window.innerHeight - anchor.top + 4, top: 'auto', ...(alignEnd ? { left: 'auto', right: window.innerWidth - anchor.right } : {}), minWidth }\n      }\n    >\n      <div\n        className=\"dci-viewport\"\n        onWheel={(event) => event.stopPropagation()}\n        onTouchMove={(event) => event.stopPropagation()}\n      >\n        {children}\n      </div>\n    </div>\n  );\n}\n"
+        "before": "className=\"dci-menu\"",
+        "after": "className=\"dci-menu dci-menuSurface\""
+      },
+      {
+        "before": "<div className=\"dci-viewport\">{children}</div>",
+        "after": "<div className=\"dci-viewport\" onWheel={event => event.stopPropagation()} onTouchMove={event => event.stopPropagation()}>{children}</div>"
       }
     ]
   },
   {
     "file": "src/client/components/Toolbar.tsx",
-    "upstreamSha256": "3e82c7e453e9db5f263f29a787886988740d0850fc3127f8bff78ae7d093bda0",
+    "upstreamSha256": "14fde0536c10b8e0e3270da3c98f6ee58a024fc5db9fd3b25e922d9a77df232e",
     "replacements": [
       {
         "before": " */\n\nimport { useCallback, useState } from 'react';\nimport type { DraftAttachmentId, InputActions, InputState, InputTriggerController, UseProjection } from '../host-types';\nimport { openCommandMenu } from '../triggers';\nimport { t, useT } from '../i18n';\nimport { IconPlusOfficial, IconSendOfficial, IconStopOfficial } from '../icons';\nimport { ModelMenu } from './ModelMenu';\n",
@@ -106,8 +110,8 @@
         "after": "  sessionId: string | undefined;\n  state: InputState | undefined;\n  actions: InputActions | undefined;\n  keyboard: ComposerKeyboard | undefined;\n  triggers: InputTriggerController | undefined;\n  /** caret 偏移（指令按钮以当前 caret 构造 synthetic hit）。 */\n  caretRef: { current: number | null };\n"
       },
       {
-        "before": "}\n\nexport function Toolbar(props: ToolbarProps): JSX.Element {\n  const { sessionId, state, actions, triggers, caretRef, useProjection, disabled, onNotify } = props;\n  useT();\n\n  const attachments: readonly DraftAttachmentId[] = state?.attachmentIds ?? [];\n",
-        "after": "}\n\nexport function Toolbar(props: ToolbarProps): JSX.Element {\n  const { sessionId, state, actions, keyboard, triggers, caretRef, useProjection, disabled, onNotify } = props;\n  useT();\n\n  const attachments: readonly DraftAttachmentId[] = state?.attachmentIds ?? [];\n"
+        "before": "}\n\nexport function Toolbar(props: ToolbarProps): JSX.Element {\n  const { sessionId, state, actions, triggers, caretRef, useProjection, disabled, onNotify, inputStandard } = props;\n  useT();\n\n  const attachments: readonly DraftAttachmentId[] = state?.attachmentIds ?? [];\n",
+        "after": "}\n\nexport function Toolbar(props: ToolbarProps): JSX.Element {\n  const { sessionId, state, actions, keyboard, triggers, caretRef, useProjection, disabled, onNotify, inputStandard } = props;\n  useT();\n\n  const attachments: readonly DraftAttachmentId[] = state?.attachmentIds ?? [];\n"
       },
       {
         "before": "\n  const onCommandClick = (): void => {\n    if (!triggers) return;\n    openCommandMenu(triggers, undefined, caretRef.current ?? 0);\n  };\n\n  return (\n",
@@ -117,15 +121,19 @@
   },
   {
     "file": "src/client/styles.ts",
-    "upstreamSha256": "53b32457c727526c5c34e5cb83df77887e54d85170897e28207b537fd4ed7393",
+    "upstreamSha256": "709016556367e1b128f20599c7beadc19ec45ac89f40b25da7eda0e51e6bb935",
     "replacements": [
       {
-        "before": ".dci-chev[data-open=\"true\"] { transform: rotate(180deg); }\n\n/* 发送（官方 .primary）*/\n.dci-send { background: var(--dsw-alias-button-info-fill, color-mix(in srgb, currentColor 85%, transparent)); color: #fff; cursor: pointer;\n  border: none; border-radius: 999px; flex: none; place-items: center; width: 34px; height: 34px;\n  transition: background-color 0.1s; display: grid; transform: translateY(-2px); }\n.dci-send:hover:not(:disabled) { background: var(--dsw-alias-button-info-hover, color-mix(in srgb, currentColor 70%, transparent)); }\n.dci-send:disabled { opacity: 0.4; cursor: default; }\n\n/* ===== 菜单（官方 primitives Menu：r20 卡片 / item r10 / side-top 弹出）===== */\n",
-        "after": ".dci-chev[data-open=\"true\"] { transform: rotate(180deg); }\n\n/* 发送（官方 .primary）*/\n.dci-send { background: var(--dsw-alias-button-primary-fill, var(--dsw-alias-button-info-fill, color-mix(in srgb, currentColor 85%, transparent))); color: #fff; cursor: pointer;\n  border: none; border-radius: 999px; flex: none; place-items: center; width: 34px; height: 34px;\n  transition: background-color 0.1s; display: grid; transform: translateY(-2px); }\n.dci-send:hover:not(:disabled) { background: var(--dsw-alias-button-primary-hover, var(--dsw-alias-button-info-hover, color-mix(in srgb, currentColor 70%, transparent))); }\n.dci-send:disabled { opacity: 0.4; cursor: default; }\n\n/* ===== 菜单（官方 primitives Menu：r20 卡片 / item r10 / side-top 弹出）===== */\n"
+        "before": ".dci-send { background: var(--dsw-alias-button-info-fill, color-mix(in srgb, currentColor 85%, transparent)); color: #fff; cursor: pointer;",
+        "after": ".dci-send { background: var(--dsw-alias-button-primary-fill, var(--dsw-alias-button-info-fill, color-mix(in srgb, currentColor 85%, transparent))); color: #fff; cursor: pointer;"
       },
       {
-        "before": "  backdrop-filter: var(--dsw-menu-backdrop-filter, none); color: var(--dsw-alias-label-primary, #ececf1);\n  --dsw-elevation-stroke-color: var(--dsw-alias-border-l1, transparent);\n  box-shadow: var(--dsw-elevation-prominent, 0 10px 34px rgba(0, 0, 0, 0.35)); border: 0; border-radius: var(--dsw-radius-lg, 20px); font-size: 13px; }\n.dci-viewport { display: flex; flex-direction: column; min-height: 0; }\n.dci-menuLabel { padding: 8px 10px; font-size: 12px; line-height: 16px; color: var(--dsw-alias-label-tertiary, currentColor);\n  user-select: none; text-align: left; }\n.dci-item { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 40px; padding: 8px 10px; border: none;\n",
-        "after": "  backdrop-filter: var(--dsw-menu-backdrop-filter, none); color: var(--dsw-alias-label-primary, #ececf1);\n  --dsw-elevation-stroke-color: var(--dsw-alias-border-l1, transparent);\n  box-shadow: var(--dsw-elevation-prominent, 0 10px 34px rgba(0, 0, 0, 0.35)); border: 0; border-radius: var(--dsw-radius-lg, 20px); font-size: 13px; }\n.dci-menuSurface { overflow: hidden; }\n.dci-viewport { display: flex; flex: 1 1 auto; flex-direction: column; min-height: 0; overflow-x: hidden; overflow-y: auto;\n  overscroll-behavior: contain; touch-action: pan-y; -webkit-overflow-scrolling: touch; }\n.dci-menuLabel { padding: 8px 10px; font-size: 12px; line-height: 16px; color: var(--dsw-alias-label-tertiary, currentColor);\n  user-select: none; text-align: left; }\n.dci-item { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 40px; padding: 8px 10px; border: none;\n"
+        "before": ".dci-send:hover:not(:disabled) { background: var(--dsw-alias-button-info-hover, color-mix(in srgb, currentColor 70%, transparent)); }",
+        "after": ".dci-send:hover:not(:disabled) { background: var(--dsw-alias-button-primary-hover, var(--dsw-alias-button-info-hover, color-mix(in srgb, currentColor 70%, transparent))); }"
+      },
+      {
+        "before": ".dci-viewport { display: flex; flex-direction: column; min-height: 0; overflow-y: auto; }",
+        "after": ".dci-viewport { display: flex; flex: 1 1 auto; flex-direction: column; min-height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; -webkit-overflow-scrolling: touch; }\n.dci-viewport > * { flex-shrink: 0; }"
       }
     ]
   },

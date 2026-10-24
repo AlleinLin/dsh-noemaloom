@@ -1,4 +1,4 @@
-# DSH Nexus third-party notices
+# DSH Noemaloom third-party notices
 
 This distribution contains or adapts components from multiple upstream projects.
 It is not licensed as a single blanket MIT work. See `notices/`, individual
@@ -18,14 +18,14 @@ versions, copyright notices, source identities, and modifications.
 - Metis 2.0.2 — MIT with Wholiver and Mario Zechner copyrights; selected policies and
   templates only, no second runtime or fixed-PASS controller.
 - dsh-web root and subpackages — mixed Apache-2.0/BSD notices, retained per component.
-- DeepSeek Harness agent-instructions 0.2.1-rc.2 — MIT; adapted for ordered
+- DeepSeek Harness agent-instructions 0.2.1-rc.3 — MIT; adapted for ordered
   first-match project rule files. Source identity and full license are retained
   in `vendor/agent-instructions/`; the runtime entry is `lib/project-rules.js`.
-- DeepSeek Harness tool-subagent 0.2.1-rc.2 — MIT; adapted for live authorized
+- DeepSeek Harness tool-subagent 0.2.1-rc.3 — MIT; adapted for live authorized
   model discovery, blank optional fields, and maximum supported child reasoning.
   Exact source identity and license are in `vendor/tool-subagent/`;
   the runtime entry is `lib/subagent.js`.
-- DeepSeek Harness compaction-basic 0.2.1-rc.2 — MIT; its existing region
+- DeepSeek Harness compaction-basic 0.2.1-rc.3 — MIT; its existing region
   transaction is retained in `vendor/compaction-basic/`, with source hashes and
   an export-only adaptation. Idle manual ranges use the original standalone
   transaction under the real Agent maintenance lock; active-turn compression
@@ -57,8 +57,8 @@ versions, copyright notices, source identities, and modifications.
   adapted into the shared Nexus runtime and scoped settings. Full license,
   verbatim upstream host source and package manifest, commit and file hashes
   are retained in `notices/step-pause/`; adaptations are listed in `SOURCE.json`.
-- Witherwithwinter/DSH-Codinput 0.3.2 — MIT, Copyright (c) 2026
-  Witherwithwinter; fixed at commit `a32da33ce4d50616bf490d360ae3dfe784e8aa50`.
+- Witherwithwinter/DSH-Codinput 0.3.5 — MIT, Copyright (c) 2026
+  Witherwithwinter; fixed at commit `f5449ed247559de2d0f19fc70870864fa93adfcf`.
   Its entire acquired checkout and byte hashes are in `vendor/codinput/`.
   The original client factory and CommonJS host are preserved without behavior
   or UI changes. Full upstream LICENSE/NOTICE and the exact bundled CodeMirror,
@@ -106,3 +106,19 @@ VS Code extension host.
   separate LICENSE. Original metadata: `assets/methods/karpathy/`.
 - dsh-ops 0.4.1 — MIT AND Apache-2.0. Native shell/file/PTC/discovery and optional original
   panel/TUI are composed once using upstream defaults.
+- Scorp1o117/dsh-motion-ui 0.8.7 — MIT. Published native tools, skills, panels and
+  media renderers are preserved, with a separate theme/reduced-motion adapter.
+  The npm integrity is the runtime identity; the eight internal modules that
+  differ from Git HEAD are recorded individually in the upstream review.
+- zsjs110110-cpu/dsh-cross-session-approval 0.3.10 — MIT. Original ten tools and
+  permission limits are retained; agent messages use the shared mailbox rather
+  than impersonating human messages. Complete license and npm file identities
+  are retained in `notices/originals/cross-session-approval/`.
+- LJL454/dsh-computer-use 1.40.2 — MIT. Complete source-only Windows/backend/CDP
+  runtime at commit `20bfa1442bbe6f9f43a3e6ebcd9bff4403ecce7a`, preserved in
+  `vendor/computer-use/` with per-file hashes. Authenticated routes and native
+  sandbox/approval integration are generated separately from original source.
+- Yu-tao-Li/dsh-computer-use-win 0.5.1 — tracked comparison source at commit
+  `d9e4605c4fe45215555da386a4a84a699443791a`. This second controller is not
+  installed concurrently; its upstream identity and comparison remain in the
+  source ledger and maintenance inventory.

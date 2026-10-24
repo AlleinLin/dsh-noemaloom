@@ -195,8 +195,10 @@ function OriginalCanvas({ ctx, canvas, scope, sessionId, openView, active = true
           title: scope.level === 'global' ? '全部会话' : workspace?.title ?? session?.title ?? '当前会话',
           path: workspace?.path ?? null, sessionIds: [...ids],
         }];
-        const workspacesSignature = JSON.stringify(workspaces), sessionSignature = JSON.stringify(session);
-        if (lastWorkspaces !== workspacesSignature) { lastWorkspaces = workspacesSignature; send('synapse:workspaces', { workspaces }); }
+        const archivedSessionIds = (host.get('workspaces').list.getSnapshot()?.archivedSessionIds ?? [])
+          .filter((id: string) => ids.has(id));
+        const workspacesSignature = JSON.stringify({ workspaces, archivedSessionIds }), sessionSignature = JSON.stringify(session);
+        if (lastWorkspaces !== workspacesSignature) { lastWorkspaces = workspacesSignature; send('synapse:workspaces', { workspaces, archivedSessionIds }); }
         if (lastSession !== sessionSignature) { lastSession = sessionSignature; send('synapse:current-session', { session }); }
         if (!opened.current) { opened.current = true; send('synapse:map-opened'); }
         void syncCatalog();
@@ -237,6 +239,12 @@ function OriginalCanvas({ ctx, canvas, scope, sessionId, openView, active = true
           assertSession(id);
           ctx.uiWorkspace!.openSession(id);
           if (data.type !== 'synapse:activate-session' && data.close !== false) close();
+          return;
+        }
+        if (data.type === 'synapse:archive-session') {
+          assertSession(data.sessionId);
+          await host.get('workspaces').archiveSession(data.sessionId);
+          if (!disposed) queueSync();
           return;
         }
         if (data.type === 'td:pick-cwd') {

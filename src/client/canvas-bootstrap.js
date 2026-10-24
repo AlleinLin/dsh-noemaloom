@@ -62,7 +62,7 @@
       const method = String(init?.method ?? (input instanceof Request ? input.method : 'GET')).toUpperCase();
       // Pause only original history/projection reads. Persistence, an already
       // submitted turn, its SSE stream, and request timeouts retain their life.
-      if (!active && method === 'GET' && /^\/(?:thoughtdag\/api\/(?:sessions|disksessions|roots)|synapse\/api\/workspaces)(?:\/|$)/.test(url.pathname)) {
+      if (!active && method === 'GET' && /^\/(?:thoughtdag\/api\/(?:sessions|disksessions|roots)(?:\/|$)|synapse\/api\/(?:workspaces(?:\/|$)|threads\/[^/]+\/full(?:\/|$)))/.test(url.pathname)) {
         await waitUntilActive(init?.signal ?? (input instanceof Request ? input.signal : undefined));
       }
       return fetchOriginal(input instanceof Request ? new Request(url, input) : url, init);

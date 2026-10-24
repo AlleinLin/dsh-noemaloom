@@ -1,4 +1,4 @@
-/** Structural rc.2 seam: optional services are queried, never assumed active. */
+/** Reviewed Desktop seam: optional services are queried, never assumed active. */
 export interface HostContext {
   get(name: string): any;
   on(name: string, callback: (...args: any[]) => any, options?: any): any;

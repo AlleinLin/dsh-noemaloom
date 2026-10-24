@@ -143,7 +143,7 @@ async function fixture() {
     const requestListeners = new Map();
     res.closeRequest = () => requestListeners.get('close')?.();
     const req = {
-      method, headers: { host: 'localhost' }, url: `/${kind}/api${path}?${query}`,
+      method, headers: { host: 'localhost' }, url: `/${kind}/api${path}${path.includes('?') ? '&' : '?'}${query}`,
       on(name, listener) { requestListeners.set(name, listener); },
       async *[Symbol.asyncIterator]() { if (body !== undefined) yield Buffer.from(JSON.stringify(body)); },
     };
@@ -213,6 +213,41 @@ test('Synapse original store isolates native tiers and removes moved sessions wi
     await f.dispose();
     await rm(directory, { recursive: true, force: true });
   }
+});
+
+test('Synapse preview bodies hydrate from native archives and remain inside the selected scope', { timeout: 10_000 }, async () => {
+  const f = await fixture();
+  const fullText = 'long native message '.repeat(80).trim();
+  const originalQuery = f.ctx.get('sessionQuery');
+  const archivedEvents = new Map();
+  const get = f.ctx.get;
+  f.ctx.get = function (name) {
+    return name === 'sessionQuery' ? {
+      ...originalQuery,
+      async readSession(id) {
+        return archivedEvents.has(id)
+          ? { session: f.headers.find(row => row.id === id), events: archivedEvents.get(id) }
+          : originalQuery.readSession(id);
+      },
+    } : get.call(this, name);
+  };
+  try {
+    f.sessions.get('a').events.push(f.event(1, fullText));
+    await applySynapse(f.ctx);
+    const index = await f.request('synapse', 'workspace', 'wa', '/workspaces');
+    const graph = await f.request('synapse', 'workspace', 'wa', `/workspaces/${index.data.workspaces[0].id}`);
+    const thread = graph.data.workspace.threads.find(row => row.dshSessionId === 'a');
+    assert.ok(thread.messages.find(row => row.sourceSeq === 1).text.length < fullText.length,
+      'the stored projection retains the upstream short preview');
+    archivedEvents.set('a', [...f.sessions.get('a').events]);
+    f.sessions.delete('a');
+    const bodies = await f.request('synapse', 'workspace', 'wa', `/threads/${thread.id}/full?seqs=1`);
+    assert.equal(bodies.status, 200);
+    assert.equal(bodies.data.messages['1'].text, fullText);
+    assert.deepEqual(Object.keys(bodies.data.messages), ['1'], 'only requested message bodies are returned');
+    const foreign = await f.request('synapse', 'workspace', 'wb', `/threads/${thread.id}/full?seqs=1`);
+    assert.equal(foreign.status, 404, 'a sibling scope cannot hydrate this thread');
+  } finally { await f.dispose(); }
 });
 
 function frames(res) {

@@ -29,10 +29,18 @@ async function report(directory, manifest, original, adapted, changes, additiona
 async function buildSynapse() {
   const root = dirname(require.resolve('dsh-synapse'));
   const manifest = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
-  if (manifest.version !== '0.4.2') throw new Error('Synapse adapter requires reviewed version 0.4.2');
+  if (manifest.version !== '0.5.0') throw new Error('Synapse adapter requires reviewed version 0.5.0');
   const original = await readFile(join(root, 'index.js'), 'utf8');
-  const adapted = replaceOnce(original, 'const store = new WorkspaceStore(config?.dataFile)',
+  if (sha256(original) !== '7ef44791dd5debc42adcf45b2e4c1c6bf1ad1198d8537e9f0126d1953ed83fd2') {
+    throw new Error('Synapse adapter requires the reviewed 0.5.0 host SHA256');
+  }
+  let adapted = replaceOnce(original, 'const store = new WorkspaceStore(config?.dataFile)',
     'const store = config.nexusStore', 'Synapse original request-scoped store');
+  adapted = replaceOnce(adapted,
+    `const session = ctx.sessions.list().find(candidate => candidate.id === thread.dshSessionId)
+    if (session === undefined) return { messages: {}, unavailable: true }
+    return { messages: bodiesFromEvents(thread, session.snapshotEvents(), seqs) }`,
+    'return config.nexusBodies(thread, seqs)', 'Synapse scoped native archive body reader');
   const output = join(project, 'lib/canvas-original/synapse');
   await mkdir(output, { recursive: true });
   await writeFile(join(output, 'index.js'), adapted);
@@ -42,6 +50,7 @@ async function buildSynapse() {
   await copyFile(join(project, 'assets/icon.svg'), join(output, 'deepseek-mark.svg'));
   await report(output, manifest, original, adapted, [
     'Replace one store constructor with a request-scoped original WorkspaceStore proxy.',
+    'Hydrate native session bodies through the scoped archive API and the original bodiesFromEvents projector.',
     'Use the shared Nexus icon for the original application mark.',
     ...client.changes,
   ], { client: { sourceSha256: client.sourceSha256, adaptedSha256: client.adaptedSha256 } });
@@ -51,7 +60,7 @@ async function buildThoughtdag() {
   const entry = require.resolve('dsh-thoughtdag');
   const root = dirname(dirname(entry));
   const manifest = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
-  if (manifest.version !== '0.5.22') throw new Error('ThoughtDAG adapter requires reviewed version 0.5.22');
+  if (manifest.version !== '0.5.24') throw new Error('ThoughtDAG adapter requires reviewed version 0.5.24');
   const original = await readFile(entry, 'utf8');
   const adapted = adaptThoughtdagHost(original);
   const output = join(project, 'lib/canvas-original/thoughtdag');

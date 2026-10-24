@@ -9,6 +9,7 @@ import ts from 'typescript';
 import { parseDocument } from 'yaml';
 import { parseFactory } from './original-factory.mjs';
 import { buildCodinputClient } from './build-codinput.mjs';
+import { EXPECTED_DSH_VERSION, EXPECTED_DSH_REVISION } from '../src/shared/host-compatibility.ts';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -22,7 +23,7 @@ const rootFiles = new Set(['package.json', 'README.md', 'README.en.md', 'LICENSE
 for (const directory of ['agent-instructions', 'tool-subagent', 'agent-procedures', 'nexus-terminal', 'compaction-basic']) {
   for (const file of ['LICENSE', 'SOURCE.json']) rootFiles.add(`vendor/${directory}/${file}`);
 }
-const runtimePrefixes = ['lib/', 'locale/', 'assets/', 'notices/', 'vendor/memory-cognition/', 'vendor/memsearch/', 'vendor/codinput/'];
+const runtimePrefixes = ['lib/', 'locale/', 'assets/', 'notices/', 'vendor/memory-cognition/', 'vendor/memsearch/', 'vendor/codinput/', 'vendor/computer-use/'];
 const privateDirectories = new Set(['.git', '.codegraph', 'node_modules', '__pycache__', '.venv', 'venv', '.dsh', '.codex', '.claude', '.ssh', '.aws', '.azure', '.gnupg', '.cache', 'profile', 'profiles', 'sessions', 'private-sessions']);
 const requiredFiles = [
   'package.json', 'lib/index.js', 'lib/client.js', 'lib/compaction.js', 'lib/preset-runtime.js',
@@ -50,6 +51,16 @@ const requiredFiles = [
   'vendor/codinput/src/client/index.tsx',
   'notices/originals/codinput/LICENSE', 'notices/originals/codinput/NOTICE',
   'notices/originals/codinput/SOURCE.json', 'notices/originals/codinput/dependencies/SOURCE.json',
+  'lib/original/motion-ui.js', 'lib/original-client/motion-ui.js',
+  'lib/original/cross-session-approval.js',
+  'lib/original/cross-session-approval-runtime/index.js',
+  'lib/original/cross-session-approval-runtime/nexus-tools.mjs',
+  'lib/original/computer-use.js', 'lib/original-client/computer-use.js',
+  'lib/original/computer-use/index.js', 'lib/original/computer-use/client.js',
+  'lib/original/computer-use/package.json', 'lib/original/computer-use/release-manifest.json',
+  'lib/original/computer-use/backend/worker.ps1', 'lib/original/computer-use/backend/release-input.ps1',
+  'lib/original/computer-use/internal/nexus-auth-routes.mjs',
+  'vendor/computer-use/SOURCE.json', 'vendor/computer-use/LICENSE',
   'vendor/memory-cognition/nexus_bridge.py', 'vendor/memory-cognition/utf8_boot.py',
   'vendor/memory-cognition/package.json', 'vendor/memory-cognition/LICENSE',
   'vendor/memory-cognition/md_cg/__init__.py', 'vendor/memory-cognition/md_cg/mcp_server.py',
@@ -557,10 +568,61 @@ export async function auditPackage({ packagePath, outputPath = resolve(root, 'ev
     check('requiredRuntimeResources', () => {
       for (const path of requiredFiles) if (!files.get(path)?.size) fail('requiredRuntimeResources', path, 'Missing or empty required runtime file');
     });
+    check('newOriginalsRuntimeClosure', () => {
+      const originals = JSON.parse(decoder.decode(files.get('lib/originals-manifest.json')?.data ?? Buffer.alloc(0)));
+      const computer = originals.hosts?.find(row => row.id === 'computer-use');
+      const cross = originals.hosts?.find(row => row.id === 'cross-session-approval');
+      if (!computer || !cross) throw new Error('New original host identities are missing');
+      const source = JSON.parse(decoder.decode(files.get('vendor/computer-use/SOURCE.json')?.data ?? Buffer.alloc(0)));
+      if (source.revision !== '20bfa1442bbe6f9f43a3e6ebcd9bff4403ecce7a' || computer.revision !== source.revision)
+        throw new Error('Computer source identity differs');
+      for (const [name, expected] of Object.entries(source.files)) {
+        if (sha256(files.get(`vendor/computer-use/${name}`)?.data ?? Buffer.alloc(0)) !== expected)
+          throw new Error(`Immutable computer source missing or changed: ${name}`);
+        const runtimeHash = computer.adaptedFiles?.[name] ?? expected;
+        if (sha256(files.get(`lib/original/computer-use/${name}`)?.data ?? Buffer.alloc(0)) !== runtimeHash)
+          throw new Error(`Computer runtime missing or changed: ${name}`);
+      }
+      if (!Object.keys(computer.adaptedFiles ?? {}).length) throw new Error('Computer adaptation file identities are missing');
+      for (const [name, expected] of Object.entries(computer.adaptedFiles)) {
+        if (sha256(files.get(`lib/original/computer-use/${name}`)?.data ?? Buffer.alloc(0)) !== expected)
+          throw new Error(`Computer adapter missing or changed: ${name}`);
+      }
+      const release = JSON.parse(decoder.decode(files.get('lib/original/computer-use/release-manifest.json')?.data ?? Buffer.alloc(0)));
+      if (release.releaseBuildId !== computer.releaseBuildId || !release.files?.length) throw new Error('Computer release manifest identity differs');
+      for (const entry of release.files) {
+        const actual = files.get(`lib/original/computer-use/${entry.name}`);
+        if (!actual || actual.size !== entry.bytes || sha256(actual.data) !== entry.sha256)
+          throw new Error(`Computer production closure missing or changed: ${entry.name}`);
+      }
+      for (const [name, expected] of Object.entries(cross.upstreamFiles ?? {})) {
+        const entry = files.get(`lib/original/cross-session-approval-runtime/${name}`);
+        if (!entry?.size || name !== 'index.js' && sha256(entry.data) !== expected)
+          throw new Error(`Cross-session production closure missing or changed: ${name}`);
+      }
+      if (!Object.keys(cross.upstreamFiles ?? {}).length) throw new Error('Cross-session runtime source identities missing');
+      for (const [path, entry] of files) {
+        if (!/^lib\/original\/(?:computer-use\/|cross-session-approval-runtime\/).*\.[cm]?js$/u.test(path)) continue;
+        const ast = ts.createSourceFile(path, decoder.decode(entry.data), ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
+        if (ast.parseDiagnostics.length) throw new Error(`Invalid native runtime JavaScript: ${path}`);
+        function visit(node) {
+          const literal = ts.isImportDeclaration(node) || ts.isExportDeclaration(node) ? node.moduleSpecifier
+            : ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword ? node.arguments[0] : undefined;
+          if (literal && ts.isStringLiteralLike(literal) && literal.text.startsWith('.')) {
+            const target = posix.normalize(posix.join(posix.dirname(path), literal.text));
+            if (!files.get(target)?.size) throw new Error(`Native runtime relative import missing: ${path} -> ${literal.text}`);
+          }
+          ts.forEachChild(node, visit);
+        }
+        visit(ast);
+      }
+      report.newOriginals = { computerSourceFiles: Object.keys(source.files).length,
+        computerProductionFiles: release.files.length, crossSessionFiles: Object.keys(cross.upstreamFiles).length };
+    });
     check('packageManifest', () => {
       manifest = JSON.parse(decoder.decode(files.get('package.json')?.data ?? Buffer.alloc(0)));
       if (manifest.name !== 'dsh-noemaloom' || typeof manifest.version !== 'string' || !manifest.version || manifest.type !== 'module' || manifest.private !== true) throw new Error('Unexpected package identity/type/privacy');
-      if (manifest.engines?.dsh !== '0.2.1-rc.2') throw new Error('Package must target exact DSH 0.2.1-rc.2');
+      if (manifest.engines?.dsh !== EXPECTED_DSH_VERSION) throw new Error(`Package must target exact DSH ${EXPECTED_DSH_VERSION}`);
       if (expectedManifest && (manifest.name !== expectedManifest.name || manifest.version !== expectedManifest.version || JSON.stringify(manifest.exports) !== JSON.stringify(expectedManifest.exports) || JSON.stringify(manifest.dsh) !== JSON.stringify(expectedManifest.dsh))) throw new Error('Tarball manifest differs from the packing source manifest');
       report.package = { name: manifest.name, version: manifest.version, dsh: manifest.engines.dsh };
     });
@@ -600,7 +662,7 @@ export async function auditPackage({ packagePath, outputPath = resolve(root, 'ev
         if (!value || typeof value !== 'object' || !Object.keys(value).length) fail('localeAndBuildIdentity', path, 'Locale must be a nonempty JSON dictionary');
       }
       const info = JSON.parse(decoder.decode(files.get('lib/build-info.json')?.data ?? Buffer.alloc(0)));
-      if (info.package !== manifest?.name || info.version !== manifest?.version || info.dsh !== '0.2.1-rc.2') throw new Error('Build identity does not match the tarball manifest');
+      if (info.package !== manifest?.name || info.version !== manifest?.version || info.dsh !== EXPECTED_DSH_VERSION) throw new Error('Build identity does not match the tarball manifest');
       for (const path of ['lib/index.js', 'lib/client.js']) if (info[path] !== sha256(files.get(path)?.data ?? Buffer.alloc(0))) fail('localeAndBuildIdentity', path, 'Build identity SHA does not match actual packaged bytes');
     });
     check('localEditorAssets', () => {
@@ -632,9 +694,9 @@ export async function auditPackage({ packagePath, outputPath = resolve(root, 'ev
     const rebuiltCodinput = await buildCodinputClient();
     check('provenance', () => {
       const lock = JSON.parse(decoder.decode(files.get('sources.lock.json')?.data ?? Buffer.alloc(0)));
-      if (lock.sourceCount !== 44 || lock.dshWebSubpackageCount !== 19 || lock.host?.release !== '0.2.1-rc.2'
+      if (lock.sourceCount !== 48 || lock.dshWebSubpackageCount !== 19 || lock.host?.release !== EXPECTED_DSH_VERSION || lock.host?.commit !== EXPECTED_DSH_REVISION
         || lock.acceptance?.count !== 769 || lock.acceptance?.sha256 !== '113bc7b9b60b4bf44d3645dc07209a3c65148ecddf54ac5dd7cba696b8049e1a') throw new Error('Packaged source identity or frozen acceptance provenance is incomplete');
-      if (!Array.isArray(lock.units) || lock.units.length !== 44 || new Set(lock.units.map(unit => unit.id)).size !== 44) throw new Error('Packaged source provenance must identify all 44 sources');
+      if (!Array.isArray(lock.units) || lock.units.length !== 48 || new Set(lock.units.map(unit => unit.id)).size !== 48) throw new Error('Packaged source provenance must identify all 48 sources');
       const maintenance = JSON.parse(decoder.decode(files.get('upstreams.json')?.data ?? Buffer.alloc(0)));
       if (maintenance.policy?.independentUpdateUi !== false
         || lock.units.some(unit => !maintenance.sources?.some(source => source.id === unit.id)))
@@ -649,8 +711,8 @@ export async function auditPackage({ packagePath, outputPath = resolve(root, 'ev
         if (!lock.nativeArchives?.some(source => source.identity === id && /^[a-f0-9]{64}$/u.test(source.sha256))) throw new Error(`Missing native archive provenance: ${id}`);
       }
       const codinput = JSON.parse(decoder.decode(files.get('vendor/codinput/SOURCE.json')?.data ?? Buffer.alloc(0)));
-      if (codinput.packageName !== 'dsh-codinput' || codinput.version !== '0.3.2' || codinput.license !== 'MIT'
-        || codinput.revision !== 'a32da33ce4d50616bf490d360ae3dfe784e8aa50'
+      if (codinput.packageName !== 'dsh-codinput' || codinput.version !== '0.3.5' || codinput.license !== 'MIT'
+        || codinput.revision !== 'f5449ed247559de2d0f19fc70870864fa93adfcf'
         || lock.units.find(unit => unit.id === 'SRC-38')?.source?.revision !== codinput.revision) throw new Error('Original Codinput source identity is incomplete');
       for (const path of [
         'vendor/codinput/SOURCE.json', 'notices/originals/codinput/SOURCE.json',
@@ -672,7 +734,7 @@ export async function auditPackage({ packagePath, outputPath = resolve(root, 'ev
       }
       const originalClient = decoder.decode(files.get('vendor/codinput/lib/client.js').data);
       parseFactory(originalClient, 'dsh-codinput');
-      const expectedClient = '// Original published client: dsh-codinput@0.3.2\n'
+      const expectedClient = '// Original published client: dsh-codinput@0.3.5\n'
         + '// Original license is included under notices/originals.\n'
         + `const factory = ${rebuiltCodinput.factory};\nexport default factory;\n`;
       if (decoder.decode(files.get('lib/original-client/codinput.js')?.data ?? Buffer.alloc(0)) !== expectedClient

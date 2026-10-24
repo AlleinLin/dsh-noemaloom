@@ -17,7 +17,8 @@ async function locate(name, from) {
 /** Preserve exact licenses for the original workflow providers and CLI closure. */
 export async function workflowNotices(root) {
   const seeds = ['@wenaixi/dsh-superpower', '@wenaixi/dsh-ponytail',
-    '@dragon-talon/dsh-openspec', '@fission-ai/openspec', 'dsh-karpathy-methodology', 'dsh-ops'];
+    '@dragon-talon/dsh-openspec', '@fission-ai/openspec', 'dsh-karpathy-methodology', 'dsh-ops',
+    'dsh-motion-ui', 'dsh-cross-session-approval'];
   const queue = seeds.map(name => ({ name, from: join(root, 'package.json') }));
   const visited = new Set(), packages = [];
   const lock = JSON.parse(await readFile(join(root, 'package-lock.json'), 'utf8'));

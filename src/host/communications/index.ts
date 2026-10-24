@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import type { NexusStore } from '../../ports/contracts.js';
 import type { HostContext } from '../types.js';
 import { AgentMailbox } from './broker.js';
+import { CrossSessionMailbox } from './cross-session.js';
 import { communicationError } from './directory.js';
 import { communicationTools, COMMUNICATION_GUIDANCE } from './tools.js';
 import { COMMUNICATION_TOOLS } from '../../shared/communications.js';
@@ -13,7 +14,7 @@ const PATCH_FIELDS = ['description', 'parameters', 'output', 'execute', 'present
 const CALL_CAPACITY = 512, PATCH_CAPACITY = 16384, LIVE_CAPACITY = 4096;
 
 /**
- * rc.2 compatibility hook. Uses public tools/get + tools/change and replaces
+ * Reviewed native hook. Uses public tools/get + tools/change and replaces
  * each exact definition in its existing owner's layer. No new shadow layer,
  * private registry access, policy bypass, or "try legacy then fallback".
  *
@@ -21,12 +22,13 @@ const CALL_CAPACITY = 512, PATCH_CAPACITY = 16384, LIVE_CAPACITY = 4096;
  * restrictions retain authority. Unsupported immutable definitions fail closed.
  */
 export function registerAgentCommunications(ctx: HostContext, store: NexusStore) {
-  const mailbox = new AgentMailbox(ctx, store), tools = ctx.get('tools');
+  const mailbox = new AgentMailbox(ctx, store), crossSession = new CrossSessionMailbox(ctx, store), tools = ctx.get('tools');
   for (const name of ['get_message_status', 'read_agent_messages']) {
     if (tools.get(name)) throw communicationError('NX_MAIL_HOOK_CONFLICT', `${name} is already registered by another owner.`);
   }
   const definitions = communicationTools(mailbox), patches: Patch[] = [], patched = new WeakMap<object, Patch>();
   const removers: Array<() => void> = [];
+  removers.push(ctx.provide('nexusCrossSessionMailbox', crossSession));
   const readNames = ['get_message_status', 'read_agent_messages'];
   const communicationNames = [...COMMUNICATION_TOOLS, ...readNames];
   // Cordis returns a fresh traced view on service access; public original identity is stable.
@@ -117,7 +119,7 @@ export function registerAgentCommunications(ctx: HostContext, store: NexusStore)
         if (owns(agent) || typeof agent.cancel !== 'function') continue;
         const original = agent.cancel;
         patch(agent, { cancel: (cause: any, ...args: any[]) => {
-          if (cause?.kind === 'user') mailbox.pausedByUser(agent.id);
+          if (cause?.kind === 'user') { mailbox.pausedByUser(agent.id); crossSession.mailbox.pausedByUser(agent.id); }
           return original.call(agent, cause, ...args);
         } });
       }
@@ -155,9 +157,27 @@ export function registerAgentCommunications(ctx: HostContext, store: NexusStore)
   };
   const registeredReads = new Map(readNames.map(name => {
     const definition = definitions.get(name)!;
-    return [name, { ...definition, execute: (...args: any[]) => {
+    return [name, { ...definition, execute: (args: any, exec: any) => {
       if (closing || serviceFailure) return Promise.reject(communicationError('NX_MAIL_HOOK_UNSUPPORTED', 'Unified communication hook is unavailable.'));
-      return tracked(() => (definition.execute as any)(...args));
+      return tracked(async () => {
+        if (name === 'get_message_status') {
+          try { return await (definition.execute as any)(args, exec); }
+          catch (error: any) {
+            if (error?.code !== 'NX_MAIL_RECEIPT_NOT_FOUND') throw error;
+            return crossSession.mailbox.status(exec.agent, args.message_id, exec.signal);
+          }
+        }
+        const own = await (definition.execute as any)(args, exec);
+        // Same receipt protocol, separate explicit scope. Cross-root traffic
+        // never joins the native task directory or claims runtime parentage.
+        const cross = await crossSession.mailbox.read(exec.agent, exec.signal, args.offset ?? 0, args.limit ?? 30)
+          .catch((error: any) => {
+            if (error?.code === 'NX_MAIL_SCOPE_DENIED' || error?.code === 'NX_MAIL_SENDER_STALE') return undefined;
+            throw error;
+          });
+        return cross ? { ...own, cross_session_messages: cross.messages,
+          cross_session_next_offset: cross.next_offset } : own;
+      });
     } }] as const;
   }));
   try {
@@ -165,17 +185,20 @@ export function registerAgentCommunications(ctx: HostContext, store: NexusStore)
     scan(true);
     listen('tools/change', () => scan());
     listen('internal/service', (name: string) => { if (name === 'subagents' || name === 'agentTeams') scan(); });
-    listen('agent/created', ({ agent }: any) => { scan(); mailbox.activity(agent); });
-    listen('agent/disposed', ({ agent }: any) => mailbox.observed(agent, 'disposed'));
-    listen('agent/status', ({ agent }: any) => mailbox.activity(agent));
+    listen('agent/created', ({ agent }: any) => { scan(); mailbox.activity(agent); crossSession.mailbox.activity(agent); });
+    listen('agent/disposed', ({ agent }: any) => { mailbox.observed(agent, 'disposed'); crossSession.mailbox.observed(agent, 'disposed'); });
+    listen('agent/status', ({ agent }: any) => { mailbox.activity(agent); crossSession.mailbox.activity(agent); });
     listen('agent/inbox/inserted', ({ agent, message }: any) => {
-      if (isHumanInputMessage(message)) mailbox.humanResumed(agent);
+      if (isHumanInputMessage(message)) { mailbox.humanResumed(agent); crossSession.mailbox.humanResumed(agent); }
       mailbox.observed(agent, 'accepted', message);
+      crossSession.mailbox.observed(agent, 'accepted', message);
     });
-    listen('agent/inbox/claimed', ({ agent, message }: any) => mailbox.observed(agent, 'consumed', message));
-    listen('agent/inbox/discarded', ({ agent, message }: any) => mailbox.observed(agent, 'discarded', message));
+    listen('agent/inbox/claimed', ({ agent, message }: any) => { mailbox.observed(agent, 'consumed', message); crossSession.mailbox.observed(agent, 'consumed', message); });
+    listen('agent/inbox/discarded', ({ agent, message }: any) => { mailbox.observed(agent, 'discarded', message); crossSession.mailbox.observed(agent, 'discarded', message); });
     listen('session/event', (session: any, event: any) => {
-      if (event.type === 'turn/end' && event.data?.reason?.kind === 'aborted' && event.data.reason.reason?.kind === 'user') mailbox.pausedByUser(session.id, event.seq);
+      if (event.type === 'turn/end' && event.data?.reason?.kind === 'aborted' && event.data.reason.reason?.kind === 'user') {
+        mailbox.pausedByUser(session.id, event.seq); crossSession.mailbox.pausedByUser(session.id, event.seq);
+      }
     });
     // This guard executes inside the ordinary monotonic admission pipeline.
     const unguard = tools.guard((exec: any) => {
@@ -218,6 +241,7 @@ export function registerAgentCommunications(ctx: HostContext, store: NexusStore)
   } catch (error) {
     closing = true; restore(); unregister();
     void mailbox.dispose().catch(() => warn('NX_MAIL_HOOK_ROLLBACK_FAILED'));
+    void crossSession.dispose().catch(() => warn('NX_MAIL_HOOK_ROLLBACK_FAILED'));
     throw (error as any)?.code === 'NX_MAIL_HOOK_UNSUPPORTED' ? error
       : communicationError('NX_MAIL_HOOK_UNSUPPORTED', 'Unified communication installation failed and was rolled back.');
   }
@@ -227,6 +251,7 @@ export function registerAgentCommunications(ctx: HostContext, store: NexusStore)
       return disposing ??= (async () => {
         closing = true;
         await mailbox.dispose();
+        await crossSession.dispose();
         await Promise.allSettled([...active]);
         restore(); unregister();
       })();

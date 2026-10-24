@@ -22,6 +22,7 @@ import { classifyFailure } from '../shared/error-codes.js';
 import { workspaceIdentity } from '../domain/workspace-runtime.js';
 import { nativeCompactionFor } from './compaction-binding.js';
 import { auxiliaryInputMessages, summaryEnvelopeBudget } from './auxiliary-input.js';
+import { EXPECTED_DSH_VERSION } from '../shared/host-compatibility.js';
 
 export const hostAuthority = new AsyncLocalStorage<DispatchContext & { ownerIntent?: string; toolExecution?: any }>();
 
@@ -106,7 +107,7 @@ export function createHostAdapter(ctx: HostContext, config: NexusConfig, workspa
       const llm = ctx.get('llm');
       const policy = ctx.get('sandboxPolicy')?.resolve?.();
       return {
-        protocolVersion: 1, pluginBuild: '0.4.0', expectedDshVersion: '0.2.1-rc.2',
+        protocolVersion: 1, pluginBuild: '0.4.0', expectedDshVersion: EXPECTED_DSH_VERSION,
         runtime: { node: process.version, modules: process.versions.modules, napi: process.versions.napi, platform: process.platform, arch: process.arch },
         profile: profile?.name ?? 'unprofiled', workspaceRoot,
         capabilities: available.filter(name => Boolean(ctx.get(name))),

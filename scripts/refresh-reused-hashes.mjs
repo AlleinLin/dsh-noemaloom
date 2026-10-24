@@ -7,9 +7,9 @@ import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const ledger = JSON.parse(await readFile(resolve(root, 'sources.lock.json'), 'utf8'));
 const roots = ['vendor/acp-kernel', 'vendor/memory-cognition', 'vendor/memsearch',
-  'vendor/codinput', 'vendor/mnemon-providers', 'vendor/veyra-code', 'assets/methods',
+  'vendor/codinput', 'vendor/computer-use', 'vendor/mnemon-providers', 'vendor/veyra-code', 'assets/methods',
   'assets/market', 'assets/presets', 'assets/diagrams', 'assets/notices', 'src/upstream',
-  'notices/step-pause'];
+  'notices/step-pause', 'notices/originals', 'notices/workflows', 'notices/editor'];
 const found = new Set(Object.keys(ledger.actualReusedFileHashes ?? {}));
 async function visit(directory) {
   for (const entry of await readdir(resolve(root, directory), { withFileTypes: true })) {

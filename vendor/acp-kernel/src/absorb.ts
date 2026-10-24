@@ -3,6 +3,7 @@ import { inheritIndexedState } from "./indexed-runtime.js";
 import { ACP_TOOL_NAMES, ABSORB_TOOL_NAME } from "./compress-tools.js";
 import { isStoredPlaceholderText } from "./ccr.js";
 import {
+  collectFailedCompressCallIds,
   collectLatestProtected,
   collectProtectedToolCallIds,
   hasMediaPayload,
@@ -93,6 +94,7 @@ export function isAbsorbCandidate(
   config: Config,
   latest?: LatestProtected,
   protectedCallIds?: Set<string>,
+  failedCompressCallIds?: Set<string>,
 ): boolean {
   if (msg.contentType !== "tool-result" || !msg.toolCallId) return false;
   if (isStoredPlaceholderText(msg.text ?? "")) return false;
@@ -103,6 +105,7 @@ export function isAbsorbCandidate(
       msg,
       config,
       protectedCallIds ?? NO_PROTECTED_CALLS,
+      failedCompressCallIds,
     )
   )
     return false;
@@ -167,8 +170,18 @@ export function appendAbsorbPrompts(
   let promptedCount = 0;
   const latest = collectLatestProtected(messages, config);
   const protectedCallIds = collectProtectedToolCallIds(messages, config);
+  const failedCompressCallIds = collectFailedCompressCallIds(messages, config);
   const out = messages.map((msg) => {
-    if (!isAbsorbCandidate(msg, config, latest, protectedCallIds)) return msg;
+    if (
+      !isAbsorbCandidate(
+        msg,
+        config,
+        latest,
+        protectedCallIds,
+        failedCompressCallIds,
+      )
+    )
+      return msg;
     if (absorbedIds.has(msg.id)) return msg;
     const text = msg.text ?? "";
     if (text.includes(ABSORB_PROMPT_MARKER)) return msg;
@@ -332,6 +345,7 @@ export function applyAbsorb(input: AbsorbInput): AbsorbOutcome {
       target,
       input.config,
       collectProtectedToolCallIds(input.messages, input.config),
+      collectFailedCompressCallIds(input.messages, input.config),
     ) ||
     isMessageLatestProtected(
       target,

@@ -5,9 +5,9 @@
 export * from '../../../../vendor/acp-kernel/src/index.js';
 export const BILLION_PROVENANCE = Object.freeze({
   repository: 'https://github.com/ranxianglei/billion-context',
-  commit: '7790bea9178884e70a32bdf7629fd65314b0773e',
+  commit: 'f161c51894bad4b9e0da15e29353abf5710689c9',
   path: 'kernel',
-  version: '0.0.147',
+  version: '0.0.161',
   license: 'MIT',
   rendererVersion: 'nexus-acp-v1',
 });

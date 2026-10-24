@@ -18,9 +18,14 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npm run audit:security
       - run: npm run check
+      - name: Verify the upgraded cognition source and changed upstream regressions
+        run: node tools/acceptance/cognition-upstream.mjs --output evidence/cognition
       - name: Report check failure details
         if: failure()
         run: node scripts/report-ci-failure.mjs
@@ -29,7 +34,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: check-failure-evidence
-          path: evidence/tests.*
+          path: |
+            evidence/tests.*
+            evidence/cognition/
           if-no-files-found: ignore
           retention-days: 7
       - run: npm run pack:delivery

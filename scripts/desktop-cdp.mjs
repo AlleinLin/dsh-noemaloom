@@ -55,3 +55,31 @@ export async function until(operation, timeout = 30000) {
   }
   throw new Error('Isolated Desktop validation condition timed out');
 }
+
+// Call only after the caller validates its disposable desktop-smoke profile.
+// A fresh Desktop opens the native account onboarding above the main window.
+// Skip account setup in that profile; no credentials or model calls are used.
+export async function completeSyntheticOnboarding(port) {
+  const targets = await (await fetch(`http://127.0.0.1:${port}/json/list`)).json();
+  const welcome = targets.find(row => row.type === 'page'
+    && row.url.startsWith('file:') && row.url.endsWith('/renderer/welcome.html'));
+  if (!welcome) return { present: false, accountSetupSkipped: false };
+  const cdp = await connectTarget(welcome);
+  try {
+    // The skip button belongs to the API-key step and is mounted while hidden
+    // on the initial login screen. Enter that step before invoking its action.
+    await cdp.evaluate(`(() => {
+      const button = document.getElementById('api-key');
+      if (button && button.getBoundingClientRect().width > 0) button.click();
+    })()`);
+    const clicked = await cdp.evaluate(`(() => {
+      const button = [...document.querySelectorAll('button')].find(node =>
+        /^(稍后配置|Set up later|Skip for now)$/i.test(node.textContent.trim())
+        && node.getBoundingClientRect().width > 0);
+      if (!button) return false;
+      button.click(); return true;
+    })()`);
+    if (!clicked) throw new Error('Synthetic Desktop onboarding has no explicit skip-account action');
+    return { present: true, accountSetupSkipped: true };
+  } finally { cdp.close(); }
+}

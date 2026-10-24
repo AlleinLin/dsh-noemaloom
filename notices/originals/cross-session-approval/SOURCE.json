@@ -1,0 +1,10 @@
+{
+  "packageName": "dsh-cross-session-approval",
+  "version": "0.3.10",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zsjs110110-cpu/dsh-cross-session-approval.git"
+  },
+  "upstreamLicenseFile": true
+}
