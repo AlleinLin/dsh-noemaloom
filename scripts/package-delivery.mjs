@@ -35,6 +35,13 @@ const isWorkbench = manifest.name === 'dsh-noemaloom';
 let packageFile = packed.filename;
 const deliverables = [];
 if (isWorkbench) {
+  const hostUpgrade = JSON.parse(await readFile('scripts/desktop-host-release.json', 'utf8'));
+  if (hostUpgrade.version !== manifest.engines.dsh || hostUpgrade.platform !== 'win32-x64'
+    || hostUpgrade.url !== `https://download.deepseek.com/dsh-desk/bin/win-x64/deepseek-harness-${hostUpgrade.version}-win-x64.exe`
+    || Buffer.from(hostUpgrade.sha512, 'base64').length !== 64
+    || !Number.isSafeInteger(hostUpgrade.size) || hostUpgrade.size <= 0
+    || hostUpgrade.publisher !== 'Hangzhou DeepSeek Artificial Intelligence Co., Ltd.')
+    throw new Error('The delivery requires a pinned official installer for its exact Desktop target.');
   const { auditPackage } = await import('./audit-package.mjs');
   const audit = await auditPackage({
     packagePath: join(output, packageFile), expectedManifest: manifest,
@@ -51,10 +58,12 @@ if (isWorkbench) {
   await writeFile(join(output, 'install-manifest.json'), JSON.stringify({
     schemaVersion: 1, packageName: manifest.name, version: manifest.version,
     platform: 'win32-x64', hostVersion: manifest.engines.dsh, profile: 'desktop',
+    hostUpgrade,
     packageFile, packageSha256: digest, keyFiles,
   }, null, 2) + '\n');
   await copyFile('scripts/install-desktop.ps1', join(output, 'install-desktop.ps1'));
-  deliverables.push('package-audit.json', 'install-manifest.json', 'install-desktop.ps1');
+  await copyFile('scripts/install-desktop-example.ps1', join(output, 'install-example.ps1'));
+  deliverables.push('package-audit.json', 'install-manifest.json', 'install-desktop.ps1', 'install-example.ps1');
 } else {
   const files = new Set(packed.files.map(file => file.path));
   for (const required of ['lib/index.js', 'bin/rg.exe', 'cordis.patch.yml', 'LICENSE', 'THIRD-PARTY-NOTICES.md'])

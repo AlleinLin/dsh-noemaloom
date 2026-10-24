@@ -48,7 +48,7 @@ that check writes to and captures only its own temporary WinForms window.
 The packaging script runs `npm pack`, audits the actual archive and generates:
 
 - A content-addressed `dsh-noemaloom-<version>-<sha256>.tgz`.
-- `install-manifest.json`, `install-desktop.ps1` and `SHA256SUMS.txt`.
+- `install-manifest.json`, `install-desktop.ps1`, `install-example.ps1` and `SHA256SUMS.txt`.
 - `package-audit.json`, which must pass for packaging to succeed.
 
 All output is written to `build/` and excluded from Git. Build source maps and
@@ -66,6 +66,25 @@ Desktop before installing.
 ```
 
 The installer verifies the package digest, host version and installed key-file hashes.
+When Desktop is older than the package's required host version, normal installation
+first downloads that exact official Windows installer, verifies its pinned size,
+SHA-512 and DeepSeek Authenticode publisher, and upgrades the existing installation
+directory silently. It then verifies the new bundled CLI version before installing
+the plugin. Newer or unrecognized versions are rejected; the script never downgrades.
+`-CheckOnly` reports the proposed upgrade without downloading or changing anything.
+`-VerifyOnly` never upgrades. Desktop must remain fully exited throughout installation.
+Download failures retry three times with backoff; verified installers are cached under
+`%LOCALAPPDATA%\dsh-noemaloom\host-installers`. An offline installer can be supplied
+with `-HostInstallerPath 'C:\Downloads\deepseek-harness-0.2.1-rc.3-win-x64.exe'`;
+the same size, digest and signature checks still apply. The script does not uninstall
+Desktop or delete user profiles. An official installer error or version mismatch
+stops the operation before plugin installation.
+
+The official release identity is maintained in `scripts/desktop-host-release.json`
+and embedded in the generated manifest. Update it with every host target change;
+packaging rejects a mismatched version. The delivery example forwards all installer
+options, including readonly modes and the offline path.
+
 It uses the Desktop profile under `DSH_HOME`, or the user's `.dsh` when unset.
 Reopen Desktop and verify the enabled plugin, configuration and desired runtime features.
 The package and plugin registration name is `dsh-noemaloom`. If the former

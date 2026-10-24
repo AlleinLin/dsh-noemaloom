@@ -1,0 +1,10 @@
+{
+  "version": "0.2.1-rc.3",
+  "platform": "win32-x64",
+  "url": "https://download.deepseek.com/dsh-desk/bin/win-x64/deepseek-harness-0.2.1-rc.3-win-x64.exe",
+  "sha512": "q5IGr2Bf+TvvCpagHj49Ypn/ZrqR7kqrYpLjqXP7VfDINmddlqZQmG+YfsdL3q3EdTRMRlKz/a3jDAEzdNdDOw==",
+  "size": 289415960,
+  "publisher": "Hangzhou DeepSeek Artificial Intelligence Co., Ltd.",
+  "source": "https://download.deepseek.com/dsh-desk/feeds/win-x64/nightly.yml",
+  "checkedAt": "2026-10-24"
+}

@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "release": "R37",
+  "recordedAt": "2026-10-24T11:12:08.110Z",
+  "scope": "Delivery installer upgrade; plugin runtime bytes match the desktop-validated R36 package.",
+  "source": {
+    "algorithm": "sha256:path-and-content-v1",
+    "sha256": "452f2a681f34b9df757cbc34aac4d9a7f46182b9df4858cd4de960dfb7605a12",
+    "files": 2745
+  },
+  "tests": {
+    "passed": 41,
+    "failed": 0,
+    "skipped": 0,
+    "junit": "evidence/host-upgrade-tests-final.junit.xml",
+    "junitSha256": "efd0080f2c65a637e04d977a7b9dc9bf209b5b7fdd139c64dc89d1d666c01d3a"
+  },
+  "officialInstaller": {
+    "passed": true,
+    "version": "0.2.1-rc.3",
+    "size": 289415960,
+    "sha512": "q5IGr2Bf+TvvCpagHj49Ypn/ZrqR7kqrYpLjqXP7VfDINmddlqZQmG+YfsdL3q3EdTRMRlKz/a3jDAEzdNdDOw==",
+    "signatureStatus": "Valid",
+    "publisher": "Hangzhou DeepSeek Artificial Intelligence Co., Ltd.",
+    "powershell": "5.1.26100.9711",
+    "installerExecuted": false
+  },
+  "officialFeed": {
+    "checkedAt": "2026-10-24T11:11:17.396Z",
+    "passed": true,
+    "source": "https://download.deepseek.com/dsh-desk/feeds/win-x64/nightly.yml",
+    "release": {
+      "version": "0.2.1-rc.3",
+      "platform": "win32-x64",
+      "url": "https://download.deepseek.com/dsh-desk/bin/win-x64/deepseek-harness-0.2.1-rc.3-win-x64.exe",
+      "sha512": "q5IGr2Bf+TvvCpagHj49Ypn/ZrqR7kqrYpLjqXP7VfDINmddlqZQmG+YfsdL3q3EdTRMRlKz/a3jDAEzdNdDOw==",
+      "size": 289415960,
+      "publisher": "Hangzhou DeepSeek Artificial Intelligence Co., Ltd.",
+      "source": "https://download.deepseek.com/dsh-desk/feeds/win-x64/nightly.yml",
+      "checkedAt": "2026-10-24"
+    },
+    "feed": {
+      "version": "0.2.1-rc.3",
+      "files": [
+        {
+          "url": "https://download.deepseek.com/dsh-desk/bin/win-x64/deepseek-harness-0.2.1-rc.3-win-x64.exe",
+          "sha512": "q5IGr2Bf+TvvCpagHj49Ypn/ZrqR7kqrYpLjqXP7VfDINmddlqZQmG+YfsdL3q3EdTRMRlKz/a3jDAEzdNdDOw==",
+          "size": 289415960
+        }
+      ],
+      "path": "https://download.deepseek.com/dsh-desk/bin/win-x64/deepseek-harness-0.2.1-rc.3-win-x64.exe",
+      "sha512": "q5IGr2Bf+TvvCpagHj49Ypn/ZrqR7kqrYpLjqXP7VfDINmddlqZQmG+YfsdL3q3EdTRMRlKz/a3jDAEzdNdDOw==",
+      "releaseDate": "2026-10-23T08:02:12.038Z"
+    }
+  },
+  "scriptSha256": "9d2fbd86b971495569b373b75c2b1b45091a9e561179e526ad715e3e1544ac79",
+  "exampleSha256": "e4d363ea8ed161c0d3249bd73fb5130de090261d81a552923a53e502c31bbe6b",
+  "runtimePackageSha256": "24f67d6b5350e134401bbcc10531635325166a817a2b2a48dbb3af57e4a278c9",
+  "baseline": "docs/release-r36-verification.json",
+  "limitations": [
+    "Upgrade orchestration was exercised using an isolated Windows PowerShell 5.1 fixture, not by replacing the real local Desktop installation.",
+    "The real official installer was verified for size, SHA-512 and Authenticode publisher without executing it."
+  ]
+}
