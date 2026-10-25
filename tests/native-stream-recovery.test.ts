@@ -8,6 +8,7 @@ import {
   type GenerateOptions, type LlmFailure, type StreamChunk,
 } from '@deepseek-ai/dsh-llm';
 import { SessionId, SessionStore, type SessionEvent } from '@deepseek-ai/dsh-session';
+import { sessionFormatCatalog } from '@deepseek-ai/dsh-session-format-catalog';
 import { SessionProjectionRegistry } from '@deepseek-ai/dsh-session-projection';
 import { SystemPrompt } from '@deepseek-ai/dsh-system-prompt';
 import { ToolRuntime, defineContentToolFixture } from '@deepseek-ai/dsh-tools';
@@ -101,6 +102,16 @@ function turnEnd(agent: Agent) {
 }
 
 function assertCompleted(agent: Agent, providerAttempt = 1) {
+  // In-memory completion alone misses persistence relationship errors. Exercise
+  // the same full native decoder used when Desktop opens stored v4 history.
+  const storedHeader = sessionFormatCatalog.encodeCurrentHeader({
+    ...agent.session.header, delegationDepth: agent.session.header.delegationDepth ?? 0,
+  }, agent.session.inheritedEventCount);
+  const restored = sessionFormatCatalog.createRestore(storedHeader, { recovery: 'strict', validation: 'current' });
+  for (const event of agent.session.snapshotEvents()) restored.decodeRow(
+    sessionFormatCatalog.encodeCurrentEvent(JSON.parse(JSON.stringify(event))),
+  );
+  assert.equal(restored.finish().events.length, agent.session.snapshotEvents().length);
   assert.deepEqual(turnEnd(agent), { kind: 'completed' });
   const messages = eventsOf(agent, 'assistant/message');
   assert.equal(messages.length, 1);
@@ -368,6 +379,7 @@ for (const kind of ['parent', 'child'] as const) {
     assert.equal(eventsOf(agent, 'assistant/attempt').length, 64);
     assert.equal(eventsOf(agent, 'llm/retry').length, 64);
     assert.equal(eventsOf(agent, 'llm/retry-started').length, 64);
+    assert.equal(new Set(eventsOf(agent, 'llm/retry').map(event => event.data.retryId)).size, 1);
     assert.equal(eventsOf(agent, 'step/start').length, 1);
     assert.equal(eventsOf(agent, 'turn/start').length, 1);
     assert.equal(h.toolsExecuted(), 1);

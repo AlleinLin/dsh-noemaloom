@@ -73,7 +73,8 @@ declare module '@deepseek-ai/dsh-session/types' {
     'plugin:nexus/request-recovery': RequestRecoveryDiagnostic;
   }
 }
-interface RetryEntry { retry: number; retryId: string }
+interface PolicyRetryEntry { retry: number; retryId: string }
+interface RetryEntry extends PolicyRetryEntry { policies: Record<string, PolicyRetryEntry> }
 type RecoveryState = Record<string, RetryEntry>;
 declare module '@deepseek-ai/dsh-session-projection/types' {
   interface SessionProjectionStateMap { nexusRequestRecovery: RecoveryState }
@@ -206,8 +207,11 @@ function foldRecovery(state: RecoveryState, event: SessionEvent): RecoveryState 
   if (!count(data.turn, Number.MAX_SAFE_INTEGER) || !count(data.step, Number.MAX_SAFE_INTEGER)
     || typeof data.provider !== 'string' || !token(data.retryId)) return state;
   const key = stateKey(data);
-  const previous = state[key]?.retry ?? 0;
-  return { ...state, [key]: { retry: Math.min(previous + 1, 10_000), retryId: data.retryId } };
+  const previous = state[key];
+  return { ...state, [key]: {
+    retry: Math.min((previous?.retry ?? 0) + 1, 10_000), retryId: data.retryId,
+    policies: { ...previous?.policies, [JSON.stringify(data.policyKey)]: { retry: data.retry, retryId: data.retryId } },
+  } };
 }
 function validPolicy(policy: ResolvedRetryPolicy | undefined): policy is ResolvedRetryPolicy {
   if (!policy || !['normal', 'always'].includes(policy.mode)) return false;
@@ -281,8 +285,11 @@ export function registerRequestRecovery(ctx: HostContext): () => void {
     projections = ctx.get('sessionProjections');
     if (typeof projections?.register === 'function') {
       const remove = projections.register({
-        key: STATE, stateVersion: 1,
-        stateSchema: z.record(z.string(), z.object({ retry: z.number().int().min(0).max(10_000), retryId: z.string().max(160) })),
+        key: STATE, stateVersion: 2,
+        stateSchema: z.record(z.string(), z.object({
+          retry: z.number().int().min(0).max(10_000), retryId: z.string().max(160),
+          policies: z.record(z.string(), z.object({ retry: z.number().int().min(0), retryId: z.string().max(160) })),
+        })),
         init: () => ({}), apply: foldRecovery,
       });
       if (typeof remove === 'function') removers.push(remove);
@@ -355,6 +362,7 @@ export function registerRequestRecovery(ctx: HostContext): () => void {
         return await stop('recovery-state-unavailable', 'NX_RECOVERY_FAILED', 'nexus-fallback');
       }
       const maxRetries = custom.maxRetries;
+      const policyKey = `nexus:custom:${JSON.stringify(custom)}`;
       if (maxRetries === 0) return await stop('retry-disabled', 'NX_RETRY_DISABLED', 'nexus-fallback', currentRetry(payload), maxRetries);
       // One durable budget owns provider retries and overflow recovery phases.
       // Reattempting maintenance never authorizes replaying a pending effect.
@@ -368,7 +376,14 @@ export function registerRequestRecovery(ctx: HostContext): () => void {
           return await stop('retry-delay-unsupported', 'NX_RETRY_DELAY_UNSUPPORTED', 'nexus-fallback', previous, maxRetries);
         }
         const retry = previous + 1;
-        const retryId = randomUUID() as LlmRetryEventData['retryId'];
+        // Native persistence groups retries by turn/step/provider/policyKey.
+        // Keep its attempt and identity separate from our shared recovery budget:
+        // changing a policy starts that policy's attempt 1, without resetting the
+        // durable total used for backoff, diagnostics and overflow preparation.
+        const policyChain = (stateOf(agent.session, STATE) as RecoveryState | undefined)
+          ?.[stateKey(payload)]?.policies[JSON.stringify(policyKey)];
+        const policyRetry = (policyChain?.retry ?? 0) + 1;
+        const retryId = (policyChain?.retryId ?? randomUUID()) as LlmRetryEventData['retryId'];
         const beforeSchedule = stopped();
         if (beforeSchedule) return await stop(beforeSchedule, 'NX_CANCELLED');
         try {
@@ -376,8 +391,8 @@ export function registerRequestRecovery(ctx: HostContext): () => void {
           // Persist public diagnostic text, never the provider's original body.
           agent.session.append('llm/retry', {
             retryId, turn: payload.turn, step: payload.step, provider: payload.provider, mode: 'normal',
-            policyKey: `nexus:custom:${JSON.stringify(custom)}`,
-            retry, maxRetries, delayMs,
+            policyKey,
+            retry: policyRetry, maxRetries, delayMs,
             failure: { code: diagnosis.canonicalCode, message: `[${diagnosis.diagnosticCode}] ${diagnosis.message}`,
               ...(diagnosis.status === undefined ? {} : { status: diagnosis.status }),
               ...(diagnosis.requestId ? { requestId: ProviderRequestId(diagnosis.requestId) } : {}) },
@@ -390,7 +405,7 @@ export function registerRequestRecovery(ctx: HostContext): () => void {
         if (!await delay(delayMs, fused)) return await stop(stopped() ?? 'signal-aborted', 'NX_CANCELLED', 'nexus-fallback', retry, maxRetries);
         const afterWait = stopped();
         if (afterWait) return await stop(afterWait, 'NX_CANCELLED', 'nexus-fallback', retry, maxRetries);
-        try { agent.session.append('llm/retry-started', { retryId, turn: payload.turn, step: payload.step, retry }); }
+        try { agent.session.append('llm/retry-started', { retryId, turn: payload.turn, step: payload.step, retry: policyRetry }); }
         catch { return await stop('recovery-record-failed', 'NX_RECOVERY_FAILED', 'nexus-fallback', retry, maxRetries); }
         await diagnostic(payload, diagnosis, { outcome: 'retry-started', source: 'nexus-fallback', retry, maxRetries });
         if (diagnosis.canonicalCode === 'CONTEXT_WINDOW_EXCEEDED' && payload.recoveryStage !== 'preparation') {

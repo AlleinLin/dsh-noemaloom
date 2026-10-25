@@ -237,6 +237,7 @@ test('fallback count survives adapter reload through the official projection', a
   assert.equal(await h.recover(transport, normal(2)), undefined);
   const retries = h.events.filter(event => event.type === 'llm/retry');
   assert.deepEqual(retries.map(event => event.data.retry), [1, 2]);
+  assert.equal(retries[0].data.retryId, retries[1].data.retryId);
   assert.equal(h.diagnostics().at(-1).diagnosticCode, 'NX_RETRY_EXHAUSTED');
   assert.equal(JSON.stringify(retries).includes('sensitive provider body'), false);
   assert.equal(h.diagnostics().at(-1).requestId, 'provider-request-42');
@@ -417,6 +418,51 @@ test('overflow recovery retries its safe stage under one durable budget before a
   assert.deepEqual(await h.recover(), { kind: 'retry' });
   assert.equal(await h.recover(), undefined);
   assert.equal(h.diagnostics().at(-1).retry, 5, 'recovery phases and provider resends share one budget');
+});
+
+test('policy changes retain one shared budget but own distinct retry IDs and contiguous attempts', async t => {
+  const h = await fixture(t, true, true);
+  const policyA = { mode: 'custom', maxRetries: 6, initialDelayMs: 0, maxDelayMs: 0, algorithm: 'fixed' };
+  const policyB = { ...policyA, algorithm: 'linear' };
+  await h.configure(policyA);
+  assert.deepEqual(await h.recover(), { kind: 'retry' });
+  assert.deepEqual(await h.recover(), { kind: 'retry' });
+  await h.configure(policyB, undefined, 1);
+  assert.deepEqual(await h.recover(), { kind: 'retry' });
+  h.restart();
+  assert.deepEqual(await h.recover(), { kind: 'retry' });
+  await h.configure(policyA, undefined, 2);
+  assert.deepEqual(await h.recover(), { kind: 'retry' });
+  assert.deepEqual(await h.recover(), { kind: 'retry' });
+  assert.equal(await h.recover(), undefined);
+  const scheduled = h.events.filter(event => event.type === 'llm/retry');
+  assert.deepEqual(scheduled.map(event => event.data.retry), [1, 2, 1, 2, 3, 4]);
+  assert.equal(scheduled[0].data.retryId, scheduled[4].data.retryId, 'returning to the original policy resumes its chain');
+  assert.notEqual(scheduled[0].data.retryId, scheduled[2].data.retryId);
+  assert.equal(scheduled[2].data.retryId, scheduled[3].data.retryId, 'reload restores the policy chain');
+  assert.equal(h.diagnostics().at(-1).retry, 6, 'policy changes cannot replenish the budget');
+  assert.equal(h.diagnostics().at(-1).stopReason, 'retry-exhausted');
+  const started = h.events.filter(event => event.type === 'llm/retry-started');
+  assert.deepEqual(started.map(event => [event.data.retryId, event.data.retry]),
+    scheduled.map(event => [event.data.retryId, event.data.retry]));
+});
+
+test('an earlier native policy consumes the shared budget without numbering a new fallback policy from two', async t => {
+  const h = await fixture(t, false, true);
+  await h.configure({ mode: 'custom', maxRetries: 3, initialDelayMs: 0, maxDelayMs: 0 });
+  h.session.append('llm/retry', {
+    retryId: 'prior-native-policy' as any, turn: 1, step: 1, provider: 'fixture-provider',
+    mode: 'normal', policyKey: 'native-policy', retry: 1, maxRetries: 3, delayMs: 0, failure: transport,
+  });
+  h.restart();
+  assert.deepEqual(await h.recover(), { kind: 'retry' });
+  assert.deepEqual(await h.recover(), { kind: 'retry' });
+  assert.equal(await h.recover(), undefined);
+  const records = h.events.filter(event => event.type === 'llm/retry');
+  assert.deepEqual(records.map(event => event.data.retry), [1, 1, 2]);
+  assert.notEqual(records[0].data.retryId, records[1].data.retryId);
+  assert.equal(records[1].data.retryId, records[2].data.retryId);
+  assert.equal(h.diagnostics().at(-1).retry, 3);
 });
 
 test('unavailable overflow compaction exhausts recovery without authorizing an unchanged oversized request', async t => {

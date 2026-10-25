@@ -2425,6 +2425,19 @@
       ]
     },
     {
+      "id": "host:@deepseek-ai/dsh-session-format-catalog",
+      "package": "@deepseek-ai/dsh-session-format-catalog",
+      "kind": "host-peer",
+      "repository": "https://github.com/deepseek-ai/deepseek-harness",
+      "pinned": {
+        "version": "0.2.1-rc.3"
+      },
+      "decision": "Development-only full history validation for recovery regressions; upgrade with the matching validated Desktop host.",
+      "declaredIn": [
+        "devDependencies"
+      ]
+    },
+    {
       "id": "host:@deepseek-ai/dsh-session-persistence",
       "package": "@deepseek-ai/dsh-session-persistence",
       "kind": "host-peer",

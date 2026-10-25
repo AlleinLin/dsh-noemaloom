@@ -214,7 +214,8 @@
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "tsx": "4.20.6",
-    "@deepseek-ai/dsh-skill": "0.2.1-rc.3"
+    "@deepseek-ai/dsh-skill": "0.2.1-rc.3",
+    "@deepseek-ai/dsh-session-format-catalog": "0.2.1-rc.3"
   },
   "dsh": {
     "bundle": {

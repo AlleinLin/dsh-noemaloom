@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "release": "R38",
+  "recordedAt": "2026-10-25T05:06:03.530Z",
+  "source": {
+    "algorithm": "sha256:path-and-content-v1",
+    "sha256": "7689d7121ebbd73a09da39474a14822491be459a1e1aae24bb5d30e41da5d25a",
+    "files": 2745
+  },
+  "host": "0.2.1-rc.3",
+  "scope": "Retry-chain persistence repair: stable policy-chain identity, contiguous per-policy attempts and one shared durable retry budget.",
+  "evidenceBasis": [
+    "User supplied the exact llm/retry must keep one retryId per policy chain load error; the affected computer session log was not accessed.",
+    "The original generator allocated a new random retryId on every schedule, violating the released v4 relationship validator.",
+    "Regression fixtures run the actual native AgentLoop and full installed v4 catalog encode/restore for parent and child agents."
+  ],
+  "tests": {
+    "tests": 2363,
+    "passed": 2363,
+    "failed": 0,
+    "skipped": 0,
+    "junitLeafCases": 2362,
+    "receipt": "evidence/receipts/retry-chain-r38.json",
+    "junit": "evidence/runs/retry-chain-r38/tests.junit.xml",
+    "junitSha256": "faa03cbdb35b26211ee5aa8df270aeb0a6e58f130d579b71e03bed74c104be8c",
+    "sourceUnchangedDuringRun": true,
+    "countingNote": "Node counts a parent test with subtests in its summary while JUnit emits its leaves; both original outputs are retained."
+  },
+  "build": {
+    "node": "v24.22.1",
+    "builtAt": "2026-10-25T04:59:30.228Z",
+    "typecheck": "passed",
+    "artifactVerification": {
+      "verified": true,
+      "package": "dsh-noemaloom",
+      "checks": [
+        "factory",
+        "browser-isolation",
+        "shared-react",
+        "manifest-resources"
+      ]
+    }
+  },
+  "security": {
+    "totalVulnerabilities": 0,
+    "audit": "artifacts/retry-chain-r38-security.json"
+  },
+  "runtimePackage": "dsh-noemaloom-0.4.0-a78197163ef70a6069a95094158048134cd242737fe9010b7e81a5de95037298.tgz",
+  "runtimePackageSha256": "a78197163ef70a6069a95094158048134cd242737fe9010b7e81a5de95037298",
+  "packageAuditPassed": true,
+  "prevention": [
+    "The recovery projection version is 2 so previous cached projections are rebuilt with per-policy identity and sequence.",
+    "Per-policy attempt numbers and retryId are independent of the total budget across policy changes.",
+    "Native retry-started events use the same policy identity and attempt as their schedule.",
+    "Full native history restoration is asserted after successful parent and child recovery, including 64 PI_AI_ERROR retries."
+  ],
+  "limitations": [
+    "Existing corrupt history requires the separately delivered personal recovery utility; installing R38 does not rewrite it.",
+    "The affected remote session has not been available locally and its recovery must be confirmed on that computer.",
+    "This change does not alter UI; no new desktop visual acceptance or real provider request was performed.",
+    "No real local DSH installation, running task or user session was modified."
+  ]
+}
