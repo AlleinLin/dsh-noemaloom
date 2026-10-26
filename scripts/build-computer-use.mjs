@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile, copyFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
-import { adaptComputerUseHost } from './adapt-new-originals.mjs';
+import { adaptComputerUseHost, adaptComputerUseDegraded } from './adapt-new-originals.mjs';
 import {
   adaptComputerPolicyHost, adaptAppLaunchEntry, adaptAppLaunchRuntime, adaptCdpConnection,
   adaptCdpState, adaptComputerWorkerPolicy, adaptComputerWorkerDispatch,
@@ -25,6 +25,7 @@ export async function buildComputerUseHost(root, installed, output) {
   await writeFile(join(runtime, 'internal/nexus-policy.mjs'), policy);
   const policyFiles = {};
   for (const [path, adapt] of [
+    ['internal/degraded.mjs', adaptComputerUseDegraded],
     ['internal/app-launch.mjs', adaptAppLaunchEntry],
     ['internal/app-launch.js', adaptAppLaunchRuntime],
     ['browser/connection.mjs', adaptCdpConnection],
@@ -40,7 +41,7 @@ export async function buildComputerUseHost(root, installed, output) {
   // Upstream supplies this source-only writer. It reads and hashes files; it
   // neither imports the desktop plugin nor starts a PowerShell backend.
   const { writeReleaseManifest } = await import(pathToFileURL(join(installed.directory, 'internal/release-manifest.mjs')).href);
-  const { manifest } = writeReleaseManifest(runtime, { builtAt: '2026-10-24T00:00:00.000Z' });
+  const { manifest } = writeReleaseManifest(runtime, { builtAt: '2026-10-26T00:00:00.000Z' });
   return {
     specifier: './computer-use/index.js',
     adaptations: ['rc3-owner-only-connection-fetch-routes', 'native-session-composer-grant-default-off',

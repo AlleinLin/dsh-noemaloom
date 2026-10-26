@@ -19,6 +19,11 @@ packages/*/src/*.d.ts
 packages/*/src/*.d.ts.map
 *.tsbuildinfo
 
+# Packed tarballs. `pnpm pack` writes one into the package directory, and a
+# tarball is a build artifact: it carries whatever the working tree held when
+# it was packed, so it is never a source file.
+*.tgz
+
 # GUI test artifacts (screenshots saved during browser-based verification)
 gui-test-screenshots/
 
@@ -56,3 +61,10 @@ credentials.json
 vault.json
 .scratch/
 .packs/
+
+# A design tool's local workspace. It is written against the machine the
+# design was made on — the notes carry that machine's address and its private
+# registry — so it is local state, not source. The design that belongs to
+# this repository is written down in docs/, and this directory is where a
+# draft is worked on until it is.
+.superdesign/

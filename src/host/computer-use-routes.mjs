@@ -29,6 +29,9 @@ export function authenticatedComputerUseRoutes(ctx) {
           let headers = {};
           let response;
           const outgoing = {
+            get statusCode() { return status; },
+            set statusCode(value) { status = value; },
+            setHeader(name, value) { headers[name] = value; return outgoing; },
             writeHead(code, values = {}) { status = code; headers = values; return outgoing; },
             end(body) {
               if (response) throw new Error('Computer-use handler ended its response twice');

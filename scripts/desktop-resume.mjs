@@ -38,8 +38,12 @@ if (process.argv.includes('--seed')) {
           const event = JSON.parse(line);
           return event.type === 'user/message' && event.data?.id === 'fixture-user';
         });
-        if (lines.length !== 1 && !ownFixture) continue;
+        const initialEvents = lines.slice(1).map(line => JSON.parse(line));
+        const initializationOnly = initialEvents.every(event =>
+          ['permission/preset', 'sandbox/mode', 'approval/policy'].includes(event.type));
+        if (!initializationOnly && !ownFixture) continue;
         const session = Session.create(header.id, [], header);
+        if (initializationOnly) for (const event of initialEvents) session.append(event.type, event.data);
         session.append('turn/start', { turn: 1 });
         session.append('user/message', { id: 'fixture-user', role: 'user', source: { kind: 'user' },
           content: [{ type: 'text', text: '离线桌面验收样例：查看原生会话工具。' }] }, { surfaceOp: 'append' });

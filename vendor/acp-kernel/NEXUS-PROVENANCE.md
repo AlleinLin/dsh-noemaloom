@@ -2,10 +2,10 @@
 
 Repository: https://github.com/ranxianglei/billion-context
 
-Pinned release source commit: `f161c51894bad4b9e0da15e29353abf5710689c9`
+Pinned release source commit: `1b0997e38255522a1b8fa58f8b8ec8a51003d0d6`
 
-Upstream path: `kernel/`; package version: `acp-kernel 0.0.161`; license: MIT.
-This is the kernel in the published `billion-context 0.1.206` release.
+Upstream path: `kernel/`; package version: `acp-kernel 0.0.163`; license: MIT.
+This is the kernel in the published `billion-context 0.1.208` release.
 
 The complete kernel `src/`, upstream `tests/` and fixtures are retained. The
 wire/bili-message.ts self-package type import is changed to ../types.js so the
@@ -21,7 +21,7 @@ named `vendor/acp-kernel/tests/*.test.ts`. Integration tests live in
 project's coordinated validation stage. This record does not claim a test pass.
 
 Nexus-local indexed-runtime.ts/indexed-types.ts and their integration points
-are retained and rebased from the previous Nexus checkout onto 0.0.161. They
+are retained and rebased from the previous Nexus checkout onto 0.0.163. They
 are an indexed archive extension, not files published by upstream. Rebase
 retains upstream orphan cleanup, stable reference migration, view/truncation
 latches and all-or-nothing compression, together with fail-closed archive
@@ -32,3 +32,8 @@ bounded receipt protection, middle-system preservation and orphan guards.
 All newly published kernel regression tests are retained and discovered by
 the normal coordinated test runner. A successful text merge alone is not a
 validation result.
+
+The 2026-10-26 three-way rebase retains the local indexed membership path and
+adds upstream exact ledger interval coverage, stable stamped citations and
+one-time restamping. Unstamped native views continue to use ID membership;
+no storage schema or existing session history is rewritten by this upgrade.

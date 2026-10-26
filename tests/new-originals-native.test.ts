@@ -170,6 +170,37 @@ test('rc.3 computer native entry mounts with its real routes while every desktop
   assert.equal(doctor.ok, true, JSON.stringify(doctor.findings)); assert.equal(doctor.checks.backend, null);
 });
 
+test('computer bootstrap failure exposes authenticated 503 diagnostics without tools or a worker', async t => {
+  const h = await fixture(t);
+  const degradedEntry = '../lib/original/computer-use/internal/degraded.mjs';
+  const { applyDegraded } = await import(degradedEntry);
+  const before = h.tools.schemas().map(row => row.name);
+  const mounted = h.root.plugin({
+    name: 'computer-degraded-fixture', inject: ['connection'],
+    apply(owner: Context) {
+      applyDegraded(owner, {}, Object.assign(new Error('fixture host module unavailable'), {
+        code: 'HOST_PACKAGE_IMPORT_FAILED',
+      }));
+    },
+  });
+  h.fibers.push(mounted); await mounted.await(); assert.equal(mounted.state, 2);
+  const route = h.connection.createSharedFetchHandler('/api');
+  const owner = h.connection.createPeer({ principal: { kind: 'owner' } });
+  for (const name of ['status', 'doctor']) {
+    const request = () => new Request(`http://localhost/api/plugins/dsh-noemaloom/computer-use/${name}`);
+    const denied = await route.fetch(request(), { principal: { kind: 'delegate' } } as any);
+    assert.equal(denied.status, 403);
+    const response = await route.fetch(request(), owner);
+    assert.equal(response.status, 503);
+    assert.equal(response.headers.get('cache-control'), 'no-store');
+    const body = await response.json();
+    assert.equal(body.ok, false);
+    assert.equal(body.code, 'HOST_PACKAGE_IMPORT_FAILED');
+    assert.match(body.note, /no tools, no backend, no actions/);
+  }
+  assert.deepEqual(h.tools.schemas().map(row => row.name), before);
+});
+
 test('computer launch uses native approval, immutable exact plans and original revoke cancellation', { skip: process.platform !== 'win32', timeout: 10000 }, async t => {
   const h = await fixture(t), caller = await h.agent();
   const policyPath = '../src/host/computer-use-policy.mjs', sessionsPath = '../vendor/computer-use/internal/sessions.mjs';

@@ -1,14 +1,14 @@
 import { createHash } from 'node:crypto';
 import ts from 'typescript';
 
-// Published dsh-thoughtdag@0.5.24. The names below are local to this reviewed
+// Published dsh-thoughtdag@0.5.26. The names below are local to this reviewed
 // Vite asset; fail closed when upstream changes instead of guessing at code.
-export const THOUGHTDAG_SOURCE_ASSET = 'assets/index-C_3HVUx3.js';
+export const THOUGHTDAG_SOURCE_ASSET = 'assets/index-D0rwqanN.js';
 export const THOUGHTDAG_CLIENT_ASSET = 'assets/nexus-entry.js';
-const REVIEWED_CLIENT_SHA256 = 'e48ac2b80069e161e1b60aad79d010fae65406ac433ee60913d4134019ef5e86';
-const REVIEWED_HTML_SHA256 = '956a8c257ea16d47dff7bc9eb45946884232c87c5e36ec4efccc70624b82cb76';
+const REVIEWED_CLIENT_SHA256 = '24e5c482216af7809e7f94546ef87d82a3a57446cc9cc4f29b1ae027523edbe4';
+const REVIEWED_HTML_SHA256 = 'ded3e3b815c0b26d9d663e81c308be2263159eb4b852e7d0ecf42f158feecf91';
 const EMBEDDED_FRESH_ROUTE = 'if(__nexusThoughtdagEmbedded)return d;';
-const SUPPRESSED_PLUGIN_UPDATE = 'async function Ohe(e){}';
+const SUPPRESSED_PLUGIN_UPDATE = 'async function P0e(e){}';
 const ORIGINAL_FIT_MAX_ZOOM = 'o?.maxZoom??s';
 const EMBEDDED_FIT_MAX_ZOOM = '(__nexusThoughtdagEmbedded?Math.min(1,o?.maxZoom??s):o?.maxZoom??s)';
 const GENERATED_SESSION_NOTIFICATION = `;if(__nexusThoughtdagEmbedded&&m()&&typeof O==="string"&&O){
@@ -59,18 +59,18 @@ function componentCalls(root, name) {
  */
 export function adaptThoughtdagClient(original) {
   if (digest(original) !== REVIEWED_CLIENT_SHA256) {
-    throw new Error('ThoughtDAG client adapter requires the reviewed 0.5.24 client SHA256');
+    throw new Error('ThoughtDAG client adapter requires the reviewed 0.5.26 client SHA256');
   }
   const ast = parse(original);
-  const canvas = namedFunction(ast, 'Vhe');
-  const switcher = namedFunction(ast, 'y0e');
-  const mirror = namedFunction(ast, 'nY');
-  const outbound = namedFunction(ast, 'aC');
-  const generation = namedFunction(ast, 'Fi');
+  const canvas = namedFunction(ast, 'Q0e');
+  const switcher = namedFunction(ast, 'She');
+  const mirror = namedFunction(ast, 'oY');
+  const outbound = namedFunction(ast, 'sC');
+  const generation = namedFunction(ast, 'Hi');
   // Assert that the projected source still uses the original opener, parser,
   // canonical importer, watermark, and live bridge before changing admission.
-  const opener = namedFunction(ast, 'Lv').getText(ast);
-  if (!opener.includes('await Yy(e)') || !mirror.getText(ast).includes('importOrAppendConversation')
+  const opener = namedFunction(ast, 'Hv').getText(ast);
+  if (!opener.includes('await Zy(e)') || !mirror.getText(ast).includes('importOrAppendConversation')
     || !mirror.getText(ast).includes('focusOnRefresh:!1')
     || !mirror.getText(ast).includes('shellSessionReader')
     || !mirror.getText(ast).includes('thoughtdag.atlas.sweepmark')) {
@@ -82,10 +82,10 @@ export function adaptThoughtdagClient(original) {
 
   // These are component *calls*, not component implementations. In particular,
   // node editors, the FocusPanel and graph execution keep their original code.
-  sessionGuard(one(componentCalls(canvas, 'y0e'), 'canvas ProjectSwitcher call'));
+  sessionGuard(one(componentCalls(canvas, 'She'), 'canvas ProjectSwitcher call'));
   // CanvasChat is the original "ask this graph" insight tool, not the DSH main
   // composer. Preserve both it and its toolbar entry in conversation canvases.
-  one(componentCalls(canvas, 'Ade'), 'original graph insight tool');
+  one(componentCalls(canvas, 'Ode'), 'original graph insight tool');
   one(descendants(canvas, node => ts.isCallExpression(node)
     && property(node.arguments[1], 'data-chat-entry')), 'original graph insight entry');
   const landing = one(descendants(canvas, node => ts.isCallExpression(node)
@@ -98,7 +98,7 @@ export function adaptThoughtdagClient(original) {
   sessionGuard(landing);
   // Global/workspace canvases retain the original compact project tool and its
   // graph library. Navigation back to DSH belongs to the outer native surface.
-  const viewSwitch = one(componentCalls(switcher, 'g0e'), 'HarnessViewSwitch call');
+  const viewSwitch = one(componentCalls(switcher, 'whe'), 'HarnessViewSwitch call');
   replace(viewSwitch, `(!__nexusThoughtdagEmbedded&&${viewSwitch.getText(ast)})`);
   const canvasReturn = one(canvas.body.statements.filter(ts.isReturnStatement), 'canvas return');
   const viewportRef = one(descendants(canvas, node => ts.isVariableDeclaration(node)
@@ -115,8 +115,8 @@ export function adaptThoughtdagClient(original) {
   // Mount, delayed project-switch and import fits all use this one upstream
   // fitView calculation. Cap its automatic fit without changing manual zoom,
   // setCenter, the renderer's maxZoom, or any node geometry.
-  const fitBounds = one(descendants(namedFunction(ast, 'Uz'), node => ts.isCallExpression(node)
-    && ts.isIdentifier(node.expression) && node.expression.text === 'sv'), 'original fitView bounds calculation');
+  const fitBounds = one(descendants(namedFunction(ast, '$z'), node => ts.isCallExpression(node)
+    && ts.isIdentifier(node.expression) && node.expression.text === 'cv'), 'original fitView bounds calculation');
   if (fitBounds.arguments.length !== 6
     || fitBounds.arguments[4].getText(ast) !== ORIGINAL_FIT_MAX_ZOOM) {
     throw new Error('ThoughtDAG client adapter: original automatic fit maximum zoom changed');
@@ -142,8 +142,8 @@ export function adaptThoughtdagClient(original) {
 if(__nexusThoughtdagSessionId){
   // Use the same serialized handler as the original seq-driven change feed.
   // An empty session stays eligible when its first real turn arrives later.
-  Promise.resolve(m9()).then(()=>a({
-    rootKey:Uc,rel:__nexusThoughtdagSessionId+lb
+  Promise.resolve(g9()).then(()=>a({
+    rootKey:Uc,rel:__nexusThoughtdagSessionId+fb
   })).catch(error=>console.error("[nexus] ThoughtDAG session projection",error));
 }
 `,
@@ -156,7 +156,7 @@ if(__nexusThoughtdagSessionId){
   const cwd = one(outbound.body.statements.filter(node => ts.isVariableStatement(node)
     && node.declarationList.declarations.some(declaration => ts.isIdentifier(declaration.name)
       && declaration.name.text === 'o')), 'harness cwd declaration');
-  if (!cwd.getText(ast).includes('?.agentCwd??await sG()??ap?.cwd??void 0')
+  if (!cwd.getText(ast).includes('?.agentCwd??await uG()??op?.cwd??void 0')
     || !cwd.getText(ast).includes('...u==="auto"||u==="allow"?{permission:u}:{}')) {
     throw new Error('ThoughtDAG client adapter: original harness cwd selection changed');
   }
@@ -171,10 +171,10 @@ if(__nexusThoughtdagSessionId){
     && ts.isAwaitExpression(node.expression)
     && ts.isCallExpression(node.expression.expression)
     && ts.isIdentifier(node.expression.expression.expression)
-    && node.expression.expression.expression.text === 'oC'), 'completed harness turn stamp');
-  if (stamp.expression.getText(ast) !== 'await oC(e,t,n,{question:r,response:se},N,O,M,K)'
+    && node.expression.expression.expression.text === 'cC'), 'completed harness turn stamp');
+  if (stamp.expression.getText(ast) !== 'await cC(e,t,n,{question:r,response:se},N,O,_,K)'
     || !ts.isBlock(stamp.parent) || !ts.isIfStatement(stamp.parent.parent)
-    || stamp.parent.parent.expression.getText(ast) !== '$(se),N') {
+    || stamp.parent.parent.expression.getText(ast) !== 'U(se),N') {
     throw new Error('ThoughtDAG client adapter: original harness completion contract changed');
   }
   edits.push({
@@ -184,7 +184,7 @@ if(__nexusThoughtdagSessionId){
   // Nexus owns the installed package. The standalone updater tells people to
   // install a second plugin, so suppress its network probe and UI publication.
   // Keep release notes, ordinary error toasts and every other implementation.
-  const updater = namedFunction(ast, 'Ohe');
+  const updater = namedFunction(ast, 'P0e');
   if (!updater.getText(ast).includes('setPluginUpdate({current:n.version,latest:n.latest})')
     || !updater.getText(ast).includes('"/version"')
     || !updater.getText(ast).includes('plugin.updateHintDesktop')) {
@@ -231,7 +231,7 @@ if(__nexusThoughtdagEmbedded){
       'Notify the native conversation surface only after successful graph generation and original turn stamping.',
       'Fit the original ReactFlow viewport on embedded visibility/size changes, with bounded node readiness and interaction guards.',
       'Cap embedded automatic fits at zoom 1, including original delayed fits, while retaining original manual zoom limits.',
-      'Expose a read-only native conversation compile bridge using the original 0.5.24 buildContext, stale selection and context-bundle compiler.',
+      'Expose a read-only native conversation compile bridge using the original 0.5.26 buildContext, stale selection and context-bundle compiler.',
       'Suppress only the standalone plugin update probe and installation toast; retain release notes and ordinary error toasts.',
       'Publish a stable nexus-entry.js and map upstream chunk back-references to the same module identity.',
     ],
@@ -242,7 +242,7 @@ if(__nexusThoughtdagEmbedded){
 export function reviewedThoughtdagHtml(original) {
   if (digest(original) !== REVIEWED_HTML_SHA256
     || !original.includes(`src="/thoughtdag/${THOUGHTDAG_SOURCE_ASSET}"`)) {
-    throw new Error('ThoughtDAG client adapter requires the reviewed 0.5.24 HTML SHA256');
+    throw new Error('ThoughtDAG client adapter requires the reviewed 0.5.26 HTML SHA256');
   }
   const entry = `<script type="module" crossorigin src="/thoughtdag/${THOUGHTDAG_SOURCE_ASSET}"></script>`;
   if (original.indexOf(entry) !== original.lastIndexOf(entry)) throw new Error('ThoughtDAG HTML entry is not unique');
@@ -255,7 +255,7 @@ export function reviewedThoughtdagHtml(original) {
 }
 
 function assertThoughtdagAdapter(original, adapted) {
-  const changed = new Set(['Vhe', 'y0e', 'nY', 'aC', 'Fi', 'Uz', 'Ohe']);
+  const changed = new Set(['Q0e', 'She', 'oY', 'sC', 'Hi', '$z', 'P0e']);
   for (const node of original.statements) {
     if (!ts.isFunctionDeclaration(node) || !node.name || changed.has(node.name.text)) continue;
     if (namedFunction(adapted, node.name.text).getText(adapted) !== node.getText(original)) {
@@ -263,7 +263,7 @@ function assertThoughtdagAdapter(original, adapted) {
     }
   }
   for (const [name, insertion] of [
-    ['aC', EMBEDDED_FRESH_ROUTE], ['Fi', GENERATED_SESSION_NOTIFICATION],
+    ['sC', EMBEDDED_FRESH_ROUTE], ['Hi', GENERATED_SESSION_NOTIFICATION],
   ]) {
     const source = namedFunction(adapted, name).getText(adapted);
     if (!source.includes(insertion)
@@ -271,26 +271,26 @@ function assertThoughtdagAdapter(original, adapted) {
       throw new Error(`ThoughtDAG client adapter changed original harness pipeline: ${name}`);
     }
   }
-  const automaticFit = namedFunction(adapted, 'Uz').getText(adapted);
+  const automaticFit = namedFunction(adapted, '$z').getText(adapted);
   if (!automaticFit.includes(EMBEDDED_FIT_MAX_ZOOM)
     || automaticFit.indexOf(EMBEDDED_FIT_MAX_ZOOM) !== automaticFit.lastIndexOf(EMBEDDED_FIT_MAX_ZOOM)
     || automaticFit.replace(EMBEDDED_FIT_MAX_ZOOM, ORIGINAL_FIT_MAX_ZOOM)
-      !== namedFunction(original, 'Uz').getText(original)) {
+      !== namedFunction(original, '$z').getText(original)) {
     throw new Error('ThoughtDAG client adapter changed original automatic fit implementation');
   }
-  if (namedFunction(adapted, 'Ohe').getText(adapted) !== SUPPRESSED_PLUGIN_UPDATE) {
+  if (namedFunction(adapted, 'P0e').getText(adapted) !== SUPPRESSED_PLUGIN_UPDATE) {
     throw new Error('ThoughtDAG client adapter changed the reviewed updater suppression');
   }
-  const flow = ast => one(descendants(namedFunction(ast, 'Vhe'), node => ts.isCallExpression(node)
+  const flow = ast => one(descendants(namedFunction(ast, 'Q0e'), node => ts.isCallExpression(node)
     && property(node.arguments[1], 'nodeTypes') && property(node.arguments[1], 'edgeTypes')), 'original ReactFlow renderer');
   if (flow(original).getText(original) !== flow(adapted).getText(adapted)) {
     throw new Error('ThoughtDAG client adapter changed original ReactFlow renderer');
   }
-  const focus = ast => one(componentCalls(namedFunction(ast, 'Vhe'), 'ide'), 'original FocusPanel call').getText(ast);
+  const focus = ast => one(componentCalls(namedFunction(ast, 'Q0e'), 'dde'), 'original FocusPanel call').getText(ast);
   if (focus(original) !== focus(adapted)) throw new Error('ThoughtDAG client adapter changed original FocusPanel');
-  const insight = ast => one(componentCalls(namedFunction(ast, 'Vhe'), 'Ade'), 'original CanvasChat call').getText(ast);
+  const insight = ast => one(componentCalls(namedFunction(ast, 'Q0e'), 'Ode'), 'original CanvasChat call').getText(ast);
   if (insight(original) !== insight(adapted)) throw new Error('ThoughtDAG client adapter changed original CanvasChat');
-  if (namedFunction(original, 'ns').getText(original) !== 'function ns(e,t,n,a,r,s,o){return Tv(e,t,n,"record",a,r,s,o)}') {
+  if (namedFunction(original, 'ts').getText(original) !== 'function ts(e,t,n,a,r,s,o){return Mv(e,t,n,"record",a,r,s,o)}') {
     throw new Error('ThoughtDAG client adapter: original record context wrapper changed');
   }
 }
@@ -418,7 +418,7 @@ if(__nexusThoughtdagSessionId){
     try{
       if(request.sessionId!==__nexusThoughtdagSessionId)throw new Error("图谱会话不匹配");
       if(typeof request.question!=="string"||!request.question.trim())throw new Error("问题不能为空");
-      await m9();
+      await g9();
       const state=re.getState(),projects=Jt.getState();
       const project=projects.projects.find(item=>item.id===projects.activeId);
       const source=project?.sourceSession;
@@ -434,12 +434,12 @@ if(__nexusThoughtdagSessionId){
         id:targetId,data:{question:"",response:"",attachments:[]}
       }];
       const branch=typeof request.branchContext==="string"?request.branchContext:undefined;
-      const stale=as(state),context=ns(targetId,nodes,state.edges,branch,
+      const stale=ns(state),context=ts(targetId,nodes,state.edges,branch,
         anchor?.data.excludedAttachmentIds,anchor?.data.includedAttachmentIds,stale);
       const question=request.question;
       const messages=[...context.messages,{role:"user",content:question}];
       const sources=[...context.sources,{layer:"chain",part:"question"}];
-      const bundle=await Jhe(targetId,nodes,state.edges,{
+      const bundle=await rfe(targetId,nodes,state.edges,{
         projectId:project?.id,task:question,now:new Date().toISOString(),
         branchContext:branch,staleIds:stale,
         preferredModel:anchor?.data.model??oe.getState().selectedModel
@@ -448,7 +448,7 @@ if(__nexusThoughtdagSessionId){
         sessionId:__nexusThoughtdagSessionId,projectId:project?.id??null,
         anchorNodeId:anchorId,question,messages,images:context.images,
         sources,imageSources:context.imageSources,layerTokens:context.layerTokens,
-        contextHash:DV(messages,context.images),bundle
+        contextHash:zV(messages,context.images),bundle
       }});
     }catch(error){
       reply({ok:false,error:error instanceof Error?error.message:String(error)});

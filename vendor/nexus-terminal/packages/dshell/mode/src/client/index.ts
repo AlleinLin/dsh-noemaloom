@@ -10,6 +10,9 @@ import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
 // Type-only: pulls the `sidebar.brand.*` SlotMap so `sidebar.brand.name` is
 // accepted as a registration name string.
 import type {} from '@deepseek-ai/dsh-client-ui-sidebar/client'
+// Type-only: pulls the right-Sidebar service merge (ctx.sidebarRightTabs) and
+// the slot keys the right pane dispatches on.
+import type {} from '@deepseek-ai/dsh-client-ui-sidebar-right/client'
 // Type-only: pulls the settings SlotMap and the ctx.configForms merge.
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
 // Type-only: pulls the Plugins-panel SlotMap (`plugins.row.config`).
@@ -43,8 +46,11 @@ import { DshellLeftControls } from './controls.js'
 import { createShellCompletion, ShellCompletionList } from './completion.js'
 import { createCommandHints, ShellCommandHint } from './command-hint.js'
 import { DshellModeConfigPage } from './config-page.js'
-import { DSHELL_BUNDLE_NAME } from '@nexus-aethra/dshell-std'
+import { DSHELL_BUNDLE_NAME, mainSessionId } from '@nexus-aethra/dshell-std'
 import { adoptTheme, connectThemeSettings } from './theme.js'
+import { dshellDeviceDefinition, DSHELL_DEVICE_PANEL_ID } from './device-definition.js'
+import { DshellDevicePanel } from './device-panel.js'
+import { DshellDeviceTitle } from './device-title.js'
 import { adoptShellHelperSettings, connectShellHelperSettings } from './shell-settings.js'
 import { adoptDevicePollSettings, connectDevicePollSettings } from './device-poll.js'
 import { adoptDataDir, connectDataDirSettings } from './data-dir.js'
@@ -79,7 +85,16 @@ const NO_DEVICES: ReturnType<DeviceChoiceSeat['snapshot']> = { devices: [], bind
 
 export const name = '@nexus-aethra/dshell-mode/client'
 
-export const inject = ['slots', 'locale', 'sessions', 'dshellPtyStream', 'modelDirectories', 'uiConversation', 'configForms'] as const
+/**
+ * Required browser services.
+ *
+ * `sidebarRightTabs` is the right pane's type registry, and the device panel
+ * is a type in it: Cordis gates every service property behind the inject
+ * declaration, so reading `ctx.sidebarRightTabs` without declaring it throws
+ * "cannot get property \"sidebarRightTabs\" without inject" — on the device
+ * path, which is the path that needs it.
+ */
+export const inject = ['slots', 'locale', 'sidebarRightTabs', 'sessions', 'dshellPtyStream', 'modelDirectories', 'uiConversation', 'configForms'] as const
 
 /** This package's copy namespace. */
 const NS = 'dshellMode'
@@ -813,6 +828,75 @@ export function apply(ctx: Context): void {
       return typeof source?.subscribe === 'function' ? source.subscribe(listener) : () => {}
     },
   }
+  /**
+   * The device panel: a right-sidebar tab of its own, next to the file browser.
+   *
+   * It exists only while the CURRENT session is a dshell session bound to a
+   * device. A stock session keeps dsh's own sidebar, and a dshell session on
+   * this machine has no device to describe — so the card is registered and
+   * withdrawn with the session, exactly as dshell-files takes the file pane
+   * over and gives it back.
+   */
+  ctx.effect(() => {
+    let stop: (() => void) | undefined
+    let held: string | undefined
+    /**
+     * The sessions that could be the one on screen.
+     *
+     * Two of them, because two surfaces ask: the conversation view has the
+     * session the reader is in, and the GUIDE page — the one the right pane
+     * opens on — has the session the main view holds. The file browser beside
+     * this one reads the second; a card that only ever appeared in the first
+     * would be missing from the page the reader lands on.
+     */
+    const candidates = (): string[] => {
+      const ids: string[] = []
+      const current = currentSession.get()
+      if (current !== undefined) ids.push(String(current))
+      const main = mainSessionId(Object.values(sessions.list.getSnapshot().byId))
+      if (main !== undefined && !ids.includes(String(main))) ids.push(String(main))
+      return ids
+    }
+    const sync = (): void => {
+      const bindings = deviceForward.snapshot().bindings
+      // A dshell session WITH a device: the panel describes that device, and a
+      // session on this machine has no device to describe.
+      const wanted = candidates().find(id =>
+        modes.isOn(id) && bindings.some(row => row.sessionId === id))
+      if (wanted === held) return
+      stop?.()
+      stop = undefined
+      held = wanted
+      if (wanted === undefined) return
+      const disposers = [
+        ctx.sidebarRightTabs.register(dshellDeviceDefinition(t)),
+        ctx.slots.inject('sidebar.right.pane.tab', () => ctx.slots.register(
+          { name: 'sidebar.right.pane.tab', key: DSHELL_DEVICE_PANEL_ID, locale: NS },
+          DshellDevicePanel,
+        )),
+        ctx.slots.inject('sidebar.right.pane.tab.title', () => ctx.slots.register(
+          { name: 'sidebar.right.pane.tab.title', key: DSHELL_DEVICE_PANEL_ID },
+          DshellDeviceTitle,
+        )),
+      ]
+      stop = () => {
+        for (const dispose of [...disposers].reverse()) dispose()
+      }
+    }
+    const disposeSession = currentSession.subscribe(sync)
+    const disposeModes = modes.subscribe(sync)
+    const disposeDevices = deviceForward.subscribe(sync)
+    const disposeSessions = sessions.list.subscribe(sync)
+    sync()
+    return () => {
+      disposeSession()
+      disposeModes()
+      disposeDevices()
+      disposeSessions()
+      stop?.()
+    }
+  }, 'dshell-mode: the device panel')
+
   /** dsh's own default view id: taking it is what makes the terminal the view. */
   // The preset roster, reached through the remote face the same way this package
   // reaches every other host service; read structurally so a composition

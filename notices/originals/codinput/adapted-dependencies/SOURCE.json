@@ -12,33 +12,44 @@
   },
   {
     "name": "@codemirror/language",
-    "version": "6.12.4",
+    "version": "6.13.1",
     "license": "MIT",
     "installedPath": "node_modules/@codemirror/language",
-    "resolved": "https://registry.npmjs.org/@codemirror/language/-/language-6.12.4.tgz",
-    "integrity": "sha512-1q4PaT+o6PbgpkJt4Q8Fv5XJxTy4FUZ4MWETtyiDw3J0Pyr9E2vqcKL+k9wcvjNTIsauxvE7OfmWj3FRPHQ76A==",
+    "resolved": "https://registry.npmjs.org/@codemirror/language/-/language-6.13.1.tgz",
+    "integrity": "sha512-zfvU2r3TyylQLMj/te+5CnQ0rSqZi8B1oTCBbQkagcLW4Xc6imab6qN+pEJhsuNOLaJqiRyBXp9UhWA1DhVvDw==",
     "files": {
       "LICENSE": "05c6130cda97e7600ca91427a41e8a065efcf82365fc0293e7de80faec494c07"
     }
   },
   {
     "name": "@codemirror/state",
-    "version": "6.7.5",
+    "version": "6.7.6",
     "license": "MIT",
     "installedPath": "node_modules/@codemirror/state",
-    "resolved": "https://registry.npmjs.org/@codemirror/state/-/state-6.7.5.tgz",
-    "integrity": "sha512-QjLbZmY1Au3JiRrDVYFLRD0BZ3SOKS9pR3yjIkd7u27YY8TFD9/Q9fhPnLV5l1mHFSo3hHU/N31vpwEJOx4owQ==",
+    "resolved": "https://registry.npmjs.org/@codemirror/state/-/state-6.7.6.tgz",
+    "integrity": "sha512-kAz+AncRtKuIknedxT1bq4XwXv4UowhbkHU1myPrtVb/jZtImWuV5BXzv5vK6i3kYACsdiZiQKFQQ5Mq7elW8w==",
+    "files": {
+      "LICENSE": "05c6130cda97e7600ca91427a41e8a065efcf82365fc0293e7de80faec494c07"
+    }
+  },
+  {
+    "name": "@codemirror/streamparser",
+    "version": "6.0.0",
+    "license": "MIT",
+    "installedPath": "node_modules/@codemirror/streamparser",
+    "resolved": "https://registry.npmjs.org/@codemirror/streamparser/-/streamparser-6.0.0.tgz",
+    "integrity": "sha512-JTFPF6xrfjt0mnfGPgzcLiMwYmvIyNaoizp8BYzv8FE8KrT6GBGDZ190rtt+O7Wke3gG/MFHyiY9YGNeimof4w==",
     "files": {
       "LICENSE": "05c6130cda97e7600ca91427a41e8a065efcf82365fc0293e7de80faec494c07"
     }
   },
   {
     "name": "@codemirror/view",
-    "version": "6.43.12",
+    "version": "6.43.15",
     "license": "MIT",
     "installedPath": "node_modules/@codemirror/view",
-    "resolved": "https://registry.npmjs.org/@codemirror/view/-/view-6.43.12.tgz",
-    "integrity": "sha512-Nv0vxQ19NAqvB/c2pFzjIzFlzzJl7jmdtNkwOwGbn0Ks9mFAzibvumz7cQem5cRsFA2cEw2fg+uHZGbcHupLQQ==",
+    "resolved": "https://registry.npmjs.org/@codemirror/view/-/view-6.43.15.tgz",
+    "integrity": "sha512-HHsfpqFeHyXLs983pSRe38Xajs0vFWZQ2BuX0m7Ki8w3jZ5iD8cuR3lBz2/5/X53Dhf32SBHKh6rtSTB6tKeGw==",
     "files": {
       "LICENSE": "05c6130cda97e7600ca91427a41e8a065efcf82365fc0293e7de80faec494c07"
     }

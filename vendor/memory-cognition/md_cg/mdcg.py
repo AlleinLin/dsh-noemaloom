@@ -39,6 +39,23 @@ from .fsutil import (FileLock, ShardedLog, atomic_write, append_jsonl,
 # 单点守卫：写入 / 发出路径的 6 处调用点统一走 _ensure_list——str 按「一个值」
 # 处理（不再逐字符展开）；None / 空串按空列表（与改动前逐位一致）；其余可迭代
 # 仍 list(x)。
+# 生效条件：把原始环境变量值解析成**有限浮点**门槛。缺省/空串返回 default；
+# 非数值或 nan/inf 返回 default 且状态 invalid（调用方须如实记账，不得静默）。
+# 为什么单独成单点：issue #659 F26-06 实测 MDCG_MIN_SCORE=inf 时 inf > 0 恒真，
+# 全量结果被滤空；F26-12 又实测两处开关判据不一致（>0 与 >=0）。判据只写一次。
+def parse_min_score(raw, default=0.0):
+    """→ (value, status)，status 取 default / ok / invalid。"""
+    if raw is None or str(raw).strip() == "":
+        return float(default), "default"
+    try:
+        v = float(raw)
+    except (TypeError, ValueError):
+        return float(default), "invalid"
+    if v != v or v in (float("inf"), float("-inf")):
+        return float(default), "invalid"
+    return v, "ok"
+
+
 def _ensure_list(x):
     """归一成列表：任何假值（None/空串/0/False/[]）-> []；str -> [str]；其它可迭代 -> list(x)。"""
     if not x:
@@ -611,6 +628,33 @@ def fold_accents(text: str) -> str:
     return _ud.normalize("NFC", s)
 
 
+def is_void_content(text) -> bool:
+    """「空白即无内容」的判据单点（#644 首版 + #651 扩展）。
+
+    #644 首版只剥 str.strip() 的 White_Space；#651 实测被三类不可见字符完整绕过：
+      · Cf（U+200B/U+200C/U+200D/U+FEFF/U+2060/U+00AD 等零宽/软连字符，isspace 全 False）；
+      · 纯 Mn/Me 组合记号（U+0301 重复 n 次）——能落盘，但 fold_accents 折成空串，
+        成为永不可检索的幽灵节点；
+      · Cc 控制符（x00-x1f 等）。
+
+    判据：去掉「空白 + 控制符 + 格式符 + 组合记号 + 变体选择子」后若一个字符都不剩，即为无内容。
+    **不误伤**：NFD 正文（如 cafe + U+0301）里有字母残留 → 非空，照常写入。
+    """
+    import unicodedata as _ud
+    if not isinstance(text, str):
+        return True
+    for ch in text:
+        cat = _ud.category(ch)
+        if cat[0] in ("Z", "C"):          # 分隔符 / 控制符 / 格式符 / 未分配 / 代理
+            continue
+        if cat in ("Mn", "Me"):           # 组合记号：单独存在不构成内容
+            continue
+        if 0xFE00 <= ord(ch) <= 0xFE0F or 0xE0100 <= ord(ch) <= 0xE01EF:
+            continue                      # 变体选择子
+        return False
+    return True
+
+
 def normalize_en(text: str) -> str:
     """英文归一化：小写 + 去停用词 + 去时态复数。中文部分不动。
 
@@ -791,7 +835,11 @@ def fold_for_match(text) -> str:
     「全角/大小写」处理，是因为那正是本仓反复出现的**同语义多落点判据分裂**
     （`routing.nfkc_text` 是 NFKC 的唯一单点，由守卫 E 组做源码面断言）。
     """
-    return compact_exact_text(routing.fold_variants(text))
+    # issue #650：判据面此前只做 NFKC+casefold+繁简，不剥组合记号，
+    # 而召回面用的是 fold_accents（会剥）——两侧口径不一致时，
+    # 声明 non_applicable_conditions: ["cafe"] 的节点对查询 "cafe" 不会被 REJECT。
+    # 判据面与召回面必须同一口径，故这里补一次 Mn/Me 剥离（fold_accents 单点）。
+    return compact_exact_text(routing.fold_variants(fold_accents(text)))
 
 
 # 生效条件：text 与 term 均为 str 时，把 text 中所有「与 term 同形（去全部空白 + NFKC + casefold + 繁简折叠后相等）」的区间替换为空格并返回；term 归一后为空或未找到同形区间时原样返回。
@@ -1024,7 +1072,10 @@ def index_key_hits(entry, terms, query) -> dict:
     q = str(query or "")
     post = e.get(nodefile.POSTCONDITION_TERMS_KEY) or []
     if post:
-        if any(t in " ".join(post) for t in (terms or [])):
+        # issue #652：索引键侧同样要折叠——terms 是 fold 后的查询词项，
+        # post 是落盘原文；不同口径会让带重音的索引键对无重音查询不可命中。
+        _post_folded = fold_accents(" ".join(str(x) for x in post))
+        if any(t and fold_accents(t) in _post_folded for t in (terms or [])):
             hits["post"] = True
             hits["post_source"] = "term"
             hits["why"].append("postcondition_terms:term")
@@ -2873,7 +2924,21 @@ class MdCG:
         # consolidate/maintain 要处理无意义节点，且与台账面「空白被拒」自相矛盾。
         # 非字符串（int/list）此前抛内部 AttributeError（'int' has no 'split'）——
         # 那是实现泄漏而非校验，这里一并收成显式 ValueError（fail-closed，零落盘）。
-        if not isinstance(content, str) or not content.strip():
+        # issue #669 P1：**写入面前置守卫**——「带冒号空值 + 换行正文」这种形态，
+        # 取值面（ccg_field_value 只看同一行）与剥除面（_strip_ccg_segments 见冒号
+        # 算非空、只剥标题行）读法不一致，后续列表项残留进 body 后被自否定判据
+        # 当断言命中，报成「条件自相矛盾」（实测 self_negation 1.0 假 REJECT）。
+        # 闸门放行的形态判定面必须能吃；吃不了就在闸门挡，别让作者在判定面看假陈述。
+        _bad_ccg = nodefile.ccg_empty_colon_before_body(content) if isinstance(content, str) else []
+        if _bad_ccg:
+            _where = "；".join("第 %d 行「# %s：」" % (ln, mark) for mark, ln in _bad_ccg)
+            raise ValueError(
+                "CCG 要素行冒号后为空、值写在后续行：%s——该形态会让取值面读到空串"
+                "而剥除面只剥标题行，列表项残留进正文后被误判「条件自相矛盾」"
+                "（issue #669）。两种修法任选：①写成单行（多项用「；」分隔），"
+                "如「# 不适用条件：甲；乙」；②多项走 frontmatter 的 "
+                "non_applicable_conditions 列表，CCG 行只留一句摘要。" % _where)
+        if not isinstance(content, str) or is_void_content(content):
             raise ValueError(
                 "content 不能为空：空白即无内容（issue #644）。"
                 f"收到 {type(content).__name__}"
@@ -4637,6 +4702,8 @@ class MdCG:
         self._maybe_reload_index()      # P1b-2：读面代际感知（空查询早退后、读索引前）
         pool_cfg = pooling.resolve(pooling.from_env(pools))
         now = time.time() if validity else None      # 统一取一次 now，保判定口径一致
+        # issue #672：口径落 stat，_emit 据此透出 meta.validity_scope（只排过期 / off）
+        stat_validity_on = bool(validity)
 
         terms = expand_query_terms(q)
         # 英文归一化后再取 bigram（小写+去停用词+去时态；中文不动）
@@ -4779,10 +4846,15 @@ class MdCG:
                 except (OSError, UnicodeDecodeError):
                     continue
                 # issue #150：空词项会使本判据恒真 ⇒ 全部负记忆都被算作「覆盖本查询」。
-                if any(t and t in content for t in terms):
+                # issue #656（#636 回归）：terms 是 fold 后的查询词项、content 是原始正文；
+                # 两侧不同口径时 "cafe" in "café" 为假 ⇒ 带重音的负记忆覆盖判定失效
+                # （covered_neg 空、_neg_tail 提示消失、S5 抑制不触发）。正文侧也折叠。
+                _folded_content = fold_accents(content or "")
+                if any(t and fold_accents(t) in _folded_content for t in terms):
                     neg_coverage.append(e)
 
-        stat = {"scanned": 0, "query": q, "gates": gates}
+        stat = {"scanned": 0, "query": q, "gates": gates,
+                "validity_on": stat_validity_on}   # issue #672：口径透出给 _emit
         if _tf_audit:
             stat["time_filter"] = _tf_audit
         route_bucket = None
@@ -5139,7 +5211,9 @@ class MdCG:
             body = (positive_body(entry, content) if positive_body is not None
                     else nodefile.positive_body(content))
             body_l = body.lower()
-        tags_l = tags.lower()
+        # issue #652（#636 回归）：query 侧词项已过 fold_accents，tags 臂若仍裸 lower，
+        # 带重音的 tag 对无重音查询永远不可召回。两臂必须同口径。
+        tags_l = fold_accents(tags).lower()
         # issue #150：空词项恒真（`"" in s` → True）⇒ 必须滤掉；否则 LIKE 预筛恒真、
         # 全库入池。Rust `retrieval.rs::like` 同款（跨侧守卫钉住一致性）。
         return any(t and (t in body_l or t.lower() in tags_l) for t in terms)
@@ -5447,15 +5521,30 @@ class MdCG:
         # 需要「只要相关结果」的部署设 MDCG_MIN_SCORE=0.01 即启用（零分条目
         # 既不进结果、也不占 k 配额）。位置在 _n_real/_neg_tail 之前 ⇒ 过滤后的
         # scored 自然参与 k 预算与提示让位，且 _neg_tail 仍只调用一次（D1 守卫）。
-        try:
-            _min_score = float(os.environ.get("MDCG_MIN_SCORE", "0"))
-        except ValueError:
-            _min_score = 0.0
-        if _min_score > 0:
+        # issue #659 F26-06/#F26-12：判据单点化——非有限值（nan/inf）不再被当成「门槛很高」
+        # 把结果整体滤空，而是回落默认并如实记账（stat 落 min_score_input）。
+        _min_score, _ms_status = parse_min_score(os.environ.get("MDCG_MIN_SCORE", "0"), 0.0)
+        # issue #655：门槛**只作用于 T3 全量兜底出口**。T2 里被 S5 降到 0 的真候选、
+        # reach 显式补入的图扩散邻居是「有信号但被降权 / 被显式补入」，与 T3 的
+        # 「本来就没信号」不同——按 #89② 契约（S5 只降权不删除）不得被门槛删掉。
+        if _min_score > 0 and tier == TIER_GLOBAL_SCAN:
             scored = [_p for _p in scored if _p[1] >= _min_score]
             stat["min_score"] = _min_score
+            stat["min_score_scope"] = "T3_global_scan"
+        elif _min_score > 0:
+            stat["min_score_ignored_outside_t3"] = _min_score
+        if _ms_status == "invalid":
+            # 非法输入不静默：原始值原样记账，运行口径 = 默认（关）。
+            stat["min_score_input"] = "invalid"
         _n_real = min(max(0, int(k)), sum(1 for _, s in scored if s > 0))
         _neg_tail = self._neg_tail(neg_coverage, max(0, int(k) - _n_real))
+        # issue #659 F26-15：负覆盖尾在过滤**之后**才独立 extend，此前绕过门槛
+        # （0.0 分提示条照进结果）。门槛生效时同一判据也要过一遍，并如实记账。
+        if _min_score > 0 and _neg_tail:
+            _kept_tail = [_t for _t in _neg_tail if float(_t[1] or 0) >= _min_score]
+            if len(_kept_tail) != len(_neg_tail):
+                stat["min_score_dropped_neg_tail"] = len(_neg_tail) - len(_kept_tail)
+            _neg_tail = _kept_tail
         # issue #89②（2026-10-09 DSH 端实施、zcode 端收窄靶区）：**0 分（无质量信号）
         # 条目不得装进结果**——它们对调用方无价值且有误导（LLM 会当成相关内容）。
         # 但与 `try_stage` 的 `valid` 同一口径的 `_n_real`（＝ min(k, sum(s>0))）**只服务
@@ -5596,6 +5685,19 @@ class MdCG:
         # 未启用则 meta 键集合与改动前逐字节一致（默认关零变更纪律）。
         if stat.get("time_filter"):
             meta["time_filter"] = stat["time_filter"]
+        # issue #672：时效口径如实透出（只排过期 / 未启用），避免名字误读。
+        meta["validity_scope"] = "expired_only" if stat.get("validity_on") else "off"
+        # issue #659 F26-14：stat["min_score"] 此前写入后无人读（meta 是显式白名单）。
+        # 门槛生效时把生效值、作用域、被丢弃数一并透出，调用方才能判断「为什么结果变少」。
+        if stat.get("min_score") is not None:
+            meta["min_score"] = stat["min_score"]
+            meta["min_score_scope"] = stat.get("min_score_scope")
+        if stat.get("min_score_ignored_outside_t3") is not None:
+            meta["min_score_ignored_outside_t3"] = stat["min_score_ignored_outside_t3"]
+        if stat.get("min_score_input") == "invalid":
+            meta["min_score_input"] = "invalid"
+        if stat.get("min_score_dropped_neg_tail"):
+            meta["min_score_dropped_neg_tail"] = stat["min_score_dropped_neg_tail"]
         # issue #89①：次级排序键用毕即剥离——EXACT_HIT_KEY 是**内部键**，
         # 不得随 doc 引用透出。MCP 面（_node_view / 三处显式取键）本就是白名单，
         # 本步是第二道防线，也为将来新增的消费面兜底。

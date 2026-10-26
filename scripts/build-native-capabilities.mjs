@@ -17,7 +17,7 @@ const reviewedSources = {
   'packages/dshell/std/src/contracts.ts': '26f76481d7ed44ce29831aee751d96d585e700ad2dc36afb911cab335805575b',
   'packages/dshell/ssh/src/connection.ts': 'cd883c9c9ad2ba278eef90dd2e33522c90cdc3df1bcb7c66b8b5419a7f42a8b2',
   'packages/dshell/commands/src/index.ts': '5ab8edd905035b18204a1b6b3c8557696240ec283a4c4ae2c3efb46f88577a51',
-  'packages/dshell/mode/src/index.ts': 'db58034d381918ebb2b5c8a8020a06cc5a8a331eff343a2ebc0b2598a14011fc',
+  'packages/dshell/mode/src/index.ts': '1f66307134431742d5bedfe6763c02eeec01ff2c63904c020e7f7c214e8306dd',
   'packages/dshell/mode/src/terminal-mode.ts': 'c14b7a680127d40d86eff29d26ad32548b8915040557ed41de06ab8056a86f96',
   'packages/dshell/mode/src/terminal-mode-protocol.ts': '32d4d471cb628e3cb31794a7b70aefac863421fe44877d0970320071200c28ab',
   'packages/dshell/mode/src/client/terminal-mode.ts': '0e7a2a8e765597f2a8d3c1735550d02ae768e7802e5a6bea21f33f0ef69722d4',
@@ -112,7 +112,7 @@ export async function buildNativeCapabilities() {
       target: 'node22', sourcemap: true, metafile: true, external: hostShared, plugins: [sourcePlugin(true)],
     });
     remember(result);
-    hosts.push({ id: `dshell-${id}`, upstream: `@nexus-aethra/dshell-${id}`, version: '0.1.14',
+    hosts.push({ id: `dshell-${id}`, upstream: `@nexus-aethra/dshell-${id}`, version: '0.1.15',
       export: `./native/dshell-${id}`, inputs: Object.keys(result.metafile.inputs).sort() });
   }
   const helper = await build({
@@ -148,7 +148,7 @@ export async function buildNativeCapabilities() {
     });
     remember(result);
     const imports = Object.values(result.metafile.outputs).flatMap(item => item.imports.filter(value => value.external).map(value => value.path));
-    clients.push({ id: `dshell-${id}`, packageName: `@nexus-aethra/dshell-${id}`, version: '0.1.14',
+    clients.push({ id: `dshell-${id}`, packageName: `@nexus-aethra/dshell-${id}`, version: '0.1.15',
       requires: [...new Set(imports)].sort(), filename: relative(root, filename).replaceAll('\\', '/') });
   }
   await writeFile(join(root, 'src/client/native-capabilities.generated.js'),

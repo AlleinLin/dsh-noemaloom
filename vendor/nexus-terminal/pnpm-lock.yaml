@@ -410,6 +410,9 @@ importers:
       '@deepseek-ai/dsh-client-ui-sidebar':
         specifier: link:../../../dsh/packages/client/ui-sidebar
         version: link:../../../dsh/packages/client/ui-sidebar
+      '@deepseek-ai/dsh-client-ui-sidebar-right':
+        specifier: link:../../../dsh/packages/client/ui-sidebar-right
+        version: link:../../../dsh/packages/client/ui-sidebar-right
       '@deepseek-ai/dsh-client-ui-slots':
         specifier: link:../../../dsh/packages/client/ui-slots
         version: link:../../../dsh/packages/client/ui-slots
@@ -474,6 +477,9 @@ importers:
       '@deepseek-ai/dsh-agent':
         specifier: link:../../../dsh/packages/core/agent
         version: link:../../../dsh/packages/core/agent
+      '@deepseek-ai/dsh-api-session-controller':
+        specifier: link:../../../dsh/packages/api/session-controller
+        version: link:../../../dsh/packages/api/session-controller
       '@deepseek-ai/dsh-client-connection':
         specifier: link:../../../dsh/packages/client/connection
         version: link:../../../dsh/packages/client/connection
@@ -670,7 +676,7 @@ importers:
         specifier: link:../../../dsh/packages/core/session
         version: link:../../../dsh/packages/core/session
       '@deepseek-ai/dsh-session-query':
-        specifier: 0.1.5-rc.2 || 0.1.6-alpha.2 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2 || 0.2.1-rc.2
+        specifier: 0.1.5-rc.2 || 0.1.6-alpha.2 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2 || 0.2.1-rc.2 || 0.2.1-rc.3
         version: 0.1.6-alpha.2(efzmo6jhbtrurmkattjbpnrtpi)
       '@deepseek-ai/schemastery':
         specifier: link:../../../dsh/vendor/schemastery

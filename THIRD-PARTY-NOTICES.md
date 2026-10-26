@@ -45,7 +45,7 @@ versions, copyright notices, source identities, and modifications.
   templates and four standalone tools are retained in `vendor/agent-procedures/`.
   The explicit native command adapter preserves lazy file lookup and gives user
   read-only instructions priority over the original inbox-write suggestion.
-- Nexus-Aethra/Nexus-Terminal 0.1.14 — MIT; the complete user-supplied archive source,
+- Nexus-Aethra/Nexus-Terminal 0.1.15 — MIT; the complete user-supplied archive source,
   original dshell UI and Cordis registrations are retained in
   `vendor/nexus-terminal/`. `nexus-adapter/` holds the host process-provider,
   sandbox, PowerShell, path and package-resolution adaptations. Archive hashes
@@ -93,7 +93,7 @@ Classpath Exception). Their original licenses and notices stay inside the
 verified local installations. This feature does not distribute or install a
 VS Code extension host.
 
-- Wenaixi DSH Superpower 8.0.0 and Ponytail 5.6.1 — MIT. Original DSH skill
+- Wenaixi DSH Superpower 8.0.0 and Ponytail 5.6.2 — MIT. Original DSH skill
   providers, native settings clients and packaged skills are reused. Original
   upstreams are obra/superpowers 7.0.0 and DietrichGebert/ponytail 5.3.2; adapter
   versions are separate. Notices: `notices/originals/` and `assets/methods/`.
@@ -114,7 +114,7 @@ VS Code extension host.
   permission limits are retained; agent messages use the shared mailbox rather
   than impersonating human messages. Complete license and npm file identities
   are retained in `notices/originals/cross-session-approval/`.
-- LJL454/dsh-computer-use 1.40.2 — MIT. Complete source-only Windows/backend/CDP
+- LJL454/dsh-computer-use 1.40.3 — MIT. Complete source-only Windows/backend/CDP
   runtime at commit `20bfa1442bbe6f9f43a3e6ebcd9bff4403ecce7a`, preserved in
   `vendor/computer-use/` with per-file hashes. Authenticated routes and native
   sandbox/approval integration are generated separately from original source.

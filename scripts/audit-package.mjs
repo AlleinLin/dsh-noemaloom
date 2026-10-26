@@ -574,7 +574,7 @@ export async function auditPackage({ packagePath, outputPath = resolve(root, 'ev
       const cross = originals.hosts?.find(row => row.id === 'cross-session-approval');
       if (!computer || !cross) throw new Error('New original host identities are missing');
       const source = JSON.parse(decoder.decode(files.get('vendor/computer-use/SOURCE.json')?.data ?? Buffer.alloc(0)));
-      if (source.revision !== '20bfa1442bbe6f9f43a3e6ebcd9bff4403ecce7a' || computer.revision !== source.revision)
+      if (source.revision !== 'db4c44f9a3534118dbe2138c01b0dc156c9c2f8e' || computer.revision !== source.revision)
         throw new Error('Computer source identity differs');
       for (const [name, expected] of Object.entries(source.files)) {
         if (sha256(files.get(`vendor/computer-use/${name}`)?.data ?? Buffer.alloc(0)) !== expected)

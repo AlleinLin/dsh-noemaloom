@@ -107,7 +107,7 @@ function adaptContext(factory) {
   const ast = ts.createSourceFile('context-reviewed.js', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
   const placements = [];
   const visit = node => {
-    if (ts.isFunctionDeclaration(node) && node.name?.text === 'cd') placements.push(node);
+    if (ts.isFunctionDeclaration(node) && node.name?.text === 'lf') placements.push(node);
     ts.forEachChild(node, visit);
   };
   visit(ast);
@@ -115,20 +115,20 @@ function adaptContext(factory) {
     || !placements[0].getText(ast).includes('t.tab()') || !placements[0].getText(ast).includes('t.sidebar()')) {
     throw new Error('Context reviewed dynamic placement registration changed');
   }
-  source = replaceOnce(source, placements[0].getText(ast), 'function cd(e,t){return t.tab()}',
+  source = replaceOnce(source, placements[0].getText(ast), 'function lf(e,t){return t.tab()}',
     'Context single native conversation registration');
-  source = replaceOnce(source, 'let c=sd(o);if(!c.tab&&!c.sidebar)return null;', '',
+  source = replaceOnce(source, 'let c=cf(o);if(!c.tab&&!c.sidebar)return null;', '',
     'Context native jump remains available with fixed placement');
-  source = replaceOnce(source, 'Qu(e)||$u(r(`tab.context`))',
+  source = replaceOnce(source, 'Qd(e)||$d(r(`tab.context`))',
     'nexusNativeNavigation.openView(t.sessionId,"context",l===null?"":String(l))',
     'Context message jump uses native session view action');
-  source = replaceOnce(source, '$u(i(`tab.fleet`))||Qu(e)',
+  source = replaceOnce(source, '$d(i(`tab.fleet`))||Qd(e)',
     'nexusNativeNavigation.openView(o,"fleet","")',
     'Context fleet jump uses native session view action');
-  const oldChromeClick = 'function $u(e){let t=document.querySelectorAll(`button[role="tab"]`);for(let n of t)if(n.textContent.trim()===e)return n.getAttribute(`aria-selected`)!==`true`&&n.click(),!0;return!1}';
-  source = replaceOnce(source, oldChromeClick, 'function $u(){return false}',
+  const oldChromeClick = 'function $d(e){let t=document.querySelectorAll(`button[role="tab"]`);for(let n of t)if(n.textContent.trim()===e)return n.getAttribute(`aria-selected`)!==`true`&&n.click(),!0;return!1}';
+  source = replaceOnce(source, oldChromeClick, 'function $d(){return false}',
     'Context remove obsolete chrome-click helper');
-  const placementChoice = '(0,d.jsx)(bc,{label:t(`settings.placement`),value:n.placement,disabled:i,options:[{id:`all`,label:t(`placement.all`)},{id:`tab`,label:t(`placement.tab`)},{id:`sidebar`,label:t(`placement.sidebar`)},{id:`hide`,label:t(`placement.hide`)}],onPick:e=>{r?.(`defaultPlacement`,e)}}),';
+  const placementChoice = '(0,d.jsx)(cl,{label:t(`settings.placement`),value:n.placement,disabled:i,options:[{id:`all`,label:t(`placement.all`)},{id:`tab`,label:t(`placement.tab`)},{id:`sidebar`,label:t(`placement.sidebar`)},{id:`hide`,label:t(`placement.hide`)}],onPick:e=>{r?.(`defaultPlacement`,e)}}),';
   source = replaceOnce(source, placementChoice, '', 'Context remove inactive placement preference');
   return source;
 }
@@ -354,7 +354,7 @@ for (const definition of originals) {
 
 const mnemon = await packageRoot('dsh-mnemon');
 await addHost('mnemon-bundle', 'dsh-mnemon', mnemon.manifest.version, './bundle');
-await addHost('agency-agents-remote', '@michengai/dsh-agency-agents', '1.2.11', './remote');
+await addHost('agency-agents-remote', '@michengai/dsh-agency-agents', '1.2.14', './remote');
 
 // The original Starter's full source/strategy/provider closure is fixed by its
 // own exact dependency versions. Each host remains a formal Loader entry.

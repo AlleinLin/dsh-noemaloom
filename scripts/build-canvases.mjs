@@ -29,18 +29,27 @@ async function report(directory, manifest, original, adapted, changes, additiona
 async function buildSynapse() {
   const root = dirname(require.resolve('dsh-synapse'));
   const manifest = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
-  if (manifest.version !== '0.5.0') throw new Error('Synapse adapter requires reviewed version 0.5.0');
+  if (manifest.version !== '0.5.4') throw new Error('Synapse adapter requires reviewed version 0.5.4');
   const original = await readFile(join(root, 'index.js'), 'utf8');
-  if (sha256(original) !== '7ef44791dd5debc42adcf45b2e4c1c6bf1ad1198d8537e9f0126d1953ed83fd2') {
-    throw new Error('Synapse adapter requires the reviewed 0.5.0 host SHA256');
+  if (sha256(original) !== '1e1a3f52d8105313843a84688c24c2d15bb16ec9ec3048a9169822cfce5af219') {
+    throw new Error('Synapse adapter requires the reviewed 0.5.4 host SHA256');
   }
   let adapted = replaceOnce(original, 'const store = new WorkspaceStore(config?.dataFile)',
     'const store = config.nexusStore', 'Synapse original request-scoped store');
   adapted = replaceOnce(adapted,
     `const session = ctx.sessions.list().find(candidate => candidate.id === thread.dshSessionId)
-    if (session === undefined) return { messages: {}, unavailable: true }
-    return { messages: bodiesFromEvents(thread, session.snapshotEvents(), seqs) }`,
+    if (session !== undefined) return { messages: bodiesFromEvents(thread, session.snapshotEvents(), seqs) }
+    // Closed session: read its log from disk, which is where the body lives.
+    const events = await sessionLog.events(thread.dshSessionId)
+    if (events === null) return { messages: {}, unavailable: true }
+    return { messages: bodiesFromEvents(thread, events, seqs) }`,
     'return config.nexusBodies(thread, seqs)', 'Synapse scoped native archive body reader');
+  // Never instantiate the upstream profile-wide log scanner. Native archived
+  // history is read only through our scope-checked host archive service.
+  adapted = replaceOnce(adapted, `  const sessionsDirectory = typeof config?.sessionsDir === 'string' && config.sessionsDir !== ''
+    ? config.sessionsDir
+    : join(dirname(dirname(config?.dataFile ?? '')), 'sessions')
+  const sessionLog = new SessionLogReader(sessionsDirectory)`, '', 'Synapse disable unscoped disk scanner');
   const output = join(project, 'lib/canvas-original/synapse');
   await mkdir(output, { recursive: true });
   await writeFile(join(output, 'index.js'), adapted);
@@ -60,7 +69,7 @@ async function buildThoughtdag() {
   const entry = require.resolve('dsh-thoughtdag');
   const root = dirname(dirname(entry));
   const manifest = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
-  if (manifest.version !== '0.5.24') throw new Error('ThoughtDAG adapter requires reviewed version 0.5.24');
+  if (manifest.version !== '0.5.26') throw new Error('ThoughtDAG adapter requires reviewed version 0.5.26');
   const original = await readFile(entry, 'utf8');
   const adapted = adaptThoughtdagHost(original);
   const output = join(project, 'lib/canvas-original/thoughtdag');

@@ -60,9 +60,29 @@ export async function until(operation, timeout = 30000) {
 // A fresh Desktop opens the native account onboarding above the main window.
 // Skip account setup in that profile; no credentials or model calls are used.
 export async function completeSyntheticOnboarding(port) {
-  const targets = await (await fetch(`http://127.0.0.1:${port}/json/list`)).json();
-  const welcome = targets.find(row => row.type === 'page'
-    && row.url.startsWith('file:') && row.url.endsWith('/renderer/welcome.html'));
+  // Electron creates the hidden main target before its welcome target.
+  // A single enumeration can miss onboarding and leave every input test
+  // operating against a hidden window. Observe a settled main window or
+  // handle the actual welcome page before returning.
+  let welcome, visibleSince;
+  const deadline = Date.now() + 20_000;
+  while (Date.now() < deadline) {
+    const targets = await (await fetch(`http://127.0.0.1:${port}/json/list`)).json();
+    welcome = targets.find(row => row.type === 'page'
+      && row.url.startsWith('file:') && row.url.endsWith('/renderer/welcome.html'));
+    if (welcome) break;
+    const main = targets.find(row => row.type === 'page' && row.url.startsWith('dsh-app://app'));
+    let visible = false;
+    if (main) {
+      const connection = await connectTarget(main);
+      try { visible = await connection.evaluate(`document.visibilityState === 'visible' && window.dshDesktop?.protocolVersion === 1`); }
+      finally { connection.close(); }
+    }
+    if (!visible) visibleSince = undefined;
+    else if (visibleSince === undefined) visibleSince = Date.now();
+    else if (Date.now() - visibleSince >= 5_000) break;
+    await delay(200);
+  }
   if (!welcome) return { present: false, accountSetupSkipped: false };
   const cdp = await connectTarget(welcome);
   try {

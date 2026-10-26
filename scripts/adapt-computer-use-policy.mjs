@@ -9,8 +9,9 @@ function once(source, anchor, replacement, label) {
 }
 
 export function adaptComputerPolicyHost(source) {
-  let result = once(source, "export const inject = ['tools', 'connection'];",
-    "export const inject = ['tools', 'connection', 'agents', 'sessions', 'sandboxPolicy', 'approval'];", 'native policy service lifetime');
+  let result = once(source, "export const inject = bootstrapError === null ? ['tools', 'connection'] : ['connection'];",
+    "export const inject = bootstrapError === null ? ['tools', 'connection', 'agents', 'sessions', 'sandboxPolicy', 'approval'] : ['connection'];",
+    'native policy service lifetime with diagnostic-only degraded mode');
   result = once(result,
     'const defineTracedTool = (definition) => defineTool(withTrace(definition));',
     `const nexusComputerPolicy = createComputerUsePolicy(ctx, { requireGrant, execution, resolveBrowserEndpoint });

@@ -1,11 +1,11 @@
 {
   "packageName": "@local/dsh-computer-use",
-  "version": "1.40.2",
+  "version": "1.40.3",
   "license": "MIT",
   "repository": null,
   "upstreamLicenseFile": true,
-  "revision": "20bfa1442bbe6f9f43a3e6ebcd9bff4403ecce7a",
+  "revision": "db4c44f9a3534118dbe2138c01b0dc156c9c2f8e",
   "source": "vendor/computer-use/SOURCE.json",
   "clientSha256": "1fe578d0649bd4b3622aa17e7dcf965f8a2bc161a5d51f93785cad40f2e8bd25",
-  "hostSha256": "9afff162a549c58c2e6e6a726c4a5a538b6f29036a308bd368aa6a0d3e116407"
+  "hostSha256": "afb0697865de92d1bca3a5dbadea19594267c2375f58cc411b58501f05a3a64b"
 }

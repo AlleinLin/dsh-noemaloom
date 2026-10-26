@@ -39,8 +39,8 @@ test('new native source adapters retain parseable upstream clients and reject dr
 });
 
 test('complete computer vendor source is pinned and keeps its worker/browser closure', async () => {
-  const installed = await vendoredOriginal(process.cwd(), { packageName: '@local/dsh-computer-use', version: '1.40.2',
-    vendor: 'vendor/computer-use', revision: '20bfa1442bbe6f9f43a3e6ebcd9bff4403ecce7a' });
+  const installed = await vendoredOriginal(process.cwd(), { packageName: '@local/dsh-computer-use', version: '1.40.3',
+    vendor: 'vendor/computer-use', revision: 'db4c44f9a3534118dbe2138c01b0dc156c9c2f8e' });
   for (const file of ['backend/worker.ps1', 'backend/release-input.ps1', 'browser/connection.mjs',
     'browser/actions.mjs', 'internal/lease.mjs', 'internal/sessions.mjs']) assert.ok(installed.source.files[file], file);
   const original = await readFile('vendor/computer-use/index.js', 'utf8');

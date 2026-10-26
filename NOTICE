@@ -28,7 +28,7 @@ Restricted code-review source is not copied; Nexus implements that
 capability separately. Remote services, optional external executables
 and third-party marketplace resources are not relicensed by Nexus.
 
-DSH-agent-procedures and Nexus-Aethra/Nexus-Terminal 0.1.14 retain their
+DSH-agent-procedures and Nexus-Aethra/Nexus-Terminal 0.1.15 retain their
 original MIT licenses and archive identities under vendor/agent-procedures/
 and vendor/nexus-terminal/. Their original tools, native dshell interface
 and registration model are preserved with a separate Windows/DSH adapter.
@@ -44,7 +44,7 @@ The full license, upstream NOTICE (including DeepSeek attribution) and bundled
 dependency license texts remain under notices/originals/codinput/.
 
 Motion UI 0.8.7 and Cross-Session Approval 0.3.10 retain their MIT licenses
-under notices/originals/. The complete LJL454 Computer Use 1.40.2
+under notices/originals/. The complete LJL454 Computer Use 1.40.3
 source-only runtime retains its MIT license under vendor/computer-use/.
 Yu-tao-Li Computer Use Windows remains a separately tracked comparison source.
 

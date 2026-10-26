@@ -56,7 +56,9 @@ async function check(name, action) {
 }
 try {
   await check('open the offline native fixture without submitting a model request', async () => {
-    await click(`[data-row-key="session:${state.fixtureSessionId}"]`);
+    // The row also contains the native menu and dshell device chip. Its
+    // geometric center can be one of those actions after upstream changes.
+    await click(`[data-row-key="session:${state.fixtureSessionId}"] > span[class*="_title"]`);
     const text = await until(() => cdp.evaluate(`document.body.innerText.includes('这是本地构造的测试记录，没有请求任何模型。')`), 10000);
     assert.equal(text, true);
     return { sessionId: state.fixtureSessionId, syntheticArchive: true };
@@ -120,6 +122,13 @@ try {
       }
     }
     await until(() => visible('[data-sidebar-right-guide-entry="terminal"]'), 5000);
+    await until(() => cdp.evaluate(`(()=> {
+      const panel=[...document.querySelectorAll('[data-sidebar-right-panel][data-sidebar-right-open=true]')].find(e=>e.getBoundingClientRect().width>0);
+      if(!panel)return false;
+      const moving=panel.getAnimations({subtree:true}).some(a=>a.playState==='running'||a.pending);
+      const rows=[...panel.querySelectorAll('[data-sidebar-right-guide-entry]')].map(e=>e.getBoundingClientRect()).filter(r=>r.width>0);
+      return !moving&&rows.length>=5&&rows.every(r=>r.right<=innerWidth+1);
+    })()`), 5000);
     const entries = await cdp.evaluate(`Array.from(document.querySelectorAll('[data-sidebar-right-guide-entry]')).map(e=>{
       const r=e.getBoundingClientRect(),s=getComputedStyle(e);return{id:e.getAttribute('data-sidebar-right-guide-entry'),text:e.innerText,
         width:r.width,height:r.height,fontSize:s.fontSize,background:s.backgroundColor,viewport:innerWidth,right:r.right};
@@ -129,10 +138,10 @@ try {
       assert.equal(entry.height, 44, `${entry.id} must use the compact native row`);
       assert.ok(entry.right <= entry.viewport + 1, `${entry.id} must stay inside its pane`);
     }
-    const guideWidth = await cdp.evaluate(`document.querySelector('[data-sidebar-right-panel][data-sidebar-right-open=true]').getBoundingClientRect().width`);
+    const guideWidth = await cdp.evaluate(`[...document.querySelectorAll('[data-sidebar-right-panel][data-sidebar-right-open=true]')].find(e=>e.getBoundingClientRect().width>0).getBoundingClientRect().width`);
     assert.ok(guideWidth >= 300 && guideWidth <= 360, 'native default panels leave room for conversation');
     const tracks = await cdp.evaluate(`(()=>{
-      const panel=document.querySelector('[data-sidebar-right-panel][data-sidebar-right-open=true]');
+      const panel=[...document.querySelectorAll('[data-sidebar-right-panel][data-sidebar-right-open=true]')].find(e=>e.getBoundingClientRect().width>0);
       const frame=panel.closest('[class$="_frame"]'),col=panel.closest('[class$="_rightbarCol"]');
       const center=frame.querySelector(':scope > [class$="_centerCol"]');
       return{panel:panel.getBoundingClientRect().toJSON(),column:col.getBoundingClientRect().toJSON(),
@@ -145,7 +154,7 @@ try {
       for (const width of [960, 1440]) {
         await cdp.call('Emulation.setDeviceMetricsOverride', { width, height: 850, deviceScaleFactor: 1, mobile: false });
         const observed = await until(() => cdp.evaluate(`(()=>{
-          const panel=document.querySelector('[data-sidebar-right-panel][data-sidebar-right-open=true]');
+          const panel=[...document.querySelectorAll('[data-sidebar-right-panel][data-sidebar-right-open=true]')].find(e=>e.getBoundingClientRect().width>0);
           const col=panel?.closest('[class$="_rightbarCol"]'),r=panel?.getBoundingClientRect(),c=col?.getBoundingClientRect();
           const frame=panel?.closest('[class$="_frame"]');
           const sidebar=parseFloat(getComputedStyle(frame).getPropertyValue('--dsh-windows-sidebar-width'))||0;
@@ -168,7 +177,7 @@ try {
     await cdp.call('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 });
     await click('[data-sidebar-right-guide-entry="files"]');
     const restored = await until(() => cdp.evaluate(`(()=>{
-      const panel=document.querySelector('[data-sidebar-right-panel][data-sidebar-right-open=true]');
+      const panel=[...document.querySelectorAll('[data-sidebar-right-panel][data-sidebar-right-open=true]')].find(e=>e.getBoundingClientRect().width>0);
       if(!panel)return false;const width=panel.getBoundingClientRect().width,configured=parseFloat(panel.style.width);
       const col=panel.closest('[class$="_rightbarCol"]');
       return width===configured&&width>=300&&width<=360&&Math.abs(col.getBoundingClientRect().width-width)<1&&{width,configured};
@@ -183,7 +192,7 @@ try {
       { type: 'mouseReleased', x: origin.x-100, y: origin.y, button: 'left', clickCount: 1 },
     ]) await cdp.call('Input.dispatchMouseEvent', event);
     const dragged = await until(() => cdp.evaluate(`(()=>{
-      const p=document.querySelector('[data-sidebar-right-panel][data-sidebar-right-open=true]');
+      const p=[...document.querySelectorAll('[data-sidebar-right-panel][data-sidebar-right-open=true]')].find(e=>e.getBoundingClientRect().width>0);
       const width=p?.getBoundingClientRect().width;
       return width>${restored.width + 70}&&{width,column:p.closest('[class$="_rightbarCol"]').getBoundingClientRect().width};
     })()`), 5000);
@@ -193,16 +202,16 @@ try {
       type,x:reset.x,y:reset.y,button:'left',clickCount:2,
     });
     const automatic = await until(() => cdp.evaluate(`(()=>{
-      const p=document.querySelector('[data-sidebar-right-panel][data-sidebar-right-open=true]');
+      const p=[...document.querySelectorAll('[data-sidebar-right-panel][data-sidebar-right-open=true]')].find(e=>e.getBoundingClientRect().width>0);
       const width=p?.getBoundingClientRect().width;return width>=300&&width<=360&&{width};
     })()`), 5000);
     return { entries, guideWidth, tracks, responsive, shells, fileDefault: restored, nativeDrag: dragged, automaticReset: automatic };
   });
   await check('native fullscreen covers conversation chrome and restores the automatic tool width', async () => {
-    const before = await cdp.evaluate(`document.querySelector('[data-sidebar-right-panel][data-sidebar-right-open=true]').getBoundingClientRect().width`);
+    const before = await cdp.evaluate(`[...document.querySelectorAll('[data-sidebar-right-panel][data-sidebar-right-open=true]')].find(e=>e.getBoundingClientRect().width>0).getBoundingClientRect().width`);
     await click('[data-sidebar-right-panel] [data-sidebar-right-mode="fullscreen"]');
     const fullscreen = await until(() => cdp.evaluate(`(()=>{
-      const p=document.querySelector('[data-sidebar-right-panel="fullscreen"][data-sidebar-right-open=true]');
+      const p=[...document.querySelectorAll('[data-sidebar-right-panel="fullscreen"][data-sidebar-right-open=true]')].find(e=>e.getBoundingClientRect().width>0);
       if(!p)return false;const r=p.getBoundingClientRect(),s=getComputedStyle(p);
       const points=[[r.left+60,r.top+12],[r.left+80,r.top+180],[r.right-20,r.bottom-30]];
       const hits=points.map(([x,y])=>({x,y,inPanel:!!document.elementFromPoint(x,y)?.closest('[data-sidebar-right-panel="fullscreen"]')}));
@@ -214,7 +223,7 @@ try {
     assert.ok(Number(fullscreen.layer) > 7, 'fullscreen must cover the sticky conversation tabs');
     await click('[data-sidebar-right-panel] [data-sidebar-right-mode="push"]');
     const restored = await until(() => cdp.evaluate(`(()=>{
-      const p=document.querySelector('[data-sidebar-right-panel="push"][data-sidebar-right-open=true]');
+      const p=[...document.querySelectorAll('[data-sidebar-right-panel="push"][data-sidebar-right-open=true]')].find(e=>e.getBoundingClientRect().width>0);
       const r=p?.getBoundingClientRect();return r&&Math.abs(r.width-${before})<1&&{width:r.width};
     })()`), 5000);
     return { before, fullscreen, restored };

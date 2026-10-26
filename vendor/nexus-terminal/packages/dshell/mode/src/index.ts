@@ -47,6 +47,7 @@ import { applyDataRoot, dataRootReady, harnessHome, hostHome } from './data-root
 import { createTerminalModeRoute, TerminalModeRegistry } from './terminal-mode.js'
 import { DSHELL_TERMINAL_MODE_SERVICE } from './terminal-mode-protocol.js'
 import { createDeviceMetricsRoute, type SshRoutingSeat } from './device-metrics.js'
+import { createDeviceDetailRoute } from './device-detail.js'
 
 export const name = '@nexus-aethra/dshell-mode/host'
 
@@ -402,6 +403,17 @@ export function apply(ctx: Context, config: Partial<DshellSettings> = {}): void 
         routing: () => routeCtx.get('dshellSshRouting') as unknown as SshRoutingSeat | undefined,
       })),
       'dshell-mode: device-metrics route',
+    )
+    // The device DETAIL readout: what is running on that machine, rather than
+    // how loaded it is. It asks the same session the same way, through the same
+    // shell seam, so it belongs beside the metrics route rather than in a
+    // package of its own — and a composition without dshell-ssh still answers
+    // it, with this machine's own answer that it has no lists.
+    routeCtx.effect(
+      () => routeCtx.connection.fetch.register(createDeviceDetailRoute(routeCtx, {
+        routing: () => routeCtx.get('dshellSshRouting') as unknown as SshRoutingSeat | undefined,
+      })),
+      'dshell-mode: device-detail route',
     )
   })
   ctx.inject(['dshellTerminalBridge'], (bridgeCtx) => {

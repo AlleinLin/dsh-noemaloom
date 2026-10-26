@@ -7,8 +7,8 @@
 | 能力 | 入口 | 实现 |
 | --- | --- | --- |
 | Superpowers | 原设置页；`/using-superpowers`、`/writing-plans` 等 | Wenaixi 8.0.0 原 provider，15 个技能，逐技能开关、中英描述 |
-| Ponytail | 原设置页；`/ponytail`、`/ponytail-review` 等 | Wenaixi 5.6.1 原 provider，6 个技能、七阶工作法、会话模式及默认模式 |
-| OpenSpec | `/opsx-*` 和 `/openspec-*` | 原 DSH 适配器 0.4.0，12 个技能和12个用户命令别名；CLI 1.14.3 |
+| Ponytail | 原设置页；`/ponytail`、`/ponytail-review` 等 | Wenaixi 5.6.2 原 provider，6 个技能、七阶工作法、会话模式及默认模式 |
+| OpenSpec | `/opsx-*` 和 `/openspec-*` | 原 DSH 适配器 0.4.0，12 个技能和12个用户命令别名；CLI 1.15.0 |
 | Karpathy | `/karpathy-guidelines` 或模型按需加载 | 原 DSH provider，读取 canonical 原始技能正文 |
 | dsh-ops | 原组件的工具、设置；可选原生 Panel/TUI | 0.4.1 原组合补丁，shell/file/PTC/discovery 默认启用；grep/glob 常驻，其他高级工具按需发现；panel/TUI/隐藏官方工具默认关闭 |
 

@@ -30,6 +30,9 @@ const modules = [
   'test_reach_exits', 'test_reach_single_char', 'test_search_async',
   'test_search_bm25_default', 'test_search_prefilter', 'test_untrusted_audit',
   'test_untrusted_classifier', 'test_untrusted_enforcement',
+  'test_issue218_postcondition_value_blind', 'test_issue650_658_f26',
+  'test_issue659_r26_batch2', 'test_issue665_scrub_process_records',
+  'test_issue669_ccg_empty_colon', 'test_issue672_validity_scope',
 ];
 const environment = Object.fromEntries(Object.entries(process.env).filter(([name]) =>
   !/^(?:MDCG_|LINGSU_|LINGSHU_)/iu.test(name)

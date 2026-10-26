@@ -27,7 +27,9 @@ import re
 import time
 import uuid
 
-from .mdcg import (MdCG, expand_query_terms, bigrams, normalize_en, STATE_ACCEPT,
+from .mdcg import (MdCG, expand_query_terms, bigrams, normalize_en, fold_accents,
+                    parse_min_score,
+                    STATE_ACCEPT,
                    STATE_REJECT, STATE_DEFER, STATE_BLINDSPOT, TIER_BUCKET_LIKE,
                    TIER_BUCKET_SCAN, TIER_GLOBAL_LIKE, TIER_GLOBAL_SCAN,
                    GLOBAL_CAP, expand_query_terms_weighted,
@@ -1289,7 +1291,9 @@ class MdCGOS(MdCG):
             if not fm:
                 continue
             content = self._open_content(fm.get("id"), fm, content)
-            if content and any(t in content for t in terms):
+            # issue #656：terms 已折叠、content 是原文；正文侧同样折叠才算同口径。
+            if content and any(t and fold_accents(t) in fold_accents(content)
+                               for t in terms):
                 out.append(e)
         return out
 
@@ -1354,7 +1358,8 @@ class MdCGOS(MdCG):
 
         返回 (results, meta)，与 MdCG.search 完全同构（T0–T3 阶梯 + 资格判定）。
         pools：§七 召回分池（None=关闭原行为 / True=内置表 / dict=自定义表）。
-        validity：时效过滤（显式启用，缺省不过滤）——只排已过期，未生效保留；
+        validity：时效过滤（显式启用，缺省不过滤）。**只排「已过期」，不排「未生效」**
+                  （名字容易读成「只给有效的」，实际是「别看已过期的」，见 issue #672）；
         view：角色化读取视图（第四阶段 6.1，显式启用，缺省 None 零变更）；
         详见 _candidates。
         """
@@ -1386,7 +1391,9 @@ class MdCGOS(MdCG):
         # 否则大小写断裂 → 词法分恒 0 → LIKE 层失效（p33 ⑤ 回归根因）；
         # + 英→中语素 bigram 补充（与 mdcg.search/_lexical 打分口径同步）
         qb = bigrams(normalize_en(q)) | en_zh_bigrams(q)
-        stat = {"scanned": 0, "query": q}
+        # issue #672：时效口径透出——父类 _emit 据 stat["validity_on"] 落
+        # meta.validity_scope（只排过期 / off），避免 validity 名字被读成「只给有效的」。
+        stat = {"scanned": 0, "query": q, "validity_on": bool(validity)}
         # 时间算子审计（阶段二 4.1）：候选层过滤在 `_candidates` 已完成，此处把
         # 审计块交给父类 `_emit` 落进 meta —— 与 search_rrf 的 `stat["time_filter"]`
         # 同构。缺此步则过滤**确实生效但审计不可见**：调用方无法区分「未启用过滤」
@@ -2164,7 +2171,8 @@ class MdCGOS(MdCG):
             REJECT / BLINDSPOT 剔除，DEFER 降权 ×0.5，ACCEPT 保位。候选池取
             fused 前 max(k*2,10) 再裁决补位。语义联系可以是认知噪声（等权 RRF
             双重奖励「多路都靠前」的干扰项），唯有条件证据可授予优先级。
-        validity: 时效过滤（显式启用，缺省不过滤）。**只排已过期**，未生效
+        validity: 时效过滤（显式启用，缺省不过滤）。**只排「已过期」，不排「未生效」**——
+                  名字读作「只给有效的」会误解，实际是「别看已过期的」（issue #672）；未生效
             （valid_from 未到）保留——两者语义相反（scrub 纪律「valid_from 绝不
             并入 _EXPIRY_KEYS」）。详见 _candidates。
         start_time/end_time/start_operator/end_operator/time_axis：时间算子
@@ -2487,6 +2495,25 @@ class MdCGOS(MdCG):
         boundary_counts = {"hit": 0, "terms": 0,
                            "counts": {"accept": 0, "reject": 0, "defer": 0,
                                       "blindspot": 0}}
+        # issue #654：MDCG_MIN_SCORE 此前只活在 MdCG._emit 内，而默认读路径
+        # （cg(op=read) 默认 bm25=True → search_rrf）**从不经过 _emit**，开关静默失效。
+        # 这里按同一环境变量、同一语义在融合面补一刀：过滤发生在资格判定之前，
+        # 被滤掉的不参与 boundary_counts（否则统计会把已丢弃条目算成命中）。
+        # issue #659 F26-06/F26-12：与 mdcg._emit 共用同一解析单点（nan/inf 不再把结果滤空）。
+        _rrf_min, _rrf_status = parse_min_score(os.environ.get("MDCG_MIN_SCORE", "0"), 0.0)
+        _rrf_dropped = 0
+        if _rrf_status == "invalid":
+            _rrf_note = {"min_score_input": "invalid"}
+        else:
+            _rrf_note = None
+        if _rrf_min > 0:
+            _kept = []
+            for _nid, _fs in fused:
+                if float(_fs) >= _rrf_min:
+                    _kept.append((_nid, _fs))
+                else:
+                    _rrf_dropped += 1
+            fused = _kept
         for nid, fs in fused:
             node, s = node_by_id[nid]
             if quals.get(nid):
@@ -2593,7 +2620,16 @@ class MdCGOS(MdCG):
                          k=k, layer=layer,
                          session=session, branch=branch, validity=validity,
                          view=view, extra=_cache_extra, clock_window=_query_window)
-        return results, {"tier": "RRF", "scanned": stat["scanned"],
+        if _rrf_dropped:
+            stat["min_score"] = _rrf_min
+        # issue #672：把生效的时效口径如实透出——调用方看名字容易以为「只给有效的」，
+        # 读 meta 一眼可辨（只排过期 / 未启用）。
+        _validity_meta = ({"validity_scope": "expired_only"} if validity
+                          else {"validity_scope": "off"})
+        return results, {"tier": "RRF", "scanned": stat["scanned"], **_validity_meta,
+                         **({"min_score": _rrf_min, "min_score_dropped": _rrf_dropped}
+                            if _rrf_min > 0 else {}),
+                         **(_rrf_note or {}),
                          "paths": per_path, "fused": len(results),
                          "judge_ranking": bool(judge and judge_ranking),
                          "judge_filtered": filtered,
@@ -2718,11 +2754,11 @@ class MdCGOS(MdCG):
             # issue #637：**召回面可配最低分**（MDCG_RECALL_MIN_SCORE，默认 -1 = 关）。
             # 默认关的理由：test_validity_filter ⑤⑦ 依赖 RRF 旁系低分条目可见；
             # 需要「只装相关记忆」的部署设 0.01 即启用（零分条目连同 reason 记账跳过）。
-            try:
-                _rmin = float(os.environ.get("MDCG_RECALL_MIN_SCORE", "-1"))
-            except ValueError:
-                _rmin = -1.0
-            if _rmin >= 0 and score < _rmin:
+            # issue #659 F26-12：此处原为 >=0、另一处为 >0，两处开关判据相反
+            # （=0 时一处关、一处开；-0.0 >= 0 为真会开闸）。统一成 >0 一个判据，
+            # 且解析走同一单点（nan/inf 回落默认 -1 = 关）。
+            _rmin, _rmin_status = parse_min_score(os.environ.get("MDCG_RECALL_MIN_SCORE", "-1"), -1.0)
+            if _rmin > 0 and score < _rmin:
                 skipped.append({"id": node["id"], "tokens": t,
                                 "reason": "below_min_score", "score": score})
                 continue

@@ -71,6 +71,30 @@ function trackedFiles(): string[] {
   return out.split('\0').filter(name => name !== '')
 }
 
+/**
+ * Whether a path is a build artifact or a local tool's workspace.
+ *
+ * Both are things a machine leaves behind: a packed tarball carries whatever
+ * the working tree held when it was packed, and a design tool's workspace
+ * records the machine the design was made against — its address, its private
+ * registry. Neither is source, and the second one has already carried a
+ * device's public address into this directory.
+ */
+function isLocalArtifact(file: string): boolean {
+  return file.endsWith('.tgz') || file.startsWith('.superdesign/')
+}
+
+/**
+ * The paths the ignore rules must cover.
+ *
+ * These are the artifacts this work actually leaves behind, named so the
+ * rule that covers them can be checked rather than assumed.
+ */
+const LOCAL_ARTIFACTS: readonly string[] = [
+  'packages/dshell/mode/nexus-aethra-dshell-mode-0.1.14.tgz',
+  '.superdesign/init/pages.md',
+]
+
 describe('the repository carries no machine of its own', () => {
   it('names no public address in a tracked file', () => {
     const found: string[] = []
@@ -123,6 +147,26 @@ describe('the repository carries no machine of its own', () => {
     const images = trackedFiles().filter(file => file.startsWith('docs/images/') && file.endsWith('.png'))
     expect([...images].sort()).toEqual([...TRACKED_IMAGES].sort())
   })
+
+  it('tracks no build artifact and no local tool workspace', () => {
+    // The ignore rule is the first line of defence; this is the second, and
+    // it is the one that catches a forced add.
+    const found = trackedFiles().filter(isLocalArtifact)
+    expect(found).toEqual([])
+  })
+
+  it('ignores the artifacts a build or a design tool leaves behind', () => {
+    // The rule has to exist, not merely be intended: a rule that was renamed
+    // away would leave the artifact one `git add` away from the public
+    // repository.
+    const ignored = execFileSync('git', ['check-ignore', '-v', ...LOCAL_ARTIFACTS], {
+      cwd: REPO_ROOT,
+      encoding: 'utf8',
+    })
+    for (const artifact of LOCAL_ARTIFACTS) {
+      expect(ignored).toContain(artifact)
+    }
+  })
 })
 
 describe('the guard itself is honest', () => {
@@ -141,5 +185,13 @@ describe('the guard itself is honest', () => {
   it('is looking at a repository that exists', () => {
     expect(statSync(REPO_ROOT).isDirectory()).toBe(true)
     expect(relative(REPO_ROOT, join(REPO_ROOT, 'package.json'))).toBe('package.json')
+  })
+
+  it('knows an artifact from a source file', () => {
+    // A guard that cannot tell a tarball from a source file guards nothing.
+    expect(isLocalArtifact('packages/dshell/mode/nexus-aethra-dshell-mode-0.1.14.tgz')).toBe(true)
+    expect(isLocalArtifact('.superdesign/init/pages.md')).toBe(true)
+    expect(isLocalArtifact('packages/dshell/mode/src/client/device-panel.tsx')).toBe(false)
+    expect(isLocalArtifact('docs/handoff.md')).toBe(false)
   })
 })

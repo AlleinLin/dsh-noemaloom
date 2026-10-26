@@ -36,7 +36,7 @@ Desktop GUI, external-model requests and optional Python/service behavior are no
 covered by a successful JavaScript CI job.
 
 The separate cognition check compiles every vendored Python source and executes
-all 31 regression modules selected from the 0.9.13 changes and retained source
+all 37 regression modules selected through the 0.9.14 changes and retained source
 completion. Each module runs in a separate Python process with isolated memory
 roots and an isolated copy of the complete public source. Its report records individual exit codes and optional upstream baseline
 skips. Windows desktop control is checked separately with

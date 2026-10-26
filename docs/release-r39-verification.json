@@ -1,0 +1,126 @@
+{
+  "schemaVersion": 1,
+  "release": "R39",
+  "recordedAt": "2026-10-26T03:18:03.744Z",
+  "source": {
+    "algorithm": "sha256:path-and-content-v1",
+    "sha256": "d9150bac6f72c829b5a58632268813b54df8540892b8cc906060ffa4595c48d8",
+    "files": 2769
+  },
+  "host": "0.2.1-rc.3",
+  "scope": "Weekly 151-entry upstream maintenance; published npm updates, exact-source vendor rebases, preserved native UI and scope/security adaptations.",
+  "inventory": {
+    "entries": 151,
+    "sources": 52,
+    "npmPlugins": 37,
+    "hostPackages": 62,
+    "pluginUpdates": 14,
+    "supportDependencyUpdates": 9,
+    "vendorWorkflowRebases": 5
+  },
+  "tests": {
+    "tests": 2372,
+    "passed": 2372,
+    "failed": 0,
+    "skipped": 0,
+    "junitLeafCases": 2371,
+    "receipt": "evidence/receipts/weekly-r39-3.json",
+    "junit": "evidence/runs/weekly-r39-3/tests.junit.xml",
+    "junitSha256": "16bf0707e6c78703678cf7ead3f6a22b897045f06791586762caa89e27a06d0b",
+    "sourceUnchangedDuringRun": true
+  },
+  "build": {
+    "node": "v24.22.1",
+    "builtAt": "2026-10-26T02:41:28.443Z",
+    "typecheck": "passed",
+    "artifactVerification": {
+      "verified": true,
+      "package": "dsh-noemaloom",
+      "checks": [
+        "factory",
+        "browser-isolation",
+        "shared-react",
+        "manifest-resources"
+      ]
+    }
+  },
+  "security": {
+    "totalVulnerabilities": 0,
+    "audit": "artifacts/weekly-r39-release-security.json"
+  },
+  "cognition": {
+    "modules": 37,
+    "compiledAll": true,
+    "passed": true,
+    "report": "evidence/weekly-r39-release-cognition/report.json",
+    "optionalSkips": [
+      {
+        "name": "test_conformance",
+        "lines": [
+          "  [集成] SKIP 真源库不可用（设 MDCG_CONFORMANCE_ROOT=<库根> 可跑集成）"
+        ]
+      },
+      {
+        "name": "test_mr_m1",
+        "lines": [
+          "  SKIP 真源库不可用（外部 clone 环境）——非失败"
+        ]
+      }
+    ]
+  },
+  "dshell": {
+    "upstreamTestFiles": 6,
+    "passedTests": 78,
+    "failedTests": 0,
+    "report": "evidence/weekly-r39-dshell.json",
+    "runnerConfig": "evidence/weekly-r39-dshell-config.mjs"
+  },
+  "desktop": {
+    "smoke": {
+      "path": "evidence/private-desktop-inspection/smoke-bootstrap.json",
+      "sha256": "9645752663eae07c4ff27c22a76c42e4414ce895358bfb8590900d2195b3c284",
+      "cases": null,
+      "passed": true
+    },
+    "nativeOriginals": {
+      "path": "evidence/weekly-r39-final-native-originals.json",
+      "sha256": "6c16b92c8d27e145f00e669721f1960b29ac9f84f5338c59d1a5f5c854a0db85",
+      "cases": 7,
+      "passed": true
+    },
+    "nativeDock": {
+      "path": "evidence/weekly-r39-final-native-dock.json",
+      "sha256": "60b668a72486674118d982384aadedf461e107faa4d048913c49baa4b2e72e1e",
+      "cases": 7,
+      "passed": true
+    },
+    "updatedSurfaces": {
+      "path": "evidence/weekly-r39-updated-surfaces.json",
+      "sha256": "aa9eb3d18955885751e813c5bc206a71ec62001380dcf1d9e176360062644774",
+      "cases": 6,
+      "passed": true
+    },
+    "windowsWorker": {
+      "path": "evidence/weekly-r39-final-windows-worker/report.json",
+      "sha256": "ede2486fa62671ff8f02a5b8053f2fe0674a9edfa499f0b9bf3f3e4eb92fd871",
+      "cases": null,
+      "passed": true
+    }
+  },
+  "runtimePackage": "dsh-noemaloom-0.4.0-0c7d6d1bc4374012df7caccf22e92b925d781a5b4bd4172251ea726fd0708dfc.tgz",
+  "runtimePackageSha256": "0c7d6d1bc4374012df7caccf22e92b925d781a5b4bd4172251ea726fd0708dfc",
+  "packageAuditPassed": true,
+  "concentratedFixes": [
+    "Preserve the existing computer-use loader id after upstream renamed its row to ljl454-computer-use, avoiding duplicate registration and lost settings.",
+    "Update exact minified updater anchors and strict package source revision audit to the reviewed versions; keep drift rejection.",
+    "Acceptance handles delayed onboarding, initial native permission events, and selects visible session title/panels rather than row action buttons or hidden retained views."
+  ],
+  "acceptanceHarnessNote": "Fresh-profile Desktop bootstrap initially timed out while the welcome window appeared again. Only that synthetic welcome page was skipped again; actual visible desktop observations and all later interaction checks are recorded separately. The failed bootstrap log is retained.",
+  "limitations": [
+    "No live provider request was sent in this batch; model streaming is covered by native synthetic provider regressions, not a new remote-provider certification.",
+    "No real SSH device was connected. The new dshell device panel and ambient file routing are covered by 78 unchanged upstream tests using real Cordis and React SSR; the panel intentionally requires a device-bound terminal session.",
+    "Cognition test_conformance and test_mr_m1 executed their synthetic suites but explicitly skipped two optional checks against the unavailable upstream private historical corpus. Those checks are not counted as passed.",
+    "User archive DSH-agent-procedures has no remote URL; Karpathy DSH Git source is unreachable; Archify npm returns 404. These are recorded as unavailable rather than no-update successes.",
+    "No running user DSH, agent, real user profile, or user session database was changed. Only disposable test processes were closed."
+  ]
+}

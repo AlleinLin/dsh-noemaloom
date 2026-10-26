@@ -20,7 +20,7 @@ into dsh's documented extension points, so dsh stays upgradeable with upstream.
 
 - [How it fits together](#how-it-fits-together)
 - [What it is](#what-it-is)
-- [What's new since 0.1.13](#whats-new-since-013)
+- [What's new since 0.1.14](#whats-new-since-014)
 - [Getting started](#getting-started)
 - [A tour of the screen](#a-tour-of-the-screen)
 - [Two modes: `$ shell` and `✦ agent`](#two-modes-shell-and-agent)
@@ -109,20 +109,21 @@ device routing ([SSH device sessions](#ssh-device-sessions)), and the pipes and 
 
 ---
 
-## What's new since 0.1.13
+## What's new since 0.1.14
 
-`0.1.14` is the line that makes a device session behave like a session instead of a proxy. It is on
-npm as `0.1.14` and needs dsh `0.2.1-rc.2`.
+`0.1.15` gives a device session **a panel of its own**: what is running on that machine, which
+containers are up, and who is holding each port — written down on the right, instead of answered
+by a terminal you had to open yourself. It is on npm as `0.1.15` and needs dsh `0.2.1-rc.3`.
 
 | | What changed | What you notice |
 |---|---|---|
-| **The agent speaks the device's dialect** | A session bound to a device now gives its agent a shell tool **of its own** — the device's name, the device's dialect, the device's paths — and the host's shell tool is hidden from that agent | The model writes `uname -a` and gets the device's Linux answer, instead of writing PowerShell and getting `command not found` |
-| **The file pane shows the device's tree** | The pane measured a path against the host's own working directory and pasted the result under the device's root | A device session's pane opens on the device's `/root`, and the crumbs say `/root` — not a host directory that does not exist on the device |
-| **The desktop app stops dying on Windows** | A file opened for appending cannot be truncated, so resetting the PTY log threw `EPERM`, and the host treats an unhandled rejection as fatal | The app no longer exits with `dsh: fatal load failure` when a session reconnects |
-| **Device passwords stay in memory** | Every secret used to be written to a file under the data root for the transport to read back | The device's plaintext password is no longer on disk |
-| **One connection per device, not per read** | The connection pool dialled per operation, and a release could cut a connection another operation was still using | A turn that reads four files opens one SSH connection, and a read no longer ends the turn as "interrupted" |
-| **The timeline tells the truth** | Tool calls interleave in the session's own order, and the running turn wears dsh's whale tail | Your commands and the AI's turns read in the order they actually happened |
-| **dsh `0.2.1-rc.2` is supported** | Every dsh peer range dshell declares now includes it | The plugin installs on a `0.2.1-rc.2` dsh |
+| **The device panel** | dsh's right sidebar gains a **device** tab of its own — a tab kind of dshell's, so it takes nothing from dsh's shipped panes — and the start page gains a card that opens it | Four pages: **概览 / 进程 / 容器 / 端口** — the machine's identity and its load, then one list each |
+| **The lists are tools, not a readout** | A machine with two hundred processes and forty sockets cannot be read by scrolling | **Filter** by what you know, **order** by any column (a second column breaks the first one's ties), **open a row** for the whole command line, and let a **port lead to the process holding it** |
+| **One round trip, one answer** | The device is asked with a single `bash -c`, so the SESSION decides the machine | The host's own routing says whether that is this machine or the session's device — and nothing in the package knows that ssh exists |
+| **The column heads sort again** | A head asked for its column with `key="cpu"`, and `key` is a reserved React prop: React ate it, every head's key was `undefined`, and the order never moved | Clicking **CPU** reorders the list, and the triangle beside it turns that one column around without dropping the tie-break you set up |
+| **The load is not a dash any more** | The panel read the load without subscribing to it, so the load was only as fresh as whatever else happened to be watching | The overview's CPU, memory and load are live whenever the panel is open |
+| **The list pages do not fold** | Once you are on the device's detail page, the list is what you came for | The count moved beside the filter that changes it, and it says `12 / 168` when it narrows the list |
+| **dsh `0.2.1-rc.3` is supported** | Every dsh peer range dshell declares now includes it | The plugin installs on a `0.2.1-rc.3` dsh — **the published `0.1.14` does not install there at all** |
 
 ---
 
@@ -132,16 +133,17 @@ Two ways in: install the published plugins into a dsh you already have, or build
 
 ### Install into dsh
 
-Prerequisites: **dsh** `0.2.1-rc.2` — either the desktop app, or the CLI
+Prerequisites: **dsh** `0.2.1-rc.3` — either the desktop app, or the CLI
 (`npm install -g @deepseek-ai/dsh@next`) — and **Node 24.21.0** with **pnpm 9.15.0** on `PATH`
-(`dsh plugin` forwards to pnpm). On npm, `0.2.1-rc.2` is the `next` tag and `0.2.0-rc.2` is `latest`.
+(`dsh plugin` forwards to pnpm). On npm, `0.2.1-rc.3` is the `next` tag and `0.2.0-rc.2` is `latest`.
 
 Which dshell release you want depends on which dsh you have:
 
 | dsh | dshell |
 |---|---|
-| `0.2.1-rc.2` | ****`0.1.14`** — the npm `latest` dist-tag |
-| `0.2.0-rc.2`, `0.2.0-rc.1`, `0.1.7-rc.2`, `0.1.6-alpha.2`, `0.1.5-rc.2` | **`0.1.13`** — the npm `latest` dist-tag |
+| `0.2.1-rc.3` | **`0.1.15`** — the npm `latest` dist-tag |
+| `0.2.1-rc.2` | **`0.1.14`** |
+| `0.2.0-rc.2`, `0.2.0-rc.1`, `0.1.7-rc.2`, `0.1.6-alpha.2`, `0.1.5-rc.2` | **`0.1.13`** |
 
 dsh checks every `@deepseek-ai/dsh-*` peer a plugin declares against its own version and skips the
 whole bundle when one does not match, so a dshell release names the exact dsh versions it supports.
@@ -152,7 +154,7 @@ To run one anyway: `dsh plugin --profile <name> allow-version <package@version> 
 # One package: the bundle is the patch layer, it depends on the other ten dshell
 # packages, and dshell-ssh carries the one dsh package a stock profile does not
 # ship (`@deepseek-ai/dsh-ssh`, its SSH execution provider).
-dsh plugin --profile web add -w @nexus-aethra/dshell-bundle@0.1.14
+dsh plugin --profile web add -w @nexus-aethra/dshell-bundle@0.1.15
 
 dsh web
 ```
@@ -160,7 +162,7 @@ dsh web
 dsh prints a tokenized URL (for example `http://127.0.0.1:3080/?token=…`). Open it in a browser.
 
 In the **desktop app**, the same install is available as a window: `设置 → 插件`, and give it
-`@nexus-aethra/dshell-bundle@0.1.14` (it installs from npmjs and pins the version exactly).
+`@nexus-aethra/dshell-bundle@0.1.15` (it installs from npmjs and pins the version exactly).
 
 > Skipping step 2 is not fatal — dsh boots and reports the two rows as `did not activate`, and the
 > rest of dshell works. It is listed because the SSH device sessions and the agent's terminal tool

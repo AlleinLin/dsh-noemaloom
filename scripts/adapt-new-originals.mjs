@@ -34,8 +34,9 @@ export function adaptComputerUseClient(factory) {
 }
 
 export function adaptComputerUseHost(source) {
-  let adapted = once(source, "export const inject = ['tools'];",
-    "export const inject = ['tools', 'connection'];", 'Computer-use owner authenticated carrier');
+  let adapted = once(source, "export const inject = bootstrapError === null ? ['tools'] : [];",
+    "export const inject = bootstrapError === null ? ['tools', 'connection'] : ['connection'];",
+    'Computer-use owner authenticated carrier including degraded diagnostics');
   adapted = once(adapted, "ctx.inject(['webServer'], (scoped) => {",
     "ctx.inject(['connection'], (scoped) => {\n    const webServer = authenticatedComputerUseRoutes(scoped);",
     'Computer-use carrier registration');
@@ -43,4 +44,14 @@ export function adaptComputerUseHost(source) {
   if (adapted.split(anchor).length !== 5) throw new Error('Computer-use expected four reviewed native JSON routes');
   adapted = adapted.replaceAll(anchor, 'webServer.register({');
   return "import { authenticatedComputerUseRoutes } from './internal/nexus-auth-routes.mjs';\n" + adapted;
+}
+
+export function adaptComputerUseDegraded(source) {
+  let adapted = once(source, "ctx?.inject?.(['webServer'], (scoped) => {",
+    "ctx?.inject?.(['connection'], (scoped) => {\n      const webServer = authenticatedComputerUseRoutes(scoped);",
+    'Computer-use authenticated degraded diagnostics');
+  const anchor = 'scoped.webServer.register({';
+  if (adapted.split(anchor).length !== 3) throw new Error('Computer-use expected two degraded diagnostic routes');
+  adapted = adapted.replaceAll(anchor, 'webServer.register({');
+  return "import { authenticatedComputerUseRoutes } from './nexus-auth-routes.mjs';\n" + adapted;
 }
