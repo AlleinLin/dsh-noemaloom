@@ -13,7 +13,7 @@ import { appendNativeDiagnostic, beforeOfficialPhase, NATIVE_OWNER_COLLECTION,
   type NativeLaneOwner, type NativeOperationDiagnostic } from '../domain/context/native-transactions.js';
 import { createLeaseManager, type Lease, type LeaseManager } from '../domain/storage/lease.js';
 import { annotateNativeFailure, nativeErrorIdentity, toHarnessError, toNativeLlmError } from './native-diagnostics.js';
-import { registerNativeCompactionBinding } from './compaction-binding.js';
+import { nativeCompactionFor, registerNativeCompactionBinding } from './compaction-binding.js';
 import { measureContextPressure, summaryModelPolicy, type ContextAdmission } from './context-pressure.js';
 import { classifyFailure, failureMetadata, mustStopAfterAuxiliaryFailure } from '../shared/error-codes.js';
 import { recordRecoveryDiagnostic } from './request-recovery.js';
@@ -107,7 +107,7 @@ export default class NexusCompactionEngine extends BasicCompactionEngine {
   private runningLanes = runningLanes();
   private laneLeases?: LeaseManager;
 
-  constructor(ctx: any, config: any = {}) {
+  constructor(ctx: any, config: any = {}, ownership: { fallback?: boolean } = {}) {
     super(ctx, { ...config, auto: false });
     this.nativeContext = ctx;
     const projections = ctx.get('sessionProjections');
@@ -115,23 +115,26 @@ export default class NexusCompactionEngine extends BasicCompactionEngine {
       throw new NexusError('HOST_CAPABILITY_UNAVAILABLE', 'DSH 公有 sessionProjections registry 不可用；不能反复扫描完整日志冒充增量同步');
     }
     projections.register(nativeSurfaceProjection);
-    const binding = registerNativeCompactionBinding(ctx, this);
+    const binding = registerNativeCompactionBinding(ctx, this, ownership);
+    if (ownership.fallback) for (const agent of ctx.get('agents')?.list?.() ?? []) binding.bind(agent);
     ctx.get('systemPrompt').context({
       name: 'nexus-compression-doctrine', order: -100,
       text: COMPRESSION_DOCTRINE, interpolate: false,
     });
     ctx.on('system-prompt/assemble', async (assembly: any, context: any, next: () => Promise<any>) => {
       const accepted = await next();
-      if (context.agent) this.assemblies.set(context.agent, accepted);
+      if (context.agent && nativeCompactionFor(context.agent) === this) this.assemblies.set(context.agent, accepted);
       return accepted;
     }, { prepend: true });
     ctx.on('agent/pre-step', async ({ agent }: any, next: () => Promise<any>) => {
       binding.bind(agent);
+      if (nativeCompactionFor(agent) !== this) return next();
       const decision = await next();
       this.admissions.set(agent, { messages: decision.messages, assembly: this.assemblies.get(agent) });
       return decision;
     }, { prepend: true });
     ctx.on('agent/request', async ({ agent, signal, turn, step }: any, next: () => Promise<any>) => {
+      if (nativeCompactionFor(agent) !== this) return next();
       const route = await next();
       this.requestRoutes.set(agent, route);
       const admission = this.admissions.get(agent);
@@ -158,7 +161,7 @@ export default class NexusCompactionEngine extends BasicCompactionEngine {
       return route;
     }, { prepend: true });
     ctx.on('agent/request-error', async (payload: any, next: () => Promise<any>) =>
-      classifyFailure(payload.failure).canonicalCode === 'CONTEXT_WINDOW_EXCEEDED'
+      nativeCompactionFor(payload.agent) === this && classifyFailure(payload.failure).canonicalCode === 'CONTEXT_WINDOW_EXCEEDED'
         ? this.recoverOverflow(payload) : next());
     ctx.on('agent/status', ({ agent, status }: any) => { if (status === 'idle') this.nativeOverflowRetries.delete(agent); });
   }

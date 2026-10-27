@@ -4,11 +4,12 @@ import { SELF_COMPACTION_TOOL } from '../shared/context-compaction.js';
 import { nativeCompactionFor } from './compaction-binding.js';
 import { toHarnessError } from './native-diagnostics.js';
 import type { HostContext } from './types.js';
+import { scopeOf } from '@deepseek-ai/dsh-scope';
 
 /** One global definition uses the exact Agent binding. Preset providers never
  * register duplicate global tools, and normal child filters/denies still apply. */
 export function registerSelfCompactionTool(ctx: HostContext): () => void {
-  return ctx.get('tools').register(defineTool({
+  const unregister = ctx.get('tools').register(defineTool({
     name: SELF_COMPACTION_TOOL,
     description: '查询或手动压缩当前调用智能体自己的原生会话。子智能体只能压缩自己，不能指定父会话、同级会话、lane、provider或策略。'
       + 'action=status 无生成请求，返回当前有效模型窗口、占用估计（含缓存输入、系统提示、工具schema、待接纳输入和输出预留）、用户自动阈值、独立压缩模型及维护状态；可附requestId查原操作收据。'
@@ -33,4 +34,18 @@ export function registerSelfCompactionTool(ctx: HostContext): () => void {
       } catch (error) { throw toHarnessError(error, { phase: 'self-context-maintenance', signalAborted: exec.signal.aborted }); }
     },
   }));
+  // Stable guidance, not a changing pressure snapshot in the prompt prefix.
+  // It follows the real visible tool set, including explicit child denies.
+  const guidance = ctx.get('systemPrompt')?.section?.({
+    name: 'noemaloom-self-compaction', order: 90,
+    text: (context: any) => {
+      if (!context.agent || !ctx.get('tools').get(SELF_COMPACTION_TOOL, scopeOf(context.agent.ctx))) return '';
+      return '上下文维护：你可以调用 compact_context 维护自己的会话，子代理同样可用。'
+        + '用 action=status 查询实时占用、用户统一阈值与有效压缩模型；需要主动压缩时用 action=compact 和稳定 requestId。'
+        + '若当前工具以 PTC/run_code 形式提供，请通过其 SDK 的 compact_context 调用，不要臆造直接工具名。'
+        + '宿主会在每次模型请求前按全局→工作区→本会话的实时设置自动检查，不要把“没有 /compact 菜单”理解成没有工具。'
+        + '失败或没有安全范围须读取回执，不能声称已压缩，也不要停止原任务；不重复效果未知的请求。';
+    },
+  });
+  return () => { if (typeof guidance === 'function') guidance(); unregister(); };
 }

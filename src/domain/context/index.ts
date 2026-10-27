@@ -52,6 +52,8 @@ export const CONTEXT_CAPABILITIES: Capability[] = [
   capability('epochs/get', '只读当前会话已接受及待生效的配置世代'),
   capability('policy/get', '只读当前会话压缩策略与窗口'),
   capability('models/list', '读取压缩模型真实目录及精确provider/model与窗口；不生成、不改变会话模型或用户策略'),
+  capability('maintenance/status', '读取当前原生会话或子代理的实时占用、统一自动阈值、压缩模型与正式维护收据'),
+  capability('maintenance/compact', '用户直接压缩当前空闲原生会话或子代理；不发送聊天消息，不取消任务', {}, [], true),
   capability('rules/list', '只读当前会话的保护提醒'),
   capability('decompress/peek', '校验并只读查看精确原文，不恢复或导出', {
     blockId: { type: 'string' }, ref: { type: 'string' }, startRef: { type: 'string' }, endRef: { type: 'string' },
@@ -1747,6 +1749,12 @@ export function createContextModule(services: NexusServices): NexusModule {
       }
       const i = identity({ ...params, sessionId: params.sessionId ?? ctx?.sessionId ?? request.target?.id }, ctx);
       const key = keyFor(i, workspace);
+      if (request.action === 'maintenance/status' || request.action === 'maintenance/compact') {
+        if (request.action === 'maintenance/compact' && ctx?.actorId !== 'connection-owner') {
+          throw new NexusError('PERMISSION_DENIED', '界面压缩仅接受用户操作；模型请调用 compact_context 维护自己');
+        }
+        return services.host.sessions(`context.${request.action}`, { sessionId: i.sessionId, requestId: request.requestId });
+      }
       if (request.action === 'diagnostics') return readNativeCompactionDiagnostics(services, i.sessionId, key);
       // A native main-session tool must mutate the same authoritative surface
       // as automatic compaction. Release this domain's lock before invoking

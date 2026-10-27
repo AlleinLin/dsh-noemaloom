@@ -22,6 +22,7 @@ import { registerLiveCommands } from './live-commands.js';
 import { registerAutonomyHook } from './autonomy-hook.js';
 import { registerStepPauseHook } from './step-pause-hook.js';
 import { registerSelfCompactionTool } from './self-compaction-tool.js';
+import { registerUnifiedCompaction } from './compaction-support.js';
 import { createEventObserver } from './event-observer.js';
 import type { HostContext, NexusConfig } from './types.js';
 import { AdapterCache } from './debug/cache.js';
@@ -237,6 +238,9 @@ export async function apply(ctx: HostContext, config: NexusConfig = {}): Promise
   try {
     ctx.effect(() => () => runtime.dispose(), 'nexus: owned runtime');
     ctx.provide('nexus', runtime);
+    // Mounted after publication of nexus; native agents from every preset,
+    // including already resident/restored children, share the live policy.
+    registerUnifiedCompaction(ctx);
   } catch (error) {
     // The owner can unload while asynchronous initialization is still running.
     // A rejected effect/provision must not strand the completed worker runtime.

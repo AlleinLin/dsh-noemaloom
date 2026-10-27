@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "checkedAt": "2026-10-26T01:58:38.968Z",
   "policy": {
-    "schedule": "Monday 10:00 Asia/Shanghai",
+    "schedule": "Monday and Thursday 10:00 Asia/Shanghai",
     "independentUpdateUi": false,
     "autoInstall": false,
     "hostVersion": "0.2.1-rc.3",
@@ -3061,6 +3061,18 @@
     "previousVersion": "0.2.1-rc.2",
     "previousRevision": "687f282e8625c6b8d11ff58211a90524be2e4317",
     "sourceReview": "docs/upstream-audit-2026-10-26.json",
+    "localMaintenance": [
+      {
+        "id": "subagent-context-maintenance",
+        "release": "R40",
+        "document": "docs/release-r40.md",
+        "seams": [
+          "Subagent commandUi omits the host command catalog; keep the exact-session client /compact contribution.",
+          "Idle subagents release their live Agent; status is read-only and explicit compaction acquires a prompt-free native maintenance handle.",
+          "One native compactor per agent, live shared scope thresholds, compact_context in the actual child request, and independent summary routes."
+        ]
+      }
+    ],
     "validation": "Recorded scope and final verification are in docs/upstream-audit-2026-10-26.json; no user profile/session is modified."
   }
 }

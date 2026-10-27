@@ -12,7 +12,7 @@ import { SessionProjectionRegistry } from '@deepseek-ai/dsh-session-projection';
 import { SystemPrompt } from '@deepseek-ai/dsh-system-prompt';
 import { TokenMeter } from '@deepseek-ai/dsh-token-meter';
 import { ToolRuntime, defineContentToolFixture } from '@deepseek-ai/dsh-tools';
-import { scopeOf } from '@deepseek-ai/dsh-scope';
+import { bindScopeParent, createScope, scopeOf } from '@deepseek-ai/dsh-scope';
 import NexusCompactionEngine from '../src/host/compaction.js';
 import { registerRequestRecovery, type RequestRecoveryDiagnostic } from '../src/host/request-recovery.js';
 import { installExecutionPolicy } from '../src/host/execution-policy.js';
@@ -24,6 +24,7 @@ import { registerSelfCompactionTool } from '../src/host/self-compaction-tool.js'
 import { NexusError, type NexusModule, type NexusServices } from '../src/ports/contracts.js';
 import { toHarnessError } from '../src/host/native-diagnostics.js';
 import { readNativeCompactionDiagnostics } from '../src/domain/context/diagnostics.js';
+import { nativeCompactionFor } from '../src/host/compaction-binding.js';
 
 const provider = 'local-context-fixture', route = { provider, model: 'conversation', maxTokens: 256 };
 const fixtureWaitMs = 60_000;
@@ -34,13 +35,15 @@ async function within<T>(pending: Promise<T>, label: string) {
 }
 type SummaryFault = 'metadata-rate' | 'model-rate' | 'model-timeout' | 'model-auth' | 'model-budget' | 'model-permission' | 'model-pending';
 async function fixture(t: TestContext, options: { window?: number; overflow?: boolean; wait?: boolean; failReceipt?: boolean;
-  summaryUnavailable?: boolean; summaryFault?: SummaryFault; toolFailure?: boolean; retryBudget?: number } = {}) {
+  summaryUnavailable?: boolean; summaryFault?: SummaryFault; toolFailure?: boolean; retryBudget?: number;
+  scoped?: boolean; selfTool?: boolean } = {}) {
   const dir = await mkdtemp(path.join(os.tmpdir(), 'nexus-native-context-'));
   const root = new Context(), fibers: any[] = [], handles: AgentHandle[] = [];
   const store = createAtomicStore(dir), requests: GenerateOptions[] = [], summaries: any[] = [];
   const toolRuns = new Map<string, number>(), attempts = new Map<string, number>();
   let driverCtx!: Context, agents!: AgentRegistry, engine!: NexusCompactionEngine, module!: NexusModule;
   let failReceipt = options.failReceipt;
+  let conversationWindow = options.window ?? 30000;
   const summaryError = () => options.summaryFault === 'model-budget' ? new NexusError('BUDGET_EXCEEDED', 'Local auxiliary budget denial')
     : options.summaryFault === 'model-pending' ? new NexusError('PARTIAL_EFFECT', 'Local auxiliary effect unverified')
       : options.summaryFault === 'model-permission' ? new NexusError('PERMISSION_DENIED', 'Local host permission denial')
@@ -94,7 +97,7 @@ async function fixture(t: TestContext, options: { window?: number; overflow?: bo
         if (options.summaryFault === 'metadata-rate') throw summaryError();
       }
       if (model === 'summary-large' && options.summaryUnavailable) throw new Error('Local summary directory unavailable');
-      return { provider: _provider, id: model, name: model, context: { contextWindow: model === 'summary-large' ? 1000000 : options.window ?? 30000 }, defaultMaxTokens: 256 };
+      return { provider: _provider, id: model, name: model, context: { contextWindow: model === 'summary-large' ? 1000000 : conversationWindow }, defaultMaxTokens: 256 };
     }
     async *stream(request: GenerateOptions): AsyncGenerator<StreamChunk> {
       requests.push(request);
@@ -104,9 +107,11 @@ async function fixture(t: TestContext, options: { window?: number; overflow?: bo
       }
       if (attempt === 1) {
         const callId = ToolCallId(`${id}:work`);
+        const name = options.selfTool ? 'compact_context' : 'fixture_work';
+        const args = options.selfTool ? JSON.stringify({ action: 'compact', requestId: `${id}:model-maintenance` }) : '{}';
         yield { type: 'block-start', index: 0, blockType: 'tool-call' };
-        yield { type: 'tool-call-delta', index: 0, id: callId, name: 'fixture_work', argumentsDelta: '{}' };
-        yield { type: 'block-end', index: 0, block: { type: 'tool-call', id: callId, name: 'fixture_work', arguments: '{}' } };
+        yield { type: 'tool-call-delta', index: 0, id: callId, name, argumentsDelta: args };
+        yield { type: 'block-end', index: 0, block: { type: 'tool-call', id: callId, name, arguments: args } };
         yield { type: 'finish', reason: { kind: 'tool-calls' } };
       } else {
         yield { type: 'block-start', index: 0, blockType: 'text' };
@@ -144,13 +149,30 @@ async function fixture(t: TestContext, options: { window?: number; overflow?: bo
   const driver = root.plugin({ name: 'native-context-driver', inject: ['agents', 'sessions', 'sessionProjections', 'llm', 'tools', 'systemPrompt', 'nexus', 'tokenMeter', 'sessionQuery'],
     apply(ctx: Context) {
       driverCtx = ctx; new AgentLoop(ctx, AgentLoop.Config({ agents: [], maxParallelToolCalls: 1 }));
-      engine = new NexusCompactionEngine(ctx);
+      if (!options.scoped) engine = new NexusCompactionEngine(ctx);
       registerRequestRecovery(ctx as any);
     } }); fibers.push(driver); await driver.await(); assert.equal(driver.state, 2);
+  const presetKey = {};
+  let fallback: NexusCompactionEngine | undefined;
+  if (options.scoped) {
+    const preset = createScope(driverCtx, presetKey);
+    t.after(() => preset.dispose());
+    const presetFiber = preset.ctx.isolate('compaction').plugin({
+      name: 'fixture-standing-compaction', inject: NexusCompactionEngine.inject,
+      apply(ctx: Context) { engine = new NexusCompactionEngine(ctx); },
+    });
+    await presetFiber.await(); assert.equal(presetFiber.state, 2);
+    const global = driverCtx.isolate('compaction').plugin({
+      name: 'fixture-unified-fallback', inject: [...NexusCompactionEngine.inject, 'agents'],
+      apply(ctx: Context) { fallback = new NexusCompactionEngine(ctx, {}, { fallback: true }); },
+    });
+    fibers.push(global); await global.await(); assert.equal(global.state, 2);
+  }
   t.after(async () => { for (const handle of handles.reverse()) await handle.dispose(); await module.dispose?.(); for (const fiber of fibers.reverse()) await fiber.dispose(); await rm(dir, { recursive: true, force: true }); });
-  async function create(id: string, parent?: Agent) {
+  async function create(id: string, parent?: Agent, joined = true) {
     const handle = await driverCtx.agents.create({ sessionId: SessionId(id), parentAgent: parent,
-      meta: { cwd: dir, ...(parent ? { origin: 'subagent' as const, delegationDepth: 1 } : {}) }, agentOptions: route });
+      meta: { cwd: dir, ...(parent ? { origin: 'subagent' as const, parentSession: parent.id, delegationDepth: 1 } : {}) }, agentOptions: route,
+      setup(_ctx, agent) { if (options.scoped && joined) bindScopeParent(agent, presetKey); } });
     handles.push(handle); return handle.agent;
   }
   async function seed(agent: Agent, pairs = 14) {
@@ -174,8 +196,58 @@ async function fixture(t: TestContext, options: { window?: number; overflow?: bo
     agent.followup(createUserMessage({ source: { kind: 'user' }, content: [{ type: 'text', text }] }));
     await within(agent.whenIdle(), `agent ${agent.id} waiting for idle`);
   }
-  return { ctx: driverCtx, dir, store, services, module, create, seed, start, engine, requests, summaries, toolRuns };
+  return { ctx: driverCtx, dir, store, services, module, create, seed, start, engine, fallback, requests, summaries, toolRuns,
+    setWindow(value: number) { conversationWindow = value; } };
 }
+
+test('shared preset and fallback admit one maintainer per child and use live global/workspace/session thresholds', async t => {
+  const f = await fixture(t, { scoped: true, window: 1000000 }), parent = await f.create('scoped-parent');
+  const child = await f.create('scoped-child', parent), customChild = await f.create('custom-child', parent, false);
+  assert.equal(nativeCompactionFor(child), f.engine);
+  assert.equal(nativeCompactionFor(customChild), f.fallback);
+  await f.seed(child, 14); await f.seed(customChild, 14);
+  const configure = (scopeLevel: 'global' | 'workspace' | 'session', config: any, sessionId?: string) =>
+    createScopeModule(f.services).dispatch({ action: 'configure', params: { feature: 'context-compaction', config },
+      expectedRevision: scopeLevel === 'global' ? 1 : 0 }, { scopeLevel, workspaceRoot: f.dir, sessionId,
+      actorId: 'connection-owner', permissions: new Set(['scope.configure']) });
+  await configure('global', { defaults: { thresholdPercent: 25, summaryModel: { provider, model: 'summary-large' } } });
+  assert.equal((await f.engine.contextStatus(child, new AbortController().signal)).thresholdPercent, 25);
+  await configure('workspace', { defaults: { thresholdPercent: 15 } });
+  assert.equal((await f.engine.contextStatus(child, new AbortController().signal)).thresholdPercent, 15);
+  await configure('session', { defaults: { thresholdPercent: 10 } }, child.id);
+  assert.equal((await f.engine.contextStatus(child, new AbortController().signal)).thresholdPercent, 10);
+  assert.equal((await f.fallback!.contextStatus(customChild, new AbortController().signal)).thresholdPercent, 15);
+  // The same threshold now applies on a smaller effective conversation route.
+  // No parent/sibling mutation, and no second summary from the fallback.
+  const before = parent.session.snapshotEvents();
+  const pressure = await measureContextPressure(f.ctx, child, new AbortController().signal);
+  assert.ok(pressure.occupiedTokens < pressure.thresholdTokens);
+  await f.start(child); assert.equal(f.summaries.length, 0, 'below-threshold child is not compacted');
+  f.setWindow(30000);
+  await f.start(customChild);
+  assert.ok(f.summaries.length > 0);
+  assert.equal(customChild.session.snapshotEvents().filter(event => event.type === 'turn/end').at(-1)?.data.reason.kind, 'completed');
+  assert.deepEqual(parent.session.snapshotEvents(), before);
+  assert.equal(nativeCompactionFor(child), f.engine, 'global fallback never steals a preset binding');
+});
+
+test('a running scoped child sees compact_context in its actual request and manually commits before continuing', async t => {
+  const f = await fixture(t, { scoped: true, selfTool: true, window: 1000000 }), parent = await f.create('model-parent');
+  const child = await f.create('model-child', parent); await f.seed(child, 14);
+  const before = parent.session.snapshotEvents(), generation = child.session.surface.replaceGeneration;
+  await f.start(child);
+  assert.ok(f.requests[0]!.tools?.some(tool => tool.name === 'compact_context'), 'real child request includes the tool schema');
+  const result = child.session.deriveMessages()
+    .find(message => message.role === 'tool' && message.toolCallId === `${child.id}:work`);
+  assert.ok(result, 'the in-flight call/result pair remains in the formal surface');
+  const receipt = JSON.parse(result.content.filter((block: any) => block.type === 'text').map((block: any) => block.text).join(''));
+  assert.equal(receipt.committed, true, JSON.stringify(result));
+  assert.equal(f.summaries.length, 1, 'one tool call uses one independent summary');
+  assert.equal(child.session.surface.replaceGeneration, generation + 1);
+  assert.equal(f.requests.length, 2, 'the same child continues after compaction');
+  assert.equal(child.session.snapshotEvents().filter(event => event.type === 'turn/end').at(-1)?.data.reason.kind, 'completed');
+  assert.deepEqual(parent.session.snapshotEvents(), before);
+});
 
 test('real native admission compresses before a request, commits formal receipts, preserves its prefix, and repeats across turns', async t => {
   const f = await fixture(t), agent = await f.create('native-context-pressure');

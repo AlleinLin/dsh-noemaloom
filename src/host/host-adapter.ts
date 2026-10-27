@@ -21,6 +21,7 @@ import { annotateNativeFailure, nativeErrorIdentity, nativeFailureFacts, toHarne
 import { classifyFailure } from '../shared/error-codes.js';
 import { workspaceIdentity } from '../domain/workspace-runtime.js';
 import { nativeCompactionFor } from './compaction-binding.js';
+import { contextMaintenance } from './context-maintenance.js';
 import { auxiliaryInputMessages, summaryEnvelopeBudget } from './auxiliary-input.js';
 import { EXPECTED_DSH_VERSION } from '../shared/host-compatibility.js';
 
@@ -409,6 +410,15 @@ export function createHostAdapter(ctx: HostContext, config: NexusConfig, workspa
           }
           return [...ids];
         }
+        case 'context.maintenance/status': case 'context.maintenance/compact': {
+          const authority = hostAuthority.getStore();
+          if (authority?.actorId === 'native-tool'
+            && (authority.sessionId !== sessionId || authority.toolExecution?.agent !== ctx.get('agents')?.get?.(sessionId))) {
+            throw new NexusError('PERMISSION_DENIED', '模型只能查询当前调用智能体的维护状态');
+          }
+          return contextMaintenance(ctx, sessionId, action.endsWith('/status') ? 'status' : 'compact',
+            params.requestId, authority?.signal ?? pluginSignal, authority?.actorId);
+        }
         case 'context.compress': {
           const agent = ctx.get('agents')?.get?.(sessionId);
           if (!agent) throw new NexusError('SESSION_NOT_LIVE', '会话没有存活的 Agent；请先打开此会话');
@@ -416,13 +426,14 @@ export function createHostAdapter(ctx: HostContext, config: NexusConfig, workspa
           if (authority?.actorId === 'native-tool' && (authority.sessionId !== sessionId || authority.toolExecution?.agent !== agent)) {
             throw new NexusError('PERMISSION_DENIED', '模型压缩必须属于准确的当前调用智能体');
           }
-          if (hostAuthority.getStore()?.actorId === 'connection-owner' && agent.status !== 'idle') {
+          if (authority?.actorId === 'connection-owner' && agent.status !== 'idle') {
             throw new NexusError('CTX_NATIVE_BUSY', '会话仍在执行，请在任务空闲后从页面压缩；未停止当前任务');
           }
           const direct = agent.ctx?.get?.('compaction');
-          const compaction = typeof direct?.compactRanges === 'function' ? direct : nativeCompactionFor(agent);
+          const compaction = nativeCompactionFor(agent) ?? (typeof direct?.compactRanges === 'function' ? direct : undefined);
           if (!compaction) throw new NexusError('DEPENDENCY_MISSING', '此会话未连接 Nexus 原生压缩 provider；请检查当前模式的插件配置');
-          return compaction.compactRanges(agent, params, hostAuthority.getStore()?.signal ?? pluginSignal);
+          const signal = authority?.signal ?? pluginSignal;
+          return compaction.compactRanges(agent, params, signal);
         }
         case 'models/info': {
           const provider = String(params.provider ?? ''), model = String(params.model ?? '');

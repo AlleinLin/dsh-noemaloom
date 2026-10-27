@@ -71,6 +71,22 @@ test('an older provider or disposed agent cannot remove a replacement binding', 
   assert.equal(nativeCompactionFor(newAgent), undefined);
 });
 
+test('a global fallback never steals an exact preset owner, in either listener order', async t => {
+  const root = new Context(), agent = { id: `fallback-${randomUUID()}` };
+  const make = () => ({ async compactRanges() { return {}; } });
+  const exact = make(), fallback = make();
+  let exactBinding!: ReturnType<typeof registerNativeCompactionBinding>, fallbackBinding!: typeof exactBinding;
+  const fiber = root.plugin({ name: 'priority-binding', apply(ctx: Context) {
+    exactBinding = registerNativeCompactionBinding(ctx as unknown as HostContext, exact);
+    fallbackBinding = registerNativeCompactionBinding(ctx as unknown as HostContext, fallback, { fallback: true });
+  } }); await fiber.await(); t.after(() => fiber.dispose());
+  fallbackBinding.bind(agent); assert.equal(nativeCompactionFor(agent), fallback);
+  exactBinding.bind(agent); assert.equal(nativeCompactionFor(agent), exact);
+  fallbackBinding.bind(agent); assert.equal(nativeCompactionFor(agent), exact);
+  exactBinding.dispose(); fallbackBinding.bind(agent);
+  assert.equal(nativeCompactionFor(agent), fallback);
+});
+
 test('asynchronous self-maintenance rejection retains its native tool error identity', async t => {
   const root = new Context(), agent = { id: `self-error-${randomUUID()}` };
   let tool: any;

@@ -1,7 +1,7 @@
 # 上游维护
 
 权威清单为根目录 `upstreams.json`，复制来源、许可证及文件摘要为
-`sources.lock.json`。每周一北京时间 10:00 集中检查，先完成适配，再统一验证；
+`sources.lock.json`。每周一、周四北京时间 10:00 集中检查，先完成适配，再统一验证；
 各插件不再显示独立升级通知。检查不会自动安装、重启宿主或修改会话。
 
 清单同时追踪原始 Git 来源、npm 运行插件及所有 Mnemon 组件、内置源码、
@@ -57,3 +57,12 @@ Aegis 2.14.1 和 Nexus-Terminal 文档快照。新增的原生工作流入口见
 - 受限 code-review 源码仍未复制；旧 Git Bash/usage 的较旧 npm tag 不触发降级。
 - 独立升级 UI 在构建时按精确源码边界移除，失配使构建失败；
   插件内部的版本历史、诊断版本号和用户主动管理第三方资源的功能保留。
+
+## 子代理压缩接缝（R40）
+
+DSH 0.2.1-rc.3 的 `commandUi` 对 `sessions.subagentAddress(sessionId)` 直接返回空宿主目录。
+保留 `src/client/ContextMaintenance.tsx` 的子代理专属 `/compact` 客户端贡献及原生输入座位；
+不要只以主代理的命令菜单或引擎单元测试替代侧栏验收。
+宿主统一维护后端位于 `src/host/compaction-support.ts`，预设后端优先，禁止同一请求重复压缩。
+升级时验证子代理实际请求里的 `compact_context`、运行中自身手动压缩、
+全局/工作区/会话实时阈值、独立压缩模型、恢复与自定义预设，以及父会话不被修改。

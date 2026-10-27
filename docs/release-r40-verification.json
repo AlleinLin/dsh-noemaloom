@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "release": "R40",
+  "recordedAt": "2026-10-27T07:38:40.439Z",
+  "source": {
+    "algorithm": "sha256:path-and-content-v1",
+    "sha256": "27a6c550f2465ef584f95e357d5179984204bf35aae9b8736ca9a755c054eea3",
+    "files": 2775
+  },
+  "host": "0.2.1-rc.3",
+  "scope": "Native subagent context maintenance: visible commands and controls, live unified thresholds, isolated self-compaction, cold/fork history support and narrow input toolbar layout.",
+  "tests": {
+    "tests": 2382,
+    "passed": 2382,
+    "failed": 0,
+    "skipped": 0,
+    "junitLeafCases": 2381,
+    "receipt": "evidence/receipts/r40-release.json",
+    "junit": "evidence/runs/r40-release/tests.junit.xml",
+    "junitSha256": "37473105e9c0aafe41111624070dadd4b784185fd7ee812b6077dcb469c4aa1b",
+    "sourceUnchangedDuringRun": true,
+    "runtime": {
+      "node": "v24.19.0",
+      "modules": "137",
+      "platform": "win32",
+      "arch": "x64"
+    }
+  },
+  "desktop": {
+    "passed": true,
+    "cases": 9,
+    "actualDesktop": true,
+    "windowVisible": true,
+    "protocolVersion": 1,
+    "modelBackend": "deterministic local LlmAdapter registered in the real Desktop host",
+    "remoteModelRequests": 0,
+    "copiedUserData": false,
+    "report": "evidence/r40-desktop-compaction.json",
+    "reportSha256": "707c6d5bf28592ed877158b3372fae7680956994dc7ea796bd324cf1d3970aab",
+    "layout": "evidence/r40-desktop-final-layout.json",
+    "casesPassed": [
+      "native parent and actual cold subagent coexist with independent input seats",
+      "typing slash in the real child composer exposes the compact command",
+      "manual button reads the cold child status and commits only its history",
+      "typed /compact runs the child action rather than sending a prompt",
+      "the real child automatically compacts on the next request at 97 percent using the shared threshold",
+      "a real child model request calls compact_context and continues after a formal receipt",
+      "the native child dialog saves the global threshold and the next child request uses it",
+      "the original native input bar keeps the child manual button when Codinput is disabled",
+      "Narrow native input toolbar wraps with zero overlapping controls"
+    ]
+  },
+  "build": {
+    "node": "v24.19.0",
+    "builtAt": "2026-10-27T07:19:51.964Z",
+    "typecheck": "passed",
+    "artifacts": "passed",
+    "packageAudit": "passed"
+  },
+  "security": {
+    "npmVulnerabilities": 0,
+    "scope": "npm dependency audit; no dependencies changed in R40"
+  },
+  "runtimePackageSha256": "46d7eaa7393c3cc073c7a4f57cd31904fbcc64d294f2c5cad03907b44bf957bc",
+  "limitations": [
+    "No user cloud provider/gateway generation was called. Remote network, billing/quota behavior and generated-summary quality were not assessed.",
+    "The visible Desktop scenarios use a native spawn child and a deterministic local 1M summarizer. Cold fork inheritance is separately exercised with the official Session implementation in regression tests.",
+    "Only synthetic profiles and archives were created/maintained; no user DSH process was restarted and no user session/profile was copied or modified."
+  ],
+  "validationTriage": [
+    "Earlier failed source/fixture/desktop attempts are retained in local evidence. Fixture catalog metadata and GUI click/wait handling were corrected before final success.",
+    "The final native composer check uses a visible native Desktop window, real pointer input, and waits for the durable compaction receipt."
+  ]
+}
