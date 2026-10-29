@@ -19,6 +19,7 @@
     "Align engine, peer/development SDK and installer to exact official rc.3.",
     "Refresh standard preset composition from the independent unmodified official rc.3 distribution.",
     "Preserve official filesystem, sandbox, observed-version guards, scoped tools and process ownership.",
+    "Pin the development SDK dependency graph to undici 8.12.2 and zod 4.6.7 without upgrading any same-host SDK.",
     "Keep historical rc.2 validation and benchmark records explicitly historical."
   ],
   "validation": {
@@ -35,7 +36,7 @@
     },
     "desktop": {
       "report": "docs/desktop-validation.json",
-      "sha256": "1c7cf4c67d6ad8752d8ad33d66deed9093c80e0e4097ce29cff6c85c510a5931",
+      "sha256": "d9d64bab40eda872f93545fc91f7c6bc949d5439150d9420b2e4153b01faf53f",
       "toolCalls": 12,
       "syntheticLocalModelRequests": 13
     },
@@ -44,6 +45,14 @@
       "No real user profile or session data touched.",
       "Historical performance and stress results were not re-measured.",
       "Project dependency audit does not certify the whole official Desktop distribution."
-    ]
+    ],
+    "dependencyAudit": {
+      "vulnerabilities": 0,
+      "pins": {
+        "zod": "4.6.7",
+        "undici": "8.12.2"
+      },
+      "initialCiFinding": "The initial companion CI found the old transitive Undici lock. Apply the existing root fix to this separate graph, preserve rc.3 SDK versions and repeat clean-install/test/Host/Desktop/delivery verification."
+    }
   }
 }
