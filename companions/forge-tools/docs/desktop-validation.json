@@ -1,0 +1,165 @@
+{
+  "host": "0.2.1-rc.3",
+  "platform": "win32-x64",
+  "surface": "Original installed Electron Desktop",
+  "origin": "dsh-app://app",
+  "profile": "desktop",
+  "preset": "standard",
+  "result": "passed",
+  "noPresetSwitchRequired": true,
+  "isolatedProductHome": true,
+  "isolatedElectronUserData": true,
+  "isolatedDefaultWorkspace": true,
+  "model": "Deterministic local Anthropic Messages SSE fixture; no external model requests.",
+  "actualExecution": "GUI composer -> official provider/Agent loop -> real Forge tools -> real tool_result -> GUI response.",
+  "networkLimit": "No assertion that Electron updater/account infrastructure performs zero non-model networking.",
+  "fullAccess": "Chosen through the access-mode GUI in this disposable test session only.",
+  "tools": [
+    {
+      "name": "read",
+      "call": 1,
+      "result": "passed"
+    },
+    {
+      "name": "write",
+      "call": 2,
+      "result": "passed"
+    },
+    {
+      "name": "edit",
+      "call": 3,
+      "result": "passed"
+    },
+    {
+      "name": "read_many",
+      "call": 4,
+      "result": "passed"
+    },
+    {
+      "name": "batch_edit",
+      "call": 5,
+      "result": "passed"
+    },
+    {
+      "name": "glob",
+      "call": 6,
+      "result": "passed"
+    },
+    {
+      "name": "grep",
+      "call": 7,
+      "result": "passed"
+    },
+    {
+      "name": "list_directory",
+      "call": 8,
+      "result": "passed"
+    },
+    {
+      "name": "pwsh",
+      "call": 9,
+      "result": "passed"
+    },
+    {
+      "name": "pwsh",
+      "call": 10,
+      "result": "passed"
+    },
+    {
+      "name": "pwsh_run",
+      "call": 11,
+      "result": "passed"
+    },
+    {
+      "name": "forge_status",
+      "call": 12,
+      "result": "passed"
+    }
+  ],
+  "permissionCompatibility": {
+    "version": "0.1.5",
+    "perCallSessionMode": "danger-full-access",
+    "scope": "Normal native tools through actual Desktop Agent loop; top-level SDK run_code is not modified or covered.",
+    "cases": [
+      {
+        "call": 2,
+        "name": "write",
+        "case": "equal target with empty reason",
+        "fieldsExposed": true,
+        "result": "executed through native tool pipeline",
+        "arguments": {
+          "sandbox_permissions": "danger-full-access",
+          "justification": ""
+        }
+      },
+      {
+        "call": 3,
+        "name": "edit",
+        "case": "lower target with whitespace reason",
+        "fieldsExposed": true,
+        "result": "executed through native tool pipeline",
+        "arguments": {
+          "sandbox_permissions": "workspace-write",
+          "justification": "   "
+        }
+      },
+      {
+        "call": 5,
+        "name": "batch_edit",
+        "case": "orphan empty reason",
+        "fieldsExposed": true,
+        "result": "executed through native tool pipeline",
+        "arguments": {
+          "justification": ""
+        }
+      },
+      {
+        "call": 9,
+        "name": "pwsh",
+        "case": "equal target with empty reason",
+        "fieldsExposed": true,
+        "result": "executed through native tool pipeline",
+        "arguments": {
+          "sandbox_permissions": "danger-full-access",
+          "justification": ""
+        }
+      },
+      {
+        "call": 10,
+        "name": "pwsh",
+        "case": "orphan nonempty reason",
+        "fieldsExposed": true,
+        "result": "executed through native tool pipeline",
+        "arguments": {
+          "justification": "兼容旧模型附带的理由；按当前桌面会话权限执行。"
+        }
+      },
+      {
+        "call": 11,
+        "name": "pwsh_run",
+        "case": "lower target with whitespace reason",
+        "fieldsExposed": true,
+        "result": "executed through native tool pipeline",
+        "arguments": {
+          "sandbox_permissions": "workspace-write",
+          "justification": "  "
+        }
+      }
+    ]
+  },
+  "pwsh": {
+    "firstMs": 568,
+    "warmMs": 8,
+    "residentStarts": 1,
+    "residentCalls": 2
+  },
+  "advertisedToolCount": 37,
+  "modelRequestCount": 13,
+  "outputFile": "gamma 中文\\n",
+  "screenshotsScope": "Local source-workspace development evidence only; excluded from npm/ZIP/build delivery.",
+  "screenshots": [
+    "desktop-evidence/desktop-standard.png",
+    "desktop-evidence/desktop-tools.png",
+    "desktop-evidence/desktop-tools-trace.png"
+  ]
+}

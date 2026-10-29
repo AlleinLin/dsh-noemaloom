@@ -1,9 +1,9 @@
 import { createHash } from 'node:crypto';
 import ts from 'typescript';
 
-// Reviewed published dsh-synapse@0.5.4 app.js. Refuse an upstream change rather
+// Reviewed published dsh-synapse@0.5.5 app.js. Refuse an upstream change rather
 // than silently applying an incomplete shell adapter to a different client.
-const REVIEWED_SHA256 = '4a51e0a6947f2ce1d378245464630e581e6da5f66e5b763c3baa4cd352714c0c';
+const REVIEWED_SHA256 = 'd78422b047362b4443b7801b2c7997621eb57a4661d8633599708d9a4db6fda4';
 const digest = source => createHash('sha256').update(source).digest('hex');
 const parse = source => {
   const ast = ts.createSourceFile('synapse-original.js', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
@@ -27,7 +27,7 @@ function replaceOnce(source, anchor, replacement, label) {
 
 /** Adapt the published canvas in the build output; never mutate node_modules. */
 export function adaptSynapseClient(original) {
-  if (digest(original) !== REVIEWED_SHA256) throw new Error('Synapse client adapter requires the reviewed 0.5.4 client SHA256');
+  if (digest(original) !== REVIEWED_SHA256) throw new Error('Synapse client adapter requires the reviewed 0.5.5 client SHA256');
   const ast = parse(original);
   const edits = [];
   const replaceNode = (node, text) => edits.push({ start: node.getStart(ast), end: node.end, text });
@@ -159,7 +159,7 @@ ${messageListener.getText(ast)}`);
       'Disable unreachable legacy embedded form submission while retaining original source attribution.',
       'Use a short empty state and native new-session action.',
       'Own original projection polling by authenticated parent visibility; serialize reads and release timers/listeners on page exit.',
-      'Retain original 0.5.4 preview storage, visible-card body hydration, native archive filtering and expanded zoom range.',
+      'Retain original 0.5.5 preview storage, visible-card body hydration, native archive filtering and expanded zoom range.',
     ],
     sourceSha256: digest(original),
     adaptedSha256: digest(adapted),

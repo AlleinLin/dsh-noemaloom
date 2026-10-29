@@ -1,0 +1,200 @@
+{
+  "schemaVersion": 1,
+  "release": "R41",
+  "recordedAt": "2026-10-29T03:43:33.445Z",
+  "source": {
+    "algorithm": "sha256:path-and-content-v1",
+    "sha256": "d8cae6103884baf190ef0b969619a03c0cf51c3745f96992d7fdff1ce7697534",
+    "files": 2809
+  },
+  "host": "0.2.1-rc.3",
+  "inventory": {
+    "total": 152,
+    "existingRows": 151,
+    "originalLocalCompanions": 1,
+    "runtimeNpmUpgrades": 14,
+    "vendorRebases": 4
+  },
+  "tests": {
+    "tests": 2393,
+    "passed": 2393,
+    "failed": 0,
+    "skipped": 0,
+    "junitLeafCases": 2392,
+    "receipt": "evidence/receipts/weekly-r41-4.json",
+    "junit": "evidence/runs/weekly-r41-4/tests.junit.xml",
+    "junitSha256": "7f127fdfb898a87b554b9f6a94b3287d0558be02adf65f13e041d414a4ab6158",
+    "sourceUnchangedDuringRun": true,
+    "runtime": {
+      "node": "v24.22.1",
+      "modules": "137",
+      "platform": "win32",
+      "arch": "x64"
+    }
+  },
+  "build": {
+    "node": "v24.22.1",
+    "builtAt": "2026-10-29T02:55:15.096Z",
+    "typecheck": "passed",
+    "artifacts": "passed",
+    "fullSequentialPipeline": true,
+    "packageAudit": "passed"
+  },
+  "security": {
+    "npmVulnerabilities": 0,
+    "scope": "Current root and companion dependency graphs; not a certification of the entire official Desktop distribution"
+  },
+  "cognition": {
+    "modules": 58,
+    "compiledAll": true,
+    "passed": true,
+    "report": "evidence/weekly-r41-cognition-release/report.json",
+    "optionalSkips": [
+      {
+        "name": "test_conformance",
+        "lines": [
+          "  [集成] SKIP 真源库不可用（设 MDCG_CONFORMANCE_ROOT=<库根> 可跑集成）"
+        ]
+      },
+      {
+        "name": "test_mr_m1",
+        "lines": [
+          "  SKIP 真源库不可用（外部 clone 环境）——非失败"
+        ]
+      },
+      {
+        "name": "test_mr_m2",
+        "lines": [
+          "  SKIP hive 二进制不存在（C:\\Users\\Allei\\AppData\\Local\\Temp\\noemaloom-cognition-7V31RN\\package\\hive\\target\\release\\hive.exe）→ D 组跳过（外部 clone 同此路径）"
+        ]
+      }
+    ]
+  },
+  "dshell": {
+    "upstreamTestFiles": 6,
+    "passedTests": 78,
+    "failedTests": 0,
+    "report": "evidence/weekly-r41-dshell.json"
+  },
+  "desktop": {
+    "bootstrap": {
+      "path": "evidence/private-desktop-inspection/smoke-bootstrap.json",
+      "sha256": "52f6a0207f6c8c1fc6ad30862946993ecd689c819fec1d9c1aa4c4ddb530cd59",
+      "cases": 0,
+      "passed": true
+    },
+    "updatedSurfaces": {
+      "path": "evidence/weekly-r41-updated-surfaces.json",
+      "sha256": "d5f3207655d2799eb39f330b317722c89c8695b70183ff902c598d7feeb42947",
+      "cases": 6,
+      "passed": true
+    },
+    "nativeCompaction": {
+      "path": "evidence/weekly-r41-desktop-compaction.json",
+      "sha256": "56b859be3616458336d1d39ea4eb64f664ce653fb4e05df0e7f713a6a79df43c",
+      "cases": 8,
+      "passed": true
+    },
+    "nativeOriginals": {
+      "path": "evidence/weekly-r41-native-originals.json",
+      "sha256": "db12b6ec048d34b1e3ffb41bfca0ecdb14d011c7fa0cb1158b895b36c10c7d06",
+      "cases": 7,
+      "passed": true
+    }
+  },
+  "forge": {
+    "package": "@local/dsh-forge-tools",
+    "previousVersion": "0.1.4",
+    "version": "0.1.5",
+    "upstreamRepository": null,
+    "origin": "Original local implementation; no independent published upstream was declared or fabricated.",
+    "sourceDirectory": "companions/forge-tools",
+    "sourceHash": "1b520fa5a5a281411cebdc775800cd502a7e428554492f02e1501047b52ecf26",
+    "cleanCompanionTests": {
+      "tests": 109,
+      "passed": 109,
+      "failed": 0,
+      "skipped": 0,
+      "npmCi": "passed"
+    },
+    "host": {
+      "report": "forge-tools/host-validation.json",
+      "result": "passed",
+      "uninstallRollback": "passed"
+    },
+    "desktop": {
+      "report": "forge-tools/desktop-validation.json",
+      "result": "passed",
+      "model": "Deterministic local Anthropic Messages SSE fixture; no external model requests.",
+      "toolCalls": 12
+    },
+    "deliveryVerification": "passed: image-free archive, payload hashes, actual running-Desktop guard, Tools and legacy alias installers in synthetic homes",
+    "admission": "Original 0.1.4 rejected; final 0.1.5 accepted by independent official rc.3 with no version exemption",
+    "archive": "dsh-forge-tools-0.1.5-win-x64.zip",
+    "archiveSha256": "e5cc9097902f2ee1c57fa360842f2b8b74a2b4b739272e4f21d8a167f1009c6a",
+    "runtimePackage": "local-dsh-forge-tools-0.1.5.tgz",
+    "runtimePackageSha256": "b5e01631ff800c8979f8134644bc3212e2202bbdc5a5a758db3c72c6e2fe27f4",
+    "npmVulnerabilities": 0
+  },
+  "documentationRepack": {
+    "schemaVersion": 1,
+    "recordedAt": "2026-10-29T03:36:35.703Z",
+    "passed": true,
+    "desktopTestedPackageSha256": "2a17587116cdbe2f7fce772d3913428cb320dab3a58c8ea83c1744f4a0d09b00",
+    "finalPackageSha256": "e3b29b19352fcf51f26feab49a3f2dac72d0d91653d726aa7518aa75e4049450",
+    "finalPackage": "dsh-noemaloom-0.4.0-e3b29b19352fcf51f26feab49a3f2dac72d0d91653d726aa7518aa75e4049450.tgz",
+    "checkedFiles": 1617,
+    "changedFiles": [
+      {
+        "path": "README.en.md",
+        "before": {
+          "path": "README.en.md",
+          "bytes": 6298,
+          "sha256": "f293ba26adfb34d88eeec4dec48f6ae8de2f17f342f278d24365e47da51a57cd"
+        },
+        "after": {
+          "path": "README.en.md",
+          "bytes": 6298,
+          "sha256": "5c2aa51a88a09cff3d605ff9d2bd1416969a16cf2a1a5561f5c8ec1ae1cf561d"
+        }
+      },
+      {
+        "path": "README.md",
+        "before": {
+          "path": "README.md",
+          "bytes": 7470,
+          "sha256": "ad1ff608e60b23d3f50a2552cce3d0f1148baba1d7cf6f3660d1ab0bd0645df9"
+        },
+        "after": {
+          "path": "README.md",
+          "bytes": 7690,
+          "sha256": "3183cd04c4dec4ed59bfacd63920c3a5273502eabd0fefec284819cdbed514d9"
+        }
+      }
+    ],
+    "runtimeAndResourceFilesIdentical": true,
+    "explanation": "The actual isolated Desktop used the first package. The final tarball updates only the two root README files (host badge and release/companion links). Every other packaged file has the same SHA-256. The final tarball passed its complete package audit; this is not a claim that the final archive itself was GUI-installed."
+  },
+  "runtimePackage": "dsh-noemaloom-0.4.0-e3b29b19352fcf51f26feab49a3f2dac72d0d91653d726aa7518aa75e4049450.tgz",
+  "runtimePackageSha256": "e3b29b19352fcf51f26feab49a3f2dac72d0d91653d726aa7518aa75e4049450",
+  "validationTriage": [
+    "Updated reviewed minified updater names, graph pan fixture dependencies and OPS mode row IDs; retained exact drift rejection and native routing defaults.",
+    "Retained the kernel refLedgerAligned changes and local indexed-clone adaptations through the three-way rebase.",
+    "Added pinned public Cognition fixtures, isolated synthetic Git baseline and the upstream-recommended 600-second lint timeout; upstream assertions were not weakened.",
+    "Replaced Windows nested npm batch chains with direct sequential Node entry points for complete checks and audit-before-pack delivery.",
+    "Earlier parallel checks exhausted Windows commit memory; retained failed logs, serialized final validation and used an explicit Node heap budget. No failed attempt is counted as a pass.",
+    "Waited for the delayed synthetic welcome window and used its explicit skip-account action. The R41 UI harness clicks the left side of long targets so hover-expanded row actions cannot intercept saved-session selection.",
+    "Published upstream byte changes include line ending changes in frozen vendored trees; exact source bytes and hashes are retained.",
+    "The native-input harness now waits for a persisted child generation and checks summary/model-call counters; the previous dialog result could satisfy the old UI-only wait early. The failed attempt is retained.",
+    "A disposable-host interruption (exit 3758096392) during the native-input retry is retained. The final package was installed into the synthetic profile by the original host, and the native-input check passed in a fresh synthetic host lifecycle. The other 20 Desktop cases apply through the proved identical runtime payload."
+  ],
+  "limitations": [
+    "Host support remains official Desktop 0.2.1-rc.3. Published 0.2.2-alpha.2 was reviewed as a candidate and not adopted; no mixed-generation SDK upgrade was made.",
+    "No external model generation, paid provider, real SSH endpoint, or external memory server was exercised. Local deterministic adapters cover native streaming, child lifecycle, compression and actual Forge execution; generated-summary quality and remote quotas/network behavior remain unassessed.",
+    "Cognition test_conformance, test_mr_m1 and test_mr_m2 each skip one optional unavailable private historical corpus check. Their synthetic assertions run; these three optional checks are not counted as passed.",
+    "The public Cognition fixtures validate source and build contracts; no Rust engine or upstream installer is registered or executed by the product.",
+    "Karpathy DSH Git, Archify npm 404 and the archive without a supplied remote remain explicitly unavailable. GitHub compare file lists may truncate; the kernel rebase used full Git objects.",
+    "Only synthetic profiles and independent test Desktop processes were used. No running user Desktop, user agent, profile or conversation database was modified.",
+    "Forge is delivered as a separate optional original companion. Historical rc.2 benchmark/stress results are labeled historical and do not certify rc.3 performance."
+  ]
+}

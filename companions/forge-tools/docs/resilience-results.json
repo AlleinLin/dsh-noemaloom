@@ -1,0 +1,489 @@
+{
+  "measuredAt": "2026-10-20T00:07:15.744Z",
+  "platform": "win32",
+  "arch": "x64",
+  "node": "v24.19.0",
+  "os": "Windows_NT 10.0.26200",
+  "methodology": {
+    "fileLatency": "Artificial delay at actual SDK filesystem provider boundaries, with an AbortSignal deadline. Baseline is the official read resolve/stat/readText sequence, not a GUI/model latency measurement.",
+    "memory": "Synthetic unique files and search output; repeated construct/churn/dispose, explicit GC, and post-disposal heap samples. RSS is recorded separately and is not interpreted as retained JavaScript heap.",
+    "powerShell": "Actual DSH SDK subprocess/PwshLocalExecutor; persistent mode only in the temporary danger-full-access test context.",
+    "cpuSluggishness": "One isolated Node child blocks only its own event loop for 120 ms while a read has a 20 ms cancellation deadline. Records timer callback lateness; does not claim JavaScript can interrupt a blocked event loop."
+  },
+  "limitations": [
+    "Not measured on the company workstation; does not reproduce four security products, kernel minifilters or WMI traffic. The isolated event-loop block is a finite CPU scheduling simulation, not a whole-computer slowdown.",
+    "Finite endurance tests can detect bounded-cache violations and obvious growth; they cannot prove absence of every memory leak.",
+    "A warm cache can avoid provider I/O within its TTL. Fresh/expired reads and actual writes still depend on the underlying provider and disk.",
+    "AbortSignal cannot force arbitrary non-cooperative filesystem implementations to complete immediately. The late-completion case explicitly measures that limitation.",
+    "Cache byte counters estimate retained content/metadata; temporary I/O buffers, V8 overhead, SDK state, subprocesses and PowerShell user variables are separate."
+  ],
+  "checks": [
+    {
+      "name": "SDK baseline exceeds deadline; a previously warm Forge read avoids delayed provider calls",
+      "status": "passed",
+      "elapsedMs": 83.182,
+      "injectedDelayPerProviderCallMs": 180,
+      "deadlineMs": 60,
+      "ttlMs": 30000,
+      "baseline": {
+        "status": "rejected",
+        "elapsedMs": 75.594,
+        "error": "AbortError: The operation was aborted",
+        "deadlineTriggered": true
+      },
+      "warm": {
+        "status": "completed",
+        "elapsedMs": 0.375
+      },
+      "providerCalls": {
+        "resolve": 1,
+        "stat": 0,
+        "readText": 0,
+        "readBytes": 0
+      },
+      "metrics": {
+        "hits": 1,
+        "validatedHits": 0,
+        "misses": 1,
+        "merged": 0,
+        "providerReads": 1,
+        "providerWrites": 0,
+        "invalidations": 0,
+        "cacheBytes": 3234,
+        "cacheEntries": 1,
+        "pendingReads": 0,
+        "activeIo": 0,
+        "queuedIo": 0,
+        "cacheAccounting": "UTF-16 strings plus estimated entry metadata; excludes active I/O and host runtime",
+        "ttlMs": 30000,
+        "watchers": 0
+      }
+    },
+    {
+      "name": "Aborted slow provider load releases queue and never fills the cache",
+      "status": "passed",
+      "elapsedMs": 35.282,
+      "result": {
+        "status": "rejected",
+        "elapsedMs": 34.852,
+        "error": "Error: injected deadline 35 ms",
+        "deadlineTriggered": true
+      },
+      "queuedCancellations": 16,
+      "maxQueuedCancellationMs": 20.507,
+      "provider": {
+        "resolve": 1,
+        "stat": 1,
+        "readText": 0,
+        "readBytes": 1,
+        "observations": 0
+      },
+      "metrics": {
+        "hits": 0,
+        "validatedHits": 0,
+        "misses": 1,
+        "merged": 0,
+        "providerReads": 1,
+        "providerWrites": 0,
+        "invalidations": 0,
+        "cacheBytes": 0,
+        "cacheEntries": 0,
+        "pendingReads": 0,
+        "activeIo": 0,
+        "queuedIo": 0,
+        "cacheAccounting": "UTF-16 strings plus estimated entry metadata; excludes active I/O and host runtime",
+        "ttlMs": 30000,
+        "watchers": 0
+      }
+    },
+    {
+      "name": "Non-cooperative late provider completion is rejected and cannot resurrect a disposed cache",
+      "status": "passed",
+      "elapsedMs": 211.408,
+      "injectedNonCooperativeReadMs": 150,
+      "abortAfterMs": 25,
+      "callerElapsedMs": 29.433,
+      "settledElapsedMs": 211.136,
+      "immediatelyAfterAbort": {
+        "hits": 0,
+        "validatedHits": 0,
+        "misses": 1,
+        "merged": 0,
+        "providerReads": 1,
+        "providerWrites": 0,
+        "invalidations": 1,
+        "cacheBytes": 0,
+        "cacheEntries": 0,
+        "pendingReads": 0,
+        "activeIo": 1,
+        "queuedIo": 0,
+        "cacheAccounting": "UTF-16 strings plus estimated entry metadata; excludes active I/O and host runtime",
+        "ttlMs": 30000,
+        "watchers": 0
+      },
+      "provider": {
+        "resolve": 1,
+        "stat": 1,
+        "readText": 0,
+        "readBytes": 1,
+        "observations": 0
+      },
+      "metrics": {
+        "hits": 0,
+        "validatedHits": 0,
+        "misses": 1,
+        "merged": 0,
+        "providerReads": 1,
+        "providerWrites": 0,
+        "invalidations": 1,
+        "cacheBytes": 0,
+        "cacheEntries": 0,
+        "pendingReads": 0,
+        "activeIo": 0,
+        "queuedIo": 0,
+        "cacheAccounting": "UTF-16 strings plus estimated entry metadata; excludes active I/O and host runtime",
+        "ttlMs": 30000,
+        "watchers": 0
+      },
+      "interpretation": "Caller cancellation returns promptly. The underlying operation retains its concurrency slot until settled; late completion cannot publish/cache data or reuse a disposed service."
+    },
+    {
+      "name": "Isolated blocked event loop records a late deadline callback without publishing a late read",
+      "status": "passed",
+      "elapsedMs": 1059.65,
+      "requestedDeadlineMs": 20,
+      "requestedBlockMs": 120,
+      "actualBlockMs": 120.02749999999992,
+      "deadlineCallbackMs": 121.43680000000006,
+      "timerLatenessMs": 101.43680000000006,
+      "callerElapsedMs": 121.71600000000001,
+      "deadlineClassified": true,
+      "observations": 0,
+      "immediatelyAfterDeadline": {
+        "hits": 0,
+        "validatedHits": 0,
+        "misses": 1,
+        "merged": 0,
+        "providerReads": 1,
+        "providerWrites": 0,
+        "invalidations": 0,
+        "cacheBytes": 0,
+        "cacheEntries": 0,
+        "pendingReads": 1,
+        "activeIo": 1,
+        "queuedIo": 0,
+        "cacheAccounting": "UTF-16 strings plus estimated entry metadata; excludes active I/O and host runtime",
+        "ttlMs": 30000,
+        "watchers": 0
+      },
+      "afterUnderlyingCompletion": {
+        "hits": 0,
+        "validatedHits": 0,
+        "misses": 1,
+        "merged": 0,
+        "providerReads": 1,
+        "providerWrites": 0,
+        "invalidations": 0,
+        "cacheBytes": 0,
+        "cacheEntries": 0,
+        "pendingReads": 0,
+        "activeIo": 0,
+        "queuedIo": 0,
+        "cacheAccounting": "UTF-16 strings plus estimated entry metadata; excludes active I/O and host runtime",
+        "ttlMs": 30000,
+        "watchers": 0
+      },
+      "interpretation": "A blocked JavaScript event loop delays deadline callbacks. Once runnable, cancellation wins and the eventual provider result cannot publish an observation or fill the cache.",
+      "isolatedChildTimeoutMs": 5000
+    },
+    {
+      "name": "Unique-file/search cache churn stays within configured counts and budgets",
+      "status": "passed",
+      "elapsedMs": 30062.866,
+      "cycles": 24,
+      "uniqueFileLoads": 9600,
+      "uniqueSearchPairs": 288,
+      "explicitGc": true,
+      "bounds": {
+        "fileBudget": 131072,
+        "fileEntryCap": 4096,
+        "snapshots": 4,
+        "snapshotBudget": 262144,
+        "queries": 8,
+        "queryBudget": 8388608
+      },
+      "observedMaxima": {
+        "fileBytes": 129400,
+        "fileEntries": 25,
+        "snapshots": 1,
+        "queries": 8,
+        "snapshotBytes": 168078,
+        "queryBytes": 214964
+      },
+      "beforeChurn": {
+        "cycle": -1,
+        "heapUsed": 9320752,
+        "external": 2738253,
+        "arrayBuffers": 143622,
+        "rss": 65409024
+      },
+      "postDisposeMemorySamples": [
+        {
+          "cycle": 0,
+          "heapUsed": 9859592,
+          "external": 2738286,
+          "arrayBuffers": 143615,
+          "rss": 68276224
+        },
+        {
+          "cycle": 1,
+          "heapUsed": 10014560,
+          "external": 2738286,
+          "arrayBuffers": 143615,
+          "rss": 70742016
+        },
+        {
+          "cycle": 2,
+          "heapUsed": 10162384,
+          "external": 2738286,
+          "arrayBuffers": 143615,
+          "rss": 70508544
+        },
+        {
+          "cycle": 3,
+          "heapUsed": 10005136,
+          "external": 2738286,
+          "arrayBuffers": 143615,
+          "rss": 71462912
+        },
+        {
+          "cycle": 4,
+          "heapUsed": 10200784,
+          "external": 2738286,
+          "arrayBuffers": 143615,
+          "rss": 79843328
+        },
+        {
+          "cycle": 5,
+          "heapUsed": 9988536,
+          "external": 2738286,
+          "arrayBuffers": 143615,
+          "rss": 80146432
+        },
+        {
+          "cycle": 6,
+          "heapUsed": 10213232,
+          "external": 2738286,
+          "arrayBuffers": 143615,
+          "rss": 80281600
+        },
+        {
+          "cycle": 7,
+          "heapUsed": 9995400,
+          "external": 2738286,
+          "arrayBuffers": 143615,
+          "rss": 80384000
+        },
+        {
+          "cycle": 8,
+          "heapUsed": 10231888,
+          "external": 2738286,
+          "arrayBuffers": 143615,
+          "rss": 80158720
+        },
+        {
+          "cycle": 9,
+          "heapUsed": 10068616,
+          "external": 2738286,
+          "arrayBuffers": 143615,
+          "rss": 80969728
+        },
+        {
+          "cycle": 10,
+          "heapUsed": 10239072,
+          "external": 2738286,
+          "arrayBuffers": 143615,
+          "rss": 80424960
+        },
+        {
+          "cycle": 11,
+          "heapUsed": 10016824,
+          "external": 2738286,
+          "arrayBuffers": 143615,
+          "rss": 83632128
+        },
+        {
+          "cycle": 12,
+          "heapUsed": 10294752,
+          "external": 2738286,
+          "arrayBuffers": 143615,
+          "rss": 92680192
+        },
+        {
+          "cycle": 13,
+          "heapUsed": 10013640,
+          "external": 2738286,
+          "arrayBuffers": 143615,
+          "rss": 99606528
+        },
+        {
+          "cycle": 14,
+          "heapUsed": 10301448,
+          "external": 2738286,
+          "arrayBuffers": 143615,
+          "rss": 99880960
+        },
+        {
+          "cycle": 15,
+          "heapUsed": 10024704,
+          "external": 2738286,
+          "arrayBuffers": 143615,
+          "rss": 99663872
+        },
+        {
+          "cycle": 16,
+          "heapUsed": 10247552,
+          "external": 2738286,
+          "arrayBuffers": 143615,
+          "rss": 99569664
+        },
+        {
+          "cycle": 17,
+          "heapUsed": 10016528,
+          "external": 2738286,
+          "arrayBuffers": 143615,
+          "rss": 99684352
+        },
+        {
+          "cycle": 18,
+          "heapUsed": 10253504,
+          "external": 2738286,
+          "arrayBuffers": 143615,
+          "rss": 99139584
+        },
+        {
+          "cycle": 19,
+          "heapUsed": 10034496,
+          "external": 2738286,
+          "arrayBuffers": 143615,
+          "rss": 99090432
+        },
+        {
+          "cycle": 20,
+          "heapUsed": 10258328,
+          "external": 2738286,
+          "arrayBuffers": 143615,
+          "rss": 99598336
+        },
+        {
+          "cycle": 21,
+          "heapUsed": 10046344,
+          "external": 2738286,
+          "arrayBuffers": 143615,
+          "rss": 99725312
+        },
+        {
+          "cycle": 22,
+          "heapUsed": 10323648,
+          "external": 2738286,
+          "arrayBuffers": 143615,
+          "rss": 100167680
+        },
+        {
+          "cycle": 23,
+          "heapUsed": 10048072,
+          "external": 2738286,
+          "arrayBuffers": 143615,
+          "rss": 99856384
+        }
+      ],
+      "cooldown": {
+        "elapsedMs": 2005.055,
+        "eventLoopTurns": 2,
+        "afterDispose": {
+          "cycle": 24,
+          "heapUsed": 9787368,
+          "external": 2738286,
+          "arrayBuffers": 143615,
+          "rss": 99856384
+        },
+        "heapDeltaFromBeforeChurn": 466616,
+        "heapDeltaFromLastImmediateSample": -260704,
+        "interpretation": "The baseline-to-cooldown difference includes JIT/code caches and runtime warmup; it is not automatically a retained plugin object leak."
+      },
+      "timeoutExpiry": {
+        "historicalTimeoutWindowMs": 30000,
+        "requestedWaitMs": 27489.965,
+        "actualAdditionalWaitMs": 27502.623,
+        "elapsedFromMemoryCaseStartMs": 30062.661,
+        "afterExpiry": {
+          "cycle": 25,
+          "heapUsed": 9788296,
+          "external": 2738286,
+          "arrayBuffers": 143615,
+          "rss": 62889984
+        },
+        "heapDeltaFromBeforeChurn": 467544,
+        "heapDeltaFromCooldown": 928,
+        "interpretation": "An optional finite sample after historical timeout signals would have expired; a smaller heap helps separate temporary runtime retention from persistent growth, without proving absence of all leaks."
+      },
+      "lateHeap": {
+        "sampleCount": 12,
+        "slopeBytesPerCycle": -3297.93,
+        "rangeBytes": 310008,
+        "heuristicGuards": {
+          "maxSlopeBytesPerCycle": 262144,
+          "maxRangeBytes": 8388608
+        }
+      },
+      "interpretation": "Only JavaScript heap after dispose/GC is checked for late growth. RSS may stay reserved by V8/native allocators after collection."
+    },
+    {
+      "name": "Real persistent PowerShell endurance, cancellation recovery and disposal",
+      "status": "passed",
+      "elapsedMs": 2966.626,
+      "successfulRepeatedCalls": 80,
+      "cancellationRecoveryCycles": 4,
+      "warmCallMedianMs": 5.382,
+      "beforeDispose": {
+        "calls": 89,
+        "residentStarts": 5,
+        "residentCalls": 89,
+        "isolatedCalls": 0,
+        "residentProcesses": 1,
+        "isolatedProcesses": 0,
+        "cleanupPending": 0
+      },
+      "afterDispose": {
+        "calls": 89,
+        "residentStarts": 5,
+        "residentCalls": 89,
+        "isolatedCalls": 0,
+        "residentProcesses": 0,
+        "isolatedProcesses": 0,
+        "cleanupPending": 0
+      },
+      "cancellations": [
+        {
+          "attempt": 0,
+          "elapsedIncludingRestartMs": 499.773
+        },
+        {
+          "attempt": 1,
+          "elapsedIncludingRestartMs": 515.248
+        },
+        {
+          "attempt": 2,
+          "elapsedIncludingRestartMs": 514.478
+        },
+        {
+          "attempt": 3,
+          "elapsedIncludingRestartMs": 505.791
+        }
+      ],
+      "interpretation": "Resident process count is plugin ownership state; actual managed subprocess disposal is awaited. User-created variables/functions can intentionally retain PowerShell memory until session reset/idle shutdown."
+    }
+  ],
+  "elapsedMs": 34430.876,
+  "passed": true
+}

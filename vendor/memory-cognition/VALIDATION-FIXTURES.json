@@ -1,6 +1,6 @@
 {
-  "revision": "2710114be671d655056f1c503f973262c8855453",
-  "purpose": "Exact public upstream source/document fixtures used by unchanged Python regressions; the Rust file is not a runtime adapter.",
+  "revision": "72fd465db69bb7edcfed54b1a9e03c88b7e27ea2",
+  "purpose": "Exact public source fixtures for unchanged Python regressions only; no Rust engine or installer is executed by the host.",
   "files": [
     {
       "file": "docs/plans/真源索引_通用机制_v0.3.md",
@@ -13,6 +13,70 @@
     {
       "file": "rust/src/engine.rs",
       "sha256": "f9c9fed1a22158773724315f00c9bdde31671df6ef97b972f7ace6bbf5ef51c2"
+    },
+    {
+      "file": "rust/src/freshness.rs",
+      "sha256": "70dd8e672855a644cdfe86fc05648073058c47d7b431d9c31d5421c1547d33f5"
+    },
+    {
+      "file": "rust/src/retrieval.rs",
+      "sha256": "1ce03ee9092f61efa53a4260e63b21b24f1c2506abf8ba80df3e86bf1e126bd1"
+    },
+    {
+      "file": "src/index.ts",
+      "sha256": "2de3b4a6d4e0e638a942d5f00a3cd7c1426c32db5f0b326e38c8388737d411ea"
+    },
+    {
+      "file": "scripts/workspace_index.py",
+      "sha256": "ab552c124525be8187d9175b4f7c871b47f5d3b7a3cebdfb725737b31b594290"
+    },
+    {
+      "file": "scripts/build_ui.py",
+      "sha256": "3dee0fd435f8d74b829200462835863c154d4966bc519d63b3f4111dc9a96070"
+    },
+    {
+      "file": "ui/minimal/install.ps1",
+      "sha256": "57b683ce58e7cbdf43ef1702272c5c6aead7584bc668f7b49f31191a6c446ac1"
+    },
+    {
+      "file": "ui/minimal/integrity.json",
+      "sha256": "8a0914718fe35d588e240cdda3968a3d90bc26074e55455ad0bb72f56128dead"
+    },
+    {
+      "file": "ui/minimal/payload/web/client.js",
+      "sha256": "fea2f301980d2cf5cd67a66e2a12f21a69f255e512f56d34a80ec86634de560c"
+    },
+    {
+      "file": "ui/minimal/payload/lib/lib/console_web.mjs",
+      "sha256": "9c8f8450571729688033033f35345b18e9eeb68b871e3a4c53a9b619f28aa61e"
+    },
+    {
+      "file": "ui/minimal/payload/web/entry.js",
+      "sha256": "e5b602282eabcdffe207065b113ac148e96dcf799d09009871c475546a7663a6"
+    },
+    {
+      "file": "ui/minimal/payload/lib/client.js",
+      "sha256": "89b4fe09b105a378b1404ed13c06f9416e12f234e64db6c2a529b6196675aa20"
+    },
+    {
+      "file": "ui/minimal/payload/build-ui.mjs",
+      "sha256": "893e304fbb82810478041f30ac4a7c32cdb42a6c63a238f051a044370a38e103"
+    },
+    {
+      "file": "ui/minimal/payload/web/app.js",
+      "sha256": "a49b152f6b28a6a5123afcaba273ae4f775f2eaab496a57bcaf9ab4cc4a86c05"
+    },
+    {
+      "file": "ui/minimal/payload/src/lib/console_web.mjs",
+      "sha256": "9c8f8450571729688033033f35345b18e9eeb68b871e3a4c53a9b619f28aa61e"
+    },
+    {
+      "file": "ui/minimal/payload/web/index.html",
+      "sha256": "9f056dd4769effd75f98a9121cbefbb3704a430fccf0d656b75fd4bc12114da4"
+    },
+    {
+      "file": "ui/minimal/payload/web/style.css",
+      "sha256": "58b2f345b3975eadf66ed030f7e9aa6047f7c225e0fad94f6af3843db934eda4"
     }
   ]
 }

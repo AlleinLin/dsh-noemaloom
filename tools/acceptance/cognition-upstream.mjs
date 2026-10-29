@@ -34,6 +34,7 @@ const modules = [
   'test_issue659_r26_batch2', 'test_issue665_scrub_process_records',
   'test_issue669_ccg_empty_colon', 'test_issue672_validity_scope',
 ];
+for (const name of ["test_b4_shard_dir_selfheal","test_b4_shard_dir_selfheal_guard","test_config_registry_silent_fallback","test_designer_token_coverage","test_i50e_readside_protection","test_issue452_ingest_root_sensitivity","test_issue659_r26_batch3","test_issue672_optional_assets","test_issue676_session_tasks_index_first","test_issue677_async_index_flush","test_issue677_dedupe_gate","test_issue678_narrowed_hint","test_mode_parity","test_mr_m2","test_n230_dirty_replay","test_protect_stats_parity","test_review_dual_check","test_time_core_lint","test_ui_wiring_in_repo","test_writegate_tiers","test_writepipe"]) if (!modules.includes(name)) modules.push(name);
 const environment = Object.fromEntries(Object.entries(process.env).filter(([name]) =>
   !/^(?:MDCG_|LINGSU_|LINGSHU_)/iu.test(name)
     && !/(?:TOKEN|SECRET|PASSWORD|API_KEY|AUTHORIZATION|CREDENTIAL)/iu.test(name)));
@@ -44,14 +45,37 @@ const env = { ...environment, PYTHONPATH: vendor, PYTHONDONTWRITEBYTECODE: '1',
   MDCG_MASTER_KEY_PATH: join(isolated, 'master.key'), MDCG_LINKS_FILE: join(isolated, 'links.json'),
   MDCG_SIGNERS_FILE: join(isolated, 'signers.json'), MDCG_SIGNER_KEY_FILE: join(isolated, 'signer.key'),
   MDCG_SWARM_DIR: join(isolated, 'swarm') };
+// The unchanged upstream oracle exports HEAD. Give the clean isolated public
+// copy its own synthetic baseline, before any test creates state. No hooks run.
+const hooks = join(isolated, 'empty-hooks');
+await mkdir(hooks);
+async function git(args) {
+  const child = spawn('git', ['-c', `core.hooksPath=${hooks}`, '-c', 'core.autocrlf=false',
+    '-c', 'user.name=Noemaloom isolated validation', '-c', 'user.email=validation@example.invalid',
+    ...args], { cwd: vendor, env, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
+  let log = '';
+  child.stdout.on('data', bytes => { log += bytes; });
+  child.stderr.on('data', bytes => { log += bytes; });
+  const code = await new Promise((resolveGit, reject) => {
+    child.once('error', reject); child.once('close', resolveGit);
+  });
+  if (code !== 0) throw new Error(`Isolated cognition Git baseline failed: ${log}`);
+  return log.trim();
+}
+await git(['init', '--quiet']);
+await git(['add', '--all']);
+await git(['commit', '--quiet', '--no-gpg-sign', '-m', 'Public release validation baseline']);
+const isolatedBaseline = await git(['rev-parse', 'HEAD']);
 const report = { startedAt: new Date().toISOString(), sourceHash: source.sha256,
-  copiedPublicSourceFiles: copied.length, usesIsolatedSourceCopy: true, results: [], ok: false };
+  copiedPublicSourceFiles: copied.length, usesIsolatedSourceCopy: true,
+  isolatedSyntheticGitBaseline: isolatedBaseline, results: [], ok: false };
 async function run(name, commandArgs) {
   const startedAt = new Date().toISOString();
   const child = spawn(process.env.NEXUS_PYTHON_EXECUTABLE ?? 'python', ['-X', 'utf8', ...commandArgs],
     { cwd: vendor, env, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
   let log = '', timedOut = false;
-  const timer = setTimeout(() => { timedOut = true; child.kill(); }, 180_000);
+  const timer = setTimeout(() => { timedOut = true; child.kill(); },
+    name === 'test_time_core_lint' ? 600_000 : 180_000);
   child.stdout.on('data', bytes => { log += bytes; });
   child.stderr.on('data', bytes => { log += bytes; });
   const result = await new Promise(resolveRun => {

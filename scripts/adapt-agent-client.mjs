@@ -5,13 +5,14 @@ function once(source, anchor, replacement, label) {
 }
 /** Keep the original tree/graph, polls and team model; share one cache. */
 export function adaptAgentClient(factory) {
-  // A completed background pan must suppress only its own derived click.
-  // Reset before testing node/control targets, including expanded groups.
+  // Upstream 0.28.2 now carries the pan reset. Verify the exact fixed seam
+  // instead of inserting another reset or accepting an unreviewed graph.
   let source = once(factory, `stopGlide();
+\t\t\t\ttravelRef.current = 0;
 \t\t\t\tconst target = event.target;
 \t\t\t\tif (target.closest("[data-graph-node]") !== null) return;`,
     `stopGlide();
-                travelRef.current = 0;
+\t\t\t\ttravelRef.current = 0;
 \t\t\t\tconst target = event.target;
 \t\t\t\tif (target.closest("[data-graph-node]") !== null) return;`, 'graph click admission');
   source = once(source, 'function SubagentView(props) {',
@@ -31,9 +32,9 @@ export function adaptAgentClient(factory) {
   if (start < 0 || end < 0) throw new Error('Agent integration graph source changed');
   const part = source.slice(start, end);
   const child = `children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(TaskLine, {
-\t\t\t\t\t\ttasks: node.tasks,
-\t\t\t\t\t\tonOpenTask
-\t\t\t\t\t})`;
+\t\t\t\t\ttasks: node.tasks,
+\t\t\t\t\tonOpenTask
+\t\t\t\t})`;
   source = source.slice(0, start) + once(part, child, `children: react_jsx_runtime.jsxs(react.Fragment, {children: [
       react_jsx_runtime.jsx(TaskLine, {tasks: node.tasks, onOpenTask}),
       react_jsx_runtime.jsx(nexusAgentFacts.AgentFacts, {node})

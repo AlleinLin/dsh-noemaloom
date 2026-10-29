@@ -28,6 +28,7 @@ import time
 import uuid
 
 from .mdcg import (MdCG, expand_query_terms, bigrams, normalize_en, fold_accents,
+                    _optional_asset,
                     parse_min_score,
                     STATE_ACCEPT,
                    STATE_REJECT, STATE_DEFER, STATE_BLINDSPOT, TIER_BUCKET_LIKE,
@@ -616,6 +617,37 @@ def _verify_norm(verify):
 def _redteam_required():
     return os.environ.get("MDCG_REDTEAM_REQUIRED", "").strip().lower() \
         in ("1", "true", "yes")
+
+
+# 生效条件：无 required 形参；当 os.environ 中 MDCG_REVIEW_DUAL_CHECK 去空白小写后属 1/true/yes/on 时返回 True，否则 False（缺省关，避免升级即阻断既有裁决流程）。
+def _dual_check_required():
+    """裁决是否强制「反思单元 + 验证单元」双复核（2026-10-27 使用者裁定）。
+
+    裁定原话：「裁决需要用反思单元和验证单元复核。」缺省**关**——与
+    `MDCG_REDTEAM_REQUIRED` 同款：既有脚本/蜂巢流程不该因升级而中断，
+    由部署方显式开启（DSH 端建议开）。
+    """
+    return os.environ.get("MDCG_REVIEW_DUAL_CHECK", "").strip().lower() \
+        in ("1", "true", "yes", "on")
+
+
+#: 复核单元名的中英文同义归一（判据只认两类 + 人工）。
+REVIEW_UNIT_ALIASES = {
+    "reflect": "reflect", "reflection": "reflect", "反思单元": "reflect",
+    "反思": "reflect", "reflect_unit": "reflect",
+    "verify": "verify", "verifier": "verify", "验证单元": "verify",
+    "验证": "verify", "verify_unit": "verify",
+    "human": "human", "user": "human", "使用者": "human", "人工": "human",
+}
+
+
+# 生效条件：name 为假值时返回空串；否则 strip/lower 后查 REVIEW_UNIT_ALIASES，命中返回归一名，未命中原样返回小写值。
+def _norm_review_unit(name):
+    """复核单元名归一 → reflect / verify / human（未知名原样返回，便于报错点名）。"""
+    raw = str(name or "").strip().lower()
+    if not raw:
+        return ""
+    return REVIEW_UNIT_ALIASES.get(raw, raw)
 
 
 # ---- 审核队列裁决动作（治理层）· 2026-09-19 阶段一 ----------------------------
@@ -1367,8 +1399,15 @@ class MdCGOS(MdCG):
         # 批次 15 统一口径（unify.py，2026-09-30 收窄作用域）：只译**英文内容**
         # → 标准原子序列，中文段逐字原样（不再整条归一）；与
         # MdCG.search/search_rrf 三入口同口径（归一层缺省关，显式 =1 才开）
-        from .semantic.unify import unify_query
-        q = unify_query(q)
+        # issue #672：资产包 semantic 可被裁剪（分包/剪枝安装）——缺包时把归一层视为关
+        # （归一层本就缺省关，跳过与关同语义），而不是在调用期抛 ImportError。
+        # 接线形态保持 q = unify_query(q) 字面不变（防回退锚点 G4g/G4h 钉的是这行）。
+        try:
+            from .semantic.unify import unify_query
+        except ImportError:
+            unify_query = None
+        if unify_query is not None:
+            q = unify_query(q)
         if not q:
             return [], {"tier": None, "reason": "empty_query", "scanned": 0}
         self._maybe_reload_index()      # P1b-2：读面代际感知（route/read/search 链）
@@ -2194,8 +2233,15 @@ class MdCGOS(MdCG):
         # 批次 15 统一口径（unify.py，2026-09-30 收窄作用域）：只译**英文内容**
         # → 标准原子序列（中文段逐字原样）；归一后的 q 进热路径缓存键
         # （归一确定 → 缓存不串味）
-        from .semantic.unify import unify_query
-        q = unify_query(q)
+        # issue #672：资产包 semantic 可被裁剪（分包/剪枝安装）——缺包时把归一层视为关
+        # （归一层本就缺省关，跳过与关同语义），而不是在调用期抛 ImportError。
+        # 接线形态保持 q = unify_query(q) 字面不变（防回退锚点 G4g/G4h 钉的是这行）。
+        try:
+            from .semantic.unify import unify_query
+        except ImportError:
+            unify_query = None
+        if unify_query is not None:
+            q = unify_query(q)
         if not q:
             return [], {"tier": None, "reason": "empty_query", "paths": {}}
         # 相对时间锚定（MDCG_TIME_ANCHOR=1，缺省关 ⇒ 不解析、不入键、零变更）：日期从
@@ -3751,11 +3797,56 @@ class MdCGOS(MdCG):
             after_hash=_after_hash)
         return {"ok": True, "node_id": node_id, "mutation": mpay}
 
+# 生效条件：item 为 inbox 记录、decision 属 DECISION_ACTIONS；reviewed_by 可为字符串或 {unit:…} 映射的可迭代，decided_by 为假值时回落到 item 的 proposer/compiled_by/actor；返回 {"ok":True,"reviewed_units":[...]} 或 {"ok":False,"error":...}（dual_check_required / self_review_forbidden / unknown_review_unit）。
+    def _dual_review_verdict(self, item, decision, decided_by=None, reviewed_by=None):
+        """裁决前双单元复核判定（反思单元 + 验证单元；**裁决者不得自证**）。
+
+        归一口径见 `_norm_review_unit`（reflect/verify/human 三类）。两条判据：
+          1. `reviewed_by` 必须**同时**含 reflect 与 verify（同一类重复不算——
+             两个反思单元仍然没有验证，正是「同侧互证」的盲区）；
+          2. 裁决者不得是提案者本人（与 ccg 的 E041「编译者不得自证」同源）。
+
+        只在 `MDCG_REVIEW_DUAL_CHECK=1` 时被调用；关闭时本方法不参与任何路径。
+        """
+        units = []
+        for raw in (reviewed_by or ()):
+            if isinstance(raw, dict):
+                name = raw.get("unit") or raw.get("role") or raw.get("name") or ""
+            else:
+                name = raw
+            unit = _norm_review_unit(name)
+            if unit:
+                units.append(unit)
+        have = set(units)
+        missing = [u for u in ("reflect", "verify") if u not in have]
+        if missing:
+            return {"ok": False, "error": "dual_check_required",
+                    "pid": item.get("pid"), "decision": decision,
+                    "missing": missing, "reviewed_units": sorted(have),
+                    "detail": ("裁决须经反思单元与验证单元复核（2026-10-27 裁定）："
+                               "缺 %s。请带上 reviewed_by 重试，例如 "
+                               "reviewed_by=[\"反思单元\", \"验证单元\"]。"
+                               % "/".join(missing))}
+        unknown = sorted(u for u in have if u not in ("reflect", "verify", "human"))
+        if unknown:
+            return {"ok": False, "error": "unknown_review_unit",
+                    "pid": item.get("pid"), "unknown": unknown,
+                    "detail": "复核单元只认 reflect/verify/human（含中文同义）"}
+        proposer = (item.get("proposer") or item.get("compiled_by")
+                    or item.get("actor") or "")
+        who = decided_by or getattr(self, "actor", None) or ""
+        if proposer and who and str(proposer).strip() == str(who).strip():
+            return {"ok": False, "error": "self_review_forbidden",
+                    "pid": item.get("pid"), "decided_by": str(who),
+                    "detail": "裁决者不得是提案者本人（同侧互证不构成复核）"}
+        return {"ok": True, "reviewed_units": sorted(have)}
+
 # 生效条件：decision 须为 DECISION_ACTIONS（"accept"/"reject"/"edit"/"merge"/"noop"）之一（否则 raise ValueError），inbox_log 中须有 pid 匹配记录（否则 {'ok': False, 'error': 'pid_not_found'}），且 pid 不在 self._closed_pids() 中（否则 'already_decided'）；edits 为真值且含 "verify"、或 redteam 为真值且含 "verify" 时返回 'verify_readonly'；last_status=="needs_reapproval" 时须 redteam.verdict 归一化为 "pass" 且 round_no>last_round（否则 'reapproval_required' / 'round_not_advanced'）；rt_v=="reject" 或（decision=="reject" 且 rt_issues 非空）时记 needs_reapproval 不落节点；decision=="accept" 且 rt_v 为空且 _redteam_required() 为真时返回 'redteam_required'；其余 accept/edit 按 item（edit 时用 edits.get 覆盖 content/tags/layer）add+flush 落节点，merge 须 merge_into 或 item.extra.merge_into 指向的节点存在（否则 'merge_target_not_found'），且写入前经与 add 同款双闸（N131，2026-09-25：principal 在位先 require_layer_write(目标层, 目标敏感度)——与 MdCGSecure.add 同序同错型；再 protect.guard_write(override=override)——self/anchor 层、immutable 标记，拒绝抛 ProtectionError/AccessDenied 且提案留 pending 不落库）后追加内容并定向索引 upsert（_node_entry 同源条目写入 index/_dirty）+flush，reject 与 noop 只记裁决（status 分别为 "rejected"/"noop"）；kind=mutation 的变更单（三档自治批次②）不走上述分支——accept 经 _mutation_execute 执行对应动作（失败即返回错误、不记裁决、提案保持 pending）、reject 只留痕，其余裁决 fail-closed 返回 mutation_decision_unsupported；最后统一 _record_decision + _cascade_dedup + flush 后返回 result。
     def review_decide(self, pid: str, decision: str, edits: dict = None,
                       merge_into: str = None, reason: str = "",
                       redteam: dict = None, issues=None,
-                      override: bool = False):
+                      override: bool = False,
+                      reviewed_by=None, decided_by: str = None):
         """审核裁决：accept / reject / edit / merge / noop。
 
         accept  → 按 inbox 原样写入
@@ -3832,6 +3923,14 @@ class MdCGOS(MdCG):
         if decision == "accept" and not rt_v and _redteam_required():
             return {"ok": False, "error": "redteam_required",
                     "detail": "MDCG_REDTEAM_REQUIRED=1：accept 必须带红队 pass"}
+
+        # 双单元复核闸（可选，MDCG_REVIEW_DUAL_CHECK=1）：**裁决须经反思单元与
+        # 验证单元复核**（2026-10-27 使用者裁定）。与上面的红队闸正交——红队是
+        # 「打回/再审批」，本闸是「谁复核过」。缺省关，开启后缺任一方即拒。
+        if _dual_check_required():
+            _chk = self._dual_review_verdict(item, decision, decided_by, reviewed_by)
+            if _chk.get("ok") is not True:
+                return _chk
 
         # 三档自治批次②（设计 §四）：**变更单**（kind=mutation）走**独立执行桥**
         # ——在既有前置闸（已判/verify_readonly/再审批/红队门控）之后、既有
@@ -4735,6 +4834,22 @@ class MdCGOS(MdCG):
             # 探活/显式刷新：无副作用面（签名未变时是零开销 stat + False）。
             return {"ok": True, "op": "maintain", "action": "reload",
                     "reloaded": bool(self._maybe_reload_index())}
+        if act == "flush":
+            # issue #677 P2：写路径的「索引落盘」已异步化——阈值触发的那次 flush
+            # 移出了 RPC 返回路径（否则客户端 60s 超时会把「已落盘但没回话」读成
+            # 失败，重试即产生重复条目，见 #677 三条实证）。
+            # 异步的对价是「写完那一刻索引派生物未必已在盘上」，故这里给一个
+            # **显式同步逃生门**：要「确定已落盘」、或要让索引面的错误在带内暴露
+            # （如分片目录重建失败 E_SHARD_DIR_UNREBUILDABLE）时，调它即可。
+            # 语义边界：只落索引派生物（脏条目 append 进分片日志，再关句柄），
+            # **不改内存索引**——「写完立刻可检索」由 _stage 同钩内存索引保证，
+            # 与本 action 无关（异步化不降级检索可见性）。
+            # 异常**不吞**：原样上抛，由 MCP 出口的 getattr(exc,"hint") 渲染成
+            # 结构化 error（code / hint / path 可机读，与 #677 P2 前的写面出口同形）。
+            self.flush()
+            st = self.flush_state()
+            st.update({"ok": True, "op": "maintain", "action": "flush"})
+            return st
         if act == "importance":
             return weights.recalc(self, layer=layer, limit=limit, apply=apply,
                                   min_delta=(weights.APPLY_DELTA if min_delta is None
@@ -5210,6 +5325,10 @@ class MdCGOS(MdCG):
             "self_state": self_state.summary(self),
             # 演化账本（md 载体：每一次修改 = 补一条缺失条件，记录规律与状态）
             "evolution": evolution.summary(self),
+            # issue #677 P2：索引落盘的**异步可读面**（脏条数 / 后台线程是否活着 /
+            # 最近一次后台失败）。后台失败冒不到任何调用方，体检面是它的唯一出口
+            # ——「容忍 ≠ 静默」（N225）在异步化后的落点。
+            "index_flush": self.flush_state(),
         }
         return h
 

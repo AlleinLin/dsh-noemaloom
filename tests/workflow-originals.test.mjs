@@ -103,23 +103,23 @@ test('managed update adapters remove independent update entry points and reject 
       assert.doesNotMatch(result.source, /action:.*t\("versions.checkAction"\)/);
       assert.match(result.source, /providers/, 'memory functionality remains');
     }
-    if (name === 'dsh-context') assert.match(result.source, /function Zc\(\)\{return Promise.resolve\(null\)\}/);
+    if (name === 'dsh-context') assert.match(result.source, /function yl\(\)\{return Promise.resolve\(null\)\}/);
     if (name.includes('agency')) {
-      assert.match(result.source, /function Tc\(\)\{return null\}/);
+      assert.match(result.source, /function Hc\(\)\{return null\}/);
       let bootstrap;
       const findBootstrap = node => {
-        if (ts.isFunctionDeclaration(node) && node.name?.text === 'Ec') bootstrap = node;
+        if (ts.isFunctionDeclaration(node) && node.name?.text === 'Uc') bootstrap = node;
         ts.forEachChild(node, findBootstrap);
       };
       findBootstrap(ast);
       assert.ok(bootstrap);
       // Execute the retained bootstrap in a realm with no DOM/network globals.
       // It must install neither the updater's observer nor its eager GET.
-      const dispose = Function(`${bootstrap.getText(ast)}; return Ec({})`)();
+      const dispose = Function(`${bootstrap.getText(ast)}; return Uc({})`)();
       assert.equal(typeof dispose, 'function');
       assert.doesNotThrow(dispose);
     }
-    const symbols = { 'dsh-context': ['el', 'Zc'], 'dsh-mnemon': ['VersionDialog'], '@michengai/dsh-agency-agents': ['Tc', 'Ec'] }[name];
+    const symbols = { 'dsh-context': ['Sl', 'yl'], 'dsh-mnemon': ['VersionDialog'], '@michengai/dsh-agency-agents': ['Hc', 'Uc'] }[name];
     for (const symbol of symbols) {
       const drifted = original.replace(`function ${symbol}(`, `function renamed_${symbol}(`);
       assert.notEqual(drifted, original, 'the mutation must rename this package’s actual managed updater');

@@ -10,7 +10,7 @@ DSH 原生同版本依赖、用户归档和外部服务。原项目和 DSH 移�
 
 当前宿主目标为 Desktop **0.2.1-rc.3**。本体发布、全部来源、
 输入/菜单/模型目录变化及新增插件的适配见
-[2026-10-26 审查报告](upstream-audit-2026-10-26.md)和同名 JSON。
+[2026-10-29 审查报告](upstream-audit-2026-10-29.md)和同名 JSON。
 Computer Use 两个上游分别追踪，仅加载选中的 Windows 实现。
 
 运行只读检查：
@@ -66,3 +66,10 @@ DSH 0.2.1-rc.3 的 `commandUi` 对 `sessions.subagentAddress(sessionId)` 直接�
 宿主统一维护后端位于 `src/host/compaction-support.ts`，预设后端优先，禁止同一请求重复压缩。
 升级时验证子代理实际请求里的 `compact_context`、运行中自身手动压缩、
 全局/工作区/会话实时阈值、独立压缩模型、恢复与自定义预设，以及父会话不被修改。
+
+## 原创 Forge companion（R41）
+
+`companions/forge-tools`保存与外部开发目录`D:\\dshplugin\\tools`对应的可复现源码，单独交付，默认不安装。
+升级时同时核对engines、所有同源SDK、官方standard组合、安装器和AI说明；
+必须用独立官方桌面及合成profile验证准入、工具执行和卸载恢复，禁止版本豁免掩盖不兼容。
+0.2.2-alpha.2是观察到的候选，当前支持边界仍为rc.3，所有SDK必须与此边界一致。

@@ -12,14 +12,14 @@ import { ORIGINAL_PLUGINS } from '../src/client/originals-manifest.ts';
 import { ORIGINAL_HOST_IDS } from '../src/host/originals.ts';
 
 const root = process.cwd(), require = createRequire(import.meta.url);
-const revision = 'f5449ed247559de2d0f19fc70870864fa93adfcf';
+const revision = '2d951e2d742cdf7776a57bff24996f806a6b015a';
 const definition = ORIGINAL_PLUGINS.find(entry => entry.packageName === 'dsh-codinput');
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 
 test('Codinput retains its pinned source, formal host registration and complete bundled dependency licenses', async () => {
   assert.ok(definition);
   assert.deepEqual(definition, {
-    id: 'codinput', packageName: 'dsh-codinput', version: '0.3.5',
+    id: 'codinput', packageName: 'dsh-codinput', version: '0.3.6',
     role: 'input', client: true, vendor: 'vendor/codinput', revision,
   });
   assert.ok(ORIGINAL_HOST_IDS.includes('codinput'));

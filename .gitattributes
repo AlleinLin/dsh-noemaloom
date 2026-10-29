@@ -16,3 +16,6 @@ assets/** -text
 notices/** -text
 src/upstream/** -text
 docs/specification/** -text
+
+# Keep the curated original companion snapshot reproducible byte for byte.
+companions/forge-tools/** -text

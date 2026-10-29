@@ -711,8 +711,8 @@ export async function auditPackage({ packagePath, outputPath = resolve(root, 'ev
         if (!lock.nativeArchives?.some(source => source.identity === id && /^[a-f0-9]{64}$/u.test(source.sha256))) throw new Error(`Missing native archive provenance: ${id}`);
       }
       const codinput = JSON.parse(decoder.decode(files.get('vendor/codinput/SOURCE.json')?.data ?? Buffer.alloc(0)));
-      if (codinput.packageName !== 'dsh-codinput' || codinput.version !== '0.3.5' || codinput.license !== 'MIT'
-        || codinput.revision !== 'f5449ed247559de2d0f19fc70870864fa93adfcf'
+      if (codinput.packageName !== 'dsh-codinput' || codinput.version !== '0.3.6' || codinput.license !== 'MIT'
+        || codinput.revision !== '2d951e2d742cdf7776a57bff24996f806a6b015a'
         || lock.units.find(unit => unit.id === 'SRC-38')?.source?.revision !== codinput.revision) throw new Error('Original Codinput source identity is incomplete');
       for (const path of [
         'vendor/codinput/SOURCE.json', 'notices/originals/codinput/SOURCE.json',
@@ -734,7 +734,7 @@ export async function auditPackage({ packagePath, outputPath = resolve(root, 'ev
       }
       const originalClient = decoder.decode(files.get('vendor/codinput/lib/client.js').data);
       parseFactory(originalClient, 'dsh-codinput');
-      const expectedClient = '// Original published client: dsh-codinput@0.3.5\n'
+      const expectedClient = '// Original published client: dsh-codinput@0.3.6\n'
         + '// Original license is included under notices/originals.\n'
         + `const factory = ${rebuiltCodinput.factory};\nexport default factory;\n`;
       if (decoder.decode(files.get('lib/original-client/codinput.js')?.data ?? Buffer.alloc(0)) !== expectedClient

@@ -1,5 +1,5 @@
 const alwaysLoaded = new Map([
-  ['dsh-ops-ptc', ['grep', 'glob']],
+  ['dsh-ops-mode-ptc', ['grep', 'glob']],
   ['dsh-ops-discovery', ['grep', 'glob']],
 ]);
 

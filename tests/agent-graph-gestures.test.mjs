@@ -9,7 +9,8 @@ const published = await readFile('node_modules/dsh-better-sidebar/lib/client.js'
 const original = parseFactory(published, 'dsh-better-sidebar').factory;
 const adapted = adaptAgentClient(original);
 test('a background pan suppresses its derived click but not subsequent agent, expand or control clicks', () => {
-  for (const [source, expected] of [[original, false], [adapted, true]]) {
+  // 0.28.2 contains the upstream fix; guard both published and adapted behavior.
+  for (const [source, expected] of [[original, true], [adapted, true]]) {
     // Capture window listeners while exercising the real production closure.
     const start = source.indexOf('const onPointerDown =', source.indexOf('function TasksGraph('));
     const end = source.indexOf('const phaseFrames =', start);
@@ -19,6 +20,9 @@ test('a background pan suppresses its derived click but not subsequent agent, ex
       react: { useCallback: fn => fn }, travelRef: { current: 0 }, stopGlide() {},
       tfRef: { current: { x: 0, y: 0, k: 1 } }, touchedRef: { current: false },
       CLICK_TOLERANCE_PX: 4, setDragging() {}, setTf() {}, clampTf: value => value,
+      panActiveRef: { current: false }, draggingRef: { current: false },
+      pendingPanRef: { current: null },
+      panBatcher: { schedule(fn) { fn(); }, flushNow() {} },
       window: { addEventListener: (key, fn) => listeners.set(key, fn), removeEventListener: key => listeners.delete(key) },
     });
     handlers.onPointerDown({ button: 0, clientX: 0, clientY: 0, target: { closest: () => null } });

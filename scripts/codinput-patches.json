@@ -99,7 +99,7 @@
   },
   {
     "file": "src/client/components/Toolbar.tsx",
-    "upstreamSha256": "14fde0536c10b8e0e3270da3c98f6ee58a024fc5db9fd3b25e922d9a77df232e",
+    "upstreamSha256": "31f94c4d135a7ff355c02fc87aaefacf15b6c4f0cb1564d77df07b738cc0083e",
     "replacements": [
       {
         "before": " */\n\nimport { useCallback, useState } from 'react';\nimport type { DraftAttachmentId, InputActions, InputState, InputTriggerController, UseProjection } from '../host-types';\nimport { openCommandMenu } from '../triggers';\nimport { t, useT } from '../i18n';\nimport { IconPlusOfficial, IconSendOfficial, IconStopOfficial } from '../icons';\nimport { ModelMenu } from './ModelMenu';\n",

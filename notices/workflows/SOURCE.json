@@ -63,17 +63,17 @@
     },
     {
       "name": "dsh-ops",
-      "version": "0.4.1",
-      "license": "MIT AND Apache-2.0",
-      "integrity": "sha512-TBG6jsMCrMowoHTBCgOcAZ2p/4GLeJi0Pbpq6irqbCBQNumPmYq1WIACDlEheg9XMQcDOkcnNs7XZgVmU2dkYA==",
+      "version": "0.4.4",
+      "license": "MIT",
+      "integrity": "sha512-HY8SCzrvVBInw5qdsapOz25wdrL/bzZyWUlQR9r+3ImiC+vBbj4/JdmeohmG/nxKU/3M4k83UhxCi15byiAslg==",
       "licenses": [
         {
           "file": "LICENSE",
-          "sha256": "46b986ffe7e944d8e29f87f83ffad2f098a62e44fcd3c6a250ec16f52cd37674"
+          "sha256": "5b6633db7dfb5f2eee5c8ea51e8a9e44b242a1051c3e2f2fd04c6992f754cbd4"
         },
         {
           "file": "NOTICE",
-          "sha256": "3f873e6e5497e660dd20303ee91d6253979888f12a5a7452ca3294641f638f4f"
+          "sha256": "b7dc96cf102b461d885554762d5341e46fa95e728ceecd394f83c36ebb785760"
         }
       ]
     },

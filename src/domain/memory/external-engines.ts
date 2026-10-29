@@ -68,7 +68,7 @@ export class ExternalMemoryEngines {
     if (result.exitCode !== 0) throw new NexusError('DEPENDENCY_FAILED', 'Memsearch调用失败', { exitCode: result.exitCode, diagnostic: result.stderr.slice(0, 3000) });
     let output: unknown = result.stdout;
     if (['search', 'expand', 'skills.list', 'skills.distill'].includes(method)) { try { output = JSON.parse(result.stdout); } catch { throw new NexusError('INVALID_ENGINE_RESPONSE', 'Memsearch没有返回有效JSON'); } }
-    return { method, output, dependency: 'vendored-memsearch-0.4.21', usage: 'unreported-by-cli', estimatedEmbeddingCost: 'unknown', sourceTruth: 'Markdown', sourceUnchanged: method !== 'skills.distill' };
+    return { method, output, dependency: 'vendored-memsearch-0.4.23', usage: 'unreported-by-cli', estimatedEmbeddingCost: 'unknown', sourceTruth: 'Markdown', sourceUnchanged: method !== 'skills.distill' };
   }
   async code(root: string, params: JsonRecord, ctx?: DispatchContext): Promise<unknown> {
     const method = String(params.method ?? 'status');

@@ -1732,7 +1732,9 @@ function resolveCoverageInterval(
       !consumed ||
       typeof consumed.startSeq !== "number" ||
       typeof consumed.endSeq !== "number" ||
-      consumed.endSeq < consumed.startSeq
+      consumed.endSeq < consumed.startSeq ||
+      consumed.startSeq < 0 ||
+      consumed.endSeq < 0
     ) {
       return undefined; // unbounded consumed block (or legacy) — never guess
     }
@@ -2213,6 +2215,8 @@ function cloneState(state: CompressionState): CompressionState {
     pendingOrphanSweepMinRef: state.pendingOrphanSweepMinRef,
     deadRefs: state.deadRefs ? [...state.deadRefs] : undefined,
     lastPassIds: state.lastPassIds ? [...state.lastPassIds] : undefined,
+    // Preserve the upstream one-time alignment gate through the local indexed clone.
+    refLedgerAligned: state.refLedgerAligned,
   });
 }
 

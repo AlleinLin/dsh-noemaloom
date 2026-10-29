@@ -724,6 +724,9 @@ KERNEL_TOOLS = [
             offset=_p("integer", "read 的续读起始行（1 基；传上次返回的 next_offset）；"
                                  "edges 的分页偏移（排序后切片，默认 0）"),
             content=_p("string", "write 的内容（建议含 CCG 5 要素注释）"),
+            dedupe=_p("boolean", "write 幂等（issue #677，缺省 false）：同层已存在**内容指纹相同**"
+                               "的节点时不新增，直接返回既有 id 且 deduped=true。用于「调用超时但可能已落盘」"
+                               "后重试——超时 ≠ 失败，先查后写；需要真的另存一份时不要带该参数"),
             content_kind=_p("string", "write 的内容类型：code|image_desc|text|permission|work_done|work_wip|ccg_marks|hyperedge。"
                                       "text 类需带 CCG 六要素（功能名／生效条件／子功能／执行／验证方式／不适用条件，各占一行、"
                                       "以「# 要素名：」起首）；缺失会被写入闸门拒绝，返回体如实列出缺失清单（verdict.detail.missing）——"
@@ -2906,7 +2909,9 @@ def _cg_dispatch(cg, a):
                                 edits=a.get("edits"), merge_into=a.get("merge_into"),
                                 reason=a.get("reason", ""),
                                 redteam=a.get("redteam"), issues=a.get("issues"),
-                                override=bool(a.get("override")))
+                                override=bool(a.get("override")),
+                                reviewed_by=a.get("reviewed_by"),
+                                decided_by=a.get("decided_by"))
 
     if op == "forget":
         if (a.get("action") or "forget").strip().lower() == "restore":
@@ -4553,7 +4558,9 @@ def _dispatch(cg, name, args):
                                 edits=a.get("edits"), merge_into=a.get("merge_into"),
                                 reason=a.get("reason", ""),
                                 redteam=a.get("redteam"), issues=a.get("issues"),
-                                override=bool(a.get("override")))
+                                override=bool(a.get("override")),
+                                reviewed_by=a.get("reviewed_by"),
+                                decided_by=a.get("decided_by"))
 
     if name == "mdcg_review_records":
         nid = a.get("node_id")

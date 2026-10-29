@@ -11,6 +11,15 @@ const output = join(root, 'build');
 await mkdir(output, { recursive: true });
 const npmCli = process.env.npm_execpath;
 if (!npmCli) throw new Error('Run this script with npm run pack:delivery.');
+// Invoke npm's Node entry directly so Windows batch chaining cannot report
+// audit success without ever producing a delivery.
+const auditCode = await new Promise((resolveAudit, reject) => {
+  const child = spawn(process.execPath, [npmCli, 'audit', '--audit-level=low'],
+    { cwd: root, windowsHide: true, stdio: 'inherit' });
+  child.once('error', reject);
+  child.once('close', code => resolveAudit(code ?? 1));
+});
+if (auditCode !== 0) throw new Error(`Dependency audit failed: ${auditCode}`);
 const info = JSON.parse(await readFile('lib/build-info.json', 'utf8'));
 if (info.package !== manifest.name || info.version !== manifest.version)
   throw new Error('Build identity differs from package.json; run npm run build first.');

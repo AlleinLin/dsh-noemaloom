@@ -1,0 +1,7 @@
+node_modules/
+lib/
+bin/
+build/
+delivery/
+docs/desktop-evidence/
+.desktop-validation-state.json

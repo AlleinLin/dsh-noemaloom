@@ -174,6 +174,7 @@ export {
   createContentStore,
   hashContent,
   storeOriginal,
+  restampContentStore,
   retrieveByRef,
   hasStoredRef,
   contentStoreStats,

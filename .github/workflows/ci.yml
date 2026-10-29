@@ -12,6 +12,8 @@ jobs:
   check:
     runs-on: windows-latest
     timeout-minutes: 30
+    env:
+      NODE_OPTIONS: --max-old-space-size=1024 --max-semi-space-size=8
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -40,6 +42,15 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
       - run: npm run pack:delivery
+      - name: Install the exact rc.3 Forge companion SDK
+        working-directory: companions/forge-tools
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Audit the Forge companion dependency graph
+        working-directory: companions/forge-tools
+        run: npm audit --audit-level=low
+      - name: Build and test the original Forge companion
+        working-directory: companions/forge-tools
+        run: npm run check
       - uses: actions/upload-artifact@v4
         with:
           name: desktop-package

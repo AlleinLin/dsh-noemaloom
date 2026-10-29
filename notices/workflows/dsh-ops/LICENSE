@@ -19,12 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
--------------------------------------------------------------------------------
-
-This MIT license covers the dsh-ops plugin: everything in this repository
-except `licenses/fastctx/`, which holds FastCtx's Apache License 2.0 text and
-upstream notice. The distribution as a whole is licensed under the composite
-`MIT AND Apache-2.0`. See `NOTICE` for the full statement and the attribution
-FastCtx requires, and `licenses/fastctx/LICENSE-APACHE` for the Apache License
-2.0 text.

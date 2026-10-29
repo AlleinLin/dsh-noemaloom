@@ -9,7 +9,7 @@
 A memory, context and multi-model orchestration workbench for DeepSeek Harness Desktop.
 
 [![CI](https://github.com/AlleinLin/dsh-noemaloom/actions/workflows/ci.yml/badge.svg)](https://github.com/AlleinLin/dsh-noemaloom/actions/workflows/ci.yml)
-[![DSH](https://img.shields.io/badge/DSH-0.2.1--rc.2-b9a4ff?style=flat-square&labelColor=110e25)](https://github.com/deepseek-ai/deepseek-harness)
+[![DSH](https://img.shields.io/badge/DSH-0.2.1--rc.3-b9a4ff?style=flat-square&labelColor=110e25)](https://github.com/deepseek-ai/deepseek-harness)
 [![Node](https://img.shields.io/badge/Node.js-24_LTS-b9a4ff?style=flat-square&labelColor=110e25)](https://nodejs.org/)
 [![Status](https://img.shields.io/badge/Status-Experimental-e9bda5?style=flat-square&labelColor=110e25)](docs/BUILDING.md)
 [![License](https://img.shields.io/badge/License-Component--specific-e9bda5?style=flat-square&labelColor=110e25)](LICENSE)

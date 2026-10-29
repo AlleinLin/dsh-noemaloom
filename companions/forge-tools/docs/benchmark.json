@@ -1,0 +1,188 @@
+{
+  "measuredAt": "2026-10-20T00:08:31.065Z",
+  "platform": "win32",
+  "arch": "x64",
+  "os": "Windows_NT 10.0.26200",
+  "node": "v24.19.0",
+  "cpus": 16,
+  "fixture": {
+    "files": 512,
+    "bytesPerFile": 4480,
+    "ignored": "none"
+  },
+  "methodology": "Single process, sequential medians; no cold OS cache flushing. Warm tests use watch=false and TTL=30000 ms. Fresh glob can include ripgrep enumeration and a separate Node glob-filter process; fresh grep uses ripgrep. Shell uses actual rc.2 subprocess and PowerShell executors. Simulated delays cover provider resolve/stat/readText/readBytes calls: the baseline uses readText and Forge uses bounded readBytes. Delays do not model individual Windows I/O/filter callbacks.",
+  "limitations": "This development machine is not the company work machine. Does not measure WMI/minifilter counts or prove any end-to-end speedup there. Shell resident path requires danger-full-access. Cold and unique searches still read disk.",
+  "results": [
+    {
+      "name": "provider resolve+stat+read (no plugin cache)",
+      "medianMs": 0.7,
+      "minMs": 0.665,
+      "samples": 9
+    },
+    {
+      "name": "Forge read, warm bounded cache",
+      "medianMs": 0.213,
+      "minMs": 0.197,
+      "samples": 9
+    },
+    {
+      "name": "Forge read fresh=true",
+      "medianMs": 1.228,
+      "minMs": 0.977,
+      "samples": 9
+    },
+    {
+      "name": "Forge expired read, unchanged metadata validation",
+      "medianMs": 0.436,
+      "minMs": 0.344,
+      "samples": 9
+    },
+    {
+      "name": "provider atomic write, 4 KiB",
+      "medianMs": 9.342,
+      "minMs": 7.967,
+      "samples": 9
+    },
+    {
+      "name": "Forge atomic write, 4 KiB, same host durability",
+      "medianMs": 9.323,
+      "minMs": 6.589,
+      "samples": 9
+    },
+    {
+      "name": "glob cold enumeration, 512 files",
+      "medianMs": 133.942,
+      "minMs": 110.649,
+      "samples": 9
+    },
+    {
+      "name": "glob identical warm result, 512 files",
+      "medianMs": 0.588,
+      "minMs": 0.496,
+      "samples": 9
+    },
+    {
+      "name": "grep fresh=true, global 20-match cap",
+      "medianMs": 41.118,
+      "minMs": 29.079,
+      "samples": 9
+    },
+    {
+      "name": "grep identical warm query",
+      "medianMs": 0.548,
+      "minMs": 0.435,
+      "samples": 9
+    },
+    {
+      "name": "pwsh official managed isolated executor",
+      "medianMs": 417.875,
+      "minMs": 415.054,
+      "samples": 5
+    },
+    {
+      "name": "pwsh first resident call",
+      "medianMs": 433.316,
+      "samples": 1
+    },
+    {
+      "name": "pwsh warm resident call",
+      "medianMs": 5.185,
+      "minMs": 4.829,
+      "samples": 9
+    }
+  ],
+  "simulated": [
+    {
+      "injectedDelayPerProviderCallMs": 5,
+      "callsDelayed": [
+        "resolve",
+        "stat",
+        "readText",
+        "readBytes"
+      ],
+      "baseline": {
+        "medianMs": 45.869,
+        "minMs": 34.042,
+        "samples": 5
+      },
+      "warmCache": {
+        "medianMs": 0.119,
+        "minMs": 0.1,
+        "samples": 5
+      },
+      "medianRatio": 385.5
+    },
+    {
+      "injectedDelayPerProviderCallMs": 20,
+      "callsDelayed": [
+        "resolve",
+        "stat",
+        "readText",
+        "readBytes"
+      ],
+      "baseline": {
+        "medianMs": 98.573,
+        "minMs": 84.733,
+        "samples": 5
+      },
+      "warmCache": {
+        "medianMs": 0.1,
+        "minMs": 0.086,
+        "samples": 5
+      },
+      "medianRatio": 985.7
+    }
+  ],
+  "counters": {
+    "version": "0.1.2",
+    "files": {
+      "hits": 19,
+      "validatedHits": 0,
+      "misses": 12,
+      "merged": 0,
+      "providerReads": 12,
+      "providerWrites": 9,
+      "invalidations": 50,
+      "cacheBytes": 10164,
+      "cacheEntries": 1,
+      "pendingReads": 0,
+      "activeIo": 0,
+      "queuedIo": 0,
+      "cacheAccounting": "UTF-16 strings plus estimated entry metadata; excludes active I/O and host runtime",
+      "ttlMs": 30000,
+      "watchers": 0
+    },
+    "search": {
+      "processes": 27,
+      "snapshotHits": 10,
+      "queryHits": 10,
+      "enumerations": 9,
+      "globFilters": 9,
+      "snapshots": 0,
+      "queryEntries": 0,
+      "snapshotBytes": 0,
+      "queryBytes": 0,
+      "running": 0,
+      "gate": {
+        "active": 0,
+        "queued": 0,
+        "maxQueued": 128,
+        "closed": false
+      },
+      "managedProcesses": 0,
+      "unconfirmedProcesses": 0,
+      "processLimit": 16,
+      "quarantineLimit": 2
+    },
+    "pwsh": {
+      "calls": 15,
+      "residentStarts": 1,
+      "residentCalls": 10,
+      "isolatedCalls": 5,
+      "residentProcesses": 1,
+      "isolatedProcesses": 0,
+      "cleanupPending": 0
+    },
+    "freshness": "Cached read bodies and glob snapshots may be up to 30000 ms old; use fresh for current state."
+  }
+}

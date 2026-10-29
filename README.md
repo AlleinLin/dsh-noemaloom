@@ -9,7 +9,7 @@
 面向 DeepSeek Harness Desktop 的记忆、上下文与多模型编排工作台。
 
 [![CI](https://github.com/AlleinLin/dsh-noemaloom/actions/workflows/ci.yml/badge.svg)](https://github.com/AlleinLin/dsh-noemaloom/actions/workflows/ci.yml)
-[![DSH](https://img.shields.io/badge/DSH-0.2.1--rc.2-b9a4ff?style=flat-square&labelColor=110e25)](https://github.com/deepseek-ai/deepseek-harness)
+[![DSH](https://img.shields.io/badge/DSH-0.2.1--rc.3-b9a4ff?style=flat-square&labelColor=110e25)](https://github.com/deepseek-ai/deepseek-harness)
 [![Node](https://img.shields.io/badge/Node.js-24_LTS-b9a4ff?style=flat-square&labelColor=110e25)](https://nodejs.org/)
 [![Status](https://img.shields.io/badge/Status-Experimental-e9bda5?style=flat-square&labelColor=110e25)](docs/BUILDING.md)
 [![License](https://img.shields.io/badge/License-Component--specific-e9bda5?style=flat-square&labelColor=110e25)](LICENSE)
@@ -21,6 +21,8 @@
 </div>
 
 ## 为什么是 Noemaloom
+
+本轮维护见 [R41 验证记录](docs/release-r41-verification.md)：同步上游，并提供修复 rc.3 拒载的独立可选 [Forge 0.1.5 源码](companions/forge-tools)。宿主支持边界仍为 **0.2.1-rc.3**。
 
 当 Agent 的工作跨越文件、会话、模型与任务，工具越多，越需要一致的上下文。Noemaloom 将记忆、上下文压缩、任务编排、图谱和工作台入口组织到一个 DSH 插件中，让不同能力共享范围、权限与生命周期。
 

@@ -231,10 +231,37 @@ class Principal:
     def require_op(self, op: str):
         self._require_live()
         if not self.allows_op(op):
+            _op_n = (op or "").strip().lower()
+            # issue #678：区分两种成因——**角色本身不含**该 op，与**令牌被派生收窄**。
+            # 旧文案一律说「角色 X 无权」，于是「designer（ROLE_SPECS 里 ops_allow=["*"]）
+            # 执行 forget 被拒」会读成「designer 角色没有 forget 权限」——当事人会去改角色
+            # 定义（改错地方）或以为权限系统故障。实际原因是签发时 --ops-allow 收窄了作用域。
+            _role_ops = None
+            try:
+                from .tokens import ROLE_SPECS      # 延迟导入：tokens 依赖 security，避免环
+                _role_ops = (ROLE_SPECS.get(self.role) or {}).get("ops_allow")
+            except Exception:
+                _role_ops = None
+            _role_has = False
+            if _role_ops is not None:
+                _norm = [str(x).strip().lower() for x in _role_ops]
+                _role_has = ("*" in _norm) or (_op_n in _norm)
+            if self.role == "guest":
+                msg = (f"角色 {self.role} 无权执行 op={op}（作用域 "
+                       f"{list(self.ops_allow) if self.ops_allow is not None else '不限'}）")
+                raise AccessDenied(msg, hint=self._GUEST_OP_HINT)
+            if _role_has:
+                raise AccessDenied(
+                    f"本令牌的 ops 作用域不含 op={op}（角色 {self.role} 本身**含**该 op，"
+                    f"是签发时被收窄；本令牌作用域 "
+                    f"{list(self.ops_allow) if self.ops_allow is not None else '不限'}）",
+                    hint=f"这是正常闸门不是故障：派生令牌只能**收窄**不能扩权。"
+                         f"由签发者重新签发且**不要**用 --ops-allow 收窄 {op}"
+                         f"（python -m md_cg.tokens issue …），或换用未收窄的 "
+                         f"{self.role} 令牌；更新 MDCG_TOKEN 后重启宿主"
+                         f"（README「写入凭据」一节）。")
             msg = (f"角色 {self.role} 无权执行 op={op}（作用域 "
                    f"{list(self.ops_allow) if self.ops_allow is not None else '不限'}）")
-            if self.role == "guest":
-                raise AccessDenied(msg, hint=self._GUEST_OP_HINT)
             raise AccessDenied(
                 msg,
                 hint=f"当前令牌（actor={self.actor}，角色 {self.role}）的 ops "
@@ -260,15 +287,51 @@ class Principal:
             raise AccessDenied(
                 f"写入敏感度 {sensitivity} 超出 clearance {self.clearance}")
 
-# 生效条件：先要求 self.require_write(sensitivity) 未抛异常；随后将形参 layer 为假值（None/空串）时按 "knowledge" 处理，并要求 self.allows_layer(layer) 为 True，否则抛 AccessDenied。
-    def require_layer_write(self, layer: str, sensitivity: str):
-        """写层校验：密级 + 层白名单双闸门（核心私有内容不可越权修改）。"""
+# 生效条件：先要求 self.require_write(sensitivity) 未抛异常；随后将形参 layer 为假值（None/空串）时按 "knowledge" 处理，并要求 self.allows_layer(layer) 为 True；最后按 MDCG_WRITE_GATE 三档过**分层写入严格度闸**（writegate）：off 零介入放行、warn 记录并放行、enforce 对 deny/require_review 抛 AccessDenied。
+    def require_layer_write(self, layer: str, sensitivity: str, reviewers=None):
+        """写层校验：密级 + 层白名单 + **分层复核闸**（2026-10-27 使用者裁定）。
+
+        分层严格度（writegate.LAYER_TIERS）：情景/目标/未解/负记忆 = 0 档
+        （无任何复核通道时允许直写——裁定的放宽通道）；知识 = 1 档（需反思单元）；
+        结构 = 2 档（反思 + 验证）；自我/锚点 = 3 档（反思 + 验证 + 人工裁定）。
+        理由：自我人格偏移与失忆是毁灭性的，宁可拒写。
+
+        reviewers 为本次写入已取得的复核单元（缺省取环境声明 MDCG_REVIEWERS），
+        只在闸启用（warn/enforce）时有意义；off 档完全不介入，行为与历史逐位相同。
+        """
         self.require_write(sensitivity)
         layer = layer or "knowledge"
         if not self.allows_layer(layer):
             raise AccessDenied(
                 f"角色 {self.role} 无权写入 {layer} 层"
                 f"（可写层 {list(self.layers_allow) if self.layers_allow is not None else '不限'}）")
+        _wg_verdict = self._write_gate_verdict(layer, reviewers)
+        if _wg_verdict and _wg_verdict.get("decision") in ("deny", "require_review"):
+            if _wg_verdict.get("mode") == "enforce":
+                raise AccessDenied(
+                    f"写入 {layer} 层被分层复核闸拒绝：{_wg_verdict.get('reason')}",
+                    hint=("这是 2026-10-27 使用者裁定的写入模型：无复核通道时只可写情景层；"
+                          "知识/结构/自我层依次需要反思、验证与人工裁定。可：①补齐复核单元后重试；"
+                          "②设置 MDCG_REVIEW_CHANNELS 声明可用通道（hive/subagent/team）；"
+                          "③由使用者显式把 MDCG_WRITE_GATE 降为 warn/off。"))
+
+# 生效条件：layer 传入、reviewers 缺省时从环境 MDCG_REVIEWERS 解析（逗号分隔）；闸为 off 时返回 None（零介入），否则返回 writegate.decide_write 的判定字典并在 warn 档把「本该复核却未过」写进 stderr 一次。
+    def _write_gate_verdict(self, layer, reviewers=None):
+        """分层写入严格度闸的内部单点（off 返回 None，调用方据此零介入）。"""
+        import os as _os
+        from . import writegate as _wg
+        mode = _wg.gate_mode(_os.environ)
+        if mode == "off":
+            return None
+        if reviewers is None:
+            raw = str(_os.environ.get("MDCG_REVIEWERS") or "")
+            reviewers = tuple(x.strip().lower() for x in raw.split(",") if x.strip())
+        verdict = _wg.decide_write(layer, reviewers=reviewers, mode=mode)
+        if mode == "warn" and verdict.get("decision") in ("deny", "require_review"):
+            import sys as _sys
+            _sys.stderr.write("[writegate] warn：%s（未阻断，仅记录）"
+                              % verdict.get("reason"))
+        return verdict
 
 # 生效条件：要求 self._require_live() 未抛异常、self.theory_ok 为 True、self.can_admin 为 True 时通过；否则抛 AccessDenied（消息用形参 op 标记操作）。
     def require_admin(self, op: str):

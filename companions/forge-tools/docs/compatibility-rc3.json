@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "package": "@local/dsh-forge-tools",
+  "version": "0.1.5",
+  "host": "0.2.1-rc.3",
+  "source": {
+    "kind": "local-original",
+    "repository": null,
+    "reason": "Original local implementation; no independently declared remote upstream."
+  },
+  "officialHost": {
+    "revision": "1f81c047fc48fa190a683e469daa699857e9afe8",
+    "version": "0.2.1-rc.3",
+    "distribution": "D:/dshplugin/research/dsh-desktop-rc3/app",
+    "changedUserInstallation": false
+  },
+  "baselineFailure": "Official rc.3 rejected Forge 0.1.4 engines.dsh=0.2.1-rc.2 without version exemption.",
+  "changes": [
+    "Align engine, peer/development SDK and installer to exact official rc.3.",
+    "Refresh standard preset composition from the independent unmodified official rc.3 distribution.",
+    "Preserve official filesystem, sandbox, observed-version guards, scoped tools and process ownership.",
+    "Keep historical rc.2 validation and benchmark records explicitly historical."
+  ],
+  "validation": {
+    "status": "passed-with-explicit-scope",
+    "tests": 109,
+    "failed": 0,
+    "skipped": 0,
+    "host": {
+      "report": "docs/host-validation.json",
+      "sha256": "30614fc1181f5bc3a6a4271e42b3613176d0f705f3acc5edf8017700ae91d6d9",
+      "exactVersionAdmission": "passed-without-exemption",
+      "actualTools": "passed",
+      "uninstallRollback": "passed"
+    },
+    "desktop": {
+      "report": "docs/desktop-validation.json",
+      "sha256": "1c7cf4c67d6ad8752d8ad33d66deed9093c80e0e4097ce29cff6c85c510a5931",
+      "toolCalls": 12,
+      "syntheticLocalModelRequests": 13
+    },
+    "limitations": [
+      "No live remote model request.",
+      "No real user profile or session data touched.",
+      "Historical performance and stress results were not re-measured.",
+      "Project dependency audit does not certify the whole official Desktop distribution."
+    ]
+  }
+}

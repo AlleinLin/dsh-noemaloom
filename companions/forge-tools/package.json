@@ -1,0 +1,100 @@
+{
+  "name": "@local/dsh-forge-tools",
+  "version": "0.1.5",
+  "description": "DSH Forge：面向 Windows 慢磁盘的统一文件、搜索与操作工具集",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.19.0",
+    "dsh": "0.2.1-rc.3"
+  },
+  "exports": {
+    ".": "./lib/index.js",
+    "./locale/*.json": "./locale/*.json"
+  },
+  "files": [
+    "lib",
+    "bin",
+    "locale",
+    "presets",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE",
+    "THIRD-PARTY-NOTICES.md",
+    "docs/RESEARCH.md",
+    "docs/INSTALL_FOR_AI.md",
+    "docs/PERMISSIONS.md",
+    "docs/BENCHMARK.md",
+    "docs/benchmark.json",
+    "docs/RESILIENCE.md",
+    "docs/resilience-results.json",
+    "docs/VALIDATION.md",
+    "docs/compatibility-rc3.json",
+    "docs/host-validation.json",
+    "docs/desktop-validation.json"
+  ],
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "build": "node scripts/build.mjs",
+    "benchmark": "node scripts/benchmark.mjs",
+    "stress:resilience": "node --expose-gc scripts/stress-resilience.mjs",
+    "verify:host": "node scripts/verify-host.mjs",
+    "verify:desktop": "node scripts/verify-desktop.mjs",
+    "check": "node scripts/check.mjs",
+    "pack:delivery": "node scripts/package-delivery.mjs"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "4.0.5",
+    "@deepseek-ai/dsh-fs": "0.2.1-rc.3",
+    "@deepseek-ai/dsh-llm": "0.2.1-rc.3",
+    "@deepseek-ai/dsh-sandbox": "0.2.1-rc.3",
+    "@deepseek-ai/dsh-tools": "0.2.1-rc.3",
+    "@deepseek-ai/schemastery": "3.18.5"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/cordis": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-fs": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-llm": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-sandbox": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-tools": {
+      "optional": true
+    },
+    "@deepseek-ai/schemastery": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@deepseek-ai/cordis": "4.0.5",
+    "@deepseek-ai/dsh-fs": "0.2.1-rc.3",
+    "@deepseek-ai/dsh-fs-local": "0.2.1-rc.3",
+    "@deepseek-ai/dsh-fs-sandbox": "0.2.1-rc.3",
+    "@deepseek-ai/dsh-llm": "0.2.1-rc.3",
+    "@deepseek-ai/dsh-pwsh-local": "0.2.1-rc.3",
+    "@deepseek-ai/dsh-pwsh-sandbox": "0.2.1-rc.3",
+    "@deepseek-ai/dsh-sandbox": "0.2.1-rc.3",
+    "@deepseek-ai/dsh-sandbox-policy": "0.2.1-rc.3",
+    "@deepseek-ai/dsh-subprocess-local": "0.2.1-rc.3",
+    "@deepseek-ai/dsh-tools": "0.2.1-rc.3",
+    "@deepseek-ai/dsh-working-directory": "0.2.1-rc.3",
+    "@deepseek-ai/schemastery": "3.18.5",
+    "@vscode/ripgrep-win32-x64": "1.18.0",
+    "esbuild": "0.25.12",
+    "yaml": "2.9.1"
+  },
+  "overrides": {
+    "zod": "4.6.7"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}
