@@ -38,7 +38,7 @@ billion-context 的论文路线是产品强制核心：模型根据当前任务�
 
 ## 3. 公共类型、标识与验证规则
 
-所有持久对象有 `schemaVersion`，所有时间以UTC ISO8601存储，以用户选定时区分桶展示；默认展示时区为宿主用户设置，本次用户为Asia/Shanghai。所有id是不透明字符串，不包含明文凭据、完整提示词和文件内容。外部会话标识带source namespace；不能因为两个产品都用相同session id就合并。宿主稳定session id优先，provider/model/credential切换不改变会话身份。原始路径保存于受权限保护的来源映射，浏览器默认取得相对显示名和不透明artifact id。
+所有持久对象有 `schemaVersion`，所有时间以UTC ISO8601存储；模型可见的运行时当前时间统一为 UTC/GMT，不注入宿主、浏览器或用户真实时区。桌面界面仍可按用户选定时区分桶展示，用户要求北京时间时由模型从 UTC 算术换算后展示。所有id是不透明字符串，不包含明文凭据、完整提示词和文件内容。外部会话标识带source namespace；不能因为两个产品都用相同session id就合并。宿主稳定session id优先，provider/model/credential切换不改变会话身份。原始路径保存于受权限保护的来源映射，浏览器默认取得相对显示名和不透明artifact id。
 
 以下类型使用TypeScript记法定义数据结构，实际持久和传输为JSON；可选字段缺失表示未知，`0`表示真实零，`null`表示有意为空，两者不能混用。所有公开schema默认 `additionalProperties:false`，扩展放版本化 `extensions`，未知required语义返回版本错误，不能悄悄丢弃。
 

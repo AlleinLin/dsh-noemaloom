@@ -18,6 +18,8 @@ export interface NexusConfig {
   maxRequestBytes?: number;
   maxOutputBytes?: number;
   modelWindowTokens?: number;
+  /** Keep model-facing clock and timezone context on the UTC/GMT contract. */
+  utcTimeContext?: boolean;
   /** User-configured exact role routing; no ambient provider fallback. */
   modelRoutes?: Record<string, { provider: string; model: string; reasoningEffort?: string; credentialScope?: string }>;
 }

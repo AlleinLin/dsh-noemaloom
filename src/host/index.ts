@@ -30,6 +30,7 @@ import { createDebugBroker } from './debug/process.js';
 import { DebugRuntime } from './debug/runtime.js';
 import { registerEditorAssets } from './editor-assets.js';
 import { registerAgentCommunications } from './communications/index.js';
+import { registerUtcTimeContext } from './utc-time-context.js';
 export { hostAuthority } from './host-adapter.js';
 
 export const name = 'dsh-noemaloom';
@@ -42,6 +43,7 @@ export const Config = schema.object({
   maxRequestBytes: schema.number().min(1024).max(16777216).default(1048576),
   maxOutputBytes: schema.number().min(1024).max(4194304).default(65536),
   modelWindowTokens: schema.number().min(1024).default(131072),
+  utcTimeContext: schema.boolean().default(true),
   modelRoutes: schema.dict(schema.object({
     provider: schema.string().required(), model: schema.string().required(),
     reasoningEffort: schema.string(), credentialScope: schema.string(),
@@ -96,6 +98,8 @@ export async function createNexusRuntime(ctx: HostContext, config: NexusConfig =
   const communications = registerAgentCommunications(ctx, store);
   const stopCommunications = () => communications.dispose();
   initializationCleanup.push(stopCommunications);
+  const stopUtcTimeContext = registerUtcTimeContext(ctx, config.utcTimeContext !== false);
+  initializationCleanup.push(stopUtcTimeContext);
   const registrationContext = createConnectionRegistrationContext(ctx);
   const host = createHostAdapter(registrationContext, config, workspaceRoot, controller.controller.signal);
   initializationCleanup.push(() => host.dispose());
@@ -215,7 +219,7 @@ export async function createNexusRuntime(ctx: HostContext, config: NexusConfig =
       return disposal ??= (async () => {
         const failures: unknown[] = [];
         for (const cleanup of [
-          stopLiveCommands, stopSelfCompaction, stopStepPause, stopAutonomy, stopCompanion, stopInsights, stopDebugSessions, stopEditorAssets, () => debug.dispose(), stopCommunications, ...remoteDisposers.slice().reverse(), () => controller.dispose(), () => host.dispose(),
+          stopLiveCommands, stopSelfCompaction, stopStepPause, stopAutonomy, stopCompanion, stopInsights, stopDebugSessions, stopEditorAssets, stopUtcTimeContext, () => debug.dispose(), stopCommunications, ...remoteDisposers.slice().reverse(), () => controller.dispose(), () => host.dispose(),
           () => executor.dispose(), ...disposers.slice().reverse(), () => dispatcher.dispose(), () => store.close(),
         ]) {
           try { await cleanup(); } catch (error) { failures.push(error); }

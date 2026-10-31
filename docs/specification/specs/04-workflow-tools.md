@@ -94,7 +94,7 @@ type WfOutcome<T> = {
 
 该信封是本产品合同；如当前官方 tool output 要求不同，host adapter 必须无损映射并保持 Native/PTC 事实相同。`accepted`/`running` 不能渲染成“已完成”；`completed` 只表示该操作完成，审查覆盖/模型语义/交付质量另有字段。`effectState=unknown` 时 UI 必须给“检查状态”入口；默认重试按钮不可直接重复变更。
 
-时间存 UTC ISO-8601，显示使用用户时区 Asia/Shanghai 或用户明确设置；deadline 日期保留 date-only 和原始时区。ID 使用不可复用的随机标识，不能依赖毫秒时间戳唯一。每个持久对象含 `schemaVersion`、`id`、`revision`、`createdAt`、`updatedAt`、`ownerScope`、`provenance`；更新要求 expectedRevision。字符串按字段规定长度，不能混用 UTF-16 length 与用户码点/字素上限。用户输入与资产正文原样保留；搜索可以另建规范化派生索引。
+时间持久化使用 UTC ISO-8601；模型可见的当前时钟统一为 UTC/GMT，工作流默认日期和返回的 `timezone` 也使用 `UTC`。用户要求北京时间等民用时间时，由模型从 UTC 做算术换算后展示；宿主、浏览器和用户的真实时区不注入模型。deadline 日期保留 date-only 和原始时区。ID 使用不可复用的随机标识，不能依赖毫秒时间戳唯一。每个持久对象含 `schemaVersion`、`id`、`revision`、`createdAt`、`updatedAt`、`ownerScope`、`provenance`；更新要求 expectedRevision。字符串按字段规定长度，不能混用 UTF-16 length 与用户码点/字素上限。用户输入与资产正文原样保留；搜索可以另建规范化派生索引。
 
 ### 3.2 数据对象最小字段
 
@@ -255,7 +255,7 @@ effective mergeinfo 是可选有界属性导航，空属性屏蔽继承；读取
 
 ## 7. 待办与项目行动项
 
-待办保留 life/work/project/daily 四目标，支持全部查询、按当前项目/分支/日期、状态、四象限、deadline、category、文本关键词过滤。状态 pending/doing/blocked/done/cancelled，done 保留完成时间与证据；从 done 返回 doing/pending 保留历史事件但清除当前 doneAt。due 为用户时区日期，日期格式和真实日历都验证，不能接受 2026-02-30。
+待办保留 life/work/project/daily 四目标，支持全部查询、按当前项目/分支/日期、状态、四象限、deadline、category、文本关键词过滤。状态 pending/doing/blocked/done/cancelled，done 保留完成时间与证据；从 done 返回 doing/pending 保留历史事件但清除当前 doneAt。模型默认使用 UTC 日期；用户明确指定日期时按输入值校验，不能接受 2026-02-30。
 
 默认视图最多八条：逾期未完成→今日截止→重要紧急→重要不紧急→紧急不重要→其余，组内按 due/创建时间/ID 稳定排序；不得最后 reverse 把逾期沉底。旧 daily 中未完成无 due 的条目按其原日期判断过期，默认不挤满当前任务，提供“历史未完”单独入口；所有隐藏筛选都显示计数。
 

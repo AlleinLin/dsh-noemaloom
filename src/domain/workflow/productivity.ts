@@ -11,7 +11,7 @@ const dateOnly = (value: unknown): string | undefined => {
   if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value) || !Number.isFinite(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== value) throw new NexusError('INVALID_ARGUMENT', '日期必须是有效 YYYY-MM-DD');
   return value;
 };
-const today = (): string => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Shanghai', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+const today = (): string => new Date().toISOString().slice(0, 10);
 export class Productivity {
   constructor(private readonly services: NexusServices) {}
   private scope(row: JsonRecord, context: DispatchContext): void {
@@ -29,7 +29,7 @@ export class Productivity {
       filtered.sort((a, b) => rank(a.value) - rank(b.value) || (a.value.due ?? '9999').localeCompare(b.value.due ?? '9999') || a.value.createdAt.localeCompare(b.value.createdAt) || a.id.localeCompare(b.id));
       if (action === 'export') return { format: 'markdown-tags-v1', content: filtered.map(({ value: v }) => `§\n[${v.createdAt}] [id: ${v.id}] [q${v.quadrant}] ${v.due ? `[due: ${v.due}] ` : ''}[status: ${v.status}]${v.category ? ` [cat: ${v.category}]` : ''}${v.doneAt ? ` [done: ${v.doneAt}]` : ''}\n${v.content}`).join('\n') };
       const limit = typeof params.limit === 'number' ? Math.min(500, params.limit) : 8;
-      return { total: filtered.length, hidden: Math.max(0, filtered.length - limit), items: filtered.slice(0, limit), today: day, timezone: 'Asia/Shanghai' };
+      return { total: filtered.length, hidden: Math.max(0, filtered.length - limit), items: filtered.slice(0, limit), today: day, timezone: 'UTC' };
     }
     if (action === 'import') {
       const source = text(params.content, 'content', 4 * 1024 * 1024);

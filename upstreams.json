@@ -3253,7 +3253,7 @@
     },
     "previousVersion": "0.2.1-rc.3",
     "previousRevision": "1f81c047fc48fa190a683e469daa699857e9afe8",
-    "sourceReview": "docs/upstream-audit-2026-10-31.json",
+      "sourceReview": "docs/upstream-audit-2026-11-01.json",
     "localMaintenance": [
       {
         "id": "subagent-context-maintenance",

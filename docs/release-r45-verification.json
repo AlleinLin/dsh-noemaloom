@@ -1,0 +1,52 @@
+{
+  "release": "R45",
+  "status": "local validation passed; real user Desktop was not started",
+  "host": {
+    "version": "0.2.1-rc.5",
+    "candidate": "0.2.2-alpha.2",
+    "candidateDecision": "observed-not-adopted"
+  },
+  "upstream": {
+    "report": "docs/upstream-audit-2026-11-01.json",
+    "inventoryCount": 153,
+    "pinsChanged": false
+  },
+  "feature": {
+    "module": "nexus:utc-time",
+    "defaultEnabled": true,
+    "modelClock": "UTC/GMT",
+    "todoTimezone": "UTC",
+    "schedulerDefault": "UTC"
+  },
+  "validation": {
+    "typecheck": "passed",
+    "targetedTests": {
+      "command": "npx tsx --test tests/utc-time-context.test.ts tests/workflow.test.ts",
+      "passed": 36,
+      "failed": 0
+    },
+    "fullCheck": {
+      "command": "npm run check",
+      "passed": 2406,
+      "failed": 0,
+      "artifactsVerified": true
+    },
+    "delivery": {
+      "command": "npm run pack:delivery",
+      "npmAuditVulnerabilities": 0,
+      "packageSha256": "74ce691419498343679cf19e9dbbe92ab52c12473b0ef63dc1b179710ca26e4d"
+    },
+    "localInstall": {
+      "status": "INSTALLED_AND_FILES_VERIFIED",
+      "path": "C:/Users/Allei/.dsh/profiles/desktop/node_modules/dsh-noemaloom",
+      "hostVersion": "0.2.1-rc.5",
+      "hostUpgraded": false,
+      "desktopStarted": false,
+      "cpuFeaturesBuildWarning": "enable_thin_lto"
+    }
+  },
+  "limitations": [
+    "真实用户 DSH 未由本轮自动启动，需用户重新打开后确认模型提示诊断。",
+    "未修改会话数据库、未终止代理、未重启正在使用的宿主。"
+  ]
+}
