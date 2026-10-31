@@ -44,13 +44,16 @@ export function RequestRetryButton({ api, sessionId }: ButtonProps): React.React
         onCancel={event => { event.preventDefault(); close(); }}
       >
         <header>
-          <strong>请求重试与会话冻结</strong>
+          <div className="nexus-request-retry-title">
+            <span>SESSION POLICY</span>
+            <strong>请求重试与会话冻结</strong>
+          </div>
           <button type="button" aria-label="关闭请求重试与会话冻结" onClick={close}>
             <Icon name="close" size={16} />
           </button>
         </header>
         <div className="nexus-request-retry-body">
-          <small className="nexus-request-retry-identity">当前会话 · {sessionId}</small>
+          <div className="nexus-request-retry-identity"><span>当前会话</span><code>{sessionId}</code></div>
           <RequestRetrySettings api={api} scope={{ level: 'session', sessionId }} />
         </div>
       </dialog>,

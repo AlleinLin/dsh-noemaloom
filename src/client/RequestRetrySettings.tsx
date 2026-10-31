@@ -84,44 +84,86 @@ function RetryForm({ api, scope }: { api: NexusApi; scope: NexusScope }) {
     } catch (cause) { if (!signal.aborted) setError(cause); }
     finally { if (!signal.aborted) setBusy(false); }
   };
-  const numeric = (key: 'maxRetries' | 'initialDelayMs' | 'maxDelayMs' | 'multiplier' | 'jitterRatio' | 'freezeRetryHours', label: string, min: number, max: number, step = 1) =>
-    <label className="nexus-setting-row"><span>{label}<small>来源：{source(key)} · 清空恢复继承</small></span>
-      <input aria-label={label} type="number" min={min} max={max} step={step} value={draft.defaults?.[key] ?? options?.[key] ?? ''} placeholder={String(options?.[key] ?? '')}
-        onChange={event => update(key, event.target.value === '' ? undefined : Number(event.target.value))} /></label>;
-  return <form onSubmit={event => { event.preventDefault(); void save('configure'); }}>
+  const numeric = (key: 'maxRetries' | 'initialDelayMs' | 'maxDelayMs' | 'multiplier' | 'jitterRatio' | 'freezeRetryHours', label: string, min: number, max: number, step = 1, unit?: string) =>
+    <label className="nexus-retry-field">
+      <span className="nexus-retry-field-label"><strong>{label}</strong><small>来源：{source(key)} · 清空恢复继承</small></span>
+      <span className="nexus-retry-input-wrap">
+        <input aria-label={label} type="number" min={min} max={max} step={step} value={draft.defaults?.[key] ?? options?.[key] ?? ''} placeholder={String(options?.[key] ?? '')}
+          onChange={event => update(key, event.target.value === '' ? undefined : Number(event.target.value))} />
+        {unit && <em>{unit}</em>}
+      </span>
+    </label>;
+  const mode = options?.mode;
+  const effectiveScope = labels[scope.level ?? 'global'];
+  return <form className="nexus-retry-form" onSubmit={event => { event.preventDefault(); void save('configure'); }}>
     {settings.loading && <p role="status">正在读取重试设置…</p>}
     {Boolean(settings.error) && <ErrorMessage error={settings.error} retry={settings.reload} />}
     {Boolean(error) && <ErrorMessage error={error} retry={settings.reload} />}
     {settings.data && <fieldset disabled={busy || settings.loading}>
-      <p>{labels[scope.level ?? 'global']} · 当前：{options ? modeLabels[options.mode] : '设置待修正'}</p>
-      <label className="nexus-setting-row"><span>重试策略<small>全局→工作区→会话继承；主代理和子代理均按各自会话生效</small></span>
-        <select aria-label="重试策略" value={draft.defaults?.mode ?? ''} onChange={event => update('mode', event.target.value || undefined)}>
-          <option value="">继承上级 / 默认64次退避重试</option><option value="inherit">沿用提供方间隔</option><option value="custom">自定义退避重试</option><option value="disabled">关闭自动重试</option>
-        </select></label>
-      {options && options.mode !== 'disabled' && <>
-        {numeric('maxRetries', '最大重试次数', 0, 100)}
-        {options.mode === 'inherit' ? <p>间隔使用当前提供方的初始值、上限和随机抖动，按2倍指数退避；提供方未给出时使用默认值。次数仍由这里控制。</p> : <>
-        <label className="nexus-setting-row"><span>间隔算法<small>来源：{source('algorithm')}</small></span>
-          <select aria-label="重试间隔算法" value={draft.defaults?.algorithm ?? ''} onChange={event => update('algorithm', event.target.value || undefined)}>
-            <option value="">继承 / 默认指数退避</option><option value="fixed">固定间隔</option><option value="linear">线性退避</option><option value="exponential">指数退避</option>
-          </select></label>
-        {numeric('initialDelayMs', '初始间隔（毫秒）', 0, 86_400_000)}
-        {numeric('maxDelayMs', '间隔上限（毫秒）', 0, 86_400_000)}
-        {options?.algorithm === 'exponential' && numeric('multiplier', '指数倍率', 1, 10, 0.1)}
-        {numeric('jitterRatio', '随机抖动比例', 0, 1, 0.01)}
-        {options && <p role="status">前{Math.min(5, options.maxRetries)}次间隔（未含抖动）：{Array.from({ length: Math.min(5, options.maxRetries) }, (_, index) => `${requestRetryDelay({ ...options!, jitterRatio: 0 }, index)! / 1000}秒`).join(' → ') || '不重试'}</p>}
+      <div className="nexus-retry-overview">
+        <div>
+          <span className={`nexus-retry-status ${mode === 'disabled' ? 'is-off' : ''}`}>{mode === 'disabled' ? '已关闭' : '运行中'}</span>
+          <h2>{mode ? modeLabels[mode] : '设置待修正'}</h2>
+          <p>{effectiveScope}范围 · 主代理和子代理按各自会话生效</p>
+        </div>
+        {options && mode !== 'disabled' && <div className="nexus-retry-overview-value"><strong>{options.maxRetries}</strong><span>次最大重试</span></div>}
+      </div>
+
+      <section className="nexus-retry-section">
+        <header className="nexus-retry-section-heading"><span className="nexus-retry-step">01</span><div><h3>失败后怎么重试</h3><p>先选择策略，再调整重试次数和等待节奏。</p></div></header>
+        <div className="nexus-retry-grid nexus-retry-grid-primary">
+          <label className="nexus-retry-field">
+            <span className="nexus-retry-field-label"><strong>重试策略</strong><small>全局 → 工作区 → 会话继承</small></span>
+            <select aria-label="重试策略" value={draft.defaults?.mode ?? ''} onChange={event => update('mode', event.target.value || undefined)}>
+              <option value="">继承上级 / 默认退避</option><option value="inherit">沿用提供方间隔</option><option value="custom">自定义退避重试</option><option value="disabled">关闭自动重试</option>
+            </select>
+          </label>
+          {options && mode !== 'disabled' && numeric('maxRetries', '最大重试次数', 0, 100, 1, '次')}
+        </div>
+        {options && mode !== 'disabled' && <>
+          {mode === 'inherit' ? <div className="nexus-retry-note"><strong>使用提供方的等待节奏</strong><span>提供方未给出时间时，使用默认指数退避。重试次数仍由上方设置控制。</span></div> : <div className="nexus-retry-subsection">
+            <div className="nexus-retry-subsection-title">等待节奏 <small>来源：{source('algorithm')}</small></div>
+            <div className="nexus-retry-grid">
+              <label className="nexus-retry-field">
+                <span className="nexus-retry-field-label"><strong>间隔算法</strong><small>固定、线性或指数</small></span>
+                <select aria-label="重试间隔算法" value={draft.defaults?.algorithm ?? ''} onChange={event => update('algorithm', event.target.value || undefined)}>
+                  <option value="">继承 / 默认指数退避</option><option value="fixed">固定间隔</option><option value="linear">线性退避</option><option value="exponential">指数退避</option>
+                </select>
+              </label>
+              {numeric('initialDelayMs', '首次等待', 0, 86_400_000, 1, '毫秒')}
+              {numeric('maxDelayMs', '最长等待', 0, 86_400_000, 1, '毫秒')}
+              {mode && options.algorithm === 'exponential' && numeric('multiplier', '指数倍率', 1, 10, 0.1, '×')}
+              {numeric('jitterRatio', '随机抖动', 0, 1, 0.01)}
+            </div>
+            {options && <p className="nexus-retry-timeline" role="status"><span>预览</span>{Array.from({ length: Math.min(5, options.maxRetries) }, (_, index) => `${requestRetryDelay({ ...options!, jitterRatio: 0 }, index)! / 1000}秒`).join('  →  ') || '不重试'}</p>}
+          </div>}
         </>}
-        {numeric('freezeRetryHours', '订阅限额冻结时长（小时）', 0, 168, 0.5)}
-        <p>检测到订阅窗口、额度或限流错误时，会话会冻结这里设置的时长后再尝试；填0表示沿用提供方提示和普通退避。主代理与子代理按各自会话范围生效。</p>
-        <p>主会话会关联一次性定时唤醒；宿主运行期间到点自动继续。停止会话可取消等待并清理关联任务。关闭宿主后，需要手动继续未完成的回合。</p>
-        <p>所有失败的模型请求均按本策略重试，包括 PI_AI_ERROR 和流式异常。默认最多64次；用户或父任务取消会立即停止。</p>
-        <p>服务端 Retry-After 优先，可超过算法间隔上限。每次重试重新校验权限和预算，已执行的工具不会重放。</p>
-      </>}
+      </section>
+
+      {options && mode !== 'disabled' && <section className="nexus-retry-section nexus-retry-freeze-section">
+        <header className="nexus-retry-section-heading"><span className="nexus-retry-step">02</span><div><h3>订阅额度冻结</h3><p>遇到订阅窗口或限流时，先暂停一段时间再继续。</p></div></header>
+        <div className="nexus-retry-freeze-control">
+          <div><strong>冻结时长</strong><span>只对订阅、额度不足和限流错误生效</span></div>
+          <label className="nexus-retry-freeze-input"><input aria-label="订阅限额冻结时长（小时）" type="number" min={0} max={168} step={0.5} value={draft.defaults?.freezeRetryHours ?? options.freezeRetryHours ?? ''} placeholder={String(options.freezeRetryHours ?? 0)} onChange={event => update('freezeRetryHours', event.target.value === '' ? undefined : Number(event.target.value))} /><em>小时</em></label>
+        </div>
+        <div className="nexus-retry-freeze-hint"><span>提示</span><p>填 0 表示沿用服务商提示和普通退避。主代理会登记一次性定时唤醒；子代理在宿主不接受定时任务时自动使用可取消计时器。</p></div>
+      </section>}
+
+      {options && mode === 'disabled' && <div className="nexus-retry-disabled-note"><strong>自动重试已关闭</strong><span>开启重试策略后，才能使用冻结时长和定时唤醒。</span></div>}
+
+      <section className="nexus-retry-section nexus-retry-rules-section">
+        <header className="nexus-retry-section-heading"><span className="nexus-retry-step">{mode === 'disabled' ? '02' : '03'}</span><div><h3>运行规则</h3><p>系统会保留原请求边界，不重复执行已经完成的工具。</p></div></header>
+        <div className="nexus-retry-rule-list">
+          <div><strong>服务商提示优先</strong><span>Retry-After 较长时，以服务商给出的等待时间为准。</span></div>
+          <div><strong>取消立即生效</strong><span>用户、父任务取消或关闭会话都会停止等待。</span></div>
+        </div>
+      </section>
+
       {invalid && <p role="alert">{invalid}</p>}
-      <div className="nexus-actions"><Button primary type="submit" disabled={!dirty || Boolean(invalid)}>保存重试设置</Button>
+      <div className="nexus-retry-actions"><span>{message || '修改后保存，新的请求会使用最新策略。'}</span><div><Button primary type="submit" disabled={!dirty || Boolean(invalid)}>保存设置</Button>
         <Button type="button" disabled={!settings.data.local.revision} onClick={() => void save('reset')}>恢复继承</Button>
-        <Button type="button" onClick={() => { setDirty(false); settings.reload(); }}>重新读取</Button></div>
+        <Button type="button" onClick={() => { setDirty(false); settings.reload(); }}>重新读取</Button></div></div>
     </fieldset>}
-    {message && <p role="status">{message}</p>}
+    {message && <p className="nexus-retry-saved" role="status">{message}</p>}
   </form>;
 }

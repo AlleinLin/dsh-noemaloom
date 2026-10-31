@@ -59,6 +59,88 @@ body:has(style[data-nexus-native-appearance]) [class$="_headline"]:has([data-nex
 .nexus-request-retry-body { padding: 18px 20px; min-width: 0; }
 .nexus-request-retry-identity { display: block; overflow-wrap: anywhere; opacity: .65; margin-bottom: 12px; }
 .nexus-request-retry-dialog [data-nexus-request-retry] { min-width: 0; }
+
+/* The retry dialog is a focused policy editor. Keep labels, controls and
+   explanations in separate visual layers so a narrow native pane never turns
+   into one long paragraph of mixed inline text. */
+.nexus-request-retry-title { display:flex; flex-direction:column; gap:3px; min-width:0; }
+.nexus-request-retry-title > span { color:var(--dsw-alias-label-tertiary,#8f877f); font:600 9px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace; letter-spacing:.16em; }
+.nexus-request-retry-title > strong { font-size:17px; letter-spacing:-.01em; }
+.nexus-request-retry-dialog > header { padding:18px 22px 17px; }
+.nexus-request-retry-body { padding:18px 22px 22px; }
+.nexus-request-retry-identity { display:flex; align-items:center; gap:8px; margin:0 0 16px; color:var(--dsw-alias-label-tertiary,#8f877f); font-size:11px; }
+.nexus-request-retry-identity > span { flex:none; }
+.nexus-request-retry-identity > code { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--dsw-alias-label-secondary,#b9b1aa); font:11px/1.4 ui-monospace,SFMono-Regular,Consolas,monospace; }
+.nexus-retry-form { min-width:0; }
+.nexus-retry-form fieldset { border:0; min-width:0; margin:0; padding:0; }
+.nexus-retry-overview { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; padding:18px 20px; margin-bottom:12px; border:1px solid color-mix(in srgb,var(--dsw-alias-brand-primary,#d99779) 26%,transparent); border-radius:14px; background:linear-gradient(135deg,color-mix(in srgb,var(--dsw-alias-brand-primary,#d99779) 12%,transparent),color-mix(in srgb,var(--dsw-alias-bg-base,#292724) 92%)); }
+.nexus-retry-overview h2 { margin:7px 0 4px; font-size:20px; line-height:1.25; letter-spacing:-.02em; }
+.nexus-retry-overview p { margin:0; color:var(--dsw-alias-label-tertiary,#98918a); font-size:11px; line-height:1.5; }
+.nexus-retry-status { display:inline-flex; align-items:center; gap:6px; color:var(--dsw-alias-brand-primary,#d99779); font-size:10px; font-weight:600; }
+.nexus-retry-status::before { content:""; width:6px; height:6px; border-radius:50%; background:currentColor; box-shadow:0 0 0 3px color-mix(in srgb,currentColor 16%,transparent); }
+.nexus-retry-status.is-off { color:var(--dsw-alias-label-tertiary,#98918a); }
+.nexus-retry-overview-value { display:flex; flex-direction:column; align-items:flex-end; flex:none; }
+.nexus-retry-overview-value strong { font:600 28px/1 ui-monospace,SFMono-Regular,Consolas,monospace; letter-spacing:-.06em; }
+.nexus-retry-overview-value span { margin-top:5px; color:var(--dsw-alias-label-tertiary,#98918a); font-size:10px; }
+.nexus-retry-section { padding:18px 20px 20px; margin-top:12px; border:1px solid var(--dsw-alias-border-l2,#ffffff18); border-radius:14px; background:color-mix(in srgb,var(--dsw-alias-bg-base,#292724) 86%,#fff 14%); }
+.nexus-retry-section-heading { display:flex; align-items:flex-start; gap:11px; margin-bottom:16px; }
+.nexus-retry-section-heading h3 { margin:0; font-size:14px; line-height:1.35; }
+.nexus-retry-section-heading p { margin:4px 0 0; color:var(--dsw-alias-label-tertiary,#98918a); font-size:11px; line-height:1.5; }
+.nexus-retry-step { display:grid; place-items:center; width:25px; height:25px; flex:none; border-radius:8px; color:var(--dsw-alias-brand-primary,#d99779); background:color-mix(in srgb,var(--dsw-alias-brand-primary,#d99779) 14%,transparent); font:600 10px/1 ui-monospace,SFMono-Regular,Consolas,monospace; }
+.nexus-retry-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; min-width:0; }
+.nexus-retry-grid-primary { grid-template-columns:minmax(0,1.35fr) minmax(150px,.65fr); }
+.nexus-retry-field { display:flex; flex-direction:column; gap:7px; min-width:0; }
+.nexus-retry-field-label { display:flex; flex-direction:column; gap:3px; min-width:0; }
+.nexus-retry-field-label strong { font-size:11px; font-weight:600; line-height:1.35; }
+.nexus-retry-field-label small { color:var(--dsw-alias-label-tertiary,#98918a); font-size:9px; line-height:1.35; overflow-wrap:anywhere; }
+.nexus-retry-field select,.nexus-retry-field input { box-sizing:border-box; width:100%; min-width:0; min-height:36px; padding:8px 10px; border:1px solid var(--dsw-alias-border-l2,#ffffff22); border-radius:9px; color:var(--dsw-alias-label-primary,#f2eee9); background:color-mix(in srgb,var(--dsw-alias-bg-base,#292724) 74%,#fff 26%); font:inherit; font-size:12px; }
+.nexus-retry-field select:focus,.nexus-retry-field input:focus,.nexus-retry-freeze-input input:focus { border-color:var(--dsw-alias-brand-primary,#d99779); outline:2px solid color-mix(in srgb,var(--dsw-alias-brand-primary,#d99779) 22%,transparent); outline-offset:1px; }
+.nexus-retry-input-wrap { position:relative; display:flex; align-items:center; min-width:0; }
+.nexus-retry-input-wrap input { padding-right:54px; }
+.nexus-retry-input-wrap em { position:absolute; right:11px; color:var(--dsw-alias-label-tertiary,#98918a); font-size:10px; font-style:normal; pointer-events:none; }
+.nexus-retry-subsection { margin-top:17px; padding-top:16px; border-top:1px solid var(--dsw-alias-border-l2,#ffffff15); }
+.nexus-retry-subsection-title { margin-bottom:11px; color:var(--dsw-alias-label-secondary,#b9b1aa); font-size:11px; font-weight:600; }
+.nexus-retry-subsection-title small { margin-left:5px; color:var(--dsw-alias-label-tertiary,#98918a); font-size:9px; font-weight:400; }
+.nexus-retry-note { display:flex; flex-direction:column; gap:4px; padding:11px 12px; margin-top:15px; border-radius:9px; background:color-mix(in srgb,var(--dsw-alias-brand-primary,#d99779) 8%,transparent); }
+.nexus-retry-note strong { font-size:11px; }
+.nexus-retry-note span { color:var(--dsw-alias-label-tertiary,#98918a); font-size:10px; line-height:1.55; }
+.nexus-retry-timeline { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:14px 0 0; padding:10px 11px; border-radius:8px; color:var(--dsw-alias-label-secondary,#b9b1aa); background:color-mix(in srgb,var(--dsw-alias-bg-base,#292724) 66%,#fff 34%); font:11px/1.4 ui-monospace,SFMono-Regular,Consolas,monospace; }
+.nexus-retry-timeline > span { color:var(--dsw-alias-brand-primary,#d99779); font:600 9px/1 ui-sans-serif,system-ui,sans-serif; letter-spacing:.08em; text-transform:uppercase; }
+.nexus-retry-freeze-section { border-color:color-mix(in srgb,var(--dsw-alias-brand-primary,#d99779) 32%,var(--dsw-alias-border-l2,#ffffff18)); background:linear-gradient(135deg,color-mix(in srgb,var(--dsw-alias-brand-primary,#d99779) 8%,transparent),color-mix(in srgb,var(--dsw-alias-bg-base,#292724) 92%)); }
+.nexus-retry-freeze-control { display:flex; align-items:center; justify-content:space-between; gap:18px; padding:13px 0 15px; }
+.nexus-retry-freeze-control > div { display:flex; flex-direction:column; gap:4px; min-width:0; }
+.nexus-retry-freeze-control strong { font-size:13px; }
+.nexus-retry-freeze-control span { color:var(--dsw-alias-label-tertiary,#98918a); font-size:10px; line-height:1.45; }
+.nexus-retry-freeze-input { display:flex; align-items:center; flex:none; border:1px solid color-mix(in srgb,var(--dsw-alias-brand-primary,#d99779) 55%,transparent); border-radius:10px; background:color-mix(in srgb,var(--dsw-alias-bg-base,#292724) 72%,#fff 28%); overflow:hidden; }
+.nexus-retry-freeze-input input { width:74px; min-height:40px; padding:8px 4px 8px 11px; border:0; outline:0; color:var(--dsw-alias-label-primary,#f2eee9); background:transparent; font:600 18px/1 ui-monospace,SFMono-Regular,Consolas,monospace; }
+.nexus-retry-freeze-input em { padding-right:11px; color:var(--dsw-alias-label-secondary,#b9b1aa); font-size:11px; font-style:normal; }
+.nexus-retry-freeze-hint { display:flex; align-items:flex-start; gap:8px; padding-top:12px; border-top:1px solid color-mix(in srgb,var(--dsw-alias-brand-primary,#d99779) 18%,transparent); }
+.nexus-retry-freeze-hint > span { flex:none; padding:3px 6px; border-radius:5px; color:var(--dsw-alias-brand-primary,#d99779); background:color-mix(in srgb,var(--dsw-alias-brand-primary,#d99779) 13%,transparent); font-size:9px; font-weight:600; }
+.nexus-retry-freeze-hint p { margin:1px 0 0; color:var(--dsw-alias-label-tertiary,#98918a); font-size:10px; line-height:1.55; }
+.nexus-retry-disabled-note { display:flex; flex-direction:column; gap:4px; padding:14px 16px; margin-top:12px; border:1px dashed var(--dsw-alias-border-l2,#ffffff22); border-radius:12px; }
+.nexus-retry-disabled-note strong { font-size:12px; }
+.nexus-retry-disabled-note span { color:var(--dsw-alias-label-tertiary,#98918a); font-size:10px; }
+.nexus-retry-rules-section { padding-bottom:16px; }
+.nexus-retry-rule-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.nexus-retry-rule-list > div { display:flex; flex-direction:column; gap:4px; padding:10px 11px; border-radius:9px; background:color-mix(in srgb,var(--dsw-alias-bg-base,#292724) 64%,#fff 36%); }
+.nexus-retry-rule-list strong { font-size:10px; }
+.nexus-retry-rule-list span { color:var(--dsw-alias-label-tertiary,#98918a); font-size:9px; line-height:1.5; }
+.nexus-retry-actions { display:flex; align-items:center; justify-content:space-between; gap:12px; padding-top:18px; }
+.nexus-retry-actions > span { min-width:0; color:var(--dsw-alias-label-tertiary,#98918a); font-size:10px; line-height:1.45; }
+.nexus-retry-actions > div { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:7px; flex:none; }
+.nexus-retry-actions .nexus-button { min-height:34px; padding:7px 12px; font-size:11px!important; }
+.nexus-retry-actions .nexus-button.is-primary { color:#2a1d17; background:var(--dsw-alias-brand-primary,#d99779); border-color:transparent; }
+.nexus-retry-saved { margin:10px 0 0; color:var(--dsw-alias-brand-primary,#d99779); font-size:10px; }
+@media (max-width:620px) {
+  .nexus-request-retry-dialog > header { padding:15px 16px; }
+  .nexus-request-retry-body { padding:14px 16px 18px; }
+  .nexus-retry-overview,.nexus-retry-section { padding:15px; }
+  .nexus-retry-overview h2 { font-size:18px; }
+  .nexus-retry-grid,.nexus-retry-grid-primary,.nexus-retry-rule-list { grid-template-columns:minmax(0,1fr); }
+  .nexus-retry-freeze-control,.nexus-retry-actions { align-items:stretch; flex-direction:column; }
+  .nexus-retry-freeze-input { align-self:flex-start; }
+  .nexus-retry-actions > div { justify-content:flex-start; }
+}
 .nexus-compaction-dialog { box-sizing: border-box; width: min(580px, calc(100vw - 32px)); max-width: calc(100vw - 32px); max-height: calc(100dvh - 48px); padding: 0; border: 1px solid var(--dsw-alias-border-primary, #8885); border-radius: 16px; color: var(--dsw-alias-label-primary, #ccc); background: var(--dsw-alias-bg-base, #292724); box-shadow: 0 20px 80px #0005; overflow: auto; font-size: 13px; }
 .nexus-compaction-dialog::backdrop { background: #0006; }
 .nexus-compaction-dialog > header { position: sticky; top: 0; display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: inherit; border-bottom: 1px solid #8883; z-index: 1; }
