@@ -1,8 +1,8 @@
 # R42 验证记录
 
-目标为官方 Desktop **0.2.1-rc.5**。本机宿主与 Noemaloom 已更新，安装后逐项核验运行文件摘要；未启动真实 profile，实际激活由独立官方桌面和合成 profile 验证。最终运行包 SHA256：`7e22030a6827525d27712b15b9f59c59c00a5388b8c74b18116f34ab31ca3715`。
+目标为官方 Desktop **0.2.1-rc.5**。本机宿主与 Noemaloom 已更新，安装后逐项核验运行文件摘要；未启动真实 profile，实际激活由独立官方桌面和合成 profile 验证。最终运行包 SHA256：`a0fce4e9382e8b4814a424999c424c4e958ae906cf8591fb79dbc93c063547cc`。
 
-已通过 **2402 项主回归**（0 失败、0 跳过）、构建、类型检查、产物检查、实际 tar 审计及主项目/Forge 的零 npm 漏洞审计。Cognition 编译完整源码并执行 **64 个回归模块**，保留 3 项上游可选跳过。稳定 Python 运行之后只改了两个测试文件，生产/Cognition 字节完全相同；差异摘要见 `evidence/r42-test-fixture-scope-bridge.json`。最终提交的 CI 会重新执行完整流水线，结果随交付清单与 LATEST 记录。
+已通过 **2402 项主回归**（0 失败、0 跳过）、构建、类型检查、产物检查、实际 tar 审计及主项目/Forge 的零 npm 漏洞审计。Cognition 编译完整源码并执行 **64 个回归模块**，保留 3 项上游可选跳过。稳定 Python 运行后调整了两个测试夹具，首轮 CI 又发现来源元数据行尾与浏览器启动超时：仅统一集成 SOURCE.json 的 LF 和对应锁摘要、增加测试启动等待，相关测试已复跑。生产/Cognition 实现字节完全相同；两个范围桥接记录为 `evidence/r42-test-fixture-scope-bridge.json` 和 `evidence/r42-ci-scope-bridge.json`。最终提交的 CI 重新执行完整流水线，结果随交付清单与 LATEST 记录。
 
 独立官方桌面和合成 profile 的实测覆盖：42 个场景，包括 R40 主/子压缩、原生输入回退、阈值保存、更新后的 Context/编队/图谱/专家/记忆页面、Claude 主题、电脑操作开关、原生菜单/拖拽/全屏和浮层清理。
 

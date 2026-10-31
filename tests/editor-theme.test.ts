@@ -20,7 +20,7 @@ const browser = [
 
 test('Monaco follows native body tokens, live mode/skin changes and shared tab lifecycle', {
   skip: browser ? false : 'A local Chromium browser is required for computed CSS colors',
-  timeout: 30000,
+  timeout: 90000,
 }, async () => {
   const directory = await mkdtemp(join(tmpdir(), 'nexus-editor-theme-'));
   try {
@@ -35,7 +35,7 @@ test('Monaco follows native body tokens, live mode/skin changes and shared tab l
       '--disable-component-update', '--disable-sync', '--no-first-run', '--no-default-browser-check',
       `--user-data-dir=${join(directory, 'browser')}`, '--allow-file-access-from-files',
       '--virtual-time-budget=8000', '--dump-dom', pathToFileURL(join(directory, 'fixture.html')).href,
-    ], { encoding: 'utf8', timeout: 22000, maxBuffer: 1024 * 1024, windowsHide: true });
+    ], { encoding: 'utf8', timeout: 60000, maxBuffer: 1024 * 1024, windowsHide: true });
     const encoded = /data-nexus-fixture="([A-Za-z0-9+/=]+)"/.exec(stdout)?.[1];
     assert.ok(encoded, 'The computed-style regression must publish a result');
     const result = JSON.parse(Buffer.from(encoded, 'base64').toString('utf8'));

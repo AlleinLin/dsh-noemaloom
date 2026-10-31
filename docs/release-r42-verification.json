@@ -1,16 +1,16 @@
 {
   "schemaVersion": 1,
   "release": "R42",
-  "recordedAt": "2026-10-31T08:05:43.425Z",
+  "recordedAt": "2026-10-31T08:34:23.176Z",
   "source": {
     "algorithm": "sha256:path-and-content-v1",
-    "sha256": "b51644adae3b9a4ac873e910687b9ff399a4660df20cf8c59eb0bc90952a5648",
+    "sha256": "0c12677612a863944983a6b7dc2701704798a33dcfdfc16e9178f7cf1500e4ce",
     "files": 2881
   },
   "host": "0.2.1-rc.5",
   "status": "local validation passed; exact-commit CI recorded in delivery manifest and LATEST",
-  "runtimePackageFile": "dsh-noemaloom-0.4.0-7e22030a6827525d27712b15b9f59c59c00a5388b8c74b18116f34ab31ca3715.tgz",
-  "runtimePackageSha256": "7e22030a6827525d27712b15b9f59c59c00a5388b8c74b18116f34ab31ca3715",
+  "runtimePackageFile": "dsh-noemaloom-0.4.0-a0fce4e9382e8b4814a424999c424c4e958ae906cf8591fb79dbc93c063547cc.tgz",
+  "runtimePackageSha256": "a0fce4e9382e8b4814a424999c424c4e958ae906cf8591fb79dbc93c063547cc",
   "inventory": {
     "total": 153,
     "sourceReview": "docs/upstream-audit-2026-10-31.json",
@@ -22,6 +22,7 @@
     "failed": 0,
     "skipped": 0,
     "junitLeafCases": 2401,
+    "sourceHash": "b51644adae3b9a4ac873e910687b9ff399a4660df20cf8c59eb0bc90952a5648",
     "receipt": "evidence/receipts/r42-sealed-final.json",
     "junit": "evidence/runs/r42-sealed-final/tests.junit.xml",
     "junitSha256": "2f6e1be31dc2609bb9a46ebd44cd0736b2c10c7fc714d4e969959bf39050c020",
@@ -31,7 +32,16 @@
       "modules": "137",
       "platform": "win32",
       "arch": "x64"
-    }
+    },
+    "subsequentCiCorrections": "evidence/r42-ci-scope-bridge.json",
+    "targetedCorrections": {
+      "cases": 4,
+      "passed": 4,
+      "failed": 0,
+      "report": "evidence/r42-ci-corrections.junit.xml",
+      "sha256": "a6533ded75fced8cce9de76ac4f1e78eb4c181f117145fc4525a4c663105c624"
+    },
+    "exactFinalCommitFullCheck": "CI result in delivery manifest and LATEST"
   },
   "build": {
     "node": "v24.22.1",
@@ -85,13 +95,13 @@
       "passed": true,
       "cases": 7,
       "report": "evidence/r42-responsive.json",
-      "sourceHash": "b51644adae3b9a4ac873e910687b9ff399a4660df20cf8c59eb0bc90952a5648"
+      "sourceHash": "0c12677612a863944983a6b7dc2701704798a33dcfdfc16e9178f7cf1500e4ce"
     },
     "freeze": {
       "passed": true,
       "cases": 3,
       "report": "evidence/r42-freeze-desktop.json",
-      "sourceHash": "b51644adae3b9a4ac873e910687b9ff399a4660df20cf8c59eb0bc90952a5648"
+      "sourceHash": "0c12677612a863944983a6b7dc2701704798a33dcfdfc16e9178f7cf1500e4ce"
     },
     "updatedSurfaces": {
       "passed": true,
@@ -156,7 +166,7 @@
   },
   "localInstallation": {
     "host": "0.2.1-rc.5",
-    "pluginPackageSha256": "7e22030a6827525d27712b15b9f59c59c00a5388b8c74b18116f34ab31ca3715",
+    "pluginPackageSha256": "a0fce4e9382e8b4814a424999c424c4e958ae906cf8591fb79dbc93c063547cc",
     "installedKeyFilesVerified": true,
     "installedFrom": "D:/dshplugin/nexus/build/r42",
     "activationVerified": false,
@@ -171,7 +181,8 @@
     "Freeze fixture initially counted native context envelopes as user input, then a manually created child lacked cwd and failed before request admission. Corrected fixture semantics and cwd; final main/child runtime and settings cases passed.",
     "One Windows fixture teardown hit transient EPERM after disposal; bounded native rm retries were added. Final full test run has no skips.",
     "Context/Fleet waits originally inspected only the tail of body text, hidden by long synthetic child history; scoped observation now includes the beginning. Original native checks required a fresh Codinput-enabled layout after the separate native-input fallback test.",
-    "Synthetic welcome window appeared late on first bootstrap. Explicit API-key setup-later UI was used. GUI launches use detached ignored stdio; no claim of repairing the official updater."
+    "Synthetic welcome window appeared late on first bootstrap. Explicit API-key setup-later UI was used. GUI launches use detached ignored stdio; no claim of repairing the official updater.",
+    "The first exact-commit CI detected Codinput integration SOURCE.json CRLF normalization by its nested upstream .gitattributes and a headless browser startup timeout. Normalized only that metadata to LF and refreshed its lock digest, raised bounded startup limits, and reran all affected Codinput and computed-theme cases. Runtime implementation bytes were unchanged; final CI runs the whole suite again."
   ],
   "limitations": [
     "No real subscription credentials or remote model billing window were used; no five-hour wall-clock wait was performed.",
