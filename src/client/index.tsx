@@ -22,6 +22,7 @@ import { registerCompanionConversation } from './Companion.js';
 import { registerEditor } from './editor/register.js';
 import { installAdaptiveRightbar } from './adaptive-rightbar.js';
 import { registerContextMaintenance } from './ContextMaintenance.js';
+import { registerRequestRetryButton } from './RequestRetryButton.js';
 const WorkflowEditor = React.lazy(() => import('./WorkflowEditor.js').then(module => ({ default: module.WorkflowEditor })));
 
 export const name = 'dsh-noemaloom-client';
@@ -97,6 +98,7 @@ export function apply(ctx: ClientContext) {
     disposers.push(registerCompanionConversation(ctx));
     disposers.push(registerEditor(ctx, api));
     disposers.push(registerContextMaintenance(ctx, api).dispose);
+    disposers.push(registerRequestRetryButton(ctx, api));
     return () => { for (const disposer of disposers.reverse()) disposer(); api.dispose(); };
   }, 'nexus: native workspace, settings, navigation and authenticated connection');
 }

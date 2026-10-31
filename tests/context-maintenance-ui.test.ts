@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { registerContextMaintenance, compactionOutcome } from '../src/client/ContextMaintenance.js';
+import { registerRequestRetryButton } from '../src/client/RequestRetryButton.js';
 import type { ClientContext, NexusApi } from '../src/client/types.js';
 
 test('the subagent-only slash contribution and button share exact-session compression without submitting a prompt', async () => {
@@ -62,4 +63,28 @@ test('unknown manual outcomes retain the original intent instead of replaying a 
   assert.equal(runtime.state('child').requestId, undefined);
   assert.doesNotMatch(compactionOutcome({ committed: false, officialEffect: 'unknown' }), /已压缩/);
   runtime.dispose();
+});
+
+test('retry/freeze trigger is registered in the right input seat and keeps the exact session id', () => {
+  const registrations: any[] = [];
+  let disposed = false;
+  const api = { dispose() { disposed = true; } } as unknown as NexusApi;
+  const ctx = {
+    slots: {
+      inject(_name: string, mount: () => any) { return mount(); },
+      register(definition: any, component: any) {
+        registrations.push({ definition, component });
+        return () => { disposed = true; };
+      },
+    },
+  } as unknown as ClientContext;
+  const cleanup = registerRequestRetryButton(ctx, api);
+  assert.equal(registrations[0].definition.name, 'conversation.input.right');
+  assert.equal(registrations[0].definition.id, 'noemaloom.request-retry');
+  assert.equal(registrations[0].definition.order, 90);
+  const element = registrations[0].component({ sessionId: 'child-session' });
+  assert.equal(element.props.sessionId, 'child-session');
+  assert.equal(element.props.api, api);
+  cleanup();
+  assert.equal(disposed, true);
 });
