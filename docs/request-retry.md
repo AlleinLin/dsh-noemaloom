@@ -88,3 +88,15 @@ the provider allowlist excluded it. Some middleware throws also bypassed the
 native request-error seam. R34 addresses both paths. Those old exports do not
 prove the original upstream cause; this policy recovers failed requests without
 inventing such a cause.
+
+## 订阅窗口冻结与定时唤醒（rc.5）
+
+“模型请求重试”设置同时出现在全局设置、工作区/会话设置和代理任务洞察面板。会话级值覆盖工作区级值，主代理和子代理各自读取正在执行会话的有效范围。
+
+“订阅限额冻结时长（小时）”只作用于订阅窗口、额度不足和限流类失败，取配置值与宿主 `Retry-After` 中较大的等待时间。填 `0` 时保持普通退避和宿主提示。等待结束后仍由 DSH 的 `agent/request-error` 同一步边界返回 `{ kind: 'retry' }`，不会合成用户消息，也不会重放已经完成的工具调用。
+
+rc.5 宿主提供 Schedule 服务时，冻结等待会额外登记一个一次性宿主定时唤醒。唤醒标记在进入模型前由插件消费，实际重试仍沿用同一个 `llm/retry` 链；进程计时器继续作为兜底。宿主重启后，公开 Agent API 不能重新打开已经结束的 turn，因此遗留唤醒只会被清理并保留 `llm/retry` 审计记录，不会伪造输入或自动重放未知请求。委派子代理的 Session 被 DSH Schedule 明确拒绝绑定时，也会安全回退进程计时器。
+
+诊断面板会显示冻结小时数、预计重试时间以及使用的唤醒方式。取消请求、父代理取消、会话删除或插件卸载都会取消等待并删除已登记的宿主任务。
+
+冻结时长范围为 0–168 小时，可输入小数（如 5 或 5.5）；默认 0，不改变原有重试间隔。此设置不会重置服务商额度，也不能唤醒已关闭的电脑。DSH 关闭期间不能恢复原来的在途请求。

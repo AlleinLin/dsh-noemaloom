@@ -121,7 +121,7 @@
   },
   {
     "file": "src/client/styles.ts",
-    "upstreamSha256": "709016556367e1b128f20599c7beadc19ec45ac89f40b25da7eda0e51e6bb935",
+    "upstreamSha256": "39a13b688d89cddb34aeb26ec9659409c3ff8b9c29a0df68ccf2c919c84f1ea4",
     "replacements": [
       {
         "before": ".dci-send { background: var(--dsw-alias-button-info-fill, color-mix(in srgb, currentColor 85%, transparent)); color: #fff; cursor: pointer;",
@@ -139,7 +139,7 @@
   },
   {
     "file": "src/client/index.tsx",
-    "upstreamSha256": "97c30e9e7c949b3c75ed686ff785dcdeb99556fc9734bec8319e0a11c0c4f992",
+    "upstreamSha256": "174bc28c4b860a690525158f232d0ebcfcbc48ad963dc002eab18925c961c4cd",
     "replacements": [
       {
         "before": "  // ---- 去掉 dockkit「拖动标签页→浮动/换位」手势（产品决策 2026-09-20：\n  // 悬浮只经主输入卡片 pin 按钮进入）。capture 相位拦掉 tab chip 的\n  // pointerdown，dockkit 的 press→drag 追踪不再启动；点击激活走独立\n  // click 事件、关闭按钮有专属 pointerdown 处理，均不受影响。 ----\n  runGuarded('draggate.install', () => {\n    const w = window as unknown as { __dshCodinputDragGate?: boolean };\n    if (w.__dshCodinputDragGate) return;\n    w.__dshCodinputDragGate = true;\n    document.addEventListener(\n      'pointerdown',\n      (event) => {\n        if (!(event.target instanceof Element)) return;\n        if (event.target.closest('[data-dockkit-tab-close]')) return;\n        if (event.target.closest('[data-dockkit-tab]')) event.stopPropagation();\n      },\n      { capture: true },\n    );\n  });\n\n",
@@ -149,7 +149,7 @@
   },
   {
     "file": "src/client/components/StatsRow.tsx",
-    "upstreamSha256": "a3fdc36c9a57400d25313871b5b8ad5b36b7ae53e5019ed52bf7d2d5f812ca76",
+    "upstreamSha256": "bb15cde9fcb65b97e076224f6a7dbe039294b3a86316c8cc2833f7a6b50dd4fb",
     "replacements": [
       {
         "before": "const GAUGE_CIRCUMFERENCE = 2 * Math.PI * 5.5;",

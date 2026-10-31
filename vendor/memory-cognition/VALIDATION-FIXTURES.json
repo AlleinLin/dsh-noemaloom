@@ -1,5 +1,4 @@
 {
-  "revision": "72fd465db69bb7edcfed54b1a9e03c88b7e27ea2",
   "purpose": "Exact public source fixtures for unchanged Python regressions only; no Rust engine or installer is executed by the host.",
   "files": [
     {
@@ -24,11 +23,11 @@
     },
     {
       "file": "src/index.ts",
-      "sha256": "2de3b4a6d4e0e638a942d5f00a3cd7c1426c32db5f0b326e38c8388737d411ea"
+      "sha256": "aced8d2a8cc05f07f674a589e0e69ccd9816062c3efb4b981a236a3b9bb4ee4e"
     },
     {
       "file": "scripts/workspace_index.py",
-      "sha256": "ab552c124525be8187d9175b4f7c871b47f5d3b7a3cebdfb725737b31b594290"
+      "sha256": "55e1b57326f481fb8e37adbc434866f4cfc1acde6b8fdfa8a9a7b0a5232f2bc9"
     },
     {
       "file": "scripts/build_ui.py",
@@ -36,11 +35,11 @@
     },
     {
       "file": "ui/minimal/install.ps1",
-      "sha256": "57b683ce58e7cbdf43ef1702272c5c6aead7584bc668f7b49f31191a6c446ac1"
+      "sha256": "1caec89c56cae9a6d0d8ef9b2fad38858aa3bf5a9fd7449e29d08b37ee9c67c1"
     },
     {
       "file": "ui/minimal/integrity.json",
-      "sha256": "8a0914718fe35d588e240cdda3968a3d90bc26074e55455ad0bb72f56128dead"
+      "sha256": "4766274ee25c94bd9d39a4a6436c4f80892d2d70c827fe8bc9b6f7e03df71306"
     },
     {
       "file": "ui/minimal/payload/web/client.js",
@@ -78,5 +77,16 @@
       "file": "ui/minimal/payload/web/style.css",
       "sha256": "58b2f345b3975eadf66ed030f7e9aa6047f7c225e0fad94f6af3843db934eda4"
     }
-  ]
+  ],
+  "publishedRegressionSource": "npm @furongjun1999/dsh-memory@0.9.18",
+  "changedPublishedRegressionModules": [
+    "test_generation_guard",
+    "test_i50c_meta_passthrough",
+    "test_issue708_writegate_observable",
+    "test_issue709_review_chain_enforce",
+    "test_issue712_session_window_attribution",
+    "test_p45_session_identity"
+  ],
+  "observedUpstreamRevision": "b2fe4db4dffc1bf1d54e705de55d47a6bd02069c",
+  "identity": "npm:@furongjun1999/dsh-memory@0.9.18"
 }

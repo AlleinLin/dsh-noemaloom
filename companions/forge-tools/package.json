@@ -1,12 +1,12 @@
 {
   "name": "@local/dsh-forge-tools",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "DSH Forge：面向 Windows 慢磁盘的统一文件、搜索与操作工具集",
   "type": "module",
   "license": "MIT",
   "engines": {
     "node": ">=22.19.0",
-    "dsh": "0.2.1-rc.3"
+    "dsh": "0.2.1-rc.5"
   },
   "exports": {
     ".": "./lib/index.js",
@@ -31,7 +31,8 @@
     "docs/VALIDATION.md",
     "docs/compatibility-rc3.json",
     "docs/host-validation.json",
-    "docs/desktop-validation.json"
+    "docs/desktop-validation.json",
+    "docs/compatibility-rc5.json"
   ],
   "scripts": {
     "test": "node --test tests/*.test.mjs",
@@ -45,10 +46,10 @@
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "4.0.5",
-    "@deepseek-ai/dsh-fs": "0.2.1-rc.3",
-    "@deepseek-ai/dsh-llm": "0.2.1-rc.3",
-    "@deepseek-ai/dsh-sandbox": "0.2.1-rc.3",
-    "@deepseek-ai/dsh-tools": "0.2.1-rc.3",
+    "@deepseek-ai/dsh-fs": "0.2.1-rc.5",
+    "@deepseek-ai/dsh-llm": "0.2.1-rc.5",
+    "@deepseek-ai/dsh-sandbox": "0.2.1-rc.5",
+    "@deepseek-ai/dsh-tools": "0.2.1-rc.5",
     "@deepseek-ai/schemastery": "3.18.5"
   },
   "peerDependenciesMeta": {
@@ -73,17 +74,17 @@
   },
   "devDependencies": {
     "@deepseek-ai/cordis": "4.0.5",
-    "@deepseek-ai/dsh-fs": "0.2.1-rc.3",
-    "@deepseek-ai/dsh-fs-local": "0.2.1-rc.3",
-    "@deepseek-ai/dsh-fs-sandbox": "0.2.1-rc.3",
-    "@deepseek-ai/dsh-llm": "0.2.1-rc.3",
-    "@deepseek-ai/dsh-pwsh-local": "0.2.1-rc.3",
-    "@deepseek-ai/dsh-pwsh-sandbox": "0.2.1-rc.3",
-    "@deepseek-ai/dsh-sandbox": "0.2.1-rc.3",
-    "@deepseek-ai/dsh-sandbox-policy": "0.2.1-rc.3",
-    "@deepseek-ai/dsh-subprocess-local": "0.2.1-rc.3",
-    "@deepseek-ai/dsh-tools": "0.2.1-rc.3",
-    "@deepseek-ai/dsh-working-directory": "0.2.1-rc.3",
+    "@deepseek-ai/dsh-fs": "0.2.1-rc.5",
+    "@deepseek-ai/dsh-fs-local": "0.2.1-rc.5",
+    "@deepseek-ai/dsh-fs-sandbox": "0.2.1-rc.5",
+    "@deepseek-ai/dsh-llm": "0.2.1-rc.5",
+    "@deepseek-ai/dsh-pwsh-local": "0.2.1-rc.5",
+    "@deepseek-ai/dsh-pwsh-sandbox": "0.2.1-rc.5",
+    "@deepseek-ai/dsh-sandbox": "0.2.1-rc.5",
+    "@deepseek-ai/dsh-sandbox-policy": "0.2.1-rc.5",
+    "@deepseek-ai/dsh-subprocess-local": "0.2.1-rc.5",
+    "@deepseek-ai/dsh-tools": "0.2.1-rc.5",
+    "@deepseek-ai/dsh-working-directory": "0.2.1-rc.5",
     "@deepseek-ai/schemastery": "3.18.5",
     "@vscode/ripgrep-win32-x64": "1.18.0",
     "esbuild": "0.25.12",

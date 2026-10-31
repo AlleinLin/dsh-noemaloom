@@ -29,10 +29,10 @@ async function report(directory, manifest, original, adapted, changes, additiona
 async function buildSynapse() {
   const root = dirname(require.resolve('dsh-synapse'));
   const manifest = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
-  if (manifest.version !== '0.5.5') throw new Error('Synapse adapter requires reviewed version 0.5.5');
+  if (manifest.version !== '0.5.6') throw new Error('Synapse adapter requires reviewed version 0.5.6');
   const original = await readFile(join(root, 'index.js'), 'utf8');
   if (sha256(original) !== 'dbe4fd75428f64d4401c46f5802f3e63a416b23602fabd54aeb765cb29de2dbe') {
-    throw new Error('Synapse adapter requires the reviewed 0.5.5 host SHA256');
+    throw new Error('Synapse adapter requires the reviewed 0.5.6 host SHA256');
   }
   let adapted = replaceOnce(original, 'const store = new WorkspaceStore(config?.dataFile)',
     'const store = config.nexusStore', 'Synapse original request-scoped store');

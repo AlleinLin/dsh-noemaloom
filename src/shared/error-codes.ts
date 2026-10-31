@@ -33,6 +33,8 @@ export interface FailureDiagnosis {
   canonicalCode: string;
   category: 'network' | 'gateway' | 'authorization' | 'cancelled' | 'unattributed' | 'internal' | 'provider';
   retryable: boolean;
+  /** The provider appears to have exhausted a subscription/quota window. */
+  sessionFreezeEligible: boolean;
   message: string;
   phase: string;
   status?: number;
@@ -180,7 +182,9 @@ export function classifyFailure(error: unknown, context: FailureContext = {}): F
   } else {
     diagnosticCode = 'NX_INTERNAL_FAILURE'; category = 'internal';
   }
-  return { diagnosticCode, canonicalCode, category, retryable, message: ERROR_CODES[diagnosticCode],
+  const sessionFreezeEligible = quota || subscription || status === 429
+    || codes.some(code => RATE_LIMIT.has(code));
+  return { diagnosticCode, canonicalCode, category, retryable, sessionFreezeEligible, message: ERROR_CODES[diagnosticCode],
     phase: context.phase ?? 'operation', ...(status !== undefined ? { status } : {}), ...(requestId ? { requestId } : {}) };
 }
 

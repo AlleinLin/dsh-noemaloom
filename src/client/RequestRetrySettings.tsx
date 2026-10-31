@@ -84,7 +84,7 @@ function RetryForm({ api, scope }: { api: NexusApi; scope: NexusScope }) {
     } catch (cause) { if (!signal.aborted) setError(cause); }
     finally { if (!signal.aborted) setBusy(false); }
   };
-  const numeric = (key: 'maxRetries' | 'initialDelayMs' | 'maxDelayMs' | 'multiplier' | 'jitterRatio', label: string, min: number, max: number, step = 1) =>
+  const numeric = (key: 'maxRetries' | 'initialDelayMs' | 'maxDelayMs' | 'multiplier' | 'jitterRatio' | 'freezeRetryHours', label: string, min: number, max: number, step = 1) =>
     <label className="nexus-setting-row"><span>{label}<small>来源：{source(key)} · 清空恢复继承</small></span>
       <input aria-label={label} type="number" min={min} max={max} step={step} value={draft.defaults?.[key] ?? options?.[key] ?? ''} placeholder={String(options?.[key] ?? '')}
         onChange={event => update(key, event.target.value === '' ? undefined : Number(event.target.value))} /></label>;
@@ -111,6 +111,9 @@ function RetryForm({ api, scope }: { api: NexusApi; scope: NexusScope }) {
         {numeric('jitterRatio', '随机抖动比例', 0, 1, 0.01)}
         {options && <p role="status">前{Math.min(5, options.maxRetries)}次间隔（未含抖动）：{Array.from({ length: Math.min(5, options.maxRetries) }, (_, index) => `${requestRetryDelay({ ...options!, jitterRatio: 0 }, index)! / 1000}秒`).join(' → ') || '不重试'}</p>}
         </>}
+        {numeric('freezeRetryHours', '订阅限额冻结时长（小时）', 0, 168, 0.5)}
+        <p>检测到订阅窗口、额度或限流错误时，会话会冻结这里设置的时长后再尝试；填0表示沿用提供方提示和普通退避。主代理与子代理按各自会话范围生效。</p>
+        <p>主会话会关联一次性定时唤醒；宿主运行期间到点自动继续。停止会话可取消等待并清理关联任务。关闭宿主后，需要手动继续未完成的回合。</p>
         <p>所有失败的模型请求均按本策略重试，包括 PI_AI_ERROR 和流式异常。默认最多64次；用户或父任务取消会立即停止。</p>
         <p>服务端 Retry-After 优先，可超过算法间隔上限。每次重试重新校验权限和预算，已执行的工具不会重放。</p>
       </>}

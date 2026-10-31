@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "package": "@anionex/dsh-turn-rewind",
+  "version": "0.3.11",
+  "license": "BSD-3-Clause",
+  "repository": "https://github.com/Anionex/dsh-turn-rewind",
+  "upstreamRevision": "737d716c5f693f96eb2adc3e9a79f4e55cda8735",
+  "sourceArchive": "https://registry.npmjs.org/@anionex/dsh-turn-rewind/-/dsh-turn-rewind-0.3.11.tgz",
+  "contentIdentity": "sha256:d82283277704c92f8c5290521cc5515b1531155ca3a509efc07c0b720b92c4d8",
+  "adaptation": "Reproducible local snapshot of the reviewed 0.3.11 upstream package. Only package compatibility metadata is adapted from rc.3 to exact DSH 0.2.1-rc.5; runtime source, native entrypoints, BSD-3-Clause license and client behavior remain upstream.",
+  "runtimeFiles": {
+    "lib/client.js": "60b7198485f583a732a070f9821de3fdf61618ee5abf18d31fa66d683c62fd6b",
+    "lib/deadline.js": "cdead64bd6997b3b3e2006c3ba3fe154e5cd48826669bc676d8b0dd4e34c0292",
+    "lib/directory.js": "62c657a41d28bde9c62f586df4ed8fbcdb928596e07e389f443bebbf19f80648",
+    "lib/engine.js": "b620f5227f77069b5d39b0a517d5d6b380071854404a5e57e2830763dc3b0602",
+    "lib/errors.js": "d7886ff9e3f7f05eb3105ed42ad7655128d7ca3e7cd2b72e2cf43f91b0dca702",
+    "lib/git-checkpoint.js": "e9c82e92f5f8c8d80a5eea2a5375363e458f76d13829f1c1840b01c5a67f0ad6",
+    "lib/git.js": "c19c51af040d704832de6f931dad9fc73882044e034b9d0bf35736dec5bcb217",
+    "lib/index.js": "f1a687b6c637c42c6a625415893e26afafe6aa563074f2ec2bc6521dbcb7abb8",
+    "lib/path-cache.js": "79d1cd3ade3f6294749805e1860b00c13e9224134cbbbb47cf8ab116d11bb515",
+    "lib/path-utils.js": "882ccb1bfbb597ff8dba0358aec8f22620cb0923986de3018e9eb99cce26a7d4",
+    "lib/rewind-host.js": "314f5d43c015fd3b997f6b0926db313292bf335d1964e0dbd8ff1337a17c0a56",
+    "lib/settings.js": "11b5aa1bcdee668fdc217d4e7dae7605a248e1b9a6c70eca34d14e7b756d69ab",
+    "lib/snapshot.js": "fd81d218fe432feef19c0cb590c9df6b4aa9204073633af3c215447727cefad9",
+    "lib/store.js": "436811dca503d91ba4946f9ffa1b55407744980484f56925378d915e1c647c51",
+    "lib/types.js": "c442648915a1d809297025eb22261705295f20a71babc47c9334f44ac2d17e2e",
+    "lib/validate.js": "c8433d01f4428d0a1c3faff47f25610d874288d4e01711e9778164647668e05c",
+    "lib/workspace.js": "6cfdbbbc61d996a769a9006b53aeb146731f155edf329ee82f81d4b7b8fa13d7"
+  }
+}

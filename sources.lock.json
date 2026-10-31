@@ -40,12 +40,12 @@
   ],
   "dshWebSubpackageCount": 19,
   "host": {
-    "release": "0.2.1-rc.3",
-    "commit": "1f81c047fc48fa190a683e469daa699857e9afe8",
+    "release": "0.2.1-rc.5",
+    "commit": "b830ec950faba0a46dda564be3e2d854afed94f1",
     "compactionRegion": {
       "source": "vendor/compaction-basic",
       "package": "@deepseek-ai/dsh-compaction-basic",
-      "version": "0.2.1-rc.3",
+      "version": "0.2.1-rc.5",
       "license": "MIT",
       "upstreamSha256": "b7ac52f20a36430cf01a66b3a36f23a48ffdb22708d714dbe1fff541b5df4ec5",
       "derivedSha256": "7a7a5a0b17a139e64e901b85b6a19cdb90b279cc0ef51b42552675199ac9f608"
@@ -64,9 +64,40 @@
       "id": "SRC-38",
       "identity": "Witherwithwinter__DSH-Codinput",
       "requirements": "Original code-editor composer takeover, floating and sidebar input, native draft/attachment/model controls, settings and slash-command integration",
-      "decision": "Retain complete pinned0.3.6 source, including both original InputSlotSeat tool seats; rebuild with exact reviewed multi-session command/menu/dock/context fixes and audited dependencies; preserve original host via export-only bridge.",
+      "decision": "Complete verbatim 0.3.8 source, upstream user Markdown and stats portal retained; all nine local source patches rebased without modifying vendor bytes.",
       "coverage": "native composer input enhancement",
       "source": {
+        "package": "dsh-codinput",
+        "version": "0.3.8",
+        "declaredLicense": "MIT",
+        "repository": "https://github.com/Witherwithwinter/DSH-Codinput",
+        "revision": "e19276e14ee907753d994df5daa904afd8fcdfa5",
+        "licenseFiles": [
+          "vendor/codinput/LICENSE",
+          "notices/originals/codinput/LICENSE",
+          "notices/originals/codinput/NOTICE"
+        ],
+        "packageManifest": "vendor/codinput/package.json",
+        "snapshot": "vendor/codinput",
+        "provenance": "vendor/codinput/SOURCE.json",
+        "revisionKind": "git-commit",
+        "contentIdentity": "git:e19276e14ee907753d994df5daa904afd8fcdfa5",
+        "previousVersion": "0.3.6",
+        "npmIntegrity": "sha512-1haYEAqrTU8qRMfJ/Cm9jPHRVnigFq5iH2srQfadROphppKFSvU9wkVr408ZEA1qMrN+h6AN7jFmObgLWdSsJg==",
+        "previousRevision": "f5449ed247559de2d0f19fc70870864fa93adfcf",
+        "integrity": "sha512-1haYEAqrTU8qRMfJ/Cm9jPHRVnigFq5iH2srQfadROphppKFSvU9wkVr408ZEA1qMrN+h6AN7jFmObgLWdSsJg==",
+        "sourceReview": "docs/upstream-audit-2026-10-31.json",
+        "registryCheckedAt": "2026-10-31T06:35:12.270Z"
+      },
+      "implementationCandidates": [
+        "src/client/originals-manifest.ts",
+        "src/client/originals.ts",
+        "scripts/build-originals.mjs",
+        "scripts/vendored-original.mjs",
+        "cordis.patch.yml"
+      ],
+      "implementationStatus": "original_factory_and_host_requires_runtime_evidence",
+      "sourceArchive": {
         "package": "dsh-codinput",
         "version": "0.3.6",
         "declaredLicense": "MIT",
@@ -88,14 +119,14 @@
         "integrity": "sha512-AFPX6frb6X0tNGBcZDnM8HN9LTsp1ioR6Xg6JFCiwPIWxwKoKUExiydp+vRCiZUBxJYIBv5duHXRN1PFtgth6A==",
         "sourceReview": "docs/upstream-audit-2026-10-29.json"
       },
-      "implementationCandidates": [
-        "src/client/originals-manifest.ts",
-        "src/client/originals.ts",
-        "scripts/build-originals.mjs",
-        "scripts/vendored-original.mjs",
-        "cordis.patch.yml"
-      ],
-      "implementationStatus": "original_factory_and_host_requires_runtime_evidence"
+      "runtimePackage": {
+        "package": "dsh-codinput",
+        "version": "0.3.8",
+        "integrity": "sha512-1haYEAqrTU8qRMfJ/Cm9jPHRVnigFq5iH2srQfadROphppKFSvU9wkVr408ZEA1qMrN+h6AN7jFmObgLWdSsJg==",
+        "license": "MIT",
+        "sourceReview": "docs/upstream-audit-2026-10-31.json"
+      },
+      "validationEvidence": "docs/upstream-audit-2026-10-31.json"
     },
     {
       "id": "SRC-37",
@@ -159,9 +190,41 @@
       "id": "SRC-02",
       "identity": "FuRongJun-1999__dsh-memory",
       "requirements": "CCG卡、五层与负记忆、规则裁决、条件路由/阶梯回退、38个高级op、时间线、token权限、进程换代检查",
-      "decision": "Python brain及协议可直接适配；完整operation manifest迁移，不能只采tool list",
+      "decision": "Published 0.9.18 Python implementation with separate local scoped bridge; upstream changes and regressions reviewed in current audit.",
       "coverage": "02 / MEM",
       "source": {
+        "directory": "FuRongJun-1999__dsh-memory",
+        "package": "@furongjun1999/dsh-memory",
+        "version": "0.9.18",
+        "declaredLicense": "MIT",
+        "revision": null,
+        "licenseFiles": [
+          "LICENSE"
+        ],
+        "packageManifest": "FuRongJun-1999__dsh-memory/package.json",
+        "indexed": false,
+        "identity": "FuRongJun-1999__dsh-memory",
+        "snapshot": "vendor/memory-cognition",
+        "revisionKind": "npm-integrity",
+        "contentIdentity": "sha512-L2T3V6vtD+OY2Gfm6vJ2IEHF6l1GnOvAFYNF/50WXFyeqohVI4EmKN5RZvLdivkitOphiEuj1GN96Xs/nZk3nA==",
+        "previousRevision": "d2b01c75257f0261588fb3a6b01b42c88b100cee",
+        "integrity": "sha512-L2T3V6vtD+OY2Gfm6vJ2IEHF6l1GnOvAFYNF/50WXFyeqohVI4EmKN5RZvLdivkitOphiEuj1GN96Xs/nZk3nA==",
+        "previousVersion": "0.9.16",
+        "sourceReview": "docs/upstream-audit-2026-10-31.json",
+        "npmIntegrity": "sha512-L2T3V6vtD+OY2Gfm6vJ2IEHF6l1GnOvAFYNF/50WXFyeqohVI4EmKN5RZvLdivkitOphiEuj1GN96Xs/nZk3nA==",
+        "registryCheckedAt": "2026-10-31T06:35:12.270Z",
+        "provenance": "vendor/memory-cognition/NEXUS-PROVENANCE.md"
+      },
+      "executionPackages": [
+        "A02"
+      ],
+      "implementationCandidates": [
+        "src/domain/memory/cognition-manifest.ts",
+        "src/domain/memory/cognition.ts",
+        "vendor/memory-cognition"
+      ],
+      "implementationStatus": "candidate_requires_runtime_evidence",
+      "sourceArchive": {
         "directory": "FuRongJun-1999__dsh-memory",
         "package": "@furongjun1999/dsh-memory",
         "version": "0.9.16",
@@ -181,15 +244,14 @@
         "previousVersion": "0.9.14",
         "sourceReview": "docs/upstream-audit-2026-10-29.json"
       },
-      "executionPackages": [
-        "A02"
-      ],
-      "implementationCandidates": [
-        "src/domain/memory/cognition-manifest.ts",
-        "src/domain/memory/cognition.ts",
-        "vendor/memory-cognition"
-      ],
-      "implementationStatus": "candidate_requires_runtime_evidence"
+      "runtimePackage": {
+        "package": "@furongjun1999/dsh-memory",
+        "version": "0.9.18",
+        "integrity": "sha512-L2T3V6vtD+OY2Gfm6vJ2IEHF6l1GnOvAFYNF/50WXFyeqohVI4EmKN5RZvLdivkitOphiEuj1GN96Xs/nZk3nA==",
+        "license": "MIT",
+        "sourceReview": "docs/upstream-audit-2026-10-31.json"
+      },
+      "validationEvidence": "docs/upstream-audit-2026-10-31.json"
     },
     {
       "id": "SRC-03",
@@ -236,6 +298,51 @@
       "source": {
         "directory": "omdsh-dev__dsh-mnemon",
         "package": "dsh-mnemon",
+        "version": "0.5.37",
+        "declaredLicense": "MIT",
+        "revision": null,
+        "licenseFiles": [
+          "LICENSE"
+        ],
+        "packageManifest": "omdsh-dev__dsh-mnemon/package.json",
+        "indexed": false,
+        "identity": "omdsh-dev__dsh-mnemon",
+        "snapshot": "plugin-sources/omdsh-dev__dsh-mnemon",
+        "revisionKind": "npm-integrity",
+        "contentIdentity": "sha512-srbVUbXVJhnsFq1rWfJ5AkMnafkbFe/1GH/hbl835Xum9Kc0DB1keYu8Q+mfdFzOcwJU/QAny+RO+GnjUgfrBQ==",
+        "previousVersion": "0.5.34",
+        "npmIntegrity": "sha512-srbVUbXVJhnsFq1rWfJ5AkMnafkbFe/1GH/hbl835Xum9Kc0DB1keYu8Q+mfdFzOcwJU/QAny+RO+GnjUgfrBQ==",
+        "repository": "https://github.com/omdsh-dev/dsh-mnemon",
+        "integrity": "sha512-srbVUbXVJhnsFq1rWfJ5AkMnafkbFe/1GH/hbl835Xum9Kc0DB1keYu8Q+mfdFzOcwJU/QAny+RO+GnjUgfrBQ==",
+        "sourceReview": "docs/upstream-audit-2026-10-31.json",
+        "registryCheckedAt": "2026-10-31T06:35:12.270Z"
+      },
+      "executionPackages": [
+        "A02"
+      ],
+      "implementationCandidates": [
+        "src/domain/memory/providers.ts",
+        "vendor/mnemon-providers",
+        "src/host/hooks.ts"
+      ],
+      "implementationStatus": "candidate_requires_runtime_evidence",
+      "runtimePackage": {
+        "package": "dsh-mnemon",
+        "version": "0.5.37",
+        "integrity": "sha512-srbVUbXVJhnsFq1rWfJ5AkMnafkbFe/1GH/hbl835Xum9Kc0DB1keYu8Q+mfdFzOcwJU/QAny+RO+GnjUgfrBQ==",
+        "license": "MIT",
+        "sourceReview": "docs/upstream-audit-2026-10-31.json"
+      },
+      "runtimeNpm": {
+        "package": "dsh-mnemon",
+        "version": "0.5.36",
+        "integrity": "sha512-aqgLhB44Quurx5RgIou4+gGx5SVrogP8jo8wH0aKyCiazkOjJ0HrUcXWXTInOThCc96o2wS1rTtnQrs8wpkSpw==",
+        "gitRevision": null,
+        "sourceReview": "docs/upstream-audit-2026-10-29.json"
+      },
+      "sourceArchive": {
+        "directory": "omdsh-dev__dsh-mnemon",
+        "package": "dsh-mnemon",
         "version": "0.5.34",
         "declaredLicense": "MIT",
         "revision": "2143a1edc6e57d5adc12a5300161da8d48c38af4",
@@ -252,29 +359,7 @@
         "npmIntegrity": "sha512-g70C2MdVJATtukOfcVdN8uLJfB7hCa70Qz24wDUGZu2y8rTvH30E48W4J9LukXgHb03mNcP3VjaZxJQoK2qOVA==",
         "repository": "https://github.com/omdsh-dev/dsh-mnemon"
       },
-      "executionPackages": [
-        "A02"
-      ],
-      "implementationCandidates": [
-        "src/domain/memory/providers.ts",
-        "vendor/mnemon-providers",
-        "src/host/hooks.ts"
-      ],
-      "implementationStatus": "candidate_requires_runtime_evidence",
-      "runtimePackage": {
-        "package": "dsh-mnemon",
-        "version": "0.5.35",
-        "integrity": "sha512-pQqBWgksVhkfaV2cLgGLmvW6ROTYYNm0nPvEmGlpZojrR9jOPwsdIHulo9mGA5vKGt4gIVKwJUBNeEchJIzrUQ==",
-        "license": "MIT",
-        "sourceReview": "docs/upstream-audit-2026-10-26.json"
-      },
-      "runtimeNpm": {
-        "package": "dsh-mnemon",
-        "version": "0.5.36",
-        "integrity": "sha512-aqgLhB44Quurx5RgIou4+gGx5SVrogP8jo8wH0aKyCiazkOjJ0HrUcXWXTInOThCc96o2wS1rTtnQrs8wpkSpw==",
-        "gitRevision": null,
-        "sourceReview": "docs/upstream-audit-2026-10-29.json"
-      }
+      "validationEvidence": "docs/upstream-audit-2026-10-31.json"
     },
     {
       "id": "SRC-05",
@@ -3121,19 +3206,21 @@
       "coverage": "03 / UI",
       "source": {
         "package": "dsh-skin-market",
-        "version": "0.1.67",
+        "version": "0.1.72",
         "declaredLicense": "MIT",
         "repository": "https://github.com/kingOfSoySauce/dsh-skin-market",
-        "revision": null,
-        "revisionKind": "npm-integrity",
-        "contentIdentity": "sha512-aqEFVk7q3UIIghtIxLnwqwaPlX9ubOgDLBMqFVhCXeAb22w91al94v/wsc8KhEocBRWy5d6B2rE/Q4BKHcfk7g==",
-        "npmIntegrity": "sha512-aqEFVk7q3UIIghtIxLnwqwaPlX9ubOgDLBMqFVhCXeAb22w91al94v/wsc8KhEocBRWy5d6B2rE/Q4BKHcfk7g==",
+        "revision": "03e6ee2f0c7e93e0c05d4e89819e06e124126576",
+        "revisionKind": "git-commit",
+        "contentIdentity": "git:03e6ee2f0c7e93e0c05d4e89819e06e124126576",
+        "npmIntegrity": "sha512-q0bk4v/y+hgYmwyRxkg2at/BeaWm6nYS+KLFjvsdDhWcgja5/9D2Tj0zU3Op5SEeNUDk53/Rb4Y0AnitPRYqcQ==",
         "npmGitHead": "62e2af2554ec735ce138b2a8782bb3042a272a3e",
-        "registryCheckedAt": "2026-10-24T07:35:09.334Z",
+        "registryCheckedAt": "2026-10-31T06:35:12.270Z",
         "licenseFiles": [
           "LICENSE"
         ],
-        "previousVersion": "0.1.66"
+        "previousVersion": "0.1.67",
+        "integrity": "sha512-q0bk4v/y+hgYmwyRxkg2at/BeaWm6nYS+KLFjvsdDhWcgja5/9D2Tj0zU3Op5SEeNUDk53/Rb4Y0AnitPRYqcQ==",
+        "sourceReview": "docs/upstream-audit-2026-10-31.json"
       },
       "executionPackages": [
         "A07"
@@ -3165,10 +3252,10 @@
       },
       "runtimePackage": {
         "package": "dsh-skin-market",
-        "version": "0.1.67",
-        "integrity": "sha512-aqEFVk7q3UIIghtIxLnwqwaPlX9ubOgDLBMqFVhCXeAb22w91al94v/wsc8KhEocBRWy5d6B2rE/Q4BKHcfk7g==",
+        "version": "0.1.72",
+        "integrity": "sha512-q0bk4v/y+hgYmwyRxkg2at/BeaWm6nYS+KLFjvsdDhWcgja5/9D2Tj0zU3Op5SEeNUDk53/Rb4Y0AnitPRYqcQ==",
         "license": "MIT",
-        "sourceReview": "docs/upstream-audit-2026-10-26.json"
+        "sourceReview": "docs/upstream-audit-2026-10-31.json"
       },
       "runtimeNpm": {
         "package": "dsh-skin-market",
@@ -3176,7 +3263,8 @@
         "integrity": "sha512-SyAd06B+zWbIIih9z26UwQESDB86QYkCrrVdhBFDL+Ccd0wGARf7x0HJLPsHMCRugZFRwo8VsrEljRHK7s+W3g==",
         "gitRevision": "19f7705bc6828cf092c5cd0c92ea867a6c33c674",
         "sourceReview": "docs/upstream-audit-2026-10-29.json"
-      }
+      },
+      "validationEvidence": "docs/upstream-audit-2026-10-31.json"
     },
     {
       "id": "SRC-13",
@@ -3318,20 +3406,22 @@
       "coverage": "04 / WF",
       "source": {
         "package": "@michengai/dsh-agency-agents",
-        "version": "1.2.11",
+        "version": "1.2.20",
         "declaredLicense": "Apache-2.0",
         "repository": "https://github.com/MichengAI/dsh-agency-agents",
-        "revision": null,
-        "revisionKind": "npm-integrity",
-        "contentIdentity": "sha512-05ZTC0FG452IiMyJ22T0ttaEXPAEjEic8psg5Qp3HJODaXsq/uZNjrTVBTOhmfV6IH6FGSTuPz8+SH7Q0i7bQA==",
-        "npmIntegrity": "sha512-05ZTC0FG452IiMyJ22T0ttaEXPAEjEic8psg5Qp3HJODaXsq/uZNjrTVBTOhmfV6IH6FGSTuPz8+SH7Q0i7bQA==",
+        "revision": "49324960487f903b095a44d42158c34aef418753",
+        "revisionKind": "git-commit",
+        "contentIdentity": "git:49324960487f903b095a44d42158c34aef418753",
+        "npmIntegrity": "sha512-CYrLgYuCnJ3XTrSp9GIP8u4gn//11HHNm9b1PTcyrkTA33DKKoDj8yQ6qYHJlDuyimpXt/7GLUXJrVQGXr4G8w==",
         "npmGitHead": "294daac981bad9b7e32dc0816b458ff820a7940a",
-        "registryCheckedAt": "2026-10-24T07:35:10.421Z",
+        "registryCheckedAt": "2026-10-31T06:35:12.270Z",
         "licenseFiles": [
           "LICENSE",
           "NOTICE"
         ],
-        "previousVersion": "1.2.9"
+        "previousVersion": "1.2.11",
+        "integrity": "sha512-CYrLgYuCnJ3XTrSp9GIP8u4gn//11HHNm9b1PTcyrkTA33DKKoDj8yQ6qYHJlDuyimpXt/7GLUXJrVQGXr4G8w==",
+        "sourceReview": "docs/upstream-audit-2026-10-31.json"
       },
       "executionPackages": [
         "A04"
@@ -3364,10 +3454,10 @@
       },
       "runtimePackage": {
         "package": "@michengai/dsh-agency-agents",
-        "version": "1.2.14",
-        "integrity": "sha512-yzRJxvNW8jOqeAdp1X3UTaCHqLNfk777rDqTVu+M5J+1zv9u0VcrE/JH5Gd6e/zJeFVIpnLLtWOHepbClIBJdw==",
+        "version": "1.2.20",
+        "integrity": "sha512-CYrLgYuCnJ3XTrSp9GIP8u4gn//11HHNm9b1PTcyrkTA33DKKoDj8yQ6qYHJlDuyimpXt/7GLUXJrVQGXr4G8w==",
         "license": "Apache-2.0",
-        "sourceReview": "docs/upstream-audit-2026-10-26.json"
+        "sourceReview": "docs/upstream-audit-2026-10-31.json"
       },
       "runtimeNpm": {
         "package": "@michengai/dsh-agency-agents",
@@ -3375,7 +3465,8 @@
         "integrity": "sha512-k4aLQGu1WTImEfX3/hz6VA8IBxPwtLUIgu/8orI71MEc58Fx9NULlods2Li0Tp+Bnju6NGKOfo2ZV08IZaGiOw==",
         "gitRevision": "34c76da1e8bb041faf02d3ab32116757be5c7232",
         "sourceReview": "docs/upstream-audit-2026-10-29.json"
-      }
+      },
+      "validationEvidence": "docs/upstream-audit-2026-10-31.json"
     },
     {
       "id": "SRC-18",
@@ -3497,19 +3588,21 @@
       "coverage": "05 / CTX",
       "source": {
         "package": "dsh-synapse",
-        "version": "0.5.0",
+        "version": "0.5.6",
         "declaredLicense": "MIT",
         "repository": null,
         "revision": null,
         "revisionKind": "npm-integrity",
-        "contentIdentity": "sha512-9tOqqAmGG2E2gJhZTLRWGKl2jU0fTlUW+pkncm8iTOJu2sbM4GOH5Bj3UxTiVxKDIwxuO5WQgj0kjMAxUhMhfQ==",
-        "npmIntegrity": "sha512-9tOqqAmGG2E2gJhZTLRWGKl2jU0fTlUW+pkncm8iTOJu2sbM4GOH5Bj3UxTiVxKDIwxuO5WQgj0kjMAxUhMhfQ==",
+        "contentIdentity": "sha512-erJUHq6+qQB7ChHaPqNuDAfikZS86O14cWkaQdY2n7Y8NErZspEgm4nLCJ2GBL3Wuq87m/qIefGMFmLfqIdGJw==",
+        "npmIntegrity": "sha512-erJUHq6+qQB7ChHaPqNuDAfikZS86O14cWkaQdY2n7Y8NErZspEgm4nLCJ2GBL3Wuq87m/qIefGMFmLfqIdGJw==",
         "npmGitHead": null,
-        "registryCheckedAt": "2026-10-24T07:35:09.334Z",
+        "registryCheckedAt": "2026-10-31T06:35:12.270Z",
         "licenseFiles": [
           "LICENSE"
         ],
-        "previousVersion": "0.4.2"
+        "previousVersion": "0.5.0",
+        "integrity": "sha512-erJUHq6+qQB7ChHaPqNuDAfikZS86O14cWkaQdY2n7Y8NErZspEgm4nLCJ2GBL3Wuq87m/qIefGMFmLfqIdGJw==",
+        "sourceReview": "docs/upstream-audit-2026-10-31.json"
       },
       "executionPackages": [
         "A06",
@@ -3716,10 +3809,10 @@
       },
       "runtimePackage": {
         "package": "dsh-synapse",
-        "version": "0.5.4",
-        "integrity": "sha512-AK2PnY3qDn259TN1ctPpTGCOZgGX5lMnMunf2bl4t4I1RG1MCJpiVt5zLtYGL8gFeGFhbr1PPjLVmfX0HLfbNQ==",
+        "version": "0.5.6",
+        "integrity": "sha512-erJUHq6+qQB7ChHaPqNuDAfikZS86O14cWkaQdY2n7Y8NErZspEgm4nLCJ2GBL3Wuq87m/qIefGMFmLfqIdGJw==",
         "license": "MIT",
-        "sourceReview": "docs/upstream-audit-2026-10-26.json"
+        "sourceReview": "docs/upstream-audit-2026-10-31.json"
       },
       "runtimeNpm": {
         "package": "dsh-synapse",
@@ -3727,7 +3820,8 @@
         "integrity": "sha512-Zm94y6Fkfh1o3qWpE9KGEorNIertOPNNSSBvrRyTaueNQA4xXf19XnpUMODkYFE+txrvGk/S7nr/4CdIuwOhlw==",
         "gitRevision": null,
         "sourceReview": "docs/upstream-audit-2026-10-29.json"
-      }
+      },
+      "validationEvidence": "docs/upstream-audit-2026-10-31.json"
     },
     {
       "id": "SRC-22",
@@ -4092,21 +4186,29 @@
       "source": {
         "directory": "Anionex__dsh-turn-rewind",
         "package": "@anionex/dsh-turn-rewind",
-        "version": "0.3.10",
+        "version": "0.3.11",
         "declaredLicense": "BSD-3-Clause",
-        "revision": "5b33fd51925dbd615836d72323e89262796efae5",
+        "revision": "737d716c5f693f96eb2adc3e9a79f4e55cda8735",
         "licenseFiles": [
           "LICENSE"
         ],
         "packageManifest": "Anionex__dsh-turn-rewind/package.json",
         "indexed": false,
         "identity": "Anionex__dsh-turn-rewind",
-        "snapshot": "plugin-sources/Anionex__dsh-turn-rewind",
-        "revisionKind": "git-commit",
-        "contentIdentity": "git:5b33fd51925dbd615836d72323e89262796efae5",
+        "snapshot": "vendor/turn-rewind",
+        "revisionKind": "upstream-git-with-local-adaptation",
+        "contentIdentity": "sha256:d82283277704c92f8c5290521cc5515b1531155ca3a509efc07c0b720b92c4d8",
         "previousVersion": "0.3.10",
-        "npmIntegrity": "sha512-JJBf0luFUFwkzlalDq71mKj+Utzyu4yN40iJicP0qjbXw6z2oyUvBnujRqZTYzPWGKnvc5qriWH4xrGTvK2gzg==",
-        "repository": "https://github.com/Anionex/dsh-turn-rewind"
+        "npmIntegrity": "sha512-BjtnHF7kTb7Ed93IfGaWoBUDnGsslfaA+hTo05xpPdKIZ3pypWTS4lRxlyHz34MA+o8EAt8CUsl4phmFaI6fnQ==",
+        "repository": "https://github.com/Anionex/dsh-turn-rewind",
+        "runtimePackage": {
+          "package": "@anionex/dsh-turn-rewind",
+          "version": "0.3.11",
+          "integrity": "sha512-BjtnHF7kTb7Ed93IfGaWoBUDnGsslfaA+hTo05xpPdKIZ3pypWTS4lRxlyHz34MA+o8EAt8CUsl4phmFaI6fnQ==",
+          "license": "BSD-3-Clause",
+          "sourceReview": "docs/upstream-audit-2026-10-31.json (observations and explicit batch verification; local snapshot provenance in vendor/turn-rewind/SOURCE.json)"
+        },
+        "localAdaptation": "vendor/turn-rewind/package.json changes only exact DSH rc.5 compatibility metadata; no runtime implementation changes"
       },
       "executionPackages": [
         "A06",
@@ -4119,17 +4221,18 @@
       "implementationStatus": "candidate_requires_runtime_evidence",
       "runtimePackage": {
         "package": "@anionex/dsh-turn-rewind",
-        "version": "0.3.10",
-        "integrity": "sha512-JJBf0luFUFwkzlalDq71mKj+Utzyu4yN40iJicP0qjbXw6z2oyUvBnujRqZTYzPWGKnvc5qriWH4xrGTvK2gzg==",
+        "version": "0.3.11",
+        "integrity": "sha512-BjtnHF7kTb7Ed93IfGaWoBUDnGsslfaA+hTo05xpPdKIZ3pypWTS4lRxlyHz34MA+o8EAt8CUsl4phmFaI6fnQ==",
         "license": "BSD-3-Clause",
-        "sourceReview": "docs/upstream-audit-2026-10-26.json"
+        "sourceReview": "docs/upstream-audit-2026-10-31.json (observations and explicit batch verification; local snapshot provenance in vendor/turn-rewind/SOURCE.json)"
       },
       "runtimeNpm": {
         "package": "@anionex/dsh-turn-rewind",
         "version": "0.3.11",
-        "integrity": "sha512-BjtnHF7kTb7Ed93IfGaWoBUDnGsslfaA+hTo05xpPdKIZ3pypWTS4lRxlyHz34MA+o8EAt8CUsl4phmFaI6fnQ==",
-        "gitRevision": null,
-        "sourceReview": "docs/upstream-audit-2026-10-29.json"
+        "integrity": "sha512-BjtnHF7kTb7Ed93IfGaWoBUDnGsslfaA+hTo05xpPdKIZ3pypWTS4lRxlyHz34MA+o8EAtI6fnQ==",
+        "gitRevision": "737d716c5f693f96eb2adc3e9a79f4e55cda8735",
+        "sourceReview": "docs/upstream-audit-2026-10-31.json (observations and explicit batch verification; local snapshot provenance in vendor/turn-rewind/SOURCE.json)",
+        "localSnapshot": "vendor/turn-rewind"
       }
     },
     {
@@ -4140,19 +4243,21 @@
       "coverage": "05+07 / CTX,CCH",
       "source": {
         "package": "dsh-context",
-        "version": "0.75.1",
+        "version": "0.78.2",
         "declaredLicense": "Apache-2.0",
         "repository": "https://github.com/bowenliang123/dsh-context",
-        "revision": null,
-        "revisionKind": "npm-integrity",
-        "contentIdentity": "sha512-gHpusP9i5hqepogAkZnAL9qyu+P5cwngW3ij5SKqHFyVUSN8sGvsIuSeL9foFaF7TpRHo1/C+nk4WLHVISWcvQ==",
-        "npmIntegrity": "sha512-gHpusP9i5hqepogAkZnAL9qyu+P5cwngW3ij5SKqHFyVUSN8sGvsIuSeL9foFaF7TpRHo1/C+nk4WLHVISWcvQ==",
+        "revision": "32982aa6aa2c70fbda6b81281de98a72ea625001",
+        "revisionKind": "git-commit",
+        "contentIdentity": "git:32982aa6aa2c70fbda6b81281de98a72ea625001",
+        "npmIntegrity": "sha512-aqvtRTvvUWe41jdlZlfiPE0VSnr8I5KVLFXNLusHfnk3tXGOYuN5qoexiOMzaO+RbczKFsThUH7zeXXC+3q6WA==",
         "npmGitHead": "7f96208db61589d1a6efe22edfc1e0dece777be9",
-        "registryCheckedAt": "2026-10-24T07:42:35.094Z",
+        "registryCheckedAt": "2026-10-31T06:35:12.270Z",
         "licenseFiles": [
           "LICENSE"
         ],
-        "previousVersion": "0.74.0"
+        "previousVersion": "0.75.1",
+        "integrity": "sha512-aqvtRTvvUWe41jdlZlfiPE0VSnr8I5KVLFXNLusHfnk3tXGOYuN5qoexiOMzaO+RbczKFsThUH7zeXXC+3q6WA==",
+        "sourceReview": "docs/upstream-audit-2026-10-31.json"
       },
       "executionPackages": [
         "A01",
@@ -4186,10 +4291,10 @@
       },
       "runtimePackage": {
         "package": "dsh-context",
-        "version": "0.77.0",
-        "integrity": "sha512-KDq7LlhpGJC9pA/NwjvnalOk2i1OYnYIX24hjwiJS46dSAAC0oL7r3hx9kc7s2noFgn1redUL7iN0lIxwDe9Gg==",
+        "version": "0.78.2",
+        "integrity": "sha512-aqvtRTvvUWe41jdlZlfiPE0VSnr8I5KVLFXNLusHfnk3tXGOYuN5qoexiOMzaO+RbczKFsThUH7zeXXC+3q6WA==",
         "license": "Apache-2.0",
-        "sourceReview": "docs/upstream-audit-2026-10-26.json"
+        "sourceReview": "docs/upstream-audit-2026-10-31.json"
       },
       "runtimeNpm": {
         "package": "dsh-context",
@@ -4197,7 +4302,8 @@
         "integrity": "sha512-JeaQdFpie/GaDJJsQDALYFPao+tHbJQqiOVyqCeiaHXCqrnAqrfPFzaESJdgkx1GnNWv80bI2HZqLe2BIZ4ovg==",
         "gitRevision": "08fe7cb553bed83036b6e909e530f49b9091c2fc",
         "sourceReview": "docs/upstream-audit-2026-10-29.json"
-      }
+      },
+      "validationEvidence": "docs/upstream-audit-2026-10-31.json"
     },
     {
       "id": "SRC-30",
@@ -4617,19 +4723,21 @@
       "coverage": "skills/workflows",
       "source": {
         "package": "@fission-ai/openspec",
-        "version": "1.15.0",
+        "version": "1.16.0",
         "declaredLicense": "MIT",
         "repository": "https://github.com/Fission-AI/OpenSpec",
         "revision": null,
         "revisionKind": "npm-integrity",
-        "contentIdentity": "sha512-lG/EPEiL22bB70yKJhWWSPk1UQGLnwO7Dp+hNc/jUmBwb0qxPLzHCUkXEfkny4iYDOsgnsNQmc39/g9QcvnBnA==",
-        "npmIntegrity": "sha512-lG/EPEiL22bB70yKJhWWSPk1UQGLnwO7Dp+hNc/jUmBwb0qxPLzHCUkXEfkny4iYDOsgnsNQmc39/g9QcvnBnA==",
+        "contentIdentity": "sha512-WQVhZoIR5PoacH/H0qh84VKMcXFbKCIKuAI96arHS3KiKYhJStlRrjUKGxLqLYKLym0j+2hAAY5MZUrPE5qXIA==",
+        "npmIntegrity": "sha512-WQVhZoIR5PoacH/H0qh84VKMcXFbKCIKuAI96arHS3KiKYhJStlRrjUKGxLqLYKLym0j+2hAAY5MZUrPE5qXIA==",
         "npmGitHead": null,
-        "registryCheckedAt": "2026-10-24T07:35:09.263Z",
+        "registryCheckedAt": "2026-10-31T06:35:12.270Z",
         "licenseFiles": [
           "notices/workflows/@fission-ai__openspec/LICENSE"
         ],
-        "previousVersion": "1.14.3"
+        "previousVersion": "1.15.0",
+        "integrity": "sha512-WQVhZoIR5PoacH/H0qh84VKMcXFbKCIKuAI96arHS3KiKYhJStlRrjUKGxLqLYKLym0j+2hAAY5MZUrPE5qXIA==",
+        "sourceReview": "docs/upstream-audit-2026-10-31.json"
       },
       "implementationCandidates": [
         "scripts/build-originals.mjs",
@@ -4653,11 +4761,12 @@
       },
       "runtimePackage": {
         "package": "@fission-ai/openspec",
-        "version": "1.15.0",
-        "integrity": "sha512-lG/EPEiL22bB70yKJhWWSPk1UQGLnwO7Dp+hNc/jUmBwb0qxPLzHCUkXEfkny4iYDOsgnsNQmc39/g9QcvnBnA==",
+        "version": "1.16.0",
+        "integrity": "sha512-WQVhZoIR5PoacH/H0qh84VKMcXFbKCIKuAI96arHS3KiKYhJStlRrjUKGxLqLYKLym0j+2hAAY5MZUrPE5qXIA==",
         "license": "MIT",
-        "sourceReview": "docs/upstream-audit-2026-10-26.json"
-      }
+        "sourceReview": "docs/upstream-audit-2026-10-31.json"
+      },
+      "validationEvidence": "docs/upstream-audit-2026-10-31.json"
     },
     {
       "id": "SRC-43",
@@ -4723,14 +4832,14 @@
       "coverage": "original native runtime with reviewed bounded adapters",
       "source": {
         "package": "dsh-motion-ui",
-        "version": "0.8.8",
+        "version": "0.8.9",
         "declaredLicense": "MIT",
         "repository": "https://github.com/Scorp1o117/dsh-motion-ui",
         "revision": null,
         "revisionKind": "npm-integrity",
-        "contentIdentity": "sha512-VWh3Sm3rLI4oQvOepfej6Mp67sE/uUYlHrAJS6MaUX1wbuVQkDPkO8aJ64bgr64Fh219os/9XBz60EO8Xv/6pw==",
-        "npmIntegrity": "sha512-VWh3Sm3rLI4oQvOepfej6Mp67sE/uUYlHrAJS6MaUX1wbuVQkDPkO8aJ64bgr64Fh219os/9XBz60EO8Xv/6pw==",
-        "npmGitHead": "52ad63919cd1b40b26f80a65102ca1459b4a7ec4",
+        "contentIdentity": "sha512-uQOI1CJicjfByQgVkMpPoftU2CFqenGZPlBOdMjFpp74DGL3CV1OT/LGN7dBCZSE8UcFoXvm+fO70/d/5STrFg==",
+        "npmIntegrity": "sha512-uQOI1CJicjfByQgVkMpPoftU2CFqenGZPlBOdMjFpp74DGL3CV1OT/LGN7dBCZSE8UcFoXvm+fO70/d/5STrFg==",
+        "npmGitHead": "aff27f6b978be956b0f03a8a59da04fda5b174e3",
         "registryCheckedAt": "2026-10-24T07:43:15.896Z",
         "licenseFiles": [
           "notices/originals/motion-ui/LICENSE"
@@ -4760,8 +4869,8 @@
       },
       "runtimePackage": {
         "package": "dsh-motion-ui",
-        "version": "0.8.8",
-        "integrity": "sha512-VWh3Sm3rLI4oQvOepfej6Mp67sE/uUYlHrAJS6MaUX1wbuVQkDPkO8aJ64bgr64Fh219os/9XBz60EO8Xv/6pw==",
+        "version": "0.8.9",
+        "integrity": "sha512-uQOI1CJicjfByQgVkMpPoftU2CFqenGZPlBOdMjFpp74DGL3CV1OT/LGN7dBCZSE8UcFoXvm+fO70/d/5STrFg==",
         "license": "MIT",
         "sourceReview": "docs/upstream-audit-2026-10-26.json"
       }
@@ -5534,7 +5643,7 @@
     "assets/notices/synapse/PROVENANCE.md": "58d97e46cb71f179c111d4b9a38026f6d963021907264774348b2cc0d9d23b94",
     "assets/notices/thoughtdag/LICENSE": "c4d3bc3508e6858a33c7cba6e1aa9a48bc9ded95c778e656c76888069738f36e",
     "assets/notices/thoughtdag/PROVENANCE.md": "73c9809a70fb4912e9145daa1ffa664a94afc3f721454a3612db51e3364a36d5",
-    "assets/presets/PROVENANCE.md": "dcd2ff7b73207df281cbe6bbb3389a69f19c6ee81a22e1dddd83db00f53b93fd",
+    "assets/presets/PROVENANCE.md": "bec7f7bbe0fab495cc884b91af7da60fbe5c36496de658c031a981f2e446bb73",
     "assets/presets/adaptive-standard.declaration.yml": "a4933c03f7469f19c4bc76a2a9122039e9bbe511c4e303fcc697446aff0dcf33",
     "assets/presets/adaptive-standard.json": "cfecd7bec2f0c669da0cc4da309fbaf234848200e9b8af04d03b7f632e135158",
     "assets/presets/upstream/LICENSE": "ebb4f09972aee8608be255debaf78451a68e95c290f55c240dec2ecfa16ea6be",
@@ -5576,14 +5685,14 @@
     "notices/editor/yallist/SOURCE.json": "a3dca2b2a61eb22a10fff2a284696de53080cdc4bff7b6de3fea5923df7a4210",
     "notices/originals/agency-agents/LICENSE": "50e6751797c50dedd75ef1b8a0d9e42f5f8472e9fbce91f34718e9f97b0c780a",
     "notices/originals/agency-agents/NOTICE": "40b0cd24b2b5b68ca4fa2de592c84a83e603fbdfc896b4784e6d90263a0b1931",
-    "notices/originals/agency-agents/SOURCE.json": "42e8a8cd36920990a8fe66fa41a8807e6bc35c56cf3adda5ae0171edfdedde83",
+    "notices/originals/agency-agents/SOURCE.json": "48bd4e1d0912fcd0ac886c43d89dddde21e4c472fcd3832adf26f7a8f90ddc93",
     "notices/originals/better-display/LICENSE": "cc2de00f5772c5112fca28bac3e166e53f4df2b31481cffdb16d1436c70f09fe",
     "notices/originals/better-display/SOURCE.json": "d1cb223d82ff413ae229d35a9015b1b241e4bc154f2be28bc9b5f3849c2e97dd",
     "notices/originals/better-sidebar/LICENSE": "f4d265194e0824721af0592462a71fe750c04db3565c23c5d6c65fdee25fb4b0",
     "notices/originals/better-sidebar/SOURCE.json": "ab9a82b162f9d2072bf22e0632e46bb6f82bd3d744cedcc894f40c67065cd0c6",
     "notices/originals/codinput/LICENSE": "8a12a1d913654c74e92c2bcbd4ea8fd8fe3fa06888989dbb23999571af57dacf",
-    "notices/originals/codinput/NOTICE": "a8df754f32263e98fea06b7c2038bf0c698039e7e95b5bee3bcbbceccbb19677",
-    "notices/originals/codinput/SOURCE.json": "a64e1dffd01b5783fa7e90db9fc7054157708c9b252866bdf2efe6b0987f053f",
+    "notices/originals/codinput/NOTICE": "6fed77fb8e5ae3b66349d439c4aea6a57487e32d257aa82ffa09e0394a1d5691",
+    "notices/originals/codinput/SOURCE.json": "b9b89dd335514be3ea851ea50a110a78ffdd00fa3bf76f0a0936e4ae39286743",
     "notices/originals/codinput/adapted-dependencies/@codemirror__commands/LICENSE": "05c6130cda97e7600ca91427a41e8a065efcf82365fc0293e7de80faec494c07",
     "notices/originals/codinput/adapted-dependencies/@codemirror__language/LICENSE": "05c6130cda97e7600ca91427a41e8a065efcf82365fc0293e7de80faec494c07",
     "notices/originals/codinput/adapted-dependencies/@codemirror__state/LICENSE": "05c6130cda97e7600ca91427a41e8a065efcf82365fc0293e7de80faec494c07",
@@ -5617,7 +5726,7 @@
     "notices/originals/computer-use/LICENSE": "e7d16fe03f24a8692d73ad678c1987b2280fddc84b98e4d2619a0e733c940ab4",
     "notices/originals/computer-use/SOURCE.json": "7ac5afd58a8571b5f30f0640a8a8829898e3431697fe55bc55ae5c4a5eed8b83",
     "notices/originals/context/LICENSE": "919857728c4e1d0f76be03af00437d9910c943f883d04c8c58a6a0cb1c3225b0",
-    "notices/originals/context/SOURCE.json": "15ac89dd43ae6b72a5e060881e7584324e536e91fc6cd70aac52777f0722e2a7",
+    "notices/originals/context/SOURCE.json": "f3d45db5de005c73cac12944bf7acfbae8541927befbd0afe4fe508f41d5a4cc",
     "notices/originals/cross-session-approval/LICENSE": "599176dcfc83ced5b59f88cf2160ae967f80df0da0fc399b21e1c315466fd3e2",
     "notices/originals/cross-session-approval/SOURCE.json": "d3e60f3f227ac129a57668b3b945a846c6fabe42ff52c1911a0cb887382b4253",
     "notices/originals/git-graph/LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
@@ -5645,11 +5754,11 @@
     "notices/originals/mnemon-source-documents/LICENSE": "0bc72d9f737802b30a7e43d1b59912e81698e75948759ba07c276732aba0c7a2",
     "notices/originals/mnemon-source-documents/SOURCE.json": "f3e28a9517ac1a0eea1c930c86f74f8843fe86017960ae49a54f7b7de823d27e",
     "notices/originals/mnemon-source-memory-spaces/LICENSE": "0bc72d9f737802b30a7e43d1b59912e81698e75948759ba07c276732aba0c7a2",
-    "notices/originals/mnemon-source-memory-spaces/SOURCE.json": "f2c55cb756d095458d0c1e3628dffc30498c265173dff802c15d97ba2929a1c5",
+    "notices/originals/mnemon-source-memory-spaces/SOURCE.json": "041634495de61fc7202814bc7d7ccf406103be695f2108503b09b02fa6a68fa0",
     "notices/originals/mnemon-source-runtime/LICENSE": "0bc72d9f737802b30a7e43d1b59912e81698e75948759ba07c276732aba0c7a2",
     "notices/originals/mnemon-source-runtime/SOURCE.json": "e2604efb43b64fa057f84fff46501fec0335dce4e681fcc6a8121efdd6d0d2ec",
     "notices/originals/mnemon-source-skills/LICENSE": "0bc72d9f737802b30a7e43d1b59912e81698e75948759ba07c276732aba0c7a2",
-    "notices/originals/mnemon-source-skills/SOURCE.json": "d2304a5e7d48269753d4e59156b1ed5a79d6344397068e98d178c6faa3912bce",
+    "notices/originals/mnemon-source-skills/SOURCE.json": "0baa4f3577d066076ba706d477240134d96f41f0973cf85d13fa96c69a38399f",
     "notices/originals/mnemon-strategy-auto-capture/LICENSE": "0bc72d9f737802b30a7e43d1b59912e81698e75948759ba07c276732aba0c7a2",
     "notices/originals/mnemon-strategy-auto-capture/SOURCE.json": "2818d134f363e7c51cc71813a603df7a2995712b1630de36ea1463168ce8224f",
     "notices/originals/mnemon-strategy-default-three-tier/LICENSE": "0bc72d9f737802b30a7e43d1b59912e81698e75948759ba07c276732aba0c7a2",
@@ -5661,9 +5770,9 @@
     "notices/originals/mnemon-strategy-scoped/LICENSE": "0bc72d9f737802b30a7e43d1b59912e81698e75948759ba07c276732aba0c7a2",
     "notices/originals/mnemon-strategy-scoped/SOURCE.json": "745f17827b63b70aa30deb5bef3465953fd65f746f2262686b95489806d53134",
     "notices/originals/mnemon/LICENSE": "0bc72d9f737802b30a7e43d1b59912e81698e75948759ba07c276732aba0c7a2",
-    "notices/originals/mnemon/SOURCE.json": "a2ddf70090375588b3af53794f6b990b56d4174b22ba353c9adabd4e30154a42",
+    "notices/originals/mnemon/SOURCE.json": "07c8b0b994d0edb77dbdae2fba0fb1ee042cfa8a171960f4123ac7ed3cd1b217",
     "notices/originals/motion-ui/LICENSE": "0109b46039beab643748e3eb9e4aa5d3c6bf17145167fe48a257d77490fdcd4f",
-    "notices/originals/motion-ui/SOURCE.json": "d35077a2de89dc91400638780c12ea227c286242c265935ae4674e2648105da1",
+    "notices/originals/motion-ui/SOURCE.json": "69e09960b02cdaabd8774a6d85a037b78c10dd6bc61b64eb6958b4d2289be16a",
     "notices/originals/openspec/LICENSE": "255cc90ac9e98fbcbdb914fd71e056344cdbee298b9ceefb4d5fba63a95945cf",
     "notices/originals/openspec/SOURCE.json": "ea5b1259d16a978d5f11194d90d1506df43354f9e5ab9da669d9e0af8cc0e78a",
     "notices/originals/ops/LICENSE": "5b6633db7dfb5f2eee5c8ea51e8a9e44b242a1051c3e2f2fd04c6992f754cbd4",
@@ -5674,7 +5783,7 @@
     "notices/originals/superpowers/LICENSE": "7ca5997a1ca61f31e63520439fdedcd49b27a84ffc537cdb9d9ddf32e76adc24",
     "notices/originals/superpowers/SOURCE.json": "634541f5d0829d57da229c4a2afa9ec8e2a2ea71fc5f0fd9051b0bf4a70a872f",
     "notices/originals/synapse/LICENSE": "1126322e2cc8d165adc4c792eeb195717de2bcc7b39be1ce77959d78e87ef685",
-    "notices/originals/synapse/SOURCE.json": "20351292ad6231cca6b7fdb53ed6b40bc717d40c902ea8b65f5b87e543a73755",
+    "notices/originals/synapse/SOURCE.json": "8ae7cd71ca8f3d18a95d87fe528f6d8e5d4398706b24bf42630ea644d60261c2",
     "notices/originals/task-board/LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
     "notices/originals/task-board/SOURCE.json": "cc89252545292b91dea9b6ba0f4bb9d379619be429a20938acf08cdf9903a86d",
     "notices/originals/thoughtdag/LICENSE": "c4d3bc3508e6858a33c7cba6e1aa9a48bc9ded95c778e656c76888069738f36e",
@@ -5708,7 +5817,7 @@
     "notices/workflows/@inquirer__type/LICENSE": "85aca0b12ce5ade4ff76e9cbbe7e0d5a4cdde979e3930727c272e1fa04b8cc23",
     "notices/workflows/@wenaixi__dsh-ponytail/LICENSE": "fb1bc6909ac3ef82d5c22106e32ef682b0cff66788fa915fb9b53b15c9d2f3ab",
     "notices/workflows/@wenaixi__dsh-superpower/LICENSE": "7ca5997a1ca61f31e63520439fdedcd49b27a84ffc537cdb9d9ddf32e76adc24",
-    "notices/workflows/SOURCE.json": "f1f18687296e079b6f36bcb27cb785f1b65a9928686ed1f6191c103b92bd25a6",
+    "notices/workflows/SOURCE.json": "71807af42cb2e67d6315b22a79643181c929ab7da48838ec18f41a8c4f88f41d",
     "notices/workflows/ansi-regex/license": "5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3",
     "notices/workflows/balanced-match/LICENSE.md": "d408f38ffa3355c5faec517153295338892eb0f1ea43f57874bb23c6075979b5",
     "notices/workflows/brace-expansion/LICENSE": "9c63a23124d68cd30cd316a94a1a0bca34f032786df6df69fc4b5f136bac8d2e",
@@ -6002,13 +6111,13 @@
     "vendor/codinput/.gitattributes": "32050fe75f76e8d60c32e5f72a95497f518cf9023fb53c2e17d6c04af1c768e6",
     "vendor/codinput/.github/workflows/ci.yml": "b0e7b99a5a691c3c22219afcedf44c9eaa5cfcaf0bf279fa9554b5c6604d203f",
     "vendor/codinput/.gitignore": "8b256f7f93397a00e418eec8567a7c71dabf0df26763820513830b91d77f440f",
-    "vendor/codinput/CHANGELOG.md": "68b2f46417d397f6dcd975930fd4ca471514ede12796ebd3083d860fc8c3d153",
+    "vendor/codinput/CHANGELOG.md": "d3b50898500dd9a2e9c1dfd8fdcda64cd8eef40bf7711f107465786dbc961447",
     "vendor/codinput/LICENSE": "8a12a1d913654c74e92c2bcbd4ea8fd8fe3fa06888989dbb23999571af57dacf",
-    "vendor/codinput/NOTICE": "a8df754f32263e98fea06b7c2038bf0c698039e7e95b5bee3bcbbceccbb19677",
-    "vendor/codinput/README.en.md": "c5667c2bdc74e18c62f5a8de2c642d03007650e74860b79e957246514906ad8e",
-    "vendor/codinput/README.md": "e8bf6f559d0ba07b6d59d89206dc9716bd49fdc27fa9d35525daa1090c49066d",
-    "vendor/codinput/SOURCE.json": "b77d501056b5b769cf4c73004038a2a7b7b600dd1933e2130c8ad997a42959ca",
-    "vendor/codinput/TESTING.md": "a110c614e598ace49b88eb27d810a2c8d04be35b3c523090a979f70bc0be0043",
+    "vendor/codinput/NOTICE": "6fed77fb8e5ae3b66349d439c4aea6a57487e32d257aa82ffa09e0394a1d5691",
+    "vendor/codinput/README.en.md": "ed2e8553f5dcf6446e66aa2892cb4b82d38fab6070f61e465d76e7848dc5f80c",
+    "vendor/codinput/README.md": "8c5ce789722b0dcc64ba1b0c1014411e97902f481565b244b5b041ac976884e9",
+    "vendor/codinput/SOURCE.json": "01224b556819690777281dc2d7690215f75ec2accb944cadfd6b7df95f118ca0",
+    "vendor/codinput/TESTING.md": "c84d5481c908e97510153e8d1d087eb0a16d60281354ee49941cf1c63a6fcee6",
     "vendor/codinput/assets/icon-white.svg": "6ba667338696cae2658bcaec6a4dc13ab9ca040d35082cf1773af9fdb3883e47",
     "vendor/codinput/assets/icon.png": "f6c44c39f6856b03fe5f1dc06eb42e9581195d9b4af6876f6ae90a8fc65b0dae",
     "vendor/codinput/assets/icon.svg": "39e8244cf3d4b0ebf826d016a61483a202ebca404b33b3b40798a64cfa0997e3",
@@ -6017,10 +6126,10 @@
     "vendor/codinput/assets/preview-side.webp": "a76875a64989f069746b682c340948aa75899f196a4cd9b13b587304730dec6e",
     "vendor/codinput/assets/preview-split.webp": "c65c462366d8fe8f0a326c4bb57c34ef881a7473434aba92300fbd769d30ef1b",
     "vendor/codinput/cordis.patch.yml": "b4b4f678da71a931b3905410fdfbbe9748b925b33b03ec8a3675dbfe8e1278d6",
-    "vendor/codinput/lib/client.js": "35601873efec3841cc82cdb90052dcb4c44e5e1805ffe3572020f8ab15fee503",
+    "vendor/codinput/lib/client.js": "936b07b12f5c08b646064284f51f55653bbbe0c8e060845e1b3df9830342b93c",
     "vendor/codinput/lib/index.js": "ef15d396ae2db897f244a5934b777f56871020e321a17bcff9dc61e73bc95b6e",
-    "vendor/codinput/package-lock.json": "a45604ef1df130bd48c3af18b45f0be46e9a2e579f1fcea6a3fbd29ea3cc994f",
-    "vendor/codinput/package.json": "6749219ef6d8da67cb229ca4cc90b655747b550e3795a8f06f0a3b0e49da25f1",
+    "vendor/codinput/package-lock.json": "3b649dd3b820396c7f8be626e865141abff64ddc7027db58765d6a9049f4cd5d",
+    "vendor/codinput/package.json": "3a71cb8577a9eea5d0a6b0da04e576ad01ec4e464d2e31d9a96696f5a571232a",
     "vendor/codinput/screenshots.json": "33b3c0894af88772807e0a14e64da298e0698ef3adf5eeffa268fdfdcb0e76fc",
     "vendor/codinput/scripts/build.mjs": "521d34455b8082b3b1466952e39f82be37250a57b71701679121c1789dd4ce6c",
     "vendor/codinput/scripts/extract-css.mjs": "ac44caf149d78cfe41db34b70a85f026f0b59d850aa2a8e4a99c3617c17bf9f2",
@@ -6029,7 +6138,7 @@
     "vendor/codinput/src/client/attachments.ts": "e56d8740f728101c16c935e7626658e2412ed16852fe46ac8d3fee7640364ee5",
     "vendor/codinput/src/client/cm.ts": "1596e75f35f2eb491d4fd833d44355784e7dcc3ff57973d366a8e5cde10c0ff2",
     "vendor/codinput/src/client/command.ts": "27f870b965de30785bc800cf8491031cd6dc8335b71f1abeafe51c7fcda00c45",
-    "vendor/codinput/src/client/components/AttachmentRail.tsx": "a21e0b09aa11b49640a0bd636c520afdbce4033e7fdb891eb47214f39c38a48b",
+    "vendor/codinput/src/client/components/AttachmentRail.tsx": "9848bb31f3abf1b054698e68daffea3e38d63a6eb3c94b7cf0ba217059ce2aa4",
     "vendor/codinput/src/client/components/CodinputBar.tsx": "f3c8e7f5adfb34020f12fbb65856f4448496d4f33f63109e273d05296362a050",
     "vendor/codinput/src/client/components/CodinputSurface.tsx": "4cdd70405a0a68aaf83ec6b2f59972f57cf33cab6d4965dad955e43b1c1cbf1f",
     "vendor/codinput/src/client/components/EditorPane.tsx": "48cc407fd9452acc3737c4a3eb9d142169669f890a0841380906342fd79b9595",
@@ -6045,8 +6154,9 @@
     "vendor/codinput/src/client/components/PermissionMenu.tsx": "a5bba3ceb74f04e8f9fa594fdaaef89b91e2aac21e966f643d5dcdd01d8f7278",
     "vendor/codinput/src/client/components/PopupSelectView.tsx": "0600727bf62102a8f5f0debb19e6464b46373b611affd01c53ab2fb9aeecbdc0",
     "vendor/codinput/src/client/components/SlashMenu.tsx": "8140a9e5366bcf512fdc9bef3b5ec82d14aa93ab676c91c2e2b8181bb1bf27ab",
-    "vendor/codinput/src/client/components/StatsRow.tsx": "a3fdc36c9a57400d25313871b5b8ad5b36b7ae53e5019ed52bf7d2d5f812ca76",
+    "vendor/codinput/src/client/components/StatsRow.tsx": "bb15cde9fcb65b97e076224f6a7dbe039294b3a86316c8cc2833f7a6b50dd4fb",
     "vendor/codinput/src/client/components/Toolbar.tsx": "31f94c4d135a7ff355c02fc87aaefacf15b6c4f0cb1564d77df07b738cc0083e",
+    "vendor/codinput/src/client/components/UserMessageMarkdown.tsx": "820f9272f1b5436a103a4076258b5d8cd20dde9f711eb1386f7c6da8695d589d",
     "vendor/codinput/src/client/components/VoiceActivity.tsx": "ae390cee44456f66f890ac51399d708811a7d50c1ec226dea33d1d9f5d7c08f5",
     "vendor/codinput/src/client/components/popup-filter.ts": "251659740d978085023d323e275d677ca6a87646c548b51b570967108c7322a2",
     "vendor/codinput/src/client/components/slotEntry.tsx": "758d08609614891905b05072333389cbc31af760c538d88a958a63fd9c9bb090",
@@ -6054,18 +6164,18 @@
     "vendor/codinput/src/client/diag.ts": "d57a3aaefd3c3e9d1f2696817c24a02a6b268d70164bfbd9107367a660bade24",
     "vendor/codinput/src/client/host-types.ts": "0cd0f85be1e6b3f20ceed4fd0dad8699e51d7a0dcdb19c9206ad02d1102a4d90",
     "vendor/codinput/src/client/hotkey.ts": "c107d93958532a793ef30a6b1956ca6ad9241642f2dea95d2f7106b8f146d1e8",
-    "vendor/codinput/src/client/i18n.ts": "c63694c52b1a7a5ac1525e515b2dff7a2b26cb8e22d2ccea75ae4092ed593db1",
+    "vendor/codinput/src/client/i18n.ts": "bb373f5a48b485b7af7b4e64ddd1f7c3ab6263bd8cf6e89b6ce3a014c69c79e5",
     "vendor/codinput/src/client/icons.tsx": "72f17b42d77e2f92ceec6f13de7d83f674c08e847f2f597e5eb7bdab107e6fcb",
-    "vendor/codinput/src/client/index.tsx": "97c30e9e7c949b3c75ed686ff785dcdeb99556fc9734bec8319e0a11c0c4f992",
+    "vendor/codinput/src/client/index.tsx": "174bc28c4b860a690525158f232d0ebcfcbc48ad963dc002eab18925c961c4cd",
     "vendor/codinput/src/client/modeldir.ts": "012ea1ee98255aa77d933bd0089b7f43e8ddfb9dfc1594226a02de73dc559eb9",
     "vendor/codinput/src/client/permission.ts": "09200ad30e8a0f03c599ea4bbec1f61c3268399e0835c43144cf42314ce5ab64",
-    "vendor/codinput/src/client/prefs.ts": "dc5458cbbe90359f6b8f62a23491514544120a2afa3005b7659c36cde752d849",
+    "vendor/codinput/src/client/prefs.ts": "b37fba9bed4bba3bbcf46a20cae17c739d25eb95de3edc7f4289bed82d43241d",
     "vendor/codinput/src/client/services.ts": "5a3dee9736843626cc3ca85dc3720f2b488d7b578aeabe5f9e3017457ecf7046",
-    "vendor/codinput/src/client/settings.tsx": "0c3fd37fd7ab78a0fae5a145c6223e2cd910b9c3ba26bf92ae0fafb368fa33eb",
+    "vendor/codinput/src/client/settings.tsx": "b450feed66b2b39ad62c8743388f456f0608b15f7c1895900aaacdeecb84c4a9",
     "vendor/codinput/src/client/sidebar.tsx": "32c909330b2a5751619afb337b22be2190cc90cc7f1ad99f2a1f47f55f10c956",
     "vendor/codinput/src/client/sideinput.ts": "b20195c148c214439df785f98157ce6a8ddcb238f6fefafa8e7775bc946f8481",
     "vendor/codinput/src/client/stats.ts": "ec789247db2f9887febcb379398e35faad523d92b0fdc154f012e554504a3fc7",
-    "vendor/codinput/src/client/styles.ts": "709016556367e1b128f20599c7beadc19ec45ac89f40b25da7eda0e51e6bb935",
+    "vendor/codinput/src/client/styles.ts": "39a13b688d89cddb34aeb26ec9659409c3ff8b9c29a0df68ccf2c919c84f1ea4",
     "vendor/codinput/src/client/triggers.ts": "4cb3a9af54ae27500a8f13ccc2625587cc26463625d36d8eae71a43866b36797",
     "vendor/codinput/tsconfig.json": "4e52def71d59cab9d9493d8d154f9d67e7f5ccabcf9707e44b5bab9b5fe22f04",
     "vendor/computer-use/CHANGELOG.md": "9f5a287cec2679fe353c39bab6f261e4f0e5cdc16a3415b4b7be11bf415b45c7",
@@ -6125,8 +6235,8 @@
     "vendor/computer-use/presets/cordis.patch.yml": "e47a10ef29d0f24ab51139bbd248cb07a645d169b37b17ef4d1d5f303f1d334d",
     "vendor/computer-use/presets/package.json": "361889bb9ec09ee85971dce2fe11ec2bb4f0db2f1a1ccfd378984977c83c081a",
     "vendor/memory-cognition/LICENSE": "9a665e6361493b883988ef5b5b306e75138619b808cdd68d449752ed2be1c42c",
-    "vendor/memory-cognition/NEXUS-PROVENANCE.md": "aa2642cad3cfc4afca2c13ee0d932258ac3a768243448a4cfa83cca2cb253c16",
-    "vendor/memory-cognition/VALIDATION-FIXTURES.json": "20d6852414ed27d44a2759762c1f875761cb3465d8811922be39654ec788802f",
+    "vendor/memory-cognition/NEXUS-PROVENANCE.md": "7ca42158801fa75fc17703a5f284c20bbb587ae2259837ac3b3c983f78e70c6d",
+    "vendor/memory-cognition/VALIDATION-FIXTURES.json": "acaed04d1b87615151b85778b62b7e5ede2bfd10059c1acd5d3d0cdb21d7d4f2",
     "vendor/memory-cognition/data/policy.json": "4f479f9d963a6a29b5a543e0ecc2d4ad3ec29395aaebf194ae783fcdc1ef290a",
     "vendor/memory-cognition/docs/hive/检索路径与认知结构契约_v0.1.md": "192b0dd99314cecca991fe21cd0df376b412562710e9cc82b95d7af0ba5e738c",
     "vendor/memory-cognition/docs/plans/真源索引_通用机制_v0.3.md": "0707799e13196b45fdcfb846f058d5b2b30b31e2e3a4c894687fdc2f5903a2f6",
@@ -6245,10 +6355,10 @@
     "vendor/memory-cognition/md_cg/linkref.py": "3741c0c5a294fd4de812114374702d28f52a12d33b4ed15dbf1a59495f250648",
     "vendor/memory-cognition/md_cg/links.py": "44e02af6d28b8d1841b3cee4877a5d380070eca4e29f4b856ba996bfadc952a0",
     "vendor/memory-cognition/md_cg/logref.py": "4226a5e0cb9d16f9223e4a3cc6f41540f8b13bbdbf7fc5ad4ae58e3095c0fdd9",
-    "vendor/memory-cognition/md_cg/mcp_server.py": "9558240a57a4cca1cba2491e70c5b8cd62abc7190091e0c640e8bc887b2ebff1",
+    "vendor/memory-cognition/md_cg/mcp_server.py": "23bc59963298d2a379898922e9f7afefdf98d55afa7c8c542eed3a8a51b4cec3",
     "vendor/memory-cognition/md_cg/md_whitebox.py": "fe8d89a3ae4e9d243e0949b1e88a6e572a8708e2445e8fd426704b9663cd6749",
-    "vendor/memory-cognition/md_cg/mdcg.py": "223c3b94bc0457034717aba25b7cc2c5208b6f47656a767d0807d4efaf1e3823",
-    "vendor/memory-cognition/md_cg/mdcos.py": "9a5625b7ab3b4f596375f15196d122000b1e417f7f54c6c53b609c8d646d62b0",
+    "vendor/memory-cognition/md_cg/mdcg.py": "d5ad0f28476b1890c263ed71b3be498d0a53a02fa080777826e0027a834e1a98",
+    "vendor/memory-cognition/md_cg/mdcos.py": "e4d3955cd1677057d8e2971a4b82976725d552a39b1e98cd13829bc35eb43eee",
     "vendor/memory-cognition/md_cg/memory_rsi.py": "3a026303e32037908f8f7c8d45b8ffa3c18b62dd05b52d6d7b4e7fb4fb4294df",
     "vendor/memory-cognition/md_cg/metacognition.py": "cbd13bf71ca9ecda929ed4bff7eb6e805a6f7977648863b5856150edf0657b1c",
     "vendor/memory-cognition/md_cg/migrate.py": "f875553561966c69f02cd8b85a99a2358c50378a1d4597c14ffd088a757173c9",
@@ -6300,7 +6410,7 @@
     "vendor/memory-cognition/md_cg/rrf_candidates.py": "4d6c88638dc95db42dca8ab27e8ca1daf71a39f4d505add24b040af0b5282b60",
     "vendor/memory-cognition/md_cg/run_tests.py": "4deb2e9b418d701ccc0a40827e41d27e3b186fdf4d11ce52c2ad3f8c99ebad74",
     "vendor/memory-cognition/md_cg/scrub.py": "9e3169bb317056d65212cf47e2718f30ff3bbf974d4e8eccd0a774a35e7b8e16",
-    "vendor/memory-cognition/md_cg/security.py": "3df038b0f5350ce915b696417b641e1c0d5ba192f4a8057120242cb9e5ec4fe4",
+    "vendor/memory-cognition/md_cg/security.py": "d7ec6c457768d330f3ce3b052ce641ea1f09801fb7bea769ee9fc4799cee7322",
     "vendor/memory-cognition/md_cg/self_state.py": "847d7ab5e5336ca5f57def6c94258cc1f5f66fac1d7120c6b49a5b873dc7fe81",
     "vendor/memory-cognition/md_cg/self_surface.py": "2983a8fc401d39c34c3efd8c4451438e8363d38e620552b03feb7a0c9bfc20bc",
     "vendor/memory-cognition/md_cg/selfreport.py": "ced88ff0d704f5053604298abad30c5a7ab0ba6e37377ffb486bf31ab05275bf",
@@ -6417,7 +6527,7 @@
     "vendor/memory-cognition/md_cg/test_export_snapshots.py": "f176212ddded6e0688ec193acf4f98962facacd8f7996b6bac482029c5cf2da2",
     "vendor/memory-cognition/md_cg/test_fuzzy_substring_equivalence.py": "f0d082130e7c01824a74ea8cadcf8b30b417a7e244d039df00b19acfa436da4f",
     "vendor/memory-cognition/md_cg/test_gain_gate.py": "0b8a47335aca25111b58522ea89a7439bab1dd0a560fa657c15154eaf1d27b73",
-    "vendor/memory-cognition/md_cg/test_generation_guard.py": "c26c97cb58f01a1009d4d52f892eb645c6839eb3a6ec0cd49c78b20cc1a10b28",
+    "vendor/memory-cognition/md_cg/test_generation_guard.py": "460e0c25ef3fe074d3f0e6f69d8e24102bc242eee5e3dcc8428abe0949025331",
     "vendor/memory-cognition/md_cg/test_ghostref.py": "3251f2112033f077173cd7ff2c237af6542861fb30552d9a9997a8e80053915d",
     "vendor/memory-cognition/md_cg/test_goal_gen.py": "b962af8b738089cfbc3de32a0d9dd08849caa4f06e063ecc747229c56154e8f1",
     "vendor/memory-cognition/md_cg/test_govern_directread.py": "d8ebedc78d033d837dc51ae3fe3c94dbd9d6d16bfd76283e1e2fe9d05bc480c5",
@@ -6437,7 +6547,7 @@
     "vendor/memory-cognition/md_cg/test_i32_hotcache_env_key.py": "2654a9a2fe85d6dd3c53789b2e31ef3b3358d0261e37933565ade23c7617ea44",
     "vendor/memory-cognition/md_cg/test_i50a_half_dup_defer.py": "1393c8b26df6adef8fb601da7cf3108619ffcc2960b32303f645c025ed96af37",
     "vendor/memory-cognition/md_cg/test_i50b_defer_to_review_queue.py": "3c24b262ab5136634adc0f8fa5fa86f2881b6cb4040e0fdc69d93091a43086be",
-    "vendor/memory-cognition/md_cg/test_i50c_meta_passthrough.py": "ed1d6d374a6eae29282112c0d0b35d2398b49d489125800553d8a36773469e1a",
+    "vendor/memory-cognition/md_cg/test_i50c_meta_passthrough.py": "1b98e8a8ecf80d23a112c20d15c8dca9a3079b5d5eab7f01111f006ebf0b2752",
     "vendor/memory-cognition/md_cg/test_i50d_importance_source.py": "a3f23ec5c21bbf2a98d5949e5304b111a2b3654c2efe9f53e9905f9c53f488f1",
     "vendor/memory-cognition/md_cg/test_i50e_readside_protection.py": "987536c77d873efd2606531635268987a10cbd980e788aaaba6fee3729d04495",
     "vendor/memory-cognition/md_cg/test_identity_attribution.py": "8aa31424478a17965f0e6d0c6e21d21ab46d06163a70fdda4497be4038defaaa",
@@ -6645,6 +6755,9 @@
     "vendor/memory-cognition/md_cg/test_issue678_narrowed_hint.py": "44591789d1e2136c850844e0f7d8cf4488c1a63af3de602de82475c48b31f09b",
     "vendor/memory-cognition/md_cg/test_issue67_scrub_control_pool.py": "e631ae2306cbd2ed4f272b87a9fca8f5451c6423e9dfeeee16567ef31e17b38b",
     "vendor/memory-cognition/md_cg/test_issue69_audit_boundary.py": "8520cbd00b73fb9497e255bbe878f8a5194fa757b4f8cb6ad60d1facb2daec2b",
+    "vendor/memory-cognition/md_cg/test_issue708_writegate_observable.py": "3f96336fff58abefc075aef77c664052b1cf644998b93bb2d57e7077514b2164",
+    "vendor/memory-cognition/md_cg/test_issue709_review_chain_enforce.py": "461eff1293315eee29e671748f5aa96f82dad6153dd57ac5a287fc2c2baf42c8",
+    "vendor/memory-cognition/md_cg/test_issue712_session_window_attribution.py": "48bf54fd171e6d63fd81f2be02dd3bceef360cd1d56577fa5babe0c4675dfa0a",
     "vendor/memory-cognition/md_cg/test_issue71_queue_backlog.py": "0156684f8ee50bdf9da2b85ef67e879aaf56c4d9b638c0cf06b0189896f735a3",
     "vendor/memory-cognition/md_cg/test_issue72_coldverify_controlled_drain.py": "fadb23c4088330e9e34afaa05ebc8486a8c2d6ef90916c4d93b5470e1a4c8fb0",
     "vendor/memory-cognition/md_cg/test_issue73_doc_chapter_refs.py": "c34e01966b5d5a2ebf0b97f7e26d2a0d1c27d96a05b70cc372e1670048fe9696",
@@ -6767,7 +6880,7 @@
     "vendor/memory-cognition/md_cg/test_p42_provenance.py": "ca07f594069deff0da9ae9ad5ffeef67fa3e398cd075884a6318b955d9f0a6aa",
     "vendor/memory-cognition/md_cg/test_p43_pooling.py": "20602aa812112e4345fc80a61fef65c93c6b89be9d182f6276100651194fa2fe",
     "vendor/memory-cognition/md_cg/test_p44_md_whitebox.py": "7d6d36a611d92e6a63e971387e71d1d8d07130cb43f449c48cba817746849773",
-    "vendor/memory-cognition/md_cg/test_p45_session_identity.py": "46fabd38c9f14a62fe362ecdadfab33a9f5a3903866c168aa0b224e7d93de90a",
+    "vendor/memory-cognition/md_cg/test_p45_session_identity.py": "215c40d52a709bcf2e703e481ca765b4371e17a1cbc9f3f75f566ce61c9f988b",
     "vendor/memory-cognition/md_cg/test_p46_unit_scope.py": "d526f07a296a479b3f257725b9f6457971b2470796ec458a881d831be0ab792e",
     "vendor/memory-cognition/md_cg/test_p47_session_view.py": "4833645011bd4d0c960223d22a6230a85a2c7319a3e5192e610f0c6cea466232",
     "vendor/memory-cognition/md_cg/test_p4_freshness.py": "6db3732f04ac491b5f286ed0fa89bd31b3cc2da5f0ccfc7fbd910a673b01faa8",
@@ -7135,19 +7248,19 @@
     "vendor/memory-cognition/md_cg/whitebox_kb/wisdom/wisdom_book.py": "253ac59708241a136acf1cec86beaa05e9050067ec86bd541ed3b059229f3659",
     "vendor/memory-cognition/md_cg/whitebox_kb/wisdom/wisdom_cloud.py": "aea7b27eb2db331193096e5d25b4179f4e4ef06d255242dcb31960a5e882234f",
     "vendor/memory-cognition/md_cg/whitebox_kb/wisdom/wisdom_ui.html": "40aecea13fdde9d0c969422fdea27ca0967da3a42bd452f3a82268748027c996",
-    "vendor/memory-cognition/md_cg/writegate.py": "a35d58a66192aaa3dbb11a1a76beb34beddddf26469a0025c7b30e69c03d923d",
+    "vendor/memory-cognition/md_cg/writegate.py": "a6dd44df50025b93f5a0ec9bf7e006c18c443c6d2eaf3ccb8e7ed0715cb266fd",
     "vendor/memory-cognition/md_cg/writelimit.py": "f68f01f1f57f0202b9bc2391b96ab0416918eec043dfdaa4c8de31abad6e78dd",
     "vendor/memory-cognition/md_cg/writepipe.py": "a913e7e5548f2bd75dec612a88af7f35726a7ceffe2e6ac09209f5832a530e5b",
     "vendor/memory-cognition/nexus_bridge.py": "7ce554f6962a050a4a40804a7771c64cae7d3fba97b7f03c15cfae8c28d4bbec",
-    "vendor/memory-cognition/package.json": "b91aa8bfc9c21ff31598b664c19ca0dca98207218ba319ecb3bd19fbb2d91143",
+    "vendor/memory-cognition/package.json": "e34017ca75dd2277404e0950d896168a6503c8b392af9e265f8eed49ccca1361",
     "vendor/memory-cognition/rust/src/engine.rs": "f9c9fed1a22158773724315f00c9bdde31671df6ef97b972f7ace6bbf5ef51c2",
     "vendor/memory-cognition/rust/src/freshness.rs": "70dd8e672855a644cdfe86fc05648073058c47d7b431d9c31d5421c1547d33f5",
     "vendor/memory-cognition/rust/src/retrieval.rs": "1ce03ee9092f61efa53a4260e63b21b24f1c2506abf8ba80df3e86bf1e126bd1",
     "vendor/memory-cognition/scripts/build_ui.py": "3dee0fd435f8d74b829200462835863c154d4966bc519d63b3f4111dc9a96070",
-    "vendor/memory-cognition/scripts/workspace_index.py": "ab552c124525be8187d9175b4f7c871b47f5d3b7a3cebdfb725737b31b594290",
-    "vendor/memory-cognition/src/index.ts": "2de3b4a6d4e0e638a942d5f00a3cd7c1426c32db5f0b326e38c8388737d411ea",
-    "vendor/memory-cognition/ui/minimal/install.ps1": "57b683ce58e7cbdf43ef1702272c5c6aead7584bc668f7b49f31191a6c446ac1",
-    "vendor/memory-cognition/ui/minimal/integrity.json": "8a0914718fe35d588e240cdda3968a3d90bc26074e55455ad0bb72f56128dead",
+    "vendor/memory-cognition/scripts/workspace_index.py": "55e1b57326f481fb8e37adbc434866f4cfc1acde6b8fdfa8a9a7b0a5232f2bc9",
+    "vendor/memory-cognition/src/index.ts": "aced8d2a8cc05f07f674a589e0e69ccd9816062c3efb4b981a236a3b9bb4ee4e",
+    "vendor/memory-cognition/ui/minimal/install.ps1": "1caec89c56cae9a6d0d8ef9b2fad38858aa3bf5a9fd7449e29d08b37ee9c67c1",
+    "vendor/memory-cognition/ui/minimal/integrity.json": "4766274ee25c94bd9d39a4a6436c4f80892d2d70c827fe8bc9b6f7e03df71306",
     "vendor/memory-cognition/ui/minimal/payload/build-ui.mjs": "893e304fbb82810478041f30ac4a7c32cdb42a6c63a238f051a044370a38e103",
     "vendor/memory-cognition/ui/minimal/payload/lib/client.js": "89b4fe09b105a378b1404ed13c06f9416e12f234e64db6c2a529b6196675aa20",
     "vendor/memory-cognition/ui/minimal/payload/lib/lib/console_web.mjs": "9c8f8450571729688033033f35345b18e9eeb68b871e3a4c53a9b619f28aa61e",
@@ -7258,12 +7371,12 @@
     "deployment recovery snapshots",
     "research binary installer archives"
   ],
-  "maintenance": "2026-10-29 complete upstream inventory and original Forge rc.3 companion; see docs/upstream-audit-2026-10-29.json",
+  "maintenance": "2026-10-31 complete source/channel audit, official rc.5 and original Forge 0.1.6; docs/upstream-audit-2026-10-31.json",
   "localCompanions": [
     {
       "package": "@local/dsh-forge-tools",
-      "version": "0.1.5",
-      "hostVersion": "0.2.1-rc.3",
+      "version": "0.1.6",
+      "hostVersion": "0.2.1-rc.5",
       "source": "companions/forge-tools",
       "upstreamRepository": null,
       "license": "MIT",

@@ -7,7 +7,7 @@ $ErrorActionPreference = 'Stop'
 if ($Variant -eq 'PowerShell') {
     Write-Host '-Variant PowerShell is a backwards-compatible alias. Installing the complete Tools package, including file, search, and PowerShell replacements.'
 }
-$packageName = 'local-dsh-forge-tools-0.1.5.tgz'
+$packageName = 'local-dsh-forge-tools-0.1.6.tgz'
 $packagePath = Join-Path $PSScriptRoot $packageName
 if (-not (Test-Path -LiteralPath $packagePath -PathType Leaf)) { throw "Package missing: $packagePath" }
 $checksums = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'SHA256SUMS.txt')
@@ -39,8 +39,8 @@ if (-not $DshCommand -or -not (Test-Path -LiteralPath $DshCommand -PathType Leaf
     throw 'Desktop plugin installer not found. Pass -DshCommand with the full path to the Desktop-bundled dsh.cmd.'
 }
 $versionOutput = & $DshCommand --version
-if ($LASTEXITCODE -ne 0 -or "$versionOutput" -notmatch '0\.2\.1-rc\.3(?:\s|$)') {
-    throw "This package targets DSH 0.2.1-rc.3. Found: $versionOutput"
+if ($LASTEXITCODE -ne 0 -or "$versionOutput" -notmatch '0\.2\.1-rc\.5(?:\s|$)') {
+    throw "This package targets DSH 0.2.1-rc.5. Found: $versionOutput"
 }
 # Match the installed Desktop's dsh-home-paths resolver: nonblank DSH_HOME
 # (including supported tilde prefixes), otherwise the OS home's .dsh directory.
@@ -69,7 +69,7 @@ if (Test-Path -LiteralPath $profileManifestPath -PathType Leaf) {
         throw @"
 The legacy standalone Forge PowerShell package is enabled in Desktop: $otherPackage
 Selected DSH home: $selectedDshHome
-Forge 0.1.5 installs the complete Tools package only. Existing configuration was preserved; installation was not attempted. Exit Desktop, then uninstall this legacy package before retrying:
+Forge 0.1.6 installs the complete Tools package only. Existing configuration was preserved; installation was not attempted. Exit Desktop, then uninstall this legacy package before retrying:
 `$env:DSH_HOME = '$quotedHome'
 & '$quotedDsh' plugin --profile desktop remove '$otherPackage'
 "@

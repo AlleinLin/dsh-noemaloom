@@ -30,7 +30,7 @@ for (const section of ['peerDependencies', 'devDependencies'])
       assert.equal(version, packageManifest.engines.dsh, `${name}: SDK/engine drift`);
 const temporary = await mkdtemp(path.join(os.tmpdir(), 'forge-desktop-host-'));
 const report = {
-  host: '0.2.1-rc.3',
+  host: '0.2.1-rc.5',
   platform: 'win32-x64',
   installedRuntime: install,
   validation: 'Actual installed Desktop Host entry point and IPC lifecycle, using isolated DSH_HOME/profiles/desktop. This check does not launch the Electron GUI.',
@@ -138,13 +138,13 @@ export function apply(ctx){const timer=setTimeout(async()=>{
 
 try {
   for (const [variant, pkg, packageName] of [
-    ['Tools', 'local-dsh-forge-tools-0.1.5.tgz', '@local/dsh-forge-tools'],
+    ['Tools', 'local-dsh-forge-tools-0.1.6.tgz', '@local/dsh-forge-tools'],
   ]) {
     const home = path.join(temporary, variant);
     const env = {
       ...process.env, DSH_HOME: home, ELECTRON_RUN_AS_NODE: '1',
       DSH_AGENTS_HOME: path.join(home, 'agents'),
-      DSH_CLIENT_VERSION: '0.2.1-rc.3',
+      DSH_CLIENT_VERSION: '0.2.1-rc.5',
     };
     // The CLI deliberately refuses to launch the Electron-owned desktop
     // profile. Reproduce Desktop's exact initProfile files in this isolated
@@ -180,7 +180,7 @@ try {
     for (const field of ['readDescription', 'writeDescription', 'editDescription',
       'globDescription', 'grepDescription', 'pwshDescription'])
       assert.notEqual(own[field], baseline[field], `${variant}: ${field} still uses the original tool`);
-    assert.equal(baseline.names.length, 31, 'The validated rc.3 Desktop baseline has 31 tools');
+    assert.equal(baseline.names.length, 31, 'The validated rc.5 Desktop baseline has 31 tools');
     assert.equal(own.names.length, 36, 'The full Tools package must expose all 36 tools');
 
     launch(env, ['plugin', '--profile', 'desktop', 'remove', packageName]);

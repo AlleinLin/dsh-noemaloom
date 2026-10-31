@@ -2,12 +2,12 @@
 
 Repository: https://github.com/FuRongJun-1999/dsh-memory
 
-Published package: `@furongjun1999/dsh-memory 0.9.16`
+Published package: `@furongjun1999/dsh-memory 0.9.18`
 
-Release commit: `72fd465db69bb7edcfed54b1a9e03c88b7e27ea2`
+Observed upstream commit (package identity is npm integrity): `b2fe4db4dffc1bf1d54e705de55d47a6bd02069c`
 
 Archive integrity:
-`sha512-eCHFgxEdnsgPe6aeNdIKkfuODRFV9Hje3pzKbeLG4cfRlKzGBr13YIEzEiTfVYCaQpsQzIxuyFu26HnquHg4OQ==`
+`sha512-L2T3V6vtD+OY2Gfm6vJ2IEHF6l1GnOvAFYNF/50WXFyeqohVI4EmKN5RZvLdivkitOphiEuj1GN96Xs/nZk3nA==`
 
 The complete upstream `md_cg/` tree, `utf8_boot.py`, policy, character
 blocks, package manifest and MIT license are retained. The original npm

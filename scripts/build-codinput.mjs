@@ -19,7 +19,7 @@ export const CODINPUT_ADAPTATIONS = [
   'rebuild-with-pinned-safe-dependencies',
   'preserve-native-tab-pointer-gestures',
   'restored-context-surface-estimate',
-  'native-left-right-input-slots-from-reviewed-upstream-0.3.6',
+  'native-left-right-input-slots-from-reviewed-upstream-0.3.8',
 ];
 
 /** Fail closed when upstream changes; the recorded vendor itself stays verbatim. */

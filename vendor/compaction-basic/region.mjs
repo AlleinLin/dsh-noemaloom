@@ -1,4 +1,4 @@
-// @deepseek-ai/dsh-compaction-basic@0.2.1-rc.3/lib/index.js
+// @deepseek-ai/dsh-compaction-basic@0.2.1-rc.5/lib/index.js
 import z from "@deepseek-ai/schemastery";
 import { CompactionEngine, CompactionId, ManualCompactionError, compactCheckpointSource, toolPairingBalancedAfter, toolPairingBalancedBefore } from "@deepseek-ai/dsh-compaction";
 import { BlockAssembler, CONTEXT_WINDOW_EXCEEDED_CODE, LlmError, contentHasImage, createUserMessage, errorChain } from "@deepseek-ai/dsh-llm";

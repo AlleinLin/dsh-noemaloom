@@ -35,6 +35,8 @@ test('retry validation rejects unsafe values and unknown algorithms without sile
     { defaults: { algorithm: 'surprise' } }, { defaults: { mode: 'always' } },
     { defaults: { initialDelayMs: Infinity } }, { defaults: { maxDelayMs: 86_400_001 } },
     { defaults: { multiplier: 0 } }, { defaults: { jitterRatio: NaN } }, { defaults: { jitterRatio: 1.1 } },
+    { defaults: { freezeRetryHours: -0.1 } }, { defaults: { freezeRetryHours: 168.1 } },
+    { defaults: { freezeRetryHours: '5' } },
     { defaults: { retryOpaqueProviderErrors: 'true' } }, { defaults: { extra: true } }, { extra: true },
   ]) assert.ok(validateRequestRetryConfig(config), JSON.stringify(config));
   assert.equal(resolveRequestRetryOptions({ enabled: false }).mode, 'disabled');
@@ -47,6 +49,7 @@ test('new and legacy profiles default to 64 retries without a PI opt-in', () => 
   assert.equal(options.maxRetries, 64);
   assert.equal(options.retryOpaqueProviderErrors, true);
   assert.equal(resolveRequestRetryOptions({ defaults: { mode: 'inherit' } }).maxRetries, 64);
+  assert.equal(resolveRequestRetryOptions({}).freezeRetryHours, 0);
 });
 
 test('fixed, linear and exponential algorithms obey cap, jitter and Retry-After', () => {

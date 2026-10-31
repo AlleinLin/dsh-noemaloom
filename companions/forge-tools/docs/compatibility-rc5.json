@@ -1,0 +1,17 @@
+{
+  "host": "0.2.1-rc.5",
+  "version": "0.1.6",
+  "upstream": "Local original; no separately declared upstream release",
+  "sdk": "All same-origin DSH packages exactly match rc.5",
+  "status": "passed",
+  "tests": {
+    "passed": 109,
+    "failed": 0
+  },
+  "hostReport": "docs/host-validation.json",
+  "desktopReport": "docs/desktop-validation.json",
+  "limits": [
+    "No real remote model subscription; deterministic local protocol fixture.",
+    "Historical benchmarks and resilience data were not remeasured."
+  ]
+}

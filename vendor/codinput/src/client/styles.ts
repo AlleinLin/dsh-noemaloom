@@ -412,13 +412,19 @@ button.dci-attach-body { color: inherit; font: inherit; text-align: left; backgr
   height: 36px; color: var(--dsw-alias-label-primary, inherit); border: none; border-radius: 18px; outline: none;
   padding: 0 14px; font-size: 13px; min-width: 260px; max-width: 320px; }
 .dci-set-input:focus { outline: 2px solid var(--dsw-alias-border-l3, transparent); }
+/* 开关：官方 primitives Switch 逐值（Switch.module.css）。ON 轨道走
+   --dsw-alias-brand-primary——该 token 自 0.2.0-rc.2 起浅色主题即近黑（#0f1115）、
+   深色主题近白（#f9fafb），桌面 rc.3 同款；同 token 跟随宿主主题，就是官方样式的来源。 */
 .dci-switch { box-sizing: border-box; position: relative; flex: none; width: 36px; height: 20px; padding: 2px;
-  border: 0; border-radius: 10px; background: var(--dsw-alias-border-l3, color-mix(in srgb, currentColor 30%, transparent));
+  border: 0; border-radius: 999px; corner-shape: round;
+  background: var(--dsw-alias-border-l3, color-mix(in srgb, currentColor 30%, transparent));
   cursor: pointer; }
 .dci-switch[aria-checked="true"] { background: var(--dsw-alias-brand-primary, color-mix(in srgb, currentColor 70%, transparent)); }
-.dci-switch:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary, currentColor); outline-offset: 2px; }
-.dci-switch::after { content: ''; display: block; width: 16px; height: 16px; border-radius: 50%;
+.dci-switch:disabled { cursor: default; opacity: 0.5; }
+.dci-switch:focus-visible { outline: var(--dsw-focus-ring-width, 2px) solid var(--dsw-focus-ring-color, var(--dsw-alias-state-business-primary, currentColor)); outline-offset: 2px; }
+.dci-switch::after { content: ''; display: block; width: 16px; height: 16px; border-radius: 50%; corner-shape: round;
   background: var(--dsw-alias-label-primary-foreground, #fff); transition: transform 120ms ease; }
+.dci-switch[aria-checked="false"]::after { background: var(--dsw-alias-switch-thumb, #fff); }
 .dci-switch[aria-checked="true"]::after { transform: translateX(16px); }
 
 
@@ -440,15 +446,17 @@ button.dci-attach-body { color: inherit; font: inherit; text-align: left; backgr
   padding: 4px 0 0; font-size: calc(var(--dsh-content-font-size-secondary, 13px) - 1px);
   line-height: calc(20px + var(--dsh-content-font-delta-secondary, 0px));
   justify-content: center; gap: 12px; display: flex; }
-.dci-stat-anchor { min-width: 0; display: inline-flex; position: relative; }
+.dci-stat-anchor { min-width: 0; display: inline-flex; }
 
-/* 数据行详情面板（官方 bRhRbq 复刻：锚点上方弹出） */
-.dci-stat-panel { z-index: 1100; box-sizing: border-box; background: var(--dsw-menu-surface-fill, var(--dsw-specific-menu, rgba(30, 30, 34, 0.98)));
+/* 数据行详情面板（官方 bRhRbq 复刻：portal 到 body、fixed、锚点上方弹出）。
+   背景与圆角逐值同官方：--dsw-specific-menu 优先（macOS 桌面上官方把它覆写成不透明），
+   旧宿主/皮肤缺该 token 时回退 --dsw-menu-surface-fill 链，不落到硬编码深色。 */
+.dci-stat-panel { z-index: 1100; box-sizing: border-box; background: var(--dsw-specific-menu, var(--dsw-menu-surface-fill, rgba(30, 30, 34, 0.98)));
   backdrop-filter: var(--dsw-menu-backdrop-filter, none);
   color: var(--dsw-alias-label-secondary, inherit); --dsw-elevation-stroke-color: var(--dsw-alias-border-l1, transparent);
   width: max-content; min-width: min(300px, 100vw - 24px); max-width: min(440px, 100vw - 24px); text-align: left;
   box-shadow: var(--dsw-elevation-prominent, 0 10px 34px rgba(0, 0, 0, 0.35)); cursor: default; border: 0;
-  border-radius: 12px; padding: 16px; font-size: 12px; line-height: 18px; position: absolute; bottom: calc(100% + 8px); left: 0; }
+  border-radius: var(--dsw-radius-lg, 12px); padding: 16px; font-size: 12px; line-height: 18px; position: fixed; }
 .dci-stat-panelTitle { color: var(--dsw-alias-label-primary, inherit); justify-content: space-between; gap: 16px;
   margin-bottom: 8px; font-weight: 500; display: flex; }
 .dci-stat-panelLabel { align-items: center; gap: 6px; min-width: 0; display: inline-flex; }
@@ -460,36 +468,40 @@ button.dci-attach-body { color: inherit; font: inherit; text-align: left; backgr
 .dci-stat-details dt, .dci-stat-details dd { min-width: 0; margin: 0; }
 .dci-stat-details dd { color: var(--dsw-alias-label-secondary, inherit); font-variant-numeric: tabular-nums; text-align: right; }
 .dci-stat-pill { font: inherit; box-sizing: border-box; max-width: 100%; color: var(--dsw-alias-label-tertiary, currentColor);
-  white-space: nowrap; background: transparent; border: none; border-radius: 24px; align-items: center; gap: 6px;
+  white-space: nowrap; background: transparent; border: none; border-radius: 999px; corner-shape: round;
+  line-height: inherit; align-items: center; gap: 6px;
   padding: 1px 8px; display: inline-flex; cursor: pointer; font-variant-numeric: tabular-nums; }
 .dci-stat-pill svg { flex: none; width: 14px; height: 14px; }
-.dci-stat-pill:hover { background: var(--dsw-alias-interactive-bg-hover, color-mix(in srgb, currentColor 8%, transparent));
+.dci-stat-pill:hover, .dci-stat-pill[aria-expanded="true"] { background: var(--dsw-alias-interactive-bg-hover, color-mix(in srgb, currentColor 8%, transparent));
   color: var(--dsw-alias-label-secondary, inherit); }
 .dci-stat-label { text-overflow: ellipsis; min-width: 0; overflow: hidden; }
 .dci-stat-sep { color: var(--dsw-alias-separator-primary, currentColor); margin: 0 6px; }
 
 /* ===== 上下文小圈（官方 JObwrW 复刻：双环仪表 + 分段面板）
    0.1.7-rc.2 起官方把它挪进卡片下方 dock 行（stats 胶囊之后），trigger 变为「圈+百分比」药丸 ===== */
-.dci-gauge-root { flex: none; display: inline-flex; position: relative; }
+.dci-gauge-root { flex: none; display: inline-flex; }
 .dci-gauge-trigger { border-radius: var(--dsw-radius-sm, 8px); color: var(--dsw-alias-label-tertiary, currentColor);
-  font-family: inherit; font-size: 13px; font-variant-numeric: tabular-nums; line-height: 20px; white-space: nowrap;
+  font-family: inherit; font-size: var(--dsh-content-font-size-secondary, 13px); font-variant-numeric: tabular-nums;
+  line-height: calc(20px + var(--dsh-content-font-delta-secondary, 0px)); white-space: nowrap;
   cursor: pointer; background: transparent; border: none; flex: none; align-items: center; gap: 6px; padding: 1px 8px; display: inline-flex; }
 .dci-gauge-trigger:hover, .dci-gauge-trigger[aria-expanded="true"] { background: var(--dsw-alias-interactive-bg-hover, color-mix(in srgb, currentColor 8%, transparent));
   color: var(--dsw-alias-label-secondary, inherit); }
 .dci-gauge-track { fill: none; stroke: var(--dsw-alias-border-l3, currentColor); stroke-width: 2px; }
 .dci-gauge-fill { fill: none; stroke: var(--dsw-alias-label-tertiary, currentColor); stroke-width: 2px; stroke-linecap: round; }
-.dci-gauge-panel { z-index: 1100; box-sizing: border-box; background: var(--dsw-menu-surface-fill, var(--dsw-specific-menu, rgba(30, 30, 34, 0.98)));
+/* 面板 portal 到 body + fixed，left/top 由 useAnchoredPanel（官方 useAnchoredPosition
+   移植：面板左缘对齐锚点左缘、面板底距锚点顶 8px、视口 margin 12 夹取）下发。 */
+.dci-gauge-panel { z-index: 1100; box-sizing: border-box; background: var(--dsw-specific-menu, var(--dsw-menu-surface-fill, rgba(30, 30, 34, 0.98)));
   backdrop-filter: var(--dsw-menu-backdrop-filter, none);
   --dsw-elevation-stroke-color: var(--dsw-alias-border-l1, transparent); width: min(264px, 100vw - 24px);
   box-shadow: var(--dsw-elevation-prominent, 0 10px 34px rgba(0, 0, 0, 0.35));
   color: var(--dsw-alias-label-secondary, inherit); cursor: default; border: 0; border-radius: var(--dsw-radius-lg, 12px); padding: 12px;
-  font-size: 12px; line-height: 20px; position: absolute; bottom: calc(100% + 8px); right: 0; }
+  font-size: 12px; line-height: 20px; position: fixed; }
 .dci-gauge-header { align-items: center; gap: 6px; display: flex; }
 .dci-gauge-figures { font-variant-numeric: tabular-nums; color: var(--dsw-alias-label-primary, inherit); margin-left: auto; font-weight: 500; }
 .dci-gauge-percent { color: var(--dsw-alias-label-primary, inherit); font-weight: 500; }
 .dci-gauge-headline { color: var(--dsw-alias-label-tertiary, currentColor); }
 .dci-gauge-bar { background: var(--dsw-alias-interactive-bg-hover, color-mix(in srgb, currentColor 8%, transparent));
-  border-radius: 999px; gap: 1px; height: 4px; margin: 10px 0 12px; display: flex; overflow: hidden; }
+  border-radius: 999px; corner-shape: round; gap: 1px; height: 4px; margin: 10px 0 12px; display: flex; overflow: hidden; }
 .dci-gauge-segment { background: var(--meter-tint, var(--dsw-alias-label-tertiary, currentColor)); border-radius: 1px;
   flex: 0 0 auto; min-width: 2px; height: 100%; }
 .dci-gauge-swatch { background: var(--meter-tint, currentColor); vertical-align: baseline; border-radius: 2px;
@@ -537,12 +549,134 @@ button.dci-attach-body { color: inherit; font: inherit; text-align: left; backgr
 .dci-btn-primary:hover:not(:disabled) { background: var(--dsw-alias-button-primary-hover, currentColor); }
 .dci-btn-cancel { min-width: 72px; }
 .dci-btn-confirm { min-width: 136px; }
+
+/* ===== 用户消息 Markdown（chat.node 键控座遮蔽条目）=====
+   气泡/操作行/附件行取值逐条移植官方 MessageItem.module.css 与
+   MessageIconActions.module.css；Markdown 排版逐条移植官方
+   MarkdownText.module.css；引用 chip 逐条移植官方 user-text.module.css。
+   官方走 --dsw-* token 的取值这里同样走 token（换肤全盘跟随）。 */
+.dci-umsg-row { flex-direction: column; align-items: flex-end; gap: 6px; display: flex; }
+.dci-umsg-stack { min-width: 0; max-width: min(calc(var(--dsh-chat-content-width, 748px) * 0.702), 82%);
+  flex-direction: column; align-items: flex-end; gap: 8px; display: flex; }
+.dci-umsg-bubble { background: var(--dsw-specific-bubble); border-radius: var(--dsw-radius-xl); max-width: 100%;
+  font-size: var(--dsh-content-font-size, 14px); line-height: calc(22px + var(--dsh-content-font-delta, 0px));
+  color: var(--dsw-alias-label-primary); white-space: pre-wrap; word-break: break-word; padding: 10px 16px; }
+.dci-umsg-refsum { color: var(--dsw-alias-label-tertiary);
+  font-size: var(--dsh-content-font-size-secondary, 13px); line-height: calc(18px + var(--dsh-content-font-delta-secondary, 0px)); }
+.dci-umsg-attrow { flex-wrap: wrap; justify-content: flex-end; gap: 8px; max-width: 100%; display: flex; }
+.dci-umsg-file { border: 0.5px solid var(--dsw-alias-border-l2, #0000001f); border-radius: var(--dsw-radius-xl);
+  background: var(--dsw-specific-input-major, transparent); box-sizing: border-box; flex: 0 0 240px;
+  align-items: center; gap: 10px; width: 240px; min-height: 64px; padding: 8px 12px; display: inline-flex; }
+.dci-umsg-fileglyph { flex: none; width: 28px; height: 28px; }
+.dci-umsg-filecontent { flex-direction: column; flex: 1; min-width: 0; display: flex; }
+.dci-umsg-filename { white-space: nowrap; text-overflow: ellipsis; color: var(--dsw-alias-label-primary);
+  font-size: 14px; font-weight: 500; line-height: 22px; overflow: hidden; }
+.dci-umsg-filemeta { white-space: nowrap; text-overflow: ellipsis; color: var(--dsw-alias-label-tertiary, #00000073);
+  font-size: 12px; line-height: 15px; overflow: hidden; }
+.dci-umsg-actions { height: calc(28px + var(--dsh-content-font-delta, 0px)); align-items: center; gap: 8px; display: flex; }
+.dci-umsg-time { font-size: var(--dsh-content-font-size-secondary, 13px);
+  line-height: calc(24px + var(--dsh-content-font-delta, 0px)); color: var(--dsw-alias-label-tertiary); white-space: nowrap; padding-right: 12px; }
+.dci-umsg-action { width: calc(28px + var(--dsh-content-font-delta, 0px)); height: calc(28px + var(--dsh-content-font-delta, 0px));
+  border-radius: var(--dsw-radius-sm); color: var(--dsw-alias-label-tertiary); cursor: pointer; background: 0 0;
+  border: none; justify-content: center; align-items: center; padding: 6px; display: inline-flex; }
+.dci-umsg-action svg { width: calc(15px + var(--dsh-content-font-delta, 0px)); height: calc(15px + var(--dsh-content-font-delta, 0px)); }
+.dci-umsg-action:hover { background: var(--dsw-alias-interactive-bg-hover); color: var(--dsw-alias-label-secondary); }
+/* 悬停显形（官方 MessageItem.module.css 同款）：data-actions-reveal 挂在 assistant 的
+   turn-tail 根上、不在用户消息的祖先链里，用户消息的实际驱动只有 flowItem 的
+   data-chat-flow-kind 兄弟关系（后一条 user/steering 存在即隐藏，悬停/聚焦显形）。 */
+@media (hover: hover) {
+  :is([data-chat-flow-kind="user"], [data-chat-flow-kind="steering"]):has(~ :is([data-chat-flow-kind="user"], [data-chat-flow-kind="steering"])) .dci-umsg-actions { opacity: 0; transition: opacity 80ms; }
+  :is([data-chat-flow-kind="user"], [data-chat-flow-kind="steering"]):hover .dci-umsg-actions,
+  :is([data-chat-flow-kind="user"], [data-chat-flow-kind="steering"]):focus-within .dci-umsg-actions { opacity: 1; }
+}
+.dci-umsg-extra { margin: 8px 0 0; padding: 8px; border: 0.5px solid var(--dsw-alias-border-l2);
+  border-radius: var(--dsw-radius-sm); font-family: var(--ds-font-family-code); font-size: 12px; line-height: 18px;
+  overflow: auto; max-height: 200px; white-space: pre; }
+
+/* Markdown 排版（官方 MarkdownText.module.css 逐条移植，.markdown → 本根）。 */
+.dci-umsg-md { min-width: 0; overflow-wrap: anywhere; font: var(--dsw-font-markdown-base);
+  color: var(--dsw-alias-label-primary); white-space: normal; }
+.dci-umsg-md strong { font-weight: 600; }
+.dci-umsg-md h1 { font: var(--dsw-font-markdown-h1); margin: 32px 0 16px; }
+.dci-umsg-md h2 { font: var(--dsw-font-markdown-h2); margin: 32px 0 16px; }
+.dci-umsg-md h3 { font: var(--dsw-font-markdown-h3); margin: 32px 0 16px; }
+.dci-umsg-md h4 { font: var(--dsw-font-markdown-h4); margin: 16px 0; }
+.dci-umsg-md :where(h5, h6) { font: var(--dsw-font-markdown-base-strong); margin: 16px 0; }
+.dci-umsg-md :where(h1, h2, h3, h4, h5, h6) strong { font-weight: inherit; }
+.dci-umsg-md p { margin: 16px 0; }
+.dci-umsg-md :where(h4, h5, h6) + :where(ul, ol) { margin-top: 8px; }
+.dci-umsg-md :where(h4, h5, h6):has(+ :where(ul, ol)) { margin-bottom: 8px; }
+.dci-umsg-md a { color: var(--dsw-alias-link); font-weight: 500;
+  transition: box-shadow var(--ds-transition-duration) var(--ds-ease-in-out); position: relative; text-decoration: none;
+  border-left: 3px solid rgb(255 255 255 / 0); border-right: 3px solid rgb(255 255 255 / 0);
+  border-top: 2px solid rgb(255 255 255 / 0); border-bottom: 2px solid rgb(255 255 255 / 0);
+  margin-left: -3px; margin-right: -3px; }
+.dci-umsg-md a:hover, .dci-umsg-md a:focus { outline: none; text-decoration: underline dotted var(--dsw-alias-link); text-underline-offset: 3px; }
+.dci-umsg-md a:focus-visible { box-shadow: 0 0 0 2px var(--dsw-focus-ring-color, var(--dsw-alias-state-business-primary)); }
+.dci-umsg-md :where(ul, ol) { margin: 16px 0; padding-left: 18px; }
+.dci-umsg-md li:not(:first-child) { margin-top: 6px; }
+.dci-umsg-md li > :where(ul, ol) { margin-top: 4px; }
+.dci-umsg-md li::marker { line-height: 24px; color: var(--dsw-alias-label-secondary); }
+.dci-umsg-md :where(ul, ol) ol { list-style-position: inside; padding-left: 0; }
+.dci-umsg-md :where(ul, ol) ol li p { display: inline; }
+.dci-umsg-md li > p { margin: 8px 0; }
+.dci-umsg-md li > *:first-child { margin-top: 0; }
+.dci-umsg-md hr { display: block; border: none; height: 0.5px; margin: 32px 0; background: var(--dsw-alias-border-l2); }
+.dci-umsg-md blockquote { border-left: 2px solid var(--dsw-alias-label-caption); margin: 16px 0 0; padding-left: 14px; }
+/* 围栏代码块：官方 CodeBlock.module.css 的 .block :where(pre) 逐值——底色/圆角/
+   字体走官方 token（换肤跟随），气泡内靠底色与气泡面区分。语言横幅仍不做
+   （组件头注释的已知边界）。 */
+.dci-umsg-md pre { margin: 16px 0; padding: 16px; font: var(--dsw-font-markdown-code-block, var(--ds-font-family-code));
+  background: var(--dsw-alias-markdown-code-block, color-mix(in srgb, currentColor 6%, transparent));
+  color: var(--dsw-alias-label-primary); white-space: pre-wrap; word-break: break-all; overflow-x: auto;
+  border-radius: var(--dsw-radius-lg); }
+.dci-umsg-md pre code { font: inherit; background: none; padding: 0; }
+.dci-umsg-md :not(pre) > code { display: inline-flex; align-items: center; box-sizing: border-box;
+  font: var(--dsw-font-markdown-code); font-family: var(--ds-font-family-code); font-size: 0.875em !important;
+  /* 底色与围栏代码块同一 token（--dsw-alias-markdown-code-block，产品决策 2026-10-29：
+     两种代码面同色）。官方 --dsw-alias-markdown-inline-code 对页面底设计（深色
+     rgb(41,41,41)），进用户气泡（深色 rgb(44,44,46)）只差 3/255 不可辨，故不取它。 */
+  background-color: var(--dsw-alias-markdown-code-block, color-mix(in srgb, currentColor 6%, transparent));
+  border: 0.5px solid var(--dsw-alias-border-l1);
+  border-radius: var(--dsw-radius-sm); padding: 0 5px; }
+.dci-umsg-md :where(h1, h2, h3, h4, h5, h6) code { font: inherit; font-family: var(--ds-font-family-code); }
+.dci-umsg-md input[type='checkbox'] { margin: 0 8px 0 0; accent-color: var(--dsw-alias-label-secondary); }
+.dci-umsg-md img { display: block; width: auto; max-width: 100%; height: auto; margin: 0;
+  border-radius: var(--dsw-radius-md); background: var(--dsw-alias-bg-base); object-fit: contain; }
+.dci-umsg-tscroll { max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; }
+.dci-umsg-tscroll table { border-collapse: collapse; width: max-content; max-width: max-content; }
+.dci-umsg-tscroll th { text-align: start; padding: 10px 16px; border-bottom: 0.5px solid var(--dsw-alias-border-l3);
+  border-top: none; font: var(--dsw-font-markdown-table-head); max-width: min(30vw, 320px); min-width: 100px; }
+.dci-umsg-tscroll td { padding: 10px 16px; border-bottom: 0.5px solid var(--dsw-alias-border-l2);
+  font: var(--dsw-font-markdown-table); max-width: min(30vw, 320px); min-width: 100px; }
+.dci-umsg-tscroll th:first-child, .dci-umsg-tscroll td:first-child { padding-left: 0; }
+.dci-umsg-tscroll td:last-child { padding-right: 0; }
+.dci-umsg-tscroll table code { font-size: 11px; }
+.dci-umsg-md > :first-child, .dci-umsg-md p:first-child { margin-top: 0 !important; }
+.dci-umsg-md > :last-child, .dci-umsg-md p:last-child { margin-bottom: 0 !important; }
+
+/* 引用 chip（官方 user-text.module.css 逐条移植）：inline 走消费方基线，
+   可点 chip 用官方 fileMention 的链接语言。 */
+.dci-umsg-chip { display: inline; max-width: 100%; margin: 0 2px; color: var(--dsw-alias-state-business-primary);
+  font-weight: 500; white-space: inherit; overflow-wrap: anywhere; text-align: inherit; }
+button.dci-umsg-chip { margin: 0; padding: 0; border: none; background: none; font: inherit;
+  color: var(--dsw-alias-link); text-decoration: none; cursor: pointer; }
+button.dci-umsg-chip:hover, button.dci-umsg-chip:focus { outline: none; text-decoration: underline dotted var(--dsw-alias-link); text-underline-offset: 3px; }
+button.dci-umsg-chip:focus-visible { box-shadow: 0 0 0 2px var(--dsw-focus-ring-color, var(--dsw-alias-state-business-primary)); }
+.dci-umsg-chip[data-chip="slash"] { font-family: var(--dsw-font-markdown-code-font-family); }
+.dci-umsg-chipicon { width: 1em; height: 1em; margin-right: 4px; vertical-align: -0.125em; }
 `;
 
 export function injectStyles(): void {
-  if (document.getElementById(STYLE_ID)) return;
-  const el = document.createElement('style');
-  el.id = STYLE_ID;
-  el.textContent = CSS;
-  document.head.appendChild(el);
+  const el = document.getElementById(STYLE_ID);
+  // 已有本插件样式（宿主热替换/原地更新插件后重 apply）时按内容原位刷新：
+  // 旧 <style> 还挂着会让新版新增的类（如 dci-umsg-*）永远注入不进去。
+  if (el) {
+    if (el.textContent !== CSS) el.textContent = CSS;
+    return;
+  }
+  const tag = document.createElement('style');
+  tag.id = STYLE_ID;
+  tag.textContent = CSS;
+  document.head.appendChild(tag);
 }

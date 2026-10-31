@@ -35,6 +35,7 @@ const modules = [
   'test_issue669_ccg_empty_colon', 'test_issue672_validity_scope',
 ];
 for (const name of ["test_b4_shard_dir_selfheal","test_b4_shard_dir_selfheal_guard","test_config_registry_silent_fallback","test_designer_token_coverage","test_i50e_readside_protection","test_issue452_ingest_root_sensitivity","test_issue659_r26_batch3","test_issue672_optional_assets","test_issue676_session_tasks_index_first","test_issue677_async_index_flush","test_issue677_dedupe_gate","test_issue678_narrowed_hint","test_mode_parity","test_mr_m2","test_n230_dirty_replay","test_protect_stats_parity","test_review_dual_check","test_time_core_lint","test_ui_wiring_in_repo","test_writegate_tiers","test_writepipe"]) if (!modules.includes(name)) modules.push(name);
+for (const name of ["test_generation_guard", "test_i50c_meta_passthrough", "test_issue708_writegate_observable", "test_issue709_review_chain_enforce", "test_issue712_session_window_attribution", "test_p45_session_identity"]) if (!modules.includes(name)) modules.push(name);
 const environment = Object.fromEntries(Object.entries(process.env).filter(([name]) =>
   !/^(?:MDCG_|LINGSU_|LINGSHU_)/iu.test(name)
     && !/(?:TOKEN|SECRET|PASSWORD|API_KEY|AUTHORIZATION|CREDENTIAL)/iu.test(name)));

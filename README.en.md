@@ -9,7 +9,7 @@
 A memory, context and multi-model orchestration workbench for DeepSeek Harness Desktop.
 
 [![CI](https://github.com/AlleinLin/dsh-noemaloom/actions/workflows/ci.yml/badge.svg)](https://github.com/AlleinLin/dsh-noemaloom/actions/workflows/ci.yml)
-[![DSH](https://img.shields.io/badge/DSH-0.2.1--rc.3-b9a4ff?style=flat-square&labelColor=110e25)](https://github.com/deepseek-ai/deepseek-harness)
+[![DSH](https://img.shields.io/badge/DSH-0.2.1--rc.5-b9a4ff?style=flat-square&labelColor=110e25)](https://github.com/deepseek-ai/deepseek-harness)
 [![Node](https://img.shields.io/badge/Node.js-24_LTS-b9a4ff?style=flat-square&labelColor=110e25)](https://nodejs.org/)
 [![Status](https://img.shields.io/badge/Status-Experimental-e9bda5?style=flat-square&labelColor=110e25)](docs/BUILDING.md)
 [![License](https://img.shields.io/badge/License-Component--specific-e9bda5?style=flat-square&labelColor=110e25)](LICENSE)
@@ -55,7 +55,7 @@ ThoughtDAG uses the pinned 0.5.21 upstream release, retaining native web search,
 question forms, tool allowances and permission modes. Noemaloom manages its
 updates; see [the adaptation notes](docs/thoughtdag-upstream.md).
 
-Target host: **DeepSeek Harness Desktop 0.2.1-rc.3**.
+Target host: **DeepSeek Harness Desktop 0.2.1-rc.5**.
 Node.js 24 LTS is recommended. The supplied Desktop installer uses Windows PowerShell.
 
 ```powershell

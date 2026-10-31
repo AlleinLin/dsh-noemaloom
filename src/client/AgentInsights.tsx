@@ -4,6 +4,7 @@ import { createNexusApi, errorData } from './transport.js';
 import type { ClientContext, Data, NexusApi, NexusScope } from './types.js';
 import { AutonomyPlan } from './AutonomyPlan.js';
 import { AuxiliarySettings } from './AuxiliarySettings.js';
+import { RequestRetrySettings } from './RequestRetrySettings.js';
 import styles from './agent-insights.css';
 import { sampledSource, visiblePoll } from './visible-poll.js';
 import { contextOccupancy } from '../shared/context-occupancy.js';
@@ -192,6 +193,7 @@ export function TaskInsights({ api, scope, openSession }: { api: NexusApi; scope
     {error && <p role="alert">{error}</p>}{value && (scope.level === 'session' ? renderSummary(value) : (value.items ?? []).map(renderSummary))}
     {editing && <form onSubmit={e => { e.preventDefault(); void act(async () => { await api.call('insights', 'edit', { manual: draft }, { scope, mutating: true, revision: value?.revision ?? 0 }); setEditing(false); }); }}>{(['goal', 'currentWork', 'nextStep'] as const).map((key, i) => <label key={key}>{['目标', '当前工作', '下一步建议'][i]}<textarea rows={2} maxLength={2400} value={draft[key]} onChange={e => setDraft(d => ({ ...d, [key]: e.target.value }))} /></label>)}<button disabled={busy}>保存</button><button type="button" disabled={busy} onClick={() => void act(() => api.call('insights', 'edit', { manual: null }, { scope, mutating: true, revision: value?.revision ?? 0 }))}>恢复模型建议</button></form>}
     <details><summary>分析设置</summary><label>每会话每日观察上限<input type="number" min="1" max="100" value={route.maxCallsPerDay} onChange={e => setRoute(r => ({ ...r, maxCallsPerDay: Number(e.target.value) }))} /></label><button disabled={busy} onClick={() => void act(() => configure(config?.automatic ?? true))}>保存观察设置</button><AuxiliarySettings api={api} scope={scope} scoped /></details>
+    <details><summary>请求重试与会话冻结</summary><RequestRetrySettings api={api} scope={scope} /></details>
   </section></>;
 }
 

@@ -26,7 +26,9 @@ const ctx = {
         : domain === 'insights' && action === 'get' ? { state: 'ready', summary: {
           goal: '核对原始记录'.repeat(50), currentWork: '分析当前任务'.repeat(30), nextStep: '复核'.repeat(50),
           plan: Array.from({ length: 8 }, (_, i) => `步骤 ${i + 1}：${'原始证据'.repeat(15)}`),
-        } } : domain === 'autonomy' ? { items: [], enabled: false } : { items: [] };
+        } } : domain === 'scope' && action === 'settings'
+          ? { local: { revision: 0, config: {} }, inherited: [] }
+          : domain === 'autonomy' ? { items: [], enabled: false } : { items: [] };
       return { ok: true, value };
     } } },
 };

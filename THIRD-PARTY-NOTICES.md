@@ -18,14 +18,14 @@ versions, copyright notices, source identities, and modifications.
 - Metis 2.0.2 — MIT with Wholiver and Mario Zechner copyrights; selected policies and
   templates only, no second runtime or fixed-PASS controller.
 - dsh-web root and subpackages — mixed Apache-2.0/BSD notices, retained per component.
-- DeepSeek Harness agent-instructions 0.2.1-rc.3 — MIT; adapted for ordered
+- DeepSeek Harness agent-instructions 0.2.1-rc.5 — MIT; adapted for ordered
   first-match project rule files. Source identity and full license are retained
   in `vendor/agent-instructions/`; the runtime entry is `lib/project-rules.js`.
-- DeepSeek Harness tool-subagent 0.2.1-rc.3 — MIT; adapted for live authorized
+- DeepSeek Harness tool-subagent 0.2.1-rc.5 — MIT; adapted for live authorized
   model discovery, blank optional fields, and maximum supported child reasoning.
   Exact source identity and license are in `vendor/tool-subagent/`;
   the runtime entry is `lib/subagent.js`.
-- DeepSeek Harness compaction-basic 0.2.1-rc.3 — MIT; its existing region
+- DeepSeek Harness compaction-basic 0.2.1-rc.5 — MIT; its existing region
   transaction is retained in `vendor/compaction-basic/`, with source hashes and
   an export-only adaptation. Idle manual ranges use the original standalone
   transaction under the real Agent maintenance lock; active-turn compression

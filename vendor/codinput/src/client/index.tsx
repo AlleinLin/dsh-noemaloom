@@ -17,6 +17,7 @@ import { diagError, diagWindow, runGuarded } from './diag';
 import { loadPrefs, subscribePrefs } from './prefs';
 import { isAnySidebarInputCarried, subscribeSidebarInput } from './sideinput';
 import { barRegistration, CodinputBar } from './components/CodinputBar';
+import { userMarkdownRegistrations } from './components/UserMessageMarkdown';
 import { sidebarBodyRegistration, sidebarTabDefinition, sidebarTitleRegistration } from './sidebar';
 import { settingsRegistration } from './settings';
 import { registerCodinputCommand } from './command';
@@ -55,7 +56,12 @@ export function apply(ctx: ClientContext): void {
       const orig = w.console.error.bind(w.console);
       w.console.error = (...args: unknown[]): void => {
         const first = args.find((a) => a instanceof Error);
-        if (first) (w.__dshCodinputErrs as unknown as Error[]).push(first as Error);
+        if (first) {
+          // 与 diagError 同口径限长：长会话里 console.error 不应无界堆积。
+          const errs = w.__dshCodinputErrs as unknown as unknown[];
+          errs.push(first);
+          if (errs.length > 200) errs.splice(0, errs.length - 200);
+        }
         orig(...args);
       };
     }
@@ -119,6 +125,46 @@ export function apply(ctx: ClientContext): void {
   // 渲染（见 components/ExpandBall），不占官方槽位。
   runGuarded('bar.sideinput', () => {
     subscribeSidebarInput(reconcileBar);
+  });
+
+  // ---- 用户消息 Markdown：conversation.chat.node 键控座 user/steering 遮蔽 ----
+  // 独立于接管开关，自带 prefs.userMarkdown；关闭即卸载条目把消息渲染还座
+  // 官方（同 key 低 priority 者胜，动态包守卫强制分配负秩）。
+  runGuarded('md.register', () => {
+    const mdSeats = userMarkdownRegistrations();
+    const mdMounted = new Map<string, () => void>();
+    const mdWanted = (): boolean => loadPrefs().userMarkdown;
+    const mountMdSeat = (seat: (typeof mdSeats)[number]): void => {
+      const key = seat.options.key ?? '';
+      if (mdMounted.has(key) || !mdWanted()) return;
+      mdMounted.set(key, ctx.slots.register(seat.options, seat.component));
+      diagWindow().__dshCodinputShell[`md.${key}`] = 'mounted';
+    };
+    const unmountMdSeat = (key: string): void => {
+      const disposer = mdMounted.get(key);
+      if (!disposer) return;
+      mdMounted.delete(key);
+      try {
+        disposer();
+        diagWindow().__dshCodinputShell[`md.${key}`] = 'unmounted';
+      } catch (error) {
+        diagError('md.dispose', error);
+      }
+    };
+    const reconcileMd = (): void => {
+      for (const seat of mdSeats) {
+        const key = seat.options.key ?? '';
+        if (mdWanted()) {
+          tryRegister(() => mountMdSeat(seat), `md.${key}`);
+        } else {
+          unmountMdSeat(key);
+        }
+      }
+    };
+    reconcileMd();
+    runGuarded('md.prefs', () => {
+      subscribePrefs(reconcileMd);
+    });
   });
 
   // ---- 侧边模式：sidebarRightTabs 两段式注册（dockkit 承担停靠/浮动） ----

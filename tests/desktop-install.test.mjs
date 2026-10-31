@@ -23,7 +23,7 @@ const fixtureEnvironment = {
 // Native package-manager selection reconciliation is represented here; no
 // invocation reaches the user's DSH executable, profile, or live processes.
 async function fixture({ legacy = true, current = false, scenario = '', running = false,
-  hostVersion = '0.2.1-rc.3', upgradeScenario = '', example = false } = {}) {
+  hostVersion = '0.2.1-rc.5', upgradeScenario = '', example = false } = {}) {
   const root = await mkdtemp(join(tmpdir(), 'noemaloom-install-'));
   const harness = join(root, 'Harness with spaces'), home = join(root, 'home');
   const profile = join(home, 'profiles/desktop');
@@ -49,7 +49,7 @@ async function fixture({ legacy = true, current = false, scenario = '', running 
     path: `lib/runtime-${index}.js`, sha256: sha256(`runtime-${index}`),
   }));
   await writeFile(join(delivery, 'install-manifest.json'), JSON.stringify({
-    schemaVersion: 1, packageName: newName, version: '0.4.0', hostVersion: '0.2.1-rc.3',
+    schemaVersion: 1, packageName: newName, version: '0.4.0', hostVersion: '0.2.1-rc.5',
     packageFile, packageSha256: digest, keyFiles,
     hostUpgrade,
   }));
@@ -139,7 +139,7 @@ function Start-Process {
     Record-Upgrade @{operation='install-host';file=$FilePath;arguments=$ArgumentList;windowStyle=$WindowStyle;wait=[bool]$Wait}
     if ($env:NOEMALOOM_UPGRADE_SCENARIO -eq 'installer-failure') { return [pscustomobject]@{ExitCode=2} }
     if ($env:NOEMALOOM_UPGRADE_SCENARIO -ne 'wrong-version') {
-        [IO.File]::WriteAllText((Join-Path $env:NOEMALOOM_INSTALL_FIXTURE 'host-version.txt'),'0.2.1-rc.3')
+        [IO.File]::WriteAllText((Join-Path $env:NOEMALOOM_INSTALL_FIXTURE 'host-version.txt'),'0.2.1-rc.5')
     }
     [pscustomobject]@{ExitCode=0}
 }
@@ -233,9 +233,9 @@ test('old Desktop precheck reports the pinned upgrade without downloading or cha
   t.after(f.close);
   const result = outputJson((await f.run('CheckOnly')).stdout);
   assert.equal(result.hostVersion, '0.2.1-rc.2');
-  assert.equal(result.targetHostVersion, '0.2.1-rc.3');
+  assert.equal(result.targetHostVersion, '0.2.1-rc.5');
   assert.equal(result.hostUpgradeRequired, true);
-  assert.equal(result.hostUpgrade.url, 'https://download.deepseek.com/dsh-desk/bin/win-x64/deepseek-harness-0.2.1-rc.3-win-x64.exe');
+  assert.equal(result.hostUpgrade.url, 'https://download.deepseek.com/dsh-desk/bin/win-x64/deepseek-harness-0.2.1-rc.5-win-x64.exe');
   assert.deepEqual(await f.upgradeCalls(), []);
   assert.deepEqual(await f.profile(), f.initial);
 });
@@ -247,7 +247,7 @@ for (const hostVersion of ['0.2.0', '0.2.1-rc.2', '0.2.1-beta.10']) {
     const result = outputJson((await f.run()).stdout);
     assert.equal(result.hostUpgraded, true);
     assert.equal(result.previousHostVersion, hostVersion);
-    assert.equal(result.hostVersion, '0.2.1-rc.3');
+    assert.equal(result.hostVersion, '0.2.1-rc.5');
     const calls = await f.upgradeCalls();
     assert.deepEqual(calls.map(row => row.operation), ['download','signature','install-host']);
     assert.equal(calls.at(-1).arguments, `/S /D=${f.harness}`);
@@ -258,7 +258,7 @@ for (const hostVersion of ['0.2.0', '0.2.1-rc.2', '0.2.1-beta.10']) {
   });
 }
 
-for (const hostVersion of ['0.2.1-rc.10', '0.2.1', '0.3.0', '0.2.1-rc.3+build', '0.2.1-rc.02', 'unknown']) {
+for (const hostVersion of ['0.2.1-rc.10', '0.2.1', '0.3.0', '0.2.1-rc.5+build', '0.2.1-rc.02', 'unknown']) {
   test(`Desktop ${hostVersion} is never downgraded or guessed compatible`, windows, async t => {
     const f = await fixture({ hostVersion });
     t.after(f.close);

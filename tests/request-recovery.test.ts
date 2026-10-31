@@ -6,7 +6,13 @@ import { apply as applyNativeRetry } from '@deepseek-ai/dsh-llm-retry';
 import { Session, SessionId, SessionStore, SESSION_FORMAT_VERSION, type SessionEvent } from '@deepseek-ai/dsh-session';
 import { SessionProjectionRegistry } from '@deepseek-ai/dsh-session-projection';
 import { scopeTarget } from '@deepseek-ai/dsh-scope';
-import { ProviderRequestId, type ResolvedRetryPolicy } from '@deepseek-ai/dsh-llm';
+import { createUserMessage, ProviderRequestId, type ResolvedRetryPolicy } from '@deepseek-ai/dsh-llm';
+import type {} from '@deepseek-ai/dsh-schedule';
+// rc.5 declares this source in schedule's private runtime module, which its
+// public declaration entry does not import. Match that native message shape.
+declare module '@deepseek-ai/dsh-llm/message' {
+  interface MessageSourceMap { schedule: { kind: 'schedule' } }
+}
 import { recordRecoveryDiagnostic, registerRequestRecovery } from '../src/host/request-recovery.js';
 import type { HostContext } from '../src/host/types.js';
 import { stepProgressServices } from './step-progress-fixture.js';
@@ -20,7 +26,7 @@ const normal = (maxRetries = 3): ResolvedRetryPolicy => ({
 });
 const transport = { code: 'TRANSPORT', message: 'sensitive provider body', status: 502, requestId: ProviderRequestId('provider-request-42') };
 
-async function fixture(t: TestContext, native = false, settings = false) {
+async function fixture(t: TestContext, native = false, settings = false, schedule = false) {
   const root = new Context();
   let ctx!: Context;
   let sessions!: SessionStore;
@@ -29,6 +35,19 @@ async function fixture(t: TestContext, native = false, settings = false) {
   let disposeRecovery!: () => void;
   const events: SessionEvent[] = [];
   const { services: scopeServices } = stepProgressServices();
+  const scheduleCalls: Array<{ sessionId: string; request: any }> = [];
+  const scheduleDeletes: Array<{ sessionId: string; id: string }> = [];
+  const scheduleService = schedule ? {
+    async create(sessionId: string, request: any) {
+      scheduleCalls.push({ sessionId, request });
+      return { id: `schedule-${scheduleCalls.length}` };
+    },
+    async delete(request: { sessionId: string; id: string }) {
+      scheduleDeletes.push(request);
+      return { id: request.id, deleted: true };
+    },
+    async catalog() { return []; },
+  } : undefined;
   // ctx.get() deliberately exposes only active providers. The official host
   // services must finish activating before a consumer queries their presence.
   const servicesFiber = root.plugin({
@@ -38,13 +57,14 @@ async function fixture(t: TestContext, native = false, settings = false) {
       agents = new AgentRegistry(owner);
       projections = new SessionProjectionRegistry(owner);
       if (settings) owner.provide('nexus', { services: scopeServices } as any);
+      if (scheduleService) owner.provide('schedule', scheduleService);
     },
   });
   await servicesFiber.await();
   assert.equal(servicesFiber.state, 2);
   const fiber = root.plugin({
     name: 'request-recovery-fixture',
-    inject: ['sessions', 'agents', 'sessionProjections', ...(settings ? ['nexus'] : [])],
+    inject: ['sessions', 'agents', 'sessionProjections', ...(settings ? ['nexus'] : []), ...(schedule ? ['schedule'] : [])],
     apply(owner: Context) {
       ctx = owner;
       assert.ok(ctx.get('sessionProjections'), 'the recovery consumer must see an active official registry');
@@ -83,7 +103,7 @@ async function fixture(t: TestContext, native = false, settings = false) {
   }, { actorId: 'connection-owner', permissions: new Set(['scope.configure']), scopeLevel: sessionId ? 'session' : 'global',
     ...(sessionId ? { sessionId, workspaceRoot: scopeServices.workspaceRoot } : {}) });
   return {
-    ctx, agent, session, events, diagnostics, projections, recover, configure, scopeServices,
+    ctx, agent, session, events, diagnostics, projections, recover, configure, scopeServices, scheduleCalls, scheduleDeletes, scheduleService,
     dispose: () => disposeRecovery(),
     restart() { disposeRecovery(); disposeRecovery = registerRequestRecovery(ctx as unknown as HostContext); },
     removeAgent() { detachAgent(); },
@@ -207,6 +227,98 @@ test('custom waits remain cancellable even when Retry-After exceeds the algorith
   assert.equal(await nextWait, undefined);
   assert.equal(h.diagnostics().at(-1).stopReason, 'parent-cancelled');
   assert.equal(h.events.filter(event => event.type === 'llm/retry').length, 2);
+});
+
+test('subscription and quota failures freeze the session for the configured hours before retry', async t => {
+  const h = await fixture(t, true, true);
+  t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
+  await h.configure({ mode: 'custom', maxRetries: 1, initialDelayMs: 0, maxDelayMs: 0, jitterRatio: 0, freezeRetryHours: 5 });
+  const pending = h.recover({ code: 'INSUFFICIENT_QUOTA', message: 'subscription quota exhausted' } as any, normal(1));
+  for (let i = 0; i < 80; i++) await Promise.resolve();
+  const scheduled = h.events.filter(event => event.type === 'llm/retry').at(-1)!.data as any;
+  assert.equal(scheduled.delayMs, 18_000_000);
+  assert.equal(scheduled.freezeRetryHours, 5);
+  assert.equal(h.diagnostics().at(-1).freezeRetryHours, 5);
+  t.mock.timers.tick(18_000_000);
+  assert.deepEqual(await pending, { kind: 'retry' });
+});
+
+test('freeze waits register a durable Host schedule wake without exposing its marker to the model', async t => {
+  const h = await fixture(t, true, true, true);
+  t.mock.timers.enable({ apis: ['Date'] });
+  const removed: string[] = [];
+  (h.agent as any).inbox = { remove(id: string) { removed.push(id); return true; } };
+  await h.configure({ mode: 'custom', maxRetries: 1, initialDelayMs: 0, maxDelayMs: 0, jitterRatio: 0, freezeRetryHours: 5 });
+  const pending = h.recover({ code: 'INSUFFICIENT_QUOTA', message: 'subscription quota exhausted' } as any, normal(1));
+  for (let i = 0; i < 80; i++) await Promise.resolve();
+  assert.equal(h.scheduleCalls.length, 1);
+  assert.equal(h.scheduleCalls[0].request.title, 'Nexus 自动重试唤醒');
+  assert.equal(h.scheduleCalls[0].request.after_seconds, 18_000);
+  assert.match(h.scheduleCalls[0].request.prompt, /^NEXUS_INTERNAL_RETRY_WAKE:/);
+  const marker = h.scheduleCalls[0].request.prompt;
+  t.mock.timers.tick(18_000_000);
+  const message = createUserMessage({ source: { kind: 'schedule' }, content: [{ type: 'text', text: marker }] });
+  h.ctx.emit?.('agent/inbox/inserted', {
+    agent: h.agent,
+    message,
+  });
+  assert.deepEqual(await pending, { kind: 'retry' });
+  assert.equal(h.scheduleDeletes.length, 1);
+  assert.deepEqual(removed, [message.id]);
+  assert.equal(h.diagnostics().findLast(item => item.outcome === 'scheduled')?.wakeMode, 'host-schedule');
+});
+
+test('provider Retry-After can extend a freeze and cancellation removes the Host wake without a retry', async t => {
+  const h = await fixture(t, true, true, true);
+  await h.configure({ freezeRetryHours: 5 });
+  const controller = new AbortController();
+  const pending = h.recover({ code: 'RATE_LIMIT', providerRetryAfterMs: 21_600_000 } as any, normal(), controller.signal);
+  for (let i = 0; i < 120; i++) await Promise.resolve();
+  assert.equal(h.scheduleCalls[0].request.after_seconds, 21_600);
+  controller.abort({ kind: 'user' });
+  assert.equal(await pending, undefined);
+  assert.equal(h.scheduleDeletes.length, 1);
+  assert.equal(h.events.filter(event => event.type === 'llm/retry-started').length, 0);
+  assert.equal(h.diagnostics().at(-1).stopReason, 'user-cancelled');
+});
+
+test('a Host refusal for a delegated child uses the process timer and keeps the freeze deadline', async t => {
+  const h = await fixture(t, true, true, true);
+  h.scheduleService!.create = async () => { throw Object.assign(new Error('delegated Session'), { code: 'subagent_session' }); };
+  t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
+  await h.configure({ freezeRetryHours: 5 });
+  const pending = h.recover({ code: 'RATE_LIMIT' } as any);
+  for (let i = 0; i < 120; i++) await Promise.resolve();
+  assert.equal(h.diagnostics().at(-1).wakeMode, 'process-timer');
+  t.mock.timers.tick(17_999_999);
+  assert.equal(h.events.filter(event => event.type === 'llm/retry-started').length, 0);
+  t.mock.timers.tick(1);
+  assert.deepEqual(await pending, { kind: 'retry' });
+});
+
+test('a stalled Schedule create cannot hold recovery and a late committed reminder is deleted', async t => {
+  const h = await fixture(t, true, true, true);
+  let finishCreate!: (value: { id: string }) => void;
+  h.scheduleService!.create = () => new Promise(resolve => { finishCreate = resolve; });
+  t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
+  await h.configure({ freezeRetryHours: 5 });
+  const pending = h.recover({ code: 'RATE_LIMIT' } as any);
+  for (let i = 0; i < 120; i++) await Promise.resolve();
+  t.mock.timers.tick(2000);
+  for (let i = 0; i < 120; i++) await Promise.resolve();
+  assert.equal(h.diagnostics().at(-1).wakeMode, 'process-timer');
+  finishCreate({ id: 'late-schedule' });
+  for (let i = 0; i < 120; i++) await Promise.resolve();
+  assert.deepEqual(h.scheduleDeletes, [{ sessionId: h.agent.id, id: 'late-schedule' }]);
+  t.mock.timers.tick(17_998_000);
+  assert.deepEqual(await pending, { kind: 'retry' });
+});
+
+test('ordinary transport recovery does not create a subscription wake task', async t => {
+  const h = await fixture(t, true, true, true);
+  await h.configure({ freezeRetryHours: 5, initialDelayMs: 0, maxDelayMs: 0 });
+  assert.deepEqual(await h.recover(), { kind: 'retry' });
+  assert.equal(h.scheduleCalls.length, 0);
 });
 
 test('the scope budget controls exhaustion even when the native plugin has a different limit', async t => {

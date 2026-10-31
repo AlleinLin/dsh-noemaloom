@@ -49,7 +49,7 @@ const sha256 = async file => createHash('sha256').update(await readFile(file)).d
 await writeFile('lib/build-info.json', JSON.stringify({
   package: manifest.name, version: manifest.version, host: manifest.engines.dsh,
   platform: 'win32-x64', node: process.version, builtAt: new Date().toISOString(),
-  upstream: '1f81c047fc48fa190a683e469daa699857e9afe8',
+  upstream: 'b830ec950faba0a46dda564be3e2d854afed94f1',
   sha256: { host: await sha256('lib/index.js'), ripgrep: await sha256('bin/rg.exe') },
 }, null, 2) + '\n');
 console.log('Built Desktop standard-preset replacement and portable Windows x64 ripgrep.');

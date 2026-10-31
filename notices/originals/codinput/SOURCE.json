@@ -1,15 +1,15 @@
 {
   "packageName": "dsh-codinput",
-  "version": "0.3.6",
+  "version": "0.3.8",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Witherwithwinter/DSH-Codinput.git"
   },
   "upstreamLicenseFile": true,
-  "revision": "2d951e2d742cdf7776a57bff24996f806a6b015a",
+  "revision": "e19276e14ee907753d994df5daa904afd8fcdfa5",
   "source": "vendor/codinput/SOURCE.json",
-  "clientSha256": "35601873efec3841cc82cdb90052dcb4c44e5e1805ffe3572020f8ab15fee503",
+  "clientSha256": "936b07b12f5c08b646064284f51f55653bbbe0c8e060845e1b3df9830342b93c",
   "hostSha256": "ef15d396ae2db897f244a5934b777f56871020e321a17bcff9dc61e73bc95b6e",
   "dependencyNotices": "notices/originals/codinput/dependencies/SOURCE.json"
 }

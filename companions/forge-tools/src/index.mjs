@@ -220,7 +220,7 @@ export function apply(ctx, supplied = {}) {
     { clear_cache: bool('Drop content and directory caches.') }, async (args, exec) => {
       if (args.clear_cache) files.clear();
       const policy = ctx.sandboxPolicy.resolve(exec.agent ? { session: exec.agent.session } : {});
-      return { version: '0.1.5', files: files.metrics(), search: search.metrics(), pwsh: pwsh.metrics(),
+      return { version: '0.1.6', files: files.metrics(), search: search.metrics(), pwsh: pwsh.metrics(),
         permissions: { currentMode: policy.mode,
           guidance: 'Omit sandbox_permissions and justification for ordinary calls. They inherit the current session policy. Only genuine widening requires a nonempty reason and user approval.' },
         freshness: `Cached read bodies and glob snapshots may be up to ${config.cacheTtlMs} ms old; use fresh for current state.` };

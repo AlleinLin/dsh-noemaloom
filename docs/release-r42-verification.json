@@ -1,0 +1,184 @@
+{
+  "schemaVersion": 1,
+  "release": "R42",
+  "recordedAt": "2026-10-31T08:05:43.425Z",
+  "source": {
+    "algorithm": "sha256:path-and-content-v1",
+    "sha256": "b51644adae3b9a4ac873e910687b9ff399a4660df20cf8c59eb0bc90952a5648",
+    "files": 2881
+  },
+  "host": "0.2.1-rc.5",
+  "status": "local validation passed; exact-commit CI recorded in delivery manifest and LATEST",
+  "runtimePackageFile": "dsh-noemaloom-0.4.0-7e22030a6827525d27712b15b9f59c59c00a5388b8c74b18116f34ab31ca3715.tgz",
+  "runtimePackageSha256": "7e22030a6827525d27712b15b9f59c59c00a5388b8c74b18116f34ab31ca3715",
+  "inventory": {
+    "total": 153,
+    "sourceReview": "docs/upstream-audit-2026-10-31.json",
+    "hostReview": "docs/host-source-review-rc3-rc5.json"
+  },
+  "tests": {
+    "tests": 2402,
+    "passed": 2402,
+    "failed": 0,
+    "skipped": 0,
+    "junitLeafCases": 2401,
+    "receipt": "evidence/receipts/r42-sealed-final.json",
+    "junit": "evidence/runs/r42-sealed-final/tests.junit.xml",
+    "junitSha256": "2f6e1be31dc2609bb9a46ebd44cd0736b2c10c7fc714d4e969959bf39050c020",
+    "sourceUnchangedDuringRun": true,
+    "runtime": {
+      "node": "v24.22.1",
+      "modules": "137",
+      "platform": "win32",
+      "arch": "x64"
+    }
+  },
+  "build": {
+    "node": "v24.22.1",
+    "typecheck": "passed",
+    "artifacts": "passed",
+    "packageAudit": "passed",
+    "buildUnchangedAfterTestOnlyCorrections": true
+  },
+  "security": {
+    "rootNpmVulnerabilities": 0,
+    "forgeNpmVulnerabilities": 0,
+    "scope": "Pinned root and companion npm dependency graphs"
+  },
+  "cognition": {
+    "modules": 64,
+    "compiledAll": true,
+    "passed": true,
+    "report": "evidence/cognition-r42-sealed/report.json",
+    "sourceHash": "1ddca36eb7439ae64d5c8eff64cd30908d405ddca05de0e5d9c2e6d126d26743",
+    "sourceUnchangedDuringRun": true,
+    "scopeBridge": "evidence/r42-test-fixture-scope-bridge.json",
+    "optionalSkips": [
+      {
+        "name": "test_conformance",
+        "lines": [
+          "  [集成] SKIP 真源库不可用（设 MDCG_CONFORMANCE_ROOT=<库根> 可跑集成）"
+        ]
+      },
+      {
+        "name": "test_mr_m1",
+        "lines": [
+          "  SKIP 真源库不可用（外部 clone 环境）——非失败"
+        ]
+      },
+      {
+        "name": "test_mr_m2",
+        "lines": [
+          "  SKIP hive 二进制不存在（C:\\Users\\Allei\\AppData\\Local\\Temp\\noemaloom-cognition-3Xsojq\\package\\hive\\target\\release\\hive.exe）→ D 组跳过（外部 clone 同此路径）"
+        ]
+      }
+    ]
+  },
+  "desktop": {
+    "compaction": {
+      "passed": true,
+      "cases": 8,
+      "report": "evidence/r42-desktop-compaction.json",
+      "sourceHash": "1ddca36eb7439ae64d5c8eff64cd30908d405ddca05de0e5d9c2e6d126d26743"
+    },
+    "responsive": {
+      "passed": true,
+      "cases": 7,
+      "report": "evidence/r42-responsive.json",
+      "sourceHash": "b51644adae3b9a4ac873e910687b9ff399a4660df20cf8c59eb0bc90952a5648"
+    },
+    "freeze": {
+      "passed": true,
+      "cases": 3,
+      "report": "evidence/r42-freeze-desktop.json",
+      "sourceHash": "b51644adae3b9a4ac873e910687b9ff399a4660df20cf8c59eb0bc90952a5648"
+    },
+    "updatedSurfaces": {
+      "passed": true,
+      "cases": 6,
+      "report": "evidence/r42-updated-surfaces.json",
+      "sourceHash": "1ddca36eb7439ae64d5c8eff64cd30908d405ddca05de0e5d9c2e6d126d26743"
+    },
+    "nativeOriginals": {
+      "passed": true,
+      "cases": 7,
+      "report": "evidence/r42-native-originals.json",
+      "sourceHash": "b51644adae3b9a4ac873e910687b9ff399a4660df20cf8c59eb0bc90952a5648"
+    },
+    "dock": {
+      "passed": true,
+      "cases": 11,
+      "report": "evidence/r42-dock-regression.json",
+      "sourceHash": "b51644adae3b9a4ac873e910687b9ff399a4660df20cf8c59eb0bc90952a5648"
+    }
+  },
+  "freeze": {
+    "configuredHours": {
+      "main": 5,
+      "child": 2
+    },
+    "actualWait": "3.6 seconds with official rc.5 services and deterministic local adapter",
+    "virtualClock": "5h policy and longer 6h Retry-After covered by unit tests",
+    "mainWake": "Official one-shot Schedule",
+    "childWake": "Cancellable process timer because official Schedule rejects delegated sessions",
+    "sameStep": true,
+    "completedToolsReplayed": false,
+    "remoteModelRequests": 0
+  },
+  "responsive": {
+    "viewports": [
+      800,
+      960,
+      1279
+    ],
+    "narrowChildComposerWidth": 245,
+    "originalOverflowWidth": 349,
+    "finalOverflowWidth": 245,
+    "longModelLabel": true,
+    "menus": [
+      "permission",
+      "model",
+      "compaction"
+    ],
+    "vendorSourceBytesPreserved": true
+  },
+  "forge": {
+    "version": "0.1.6",
+    "host": "0.2.1-rc.5",
+    "testsPassed": 109,
+    "archive": "dsh-forge-tools-0.1.6-win-x64.zip",
+    "archiveSha256": "92bb8355e9f4eb352d29abd6d8a276f710b444f932555c67f2f5ec2f43f62ca4",
+    "sourceSync": "D:/dshplugin/tools",
+    "installedInUserProfile": false,
+    "optional": true,
+    "hostReport": "companions/forge-tools/docs/host-validation.json",
+    "desktopReport": "companions/forge-tools/docs/desktop-validation.json"
+  },
+  "localInstallation": {
+    "host": "0.2.1-rc.5",
+    "pluginPackageSha256": "7e22030a6827525d27712b15b9f59c59c00a5388b8c74b18116f34ab31ca3715",
+    "installedKeyFilesVerified": true,
+    "installedFrom": "D:/dshplugin/nexus/build/r42",
+    "activationVerified": false,
+    "activationScope": "Actual activation tested in independent official Desktop with synthetic profile; the real profile was not launched",
+    "liveHostRestarted": false,
+    "userSessionDatabaseModified": false,
+    "verification": "validation/local-install-verify.log"
+  },
+  "failuresAndCorrections": [
+    "Initial full check found stale OpenSpec version and managed-update symbol assertions; corrected and subsequent 2402-test run passed.",
+    "Long model label still overflowed because upstream inline 45cqw measured the viewport; local override now bounds it by the actual panel. Seven responsive desktop cases passed.",
+    "Freeze fixture initially counted native context envelopes as user input, then a manually created child lacked cwd and failed before request admission. Corrected fixture semantics and cwd; final main/child runtime and settings cases passed.",
+    "One Windows fixture teardown hit transient EPERM after disposal; bounded native rm retries were added. Final full test run has no skips.",
+    "Context/Fleet waits originally inspected only the tail of body text, hidden by long synthetic child history; scoped observation now includes the beginning. Original native checks required a fresh Codinput-enabled layout after the separate native-input fallback test.",
+    "Synthetic welcome window appeared late on first bootstrap. Explicit API-key setup-later UI was used. GUI launches use detached ignored stdio; no claim of repairing the official updater."
+  ],
+  "limitations": [
+    "No real subscription credentials or remote model billing window were used; no five-hour wall-clock wait was performed.",
+    "DSH must remain running for in-flight retry. Public rc.5 API cannot revive an unfinished turn after shutdown; stale markers are cleaned. This does not reset provider quotas or wake a powered-off computer.",
+    "Three Cognition optional checks need private historical corpora or the unavailable hive binary and are explicitly skipped upstream.",
+    "Unavailable upstream channels and incomplete Git comparisons remain listed individually in the upstream audit.",
+    "External memory servers, authenticated SSH and real cloud-model behavior were not certified by these local tests.",
+    "Historical Forge benchmarks/resilience reports were not rerun; Forge is delivered separately and is not installed in the real Desktop profile."
+  ]
+}

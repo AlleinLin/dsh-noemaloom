@@ -16,17 +16,17 @@ async function assertAbsent(target) {
   await assert.rejects(access(target), error => error.code === 'ENOENT', `${target} must not exist`);
 }
 try {
-  run('tar', ['-xf', path.join(root, 'delivery/dsh-forge-tools-0.1.5-win-x64.zip'), '-C', temporary]);
+  run('tar', ['-xf', path.join(root, 'delivery/dsh-forge-tools-0.1.6-win-x64.zip'), '-C', temporary]);
   const payload = await readdir(temporary);
   assert.ok(!payload.some(filename => /\.(?:png|jpe?g|webp|gif|bmp|ico|svg|avif)$/i.test(filename)),
     'Desktop archive must not ship screenshots or other images');
-  assert.deepEqual(payload.filter(filename => filename.endsWith('.tgz')), ['local-dsh-forge-tools-0.1.5.tgz'],
+  assert.deepEqual(payload.filter(filename => filename.endsWith('.tgz')), ['local-dsh-forge-tools-0.1.6.tgz'],
     'Desktop delivery must contain exactly one complete Tools package');
   assert.ok(!payload.some(filename => /^cli(?:-pwsh)?\.patch\.yml$/i.test(filename)),
     'Desktop delivery must not contain CLI overlays');
   const packageInventory = JSON.parse(await readFile(path.join(temporary, 'package-inventory.json'), 'utf8'));
   assert.equal(packageInventory.packages.length, 1, 'Inventory must advertise one complete package');
-  assert.equal(packageInventory.packages[0].filename, 'local-dsh-forge-tools-0.1.5.tgz');
+  assert.equal(packageInventory.packages[0].filename, 'local-dsh-forge-tools-0.1.6.tgz');
   const tarball = path.join(temporary, packageInventory.packages[0].filename);
   const tarFiles = run('tar', ['-tf', tarball], process.env).trim().split(/\r?\n/);
   assert.ok(!tarFiles.some(filename => /\.(?:png|jpe?g|webp|gif|bmp|ico|svg|avif)$/i.test(filename)),
@@ -151,7 +151,7 @@ if ($inventoryStubState.Calls -ne 1) { throw 'Expected exactly one isolated proc
     const installedRoot = path.join(profile, 'node_modules', packageName);
     const installed = JSON.parse(await readFile(path.join(installedRoot, 'package.json'), 'utf8'));
     assert.equal(installed.name, packageName);
-    assert.equal(installed.version, '0.1.5');
+    assert.equal(installed.version, '0.1.6');
     await access(path.join(installedRoot, 'bin/rg.exe'));
     assert.match(run(path.join(installedRoot, 'bin/rg.exe'), ['--version'], env), /^ripgrep /);
     const patch = await readFile(path.join(installedRoot, 'cordis.patch.yml'), 'utf8');

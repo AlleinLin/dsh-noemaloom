@@ -29,7 +29,7 @@ body [class$="_panelList"]:has([data-nexus-native-entry]) {
 .nexus-native-actions button:hover { background: var(--dsw-alias-interactive-bg-hover); }
 .nexus-native-actions button:focus-visible { outline: 2px solid var(--dsw-alias-state-business-primary); }
 
-/* Native seats: semantic suffixes survive the rc.3 CSS-module hash changes. */
+/* Native seats: semantic suffixes survive the rc.5 CSS-module hash changes. */
 body:has(style[data-nexus-native-theme]) [data-chat-running] {
   color: var(--dsw-alias-brand-primary);
   --dsw-alias-label-shimmer: var(--dsw-alias-label-deep-diving-shimmer);
@@ -59,6 +59,32 @@ body:has(style[data-nexus-native-theme]) [class$="_composerHero"] > [class$="_he
 }
 body:has(style[data-nexus-native-theme]) [data-composer-card] { border:1px solid var(--dsw-alias-border-l2); border-radius:20px; box-shadow:0 3px 16px #00000009; }
 body:has(style[data-nexus-native-theme]) [data-composer-card]:focus-within { border-color:var(--dsw-alias-state-business-primary); box-shadow:0 0 0 2px color-mix(in srgb,var(--dsw-alias-state-business-primary) 12%,transparent); }
+/* A delegated conversation can be narrow even in a wide window. Wrap each
+   control group within its own available width, keeping send and popovers
+   reachable without clipping the composer or changing vendor source bytes. */
+body:has(style[data-nexus-native-theme]) .dci-tools {
+  flex-wrap:wrap; max-width:100%; gap:6px 8px;
+}
+body:has(style[data-nexus-native-theme]) .dci-tools > * {
+  min-width:0; max-width:100%;
+}
+body:has(style[data-nexus-native-theme]) .dci-trailing {
+  flex:0 1 auto; max-width:100%; gap:8px;
+}
+body:has(style[data-nexus-native-theme]) .dci-standard-controls {
+  flex:1 1 auto; gap:8px;
+}
+body:has(style[data-nexus-native-theme]) .dci-standard-controls > * {
+  min-width:0; max-width:100%;
+}
+body:has(style[data-nexus-native-theme]) .dci-standard-controls .dci-trigger {
+  /* Override Codinput's inline 45cqw limit: without a local query container
+     that unit refers to the viewport, not this delegated panel. */
+  max-width:min(220px, 100%) !important;
+}
+body:has(style[data-nexus-native-theme]) [data-slot="conversation.chat.node"] [data-clock] {
+  flex-wrap:wrap; row-gap:4px; height:auto; min-height:28px; min-width:0;
+}
 body:has(style[data-nexus-native-theme]) [class$="_heroWorkspaceRow"] { border-radius:10px; }
 /* Native fullscreen extends across the center column. Give the entire right
    column a stacking context above conversation chrome, with an opaque surface;

@@ -8,6 +8,9 @@ export const REQUEST_RETRY_DEFAULTS = Object.freeze({
   maxDelayMs: 30_000,
   multiplier: 2,
   jitterRatio: 0.1,
+  // A subscription/quota failure can freeze a session for a user-selected
+  // number of hours before the same request is attempted again.
+  freezeRetryHours: 0,
   // Retained for reading older settings. Error eligibility is no longer gated
   // by this flag; all failed requests use the selected retry budget.
   retryOpaqueProviderErrors: true,
@@ -20,6 +23,7 @@ export interface RequestRetryOptions {
   maxDelayMs: number;
   multiplier: number;
   jitterRatio: number;
+  freezeRetryHours: number;
   retryOpaqueProviderErrors: boolean;
 }
 
@@ -43,6 +47,8 @@ export function validateRequestRetryConfig(value: unknown): string | undefined {
     || !Number.isFinite(defaults.multiplier) || defaults.multiplier < 1 || defaults.multiplier > 10)) return '指数倍率须为1–10';
   if (defaults.jitterRatio !== undefined && (typeof defaults.jitterRatio !== 'number'
     || !Number.isFinite(defaults.jitterRatio) || defaults.jitterRatio < 0 || defaults.jitterRatio > 1)) return '随机抖动须为0–1';
+  if (defaults.freezeRetryHours !== undefined && (typeof defaults.freezeRetryHours !== 'number'
+    || !Number.isFinite(defaults.freezeRetryHours) || defaults.freezeRetryHours < 0 || defaults.freezeRetryHours > 168)) return '会话冻结时长须为0–168小时';
   if (defaults.retryOpaqueProviderErrors !== undefined && typeof defaults.retryOpaqueProviderErrors !== 'boolean') return '适配器错误重试开关无效';
   // The complete inherited result is validated again at both save and use time.
   if (defaults.initialDelayMs !== undefined && defaults.maxDelayMs !== undefined

@@ -24,6 +24,9 @@ export interface RecoveryDiagnostic {
   status?: number;
   requestId?: string;
   traceId?: string;
+  freezeRetryHours?: number;
+  frozenUntil?: string;
+  wakeMode?: 'host-schedule' | 'process-timer';
 }
 function text(value: unknown, pattern = TOKEN): string | undefined {
   return typeof value === 'string' && pattern.test(value) ? value : undefined;
@@ -68,6 +71,12 @@ export function recoveryDiagnostics(entries: readonly unknown[], sessionId: stri
       ...(Number.isInteger(data.status) && data.status >= 100 && data.status <= 599 ? { status: data.status } : {}),
       ...(text(data.requestId) ? { requestId: data.requestId } : {}),
       ...(text(data.traceId) ? { traceId: data.traceId } : {}),
+      ...(typeof data.freezeRetryHours === 'number' && data.freezeRetryHours >= 0 && data.freezeRetryHours <= 168
+        ? { freezeRetryHours: data.freezeRetryHours } : {}),
+      ...(typeof data.frozenUntil === 'string' && Number.isFinite(Date.parse(data.frozenUntil))
+        ? { frozenUntil: data.frozenUntil } : {}),
+      ...(data.wakeMode === 'host-schedule' || data.wakeMode === 'process-timer'
+        ? { wakeMode: data.wakeMode } : {}),
     });
   }
   return records.sort((a, b) => b.seq - a.seq).slice(0, Math.min(20, limit));
@@ -154,7 +163,12 @@ export function registerRecoveryDiagnostics(rawContext: ClientContext): () => vo
               <code>{record.diagnosticCode}</code>
               <time dateTime={record.at}>{new Date(record.at).toLocaleTimeString()}</time>
             </div>
-            <p>{record.message}{record.stopReason ? `；停止原因：${recoveryStopReason(record.stopReason)}` : ''}</p>
+            <p>{record.message}
+              {record.freezeRetryHours ? `；会话冻结 ${record.freezeRetryHours} 小时` : ''}
+              {record.frozenUntil ? `；预计 ${new Date(record.frozenUntil).toLocaleString()} 后重试` : ''}
+              {record.wakeMode === 'host-schedule' ? '；已注册宿主定时唤醒' : record.wakeMode === 'process-timer' ? '；使用进程计时器等待' : ''}
+              {record.stopReason ? `；停止原因：${recoveryStopReason(record.stopReason)}` : ''}
+            </p>
             <dl>
               <dt>原始代码</dt><dd><code>{record.canonicalCode}</code></dd>
               <dt>阶段</dt><dd>{record.phase}</dd>

@@ -1,6 +1,6 @@
 # DeepSeek Harness 桌面端安装说明（供用户与安装 AI 使用）
 
-本说明用于安装 **DSH Forge Tools 0.1.5**，适配 **Windows x64、DeepSeek Harness Desktop 0.2.1-rc.3**。项目交付目录为 `D:\dshplugin\tools\build`，也可以将整个交付目录或 ZIP 解压结果复制到工作机的其他目录。
+本说明用于安装 **DSH Forge Tools 0.1.6**，适配 **Windows x64、DeepSeek Harness Desktop 0.2.1-rc.5**。项目交付目录为 `D:\dshplugin\tools\build`，也可以将整个交付目录或 ZIP 解压结果复制到工作机的其他目录。
 
 安装使用桌面端自带的插件管理入口，目标固定为 `desktop` profile。插件直接作用于官方默认 **standard** 预设，不需要创建、选择或导入 Forge 预设。这里的 `dsh.cmd` 仅用于管理桌面端插件，不代表安装到命令行或 Web profile。
 
@@ -40,10 +40,10 @@ powershell -NoProfile -File .\Install-Example.ps1
 
 | 文件 | 用途 |
 | --- | --- |
-| `dsh-forge-tools-0.1.5-win-x64.zip` | 可复制到工作机的完整交付包；解压到一个独立目录后安装 |
+| `dsh-forge-tools-0.1.6-win-x64.zip` | 可复制到工作机的完整交付包；解压到一个独立目录后安装 |
 | `Install-Example.ps1` | 推荐安装入口，调用同目录的正式安装脚本 |
 | `Install.ps1` | 正式安装脚本；校验完整 Tools tgz、宿主版本和配置冲突 |
-| `local-dsh-forge-tools-0.1.5.tgz` | 唯一安装包：完整工具集，包名 `@local/dsh-forge-tools` |
+| `local-dsh-forge-tools-0.1.6.tgz` | 唯一安装包：完整工具集，包名 `@local/dsh-forge-tools` |
 | `SHA256SUMS.txt` | 解压后交付文件的 SHA-256 校验清单 |
 | `INSTALL_FOR_AI.md` | 本安装说明 |
 | `PERMISSIONS.md` | 权限参数、当前会话模式与真正提权的审批规则 |
@@ -57,7 +57,7 @@ powershell -NoProfile -File .\Install-Example.ps1
 
 1. **确认真实桌面端与数据目录。** 读取当前进程的 `DSH_HOME`。非空白值应与用户实际启动桌面端时使用的值一致；若未设置或只有空白，默认是当前 Windows 用户主目录下的 `.dsh`。脚本支持 `~`、`~/` 和 `~\` 前缀。目标为该目录的 `profiles\desktop`。如果用户通过专用启动脚本设置了其他 `DSH_HOME`，应沿用那个真实目录。不要创建临时 `DSH_HOME` 来绕过安装检查，也不要指向别的用户的目录。
 2. **确认桌面端已经退出。** 用户应先保存工作并正常退出应用。安装器检测到 `DeepSeek Harness` 进程会停止；不要自动 `taskkill /F` 或关闭可能有未保存工作的窗口。
-3. **安装完整 Tools 包。** 默认 `-Variant Tools` 与兼容别名 `-Variant PowerShell` 都只安装 `local-dsh-forge-tools-0.1.5.tgz`，包名 `@local/dsh-forge-tools`。不要寻找或另外安装独立 PowerShell 包。
+3. **安装完整 Tools 包。** 默认 `-Variant Tools` 与兼容别名 `-Variant PowerShell` 都只安装 `local-dsh-forge-tools-0.1.6.tgz`，包名 `@local/dsh-forge-tools`。不要寻找或另外安装独立 PowerShell 包。
 4. **使用桌面端自带的 `dsh.cmd`。** 脚本会在常见目录和卸载注册表中定位它。若找不到，使用实际安装目录中的 `resources\runtime\cli\bin\dsh.cmd` 绝对路径传给 `-DshCommand`。不要改用来源不明的全局 `dsh`、`npm` 或 `pnpm`。
 5. **执行安装并检查退出状态。** 推荐调用同目录的 `Install-Example.ps1`；它委托 `Install.ps1`。安装器默认离线，使用 `--ignore-scripts --save-exact`，核对 tgz 的 SHA-256 和桌面端版本，并检查旧独立 PowerShell 包及 profile 层的 `preset-standard` 定制冲突。若旧包仍启用，保留配置并停止；按脚本给出的命令卸载该旧包后再安装。
 6. **保留现有数据。** 允许插件管理器更新所选桌面 profile 的插件依赖和启用记录；不要用其他机器的整个 profile、默认模板或项目文件覆盖用户配置。不要读取或输出 API key、令牌、会话内容；不要删除用户的 `cordis.patch.yml`、凭据或对话目录。
@@ -75,7 +75,7 @@ powershell -NoProfile -File .\Install-Example.ps1
 
 ```text
 请验证当前 DeepSeek Harness 桌面端是否启用了 DSH Forge 插件。
-先实际调用 forge_status({})，核实返回版本为 0.1.5。
+先实际调用 forge_status({})，核实返回版本为 0.1.6。
 然后只使用只读操作，在当前已授权项目中：
 1. glob 一个已知存在的普通文件；
 2. read 该文件的少量行；
@@ -94,7 +94,7 @@ powershell -NoProfile -File .\Install-Example.ps1
 | 情况 | 处理方式 |
 | --- | --- |
 | 校验不匹配、文件缺失 | 停止安装，重新取得同一版本的完整交付包；不要重写校验清单 |
-| 宿主不是 `0.2.1-rc.3` | 停止并报告实际版本；不要编辑包的 engines 或跳过版本检查 |
+| 宿主不是 `0.2.1-rc.5` | 停止并报告实际版本；不要编辑包的 engines 或跳过版本检查 |
 | 旧 `@local/dsh-forge-pwsh` 已启用 | 保留现状并停止；正常退出桌面端后，按安装器给出的精确命令卸载该旧包，再安装完整 Tools 包 |
 | profile 中已有 `preset-standard` 定制 | 停止并报告冲突文件；备份、审阅并合并定制，不要删除整份配置或强制覆盖 |
 | 离线依赖缓存不足 | 保留真实错误并报告未安装成功；仅在用户允许使用网络时，重试 `-Offline:$false` |

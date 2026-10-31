@@ -17,7 +17,7 @@ param(
 $ErrorActionPreference = 'Stop'
 $installerPath = Join-Path $PSScriptRoot 'Install.ps1'
 $checksumPath = Join-Path $PSScriptRoot 'SHA256SUMS.txt'
-$packageFile = 'local-dsh-forge-tools-0.1.5.tgz'
+$packageFile = 'local-dsh-forge-tools-0.1.6.tgz'
 foreach ($requiredFile in @($installerPath, $checksumPath, (Join-Path $PSScriptRoot $packageFile))) {
     if (-not (Test-Path -LiteralPath $requiredFile -PathType Leaf)) {
         throw "Release file missing: $requiredFile. Copy the whole build folder or extract the whole release ZIP."
@@ -41,6 +41,6 @@ if ($PSBoundParameters.ContainsKey('DshCommand')) {
     }
     $installerArguments.DshCommand = $DshCommand
 }
-Write-Host 'Installing Forge Tools 0.1.5 (file, search, and PowerShell replacements) into DeepSeek Harness Desktop.'
+Write-Host 'Installing Forge Tools 0.1.6 (file, search, and PowerShell replacements) into DeepSeek Harness Desktop.'
 Write-Host 'Target profile: desktop. Start a NEW conversation using the official standard preset after restarting Desktop.'
 & $installerPath @installerArguments

@@ -107,7 +107,7 @@ function adaptContext(factory) {
   const ast = ts.createSourceFile('context-reviewed.js', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
   const placements = [];
   const visit = node => {
-    if (ts.isFunctionDeclaration(node) && node.name?.text === 'Xf') placements.push(node);
+    if (ts.isFunctionDeclaration(node) && node.name?.text === 'xp') placements.push(node);
     ts.forEachChild(node, visit);
   };
   visit(ast);
@@ -115,20 +115,20 @@ function adaptContext(factory) {
     || !placements[0].getText(ast).includes('t.tab()') || !placements[0].getText(ast).includes('t.sidebar()')) {
     throw new Error('Context reviewed dynamic placement registration changed');
   }
-  source = replaceOnce(source, placements[0].getText(ast), 'function Xf(e,t){return t.tab()}',
+  source = replaceOnce(source, placements[0].getText(ast), 'function xp(e,t){return t.tab()}',
     'Context single native conversation registration');
-  source = replaceOnce(source, 'let c=Yf(o);if(!c.tab&&!c.sidebar)return null;', '',
+  source = replaceOnce(source, 'let c=bp(o);if(!c.tab&&!c.sidebar)return null;', '',
     'Context native jump remains available with fixed placement');
-  source = replaceOnce(source, 'Bf(e)||Vf(r(`tab.context`))',
+  source = replaceOnce(source, 'fp(e)||pp(r(`tab.context`))',
     'nexusNativeNavigation.openView(t.sessionId,"context",l===null?"":String(l))',
     'Context message jump uses native session view action');
-  source = replaceOnce(source, 'Vf(i(`tab.fleet`))||Bf(e)',
+  source = replaceOnce(source, 'pp(i(`tab.fleet`))||fp(e)',
     'nexusNativeNavigation.openView(o,"fleet","")',
     'Context fleet jump uses native session view action');
-  const oldChromeClick = 'function Vf(e){let t=document.querySelectorAll(`button[role="tab"]`);for(let n of t)if(n.textContent.trim()===e)return n.getAttribute(`aria-selected`)!==`true`&&n.click(),!0;return!1}';
-  source = replaceOnce(source, oldChromeClick, 'function Vf(){return false}',
+  const oldChromeClick = 'function pp(e){let t=document.querySelectorAll(`button[role="tab"]`);for(let n of t)if(n.textContent.trim()===e)return n.getAttribute(`aria-selected`)!==`true`&&n.click(),!0;return!1}';
+  source = replaceOnce(source, oldChromeClick, 'function pp(){return false}',
     'Context remove obsolete chrome-click helper');
-  const placementChoice = '(0,d.jsx)(jl,{label:t(`settings.placement`),value:n.placement,disabled:i,options:[{id:`all`,label:t(`placement.all`)},{id:`tab`,label:t(`placement.tab`)},{id:`sidebar`,label:t(`placement.sidebar`)},{id:`hide`,label:t(`placement.hide`)}],onPick:e=>{r?.(`defaultPlacement`,e)}}),';
+  const placementChoice = '(0,d.jsx)(Ul,{label:t(`settings.placement`),value:n.placement,disabled:i,options:[{id:`all`,label:t(`placement.all`)},{id:`tab`,label:t(`placement.tab`)},{id:`sidebar`,label:t(`placement.sidebar`)},{id:`hide`,label:t(`placement.hide`)}],onPick:e=>{r?.(`defaultPlacement`,e)}}),';
   source = replaceOnce(source, placementChoice, '', 'Context remove inactive placement preference');
   return source;
 }
@@ -162,7 +162,7 @@ async function addHost(id, packageName, version, subpath = '.', installed) {
     adaptation = await buildComputerUseHost(root, installed, hostOutput);
     specifier = adaptation.specifier;
     await writeFile(join(hostOutput, filename),
-      `// Original ${packageName}@${version}, commit ${installed.source.revision}; authenticated rc.3 carrier adaptation.\n`
+      `// Original ${packageName}@${version}, commit ${installed.source.revision}; authenticated rc.5 carrier adaptation.\n`
       + `export * from ${JSON.stringify(specifier)};\n`);
   } else if (installed?.source) {
     // Preserve the original CommonJS module under .cjs in our ESM package.
@@ -258,7 +258,7 @@ async function addClient(definition, installed) {
   }
   if (definition.id === 'computer-use') {
     factory = adaptComputerUseClient(factory);
-    adaptations.push('rc3-owner-only-authenticated-route', 'native-Claude-orange-rounded-chip', 'lifecycle-owned-style-cleanup');
+    adaptations.push('rc5-owner-only-authenticated-route', 'native-Claude-orange-rounded-chip', 'lifecycle-owned-style-cleanup');
   }
   if (definition.id === 'codinput') {
     const rebuilt = await buildCodinputClient();

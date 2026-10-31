@@ -1,13 +1,13 @@
 {
-  "host": "0.2.1-rc.3",
+  "host": "0.2.1-rc.5",
   "platform": "win32-x64",
-  "installedRuntime": "D:\\dshplugin\\research\\dsh-desktop-rc3\\app",
+  "installedRuntime": "D:\\dshplugin\\research\\dsh-desktop-rc5\\app",
   "validation": "Actual installed Desktop Host entry point and IPC lifecycle, using isolated DSH_HOME/profiles/desktop. This check does not launch the Electron GUI.",
   "privacy": "No real user profile, credentials, conversations or model requests are used.",
   "cases": [
     {
       "variant": "Tools",
-      "package": "local-dsh-forge-tools-0.1.5.tgz",
+      "package": "local-dsh-forge-tools-0.1.6.tgz",
       "profile": "desktop",
       "preset": "standard",
       "offlineInstall": "passed",

@@ -134,7 +134,7 @@ class Principal:
     theory_version —— 当前声明的协议版本（审计与 whoami 用）
     """
 
-# 生效条件：clearance 须为模块级常量 SENSITIVITY_ORDER 成员（否则 _rank 抛 AccessDenied），session 为假值（含 None/空串）时生成 sess_ 随机串并把 session_auto 置 True（未获声明的进程自动随机；写归因三态收口的识别位，消费方 MdCGSecure._attributed_session），session 真值时原样采用并把 session_auto 置 False（显式声明的来源），expires_at 为假值（含 None/0）时存 None 否则 float(expires_at)，layers_allow/ops_allow 为 None 时存 None 否则 tuple 化。
+# 生效条件：clearance 须为模块级常量 SENSITIVITY_ORDER 成员（否则 _rank 抛 AccessDenied），session 为假值（含 None/空串）时生成 sess_ 随机串并把 session_auto 置 True（未获声明的进程自动随机；写归因三态收口的识别位，消费方 MdCGSecure._attributed_session），session 真值时原样采用并把 session_auto 置 False（显式声明的来源），expires_at 为假值（含 None/0）时存 None 否则 float(expires_at)，layers_allow/ops_allow 为 None 时存 None 否则 tuple 化；sessions_read 为 None 时存 None（=旧行为，不限制会话读面），为集合（含 list/tuple/set）时 tuple 化并去重（=只允许读这些会话，'*' 表示全部，见 session_recall 的 recent 段）。
     def __init__(self, tenant: str = "default", actor: str = "system",
                  clearance: str = DEFAULT_SENSITIVITY, can_write: bool = True,
                  can_admin: bool = False, session: str = None,
@@ -142,7 +142,7 @@ class Principal:
                  role: str = None, token_id: str = None, parent: str = None,
                  expires_at: float = None, layers_allow=None, ops_allow=None,
                  auth_mode: str = "direct", theory_ok: bool = True,
-                 theory_version: str = None):
+                 theory_version: str = None, sessions_read=None):
         _rank(clearance)                      # 校验
         self.tenant = tenant
         self.actor = actor
@@ -171,6 +171,13 @@ class Principal:
         self.unit = unit
         self.role = (role or "system")
         self.token_id = token_id
+        # issue #712（2026-10-30 使用者裁定方案 C）：**分档会话读权限**。
+        # None  = 旧行为逐位不变（internal/public 事件跨会话可见；私有档仍由 _readable 的
+        #         既有口径按 principal.session 绑定，本字段不参与）；
+        # 集合  = 只允许读这些会话（'*' 表示全部）——仅在 session_recall 的 recent 段生效；
+        # 注意：can_admin 仍可读所有档（issue #35「设计者豁免」定稿），本字段**不削弱**它。
+        self.sessions_read = (None if sessions_read is None
+                              else tuple(dict.fromkeys(str(x) for x in sessions_read)))
         self.parent = parent
         self.expires_at = float(expires_at) if expires_at else None
         self.layers_allow = None if layers_allow is None else tuple(layers_allow)
@@ -288,7 +295,7 @@ class Principal:
                 f"写入敏感度 {sensitivity} 超出 clearance {self.clearance}")
 
 # 生效条件：先要求 self.require_write(sensitivity) 未抛异常；随后将形参 layer 为假值（None/空串）时按 "knowledge" 处理，并要求 self.allows_layer(layer) 为 True；最后按 MDCG_WRITE_GATE 三档过**分层写入严格度闸**（writegate）：off 零介入放行、warn 记录并放行、enforce 对 deny/require_review 抛 AccessDenied。
-    def require_layer_write(self, layer: str, sensitivity: str, reviewers=None):
+    def require_layer_write(self, layer: str, sensitivity: str, reviewers=None, *, skip_gate: bool = False):
         """写层校验：密级 + 层白名单 + **分层复核闸**（2026-10-27 使用者裁定）。
 
         分层严格度（writegate.LAYER_TIERS）：情景/目标/未解/负记忆 = 0 档
@@ -298,6 +305,14 @@ class Principal:
 
         reviewers 为本次写入已取得的复核单元（缺省取环境声明 MDCG_REVIEWERS），
         只在闸启用（warn/enforce）时有意义；off 档完全不介入，行为与历史逐位相同。
+
+        **skip_gate（issue #709 连带发现，2026-10-28）**：只给**不落记忆盘**的入队动作用
+        （当前唯一调用方＝`MdCGSecure.propose`）。理由：propose 只把候选写进 inbox、
+        不写业务节点，却按**目标层**要求复核单元 ⇒ enforce 下形成死锁：
+        「要写 knowledge 需 reflect → 要 reflect 需裁决 → 要裁决需有提案 → 提案又要 reflect」。
+        跳过闸**不等于绕过写入闸**：accept 落盘时仍走 `add()` 的同一道闸，复核不被削弱。
+        层白名单与密级检查**照常执行**（这里跳过的只有 write_gate 一档）。
+        **禁止用于任何真正落盘的路径**——那等于关闸。
         """
         self.require_write(sensitivity)
         layer = layer or "knowledge"
@@ -305,6 +320,8 @@ class Principal:
             raise AccessDenied(
                 f"角色 {self.role} 无权写入 {layer} 层"
                 f"（可写层 {list(self.layers_allow) if self.layers_allow is not None else '不限'}）")
+        if skip_gate:
+            return None
         _wg_verdict = self._write_gate_verdict(layer, reviewers)
         if _wg_verdict and _wg_verdict.get("decision") in ("deny", "require_review"):
             if _wg_verdict.get("mode") == "enforce":
@@ -328,9 +345,15 @@ class Principal:
             reviewers = tuple(x.strip().lower() for x in raw.split(",") if x.strip())
         verdict = _wg.decide_write(layer, reviewers=reviewers, mode=mode)
         if mode == "warn" and verdict.get("decision") in ("deny", "require_review"):
+            # issue #708：既要 stderr（宿主愿意转发时实时可见），更要**进程内计数**
+            # ——后者经 `cg(op=info).write_gate` 可查，不依赖 DSH 是否转发子进程 stderr。
             import sys as _sys
-            _sys.stderr.write("[writegate] warn：%s（未阻断，仅记录）"
+            _sys.stderr.write("[writegate] warn：%s（未阻断，仅记录；计数见 cg(op=info).write_gate）"
                               % verdict.get("reason"))
+            try:
+                _wg.warn_record(layer, verdict.get("tier"), verdict.get("reason"))
+            except Exception:            # noqa: BLE001  诊断面不得冒泡进写入路径
+                pass
         return verdict
 
 # 生效条件：要求 self._require_live() 未抛异常、self.theory_ok 为 True、self.can_admin 为 True 时通过；否则抛 AccessDenied（消息用形参 op 标记操作）。

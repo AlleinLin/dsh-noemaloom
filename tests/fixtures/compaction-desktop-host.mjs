@@ -21,6 +21,7 @@ export async function apply(ctx, config) {
   const route = { provider, model: 'conversation', maxTokens: 256 };
   let windowTokens = 1000000, parent, child, childId, activation, summaryCalls = 0, localCalls = 0;
   const requests = [];
+  const freezeAttempts = new Map();
   class Adapter extends LlmAdapter {
     async listModels(provider) {
       return [
@@ -35,6 +36,14 @@ export async function apply(ctx, config) {
     async *stream(request) {
       localCalls++;
       requests.push({ sessionId: request.sessionId, model: request.model, tools: request.tools?.map(tool => tool.name) });
+      if (request.messages.some(message => message.content?.some(block => block.type === 'text' && block.text === 'fixture-freeze-retry'))) {
+        const attempt = (freezeAttempts.get(request.sessionId) ?? 0) + 1;
+        freezeAttempts.set(request.sessionId, attempt);
+        if (attempt === 1) {
+          yield { type: 'finish', reason: { kind: 'error', failure: { code: 'RATE_LIMIT', message: 'subscription window exhausted' } } };
+          return;
+        }
+      }
       let text = '离线桌面子代理已完成本轮验证。';
       if (request.model === 'summary') {
         summaryCalls++;
@@ -119,6 +128,46 @@ export async function apply(ctx, config) {
       return snapshot();
     }
     assert(childId, 'prepare the exact fixture child first');
+    if (body.action === 'freeze') {
+      const read = await services.invoke('scope', { action: 'settings', params: { feature: 'request-retry' } }, { scopeLevel: 'global' });
+      await services.invoke('scope', { action: 'configure', requestId: `freeze-config:${randomUUID()}`, expectedRevision: read.local.revision,
+        params: { feature: 'request-retry', config: { defaults: { freezeRetryHours: .001, initialDelayMs: 0, maxDelayMs: 0, maxRetries: 1 } } } },
+      { scopeLevel: 'global', actorId: 'connection-owner', permissions: new Set(['scope.configure']) });
+      const schedule = ctx.get('schedule');
+      assert(schedule, 'Official Schedule service must be mounted');
+      const results = [];
+      for (const delegated of [false, true]) {
+        const parentSeq = parent.session.seq;
+        const handle = await ctx.agents.create({ sessionId: SessionId(`session-${randomUUID()}`), agentOptions: route,
+          ...(delegated ? { parentAgent: parent, meta: { cwd: config.workspace, origin: 'subagent', delegationDepth: 1 } } : { meta: { cwd: config.workspace } }),
+          setup(agentCtx) { ctx.agentPresets.composeFrom(agentCtx, parent.ctx); } });
+        try {
+          const agent = handle.agent, started = Date.now();
+          agent.followup(createUserMessage({ source: { kind: 'user' }, content: [{ type: 'text', text: 'fixture-freeze-retry' }] }));
+          await new Promise(resolve => setTimeout(resolve, 1200));
+          const armed = (await schedule.catalog()).filter(row => row.sessionId === agent.id);
+          assert.equal(armed.length, delegated ? 0 : 1);
+          await agent.whenIdle();
+          const events = agent.session.snapshotEvents(), retries = events.filter(event => event.type === 'llm/retry');
+          assert.equal(events.filter(event => event.type === 'turn/start').length, 1);
+          assert.equal(events.filter(event => event.type === 'step/start').length, 1);
+          // Official context providers also emit user/message envelopes. Count
+          // actual user input, and keep the Schedule wake out of model context.
+          assert.equal(events.filter(event => event.type === 'user/message' && event.data.source?.kind === 'user').length, 1);
+          assert.equal(events.filter(event => event.type === 'user/message' && event.data.source?.kind === 'schedule').length, 0);
+          assert.equal(events.filter(event => event.type === 'llm/retry-started').length, 1);
+          assert.equal(retries.length, 1);
+          assert.equal(retries[0].data.delayMs, 3600);
+          assert.equal(events.filter(event => event.type === 'turn/end').at(-1)?.data.reason.kind, 'completed');
+          assert.equal(parent.session.seq, parentSeq);
+          assert.equal((await schedule.catalog()).filter(row => row.sessionId === agent.id).length, 0);
+          assert(Date.now() - started >= 3600);
+          results.push({ delegated, elapsedMs: Date.now() - started, armedTasks: armed.length,
+            retryEvents: retries.length, userMessages: 1, parentUnchanged: true });
+        } finally { await handle.dispose(); }
+      }
+      return { results, remoteModelRequests: 0, hostSchedule: 'actual official rc.5 service' };
+    }
     if (body.action === 'snapshot') return snapshot();
     if (body.action === 'seed') { await maintain(seed); return snapshot(); }
     if (body.action === 'automatic' || body.action === 'self-tool') {

@@ -35,7 +35,7 @@ test('idle selection, source replay and transaction helpers are pinned official 
   const result = await build({
     stdin: {
       contents: upstream.replace(exportList, 'export { compactSurfaceRegion, selectCompactableRange, buildSummarizationInput };'),
-      sourcefile: '@deepseek-ai/dsh-compaction-basic@0.2.1-rc.3/lib/index.js', resolveDir: process.cwd(),
+      sourcefile: '@deepseek-ai/dsh-compaction-basic@0.2.1-rc.5/lib/index.js', resolveDir: process.cwd(),
     },
     bundle: true, write: false, platform: 'node', format: 'esm', target: 'node22',
     packages: 'external', treeShaking: true, logLevel: 'silent',

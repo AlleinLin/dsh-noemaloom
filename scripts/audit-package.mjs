@@ -23,7 +23,8 @@ const rootFiles = new Set(['package.json', 'README.md', 'README.en.md', 'LICENSE
 for (const directory of ['agent-instructions', 'tool-subagent', 'agent-procedures', 'nexus-terminal', 'compaction-basic']) {
   for (const file of ['LICENSE', 'SOURCE.json']) rootFiles.add(`vendor/${directory}/${file}`);
 }
-const runtimePrefixes = ['lib/', 'locale/', 'assets/', 'notices/', 'vendor/memory-cognition/', 'vendor/memsearch/', 'vendor/codinput/', 'vendor/computer-use/'];
+for (const file of ['package.json', 'cordis.patch.yml', 'LICENSE', 'SOURCE.json']) rootFiles.add(`vendor/turn-rewind/${file}`);
+const runtimePrefixes = ['vendor/turn-rewind/lib/', 'lib/', 'locale/', 'assets/', 'notices/', 'vendor/memory-cognition/', 'vendor/memsearch/', 'vendor/codinput/', 'vendor/computer-use/'];
 const privateDirectories = new Set(['.git', '.codegraph', 'node_modules', '__pycache__', '.venv', 'venv', '.dsh', '.codex', '.claude', '.ssh', '.aws', '.azure', '.gnupg', '.cache', 'profile', 'profiles', 'sessions', 'private-sessions']);
 const requiredFiles = [
   'package.json', 'lib/index.js', 'lib/client.js', 'lib/compaction.js', 'lib/preset-runtime.js',
@@ -710,9 +711,19 @@ export async function auditPackage({ packagePath, outputPath = resolve(root, 'ev
       for (const id of ['DSH-agent-procedures', 'Nexus-Aethra/Nexus-Terminal']) {
         if (!lock.nativeArchives?.some(source => source.identity === id && /^[a-f0-9]{64}$/u.test(source.sha256))) throw new Error(`Missing native archive provenance: ${id}`);
       }
+      const rewind = JSON.parse(decoder.decode(files.get('vendor/turn-rewind/package.json')?.data ?? Buffer.alloc(0)));
+      const rewindSource = JSON.parse(decoder.decode(files.get('vendor/turn-rewind/SOURCE.json')?.data ?? Buffer.alloc(0)));
+      if (rewind.version !== '0.3.11' || rewind.license !== 'BSD-3-Clause'
+        || rewind.dsh?.compatibility?.dsh !== EXPECTED_DSH_VERSION
+        || rewindSource.version !== rewind.version || !Object.keys(rewindSource.runtimeFiles ?? {}).length)
+        throw new Error('Turn Rewind must retain its upstream identity and exact adapted host contract');
+      for (const [path, expected] of Object.entries(rewindSource.runtimeFiles)) {
+        if (!/^lib\/.*\.js$/u.test(path) || sha256(files.get(`vendor/turn-rewind/${path}`)?.data ?? Buffer.alloc(0)) !== expected)
+          throw new Error(`Turn Rewind runtime changed or missing: ${path}`);
+      }
       const codinput = JSON.parse(decoder.decode(files.get('vendor/codinput/SOURCE.json')?.data ?? Buffer.alloc(0)));
-      if (codinput.packageName !== 'dsh-codinput' || codinput.version !== '0.3.6' || codinput.license !== 'MIT'
-        || codinput.revision !== '2d951e2d742cdf7776a57bff24996f806a6b015a'
+      if (codinput.packageName !== 'dsh-codinput' || codinput.version !== '0.3.8' || codinput.license !== 'MIT'
+        || codinput.revision !== 'e19276e14ee907753d994df5daa904afd8fcdfa5'
         || lock.units.find(unit => unit.id === 'SRC-38')?.source?.revision !== codinput.revision) throw new Error('Original Codinput source identity is incomplete');
       for (const path of [
         'vendor/codinput/SOURCE.json', 'notices/originals/codinput/SOURCE.json',
@@ -734,7 +745,7 @@ export async function auditPackage({ packagePath, outputPath = resolve(root, 'ev
       }
       const originalClient = decoder.decode(files.get('vendor/codinput/lib/client.js').data);
       parseFactory(originalClient, 'dsh-codinput');
-      const expectedClient = '// Original published client: dsh-codinput@0.3.6\n'
+      const expectedClient = '// Original published client: dsh-codinput@0.3.8\n'
         + '// Original license is included under notices/originals.\n'
         + `const factory = ${rebuiltCodinput.factory};\nexport default factory;\n`;
       if (decoder.decode(files.get('lib/original-client/codinput.js')?.data ?? Buffer.alloc(0)) !== expectedClient

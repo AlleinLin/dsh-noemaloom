@@ -1,6 +1,6 @@
-# DSH Forge Tools 0.1.5
+# DSH Forge Tools 0.1.6
 
-Windows x64 / DeepSeek Harness **Desktop 0.2.1-rc.3**。
+Windows x64 / DeepSeek Harness **Desktop 0.2.1-rc.5**。
 安装目标固定为桌面端的 `desktop` 配置；在原生桌面窗口的新会话中使用。
 统一安装完整 Tools 包，同时替换文件读写、搜索和 PowerShell；不再提供独立 PowerShell 包。
 
@@ -60,7 +60,7 @@ pnpm 会明确失败；可在联网的同版宿主安装，或使用 `-Offline:$
 手工安装等价命令：
 
 ```powershell
-& '你的\dsh.cmd' plugin --profile desktop add --offline --ignore-scripts '完整路径\local-dsh-forge-tools-0.1.5.tgz'
+& '你的\dsh.cmd' plugin --profile desktop add --offline --ignore-scripts '完整路径\local-dsh-forge-tools-0.1.6.tgz'
 ```
 
 ## 给 Agent 的操作习惯

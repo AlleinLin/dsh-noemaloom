@@ -1,3 +1,9 @@
+# Forge 0.1.6 / rc.5 验证
+
+所有同源 SDK、engines、standard 预设及安装器均对齐官方 0.2.1-rc.5。原创本地适配，无独立远程发布。109 项回归和 npm 审计通过（0 漏洞）。独立官方 rc.5 副本与合成 profile 完成安装前、离线安装后、卸载后 Host 检查；原有 31 项工具保留，Forge 为 36 项。原版 Electron 执行 12 次真实文件/搜索/PowerShell 工具调用，13 次本地模型协议请求，落盘 gamma 中文并验证变量保留。没有使用远端订阅凭据。
+
+详见 host-validation.json、desktop-validation.json、compatibility-rc5.json。历史性能与压力数据没有重新测量。以下为历史记录。
+
 # Forge 0.1.5 / rc.3（2026-10-29）
 
 已复现0.1.4被官方rc.3以engines不匹配拒载；0.1.5同步引擎、所有DSH SDK、

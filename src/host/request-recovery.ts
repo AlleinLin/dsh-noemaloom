@@ -67,6 +67,9 @@ export interface RequestRecoveryDiagnostic {
   hostCompactionId?: string;
   maintenanceCode?: string;
   providerRetryAfterMs?: number;
+  freezeRetryHours?: number;
+  frozenUntil?: string;
+  wakeMode?: 'host-schedule' | 'process-timer';
 }
 declare module '@deepseek-ai/dsh-session/types' {
   interface PluginRecordMap {
@@ -145,6 +148,10 @@ function sanitize(sessionId: string, facts: Record<string, unknown>): RequestRec
   if (count(facts.delayMs, Number.MAX_SAFE_INTEGER)) data.delayMs = facts.delayMs;
   if (typeof facts.providerRetryAfterMs === 'number' && Number.isFinite(facts.providerRetryAfterMs)
       && facts.providerRetryAfterMs >= 0 && facts.providerRetryAfterMs <= Number.MAX_SAFE_INTEGER) data.providerRetryAfterMs = facts.providerRetryAfterMs;
+  if (typeof facts.freezeRetryHours === 'number' && Number.isFinite(facts.freezeRetryHours)
+      && facts.freezeRetryHours >= 0 && facts.freezeRetryHours <= 168) data.freezeRetryHours = facts.freezeRetryHours;
+  if (typeof facts.frozenUntil === 'string' && Number.isFinite(Date.parse(facts.frozenUntil))) data.frozenUntil = facts.frozenUntil;
+  if (facts.wakeMode === 'host-schedule' || facts.wakeMode === 'process-timer') data.wakeMode = facts.wakeMode;
   for (const key of ['beforeTokens', 'afterTokens'] as const) {
     if (count(facts[key], Number.MAX_SAFE_INTEGER)) data[key] = facts[key] as number;
   }
@@ -228,15 +235,19 @@ function signalStop(signal: AbortSignal): string {
   if (kind === 'hook') return 'hook-cancelled';
   return 'signal-aborted';
 }
-function delay(delayMs: number, signal: AbortSignal): Promise<boolean> {
+type DelayResult = 'timer' | 'schedule' | false;
+function delay(delayMs: number, signal: AbortSignal, wake?: Promise<boolean>): Promise<DelayResult> {
   if (signal.aborted) return Promise.resolve(false);
   return new Promise(resolve => {
     let remaining = delayMs;
     let timer: ReturnType<typeof setTimeout>;
-    const finish = (ready: boolean) => {
+    let settled = false;
+    const finish = (result: DelayResult) => {
+      if (settled) return;
+      settled = true;
       clearTimeout(timer);
       signal.removeEventListener('abort', onAbort);
-      resolve(ready);
+      resolve(result);
     };
     const onAbort = () => finish(false);
     const schedule = () => {
@@ -245,13 +256,46 @@ function delay(delayMs: number, signal: AbortSignal): Promise<boolean> {
       const part = Math.min(remaining, 2_147_483_647);
       timer = setTimeout(() => {
         remaining -= part;
-        if (remaining > 0) schedule(); else finish(true);
+        if (remaining > 0) schedule(); else finish('timer');
       }, part);
     };
     schedule();
     signal.addEventListener('abort', onAbort, { once: true });
+    if (wake) void wake.then(ready => { if (ready) finish('schedule'); });
     if (signal.aborted) onAbort();
   });
+}
+
+interface ScheduleServiceLike {
+  create(sessionId: string, request: {
+    title: string;
+    prompt: string;
+    after_seconds: number;
+  }, signal?: AbortSignal): Promise<{ id?: string }>;
+  delete(request: { sessionId: string; id: string }, signal?: AbortSignal): Promise<unknown>;
+  catalog?(): Promise<ReadonlyArray<{ id?: string; sessionId?: string; title?: string; prompt?: string; status?: string }>>;
+}
+interface ScheduleWake {
+  token: string;
+  sessionId: string;
+  dueAt: number;
+  promise: Promise<boolean>;
+  scheduleId?: string;
+  resolve(value: boolean): void;
+}
+const SCHEDULE_WAKE_TITLE = 'Nexus 自动重试唤醒';
+const SCHEDULE_WAKE_PREFIX = 'NEXUS_INTERNAL_RETRY_WAKE:';
+const SCHEDULE_WAKE_TIMEOUT_MS = 2_000;
+function scheduleService(ctx: HostContext): ScheduleServiceLike | undefined {
+  try {
+    const value = ctx.get('schedule');
+    return typeof value?.create === 'function' && typeof value?.delete === 'function' ? value as ScheduleServiceLike : undefined;
+  } catch { return undefined; }
+}
+function contentText(message: any): string {
+  if (!Array.isArray(message?.content)) return '';
+  return message.content.filter((block: any) => block?.type === 'text' && typeof block.text === 'string')
+    .map((block: any) => block.text).join('\n');
 }
 
 async function configuredRetry(ctx: HostContext, agent: RecoveryPayload['agent'], signal: AbortSignal,
@@ -275,6 +319,7 @@ export function registerRequestRecovery(ctx: HostContext): () => void {
   const lifetime = new AbortController();
   const active = new Set<Promise<Decision>>();
   const waits = new Set<{ agent: RecoveryPayload['agent']; controller: AbortController }>();
+  const scheduleWakes = new Map<string, ScheduleWake>();
   const disposedAgents = new WeakSet<object>();
   const disposedSessions = new WeakSet<object>();
   const configuredPolicies = new WeakMap<object, RequestRetryOptions>();
@@ -311,6 +356,66 @@ export function registerRequestRecovery(ctx: HostContext): () => void {
     try { return projections?.stateOf?.(session, key); } catch { return undefined; }
   };
   const currentRetry = (payload: RecoveryPayload): number => stateOf(payload.agent.session, STATE)?.[stateKey(payload)]?.retry ?? 0;
+
+  const deleteScheduleWake = async (wake: ScheduleWake | undefined): Promise<void> => {
+    if (!wake) return;
+    scheduleWakes.delete(wake.token);
+    if (!wake.scheduleId) return;
+    try {
+      const service = scheduleService(ctx);
+      if (service) await boundedRead(signal => service.delete({ sessionId: wake.sessionId, id: wake.scheduleId! }, signal), {
+        timeoutMs: SCHEDULE_WAKE_TIMEOUT_MS,
+        timeout: () => new Error('retry wake cleanup timed out'),
+        cancelled: () => new Error('retry wake cleanup cancelled'),
+      });
+    }
+    catch { /* A one-shot may already have delivered or the Host may be unloading. */ }
+  };
+
+  /**
+   * The official Schedule service is a durable Host timer, not a second model
+   * input path. Its delivery is consumed at inbox insertion and only resolves
+   * this process-local wait; the original request still returns `{ kind:
+   * 'retry' }` through the official same-step waterfall.
+   */
+  const createScheduleWake = async (agent: RecoveryPayload['agent'], dueAt: number,
+    signal: AbortSignal): Promise<ScheduleWake | undefined> => {
+    const service = scheduleService(ctx);
+    const delayMs = dueAt - Date.now();
+    if (!service || delayMs <= 0 || signal.aborted) return undefined;
+    const seconds = Math.max(1, Math.ceil(delayMs / 1000));
+    if (!Number.isSafeInteger(seconds)) return undefined;
+    const token = `${SCHEDULE_WAKE_PREFIX}${randomUUID()}`;
+    let resolveWake!: (value: boolean) => void;
+    const promise = new Promise<boolean>(resolve => { resolveWake = resolve; });
+    const wake: ScheduleWake = { token, sessionId: String(agent.id), dueAt, promise, resolve: resolveWake };
+    scheduleWakes.set(token, wake);
+    let retired = false;
+    try {
+      await boundedRead(async createSignal => {
+        const response = await service.create(wake.sessionId, {
+          title: SCHEDULE_WAKE_TITLE, prompt: token, after_seconds: seconds,
+        }, createSignal);
+        if (typeof response?.id !== 'string' || response.id.length === 0) throw new Error('retry wake identity missing');
+        wake.scheduleId = response.id;
+        // Schedule writes already in flight are not rolled back by abort.
+        // Clean a late durable result even when the caller has moved on.
+        if (retired || createSignal.aborted) await deleteScheduleWake(wake);
+        createSignal.throwIfAborted();
+      }, {
+        signal, timeoutMs: SCHEDULE_WAKE_TIMEOUT_MS,
+        timeout: () => new Error('retry wake creation timed out'),
+        cancelled: () => new Error('retry wake creation cancelled'),
+      });
+      return wake;
+    } catch {
+      retired = true;
+      scheduleWakes.delete(token);
+      wake.resolve(false);
+      if (wake.scheduleId) void deleteScheduleWake(wake);
+      return undefined;
+    }
+  };
 
   async function recover(payload: RecoveryPayload): Promise<Decision> {
     const { agent, signal } = payload;
@@ -370,11 +475,19 @@ export function registerRequestRecovery(ctx: HostContext): () => void {
         const previous = currentRetry(payload);
         if (previous >= maxRetries) return await stop('retry-exhausted',
           unattributedAbort ? 'NX_ABORT_UNATTRIBUTED' : 'NX_RETRY_EXHAUSTED', 'nexus-fallback', previous, maxRetries);
-        const retryAfter = payload.failure.providerRetryAfterMs;
+        const configuredFreezeMs = diagnosis.sessionFreezeEligible
+          ? Math.round(custom.freezeRetryHours * 3_600_000) : 0;
+        const providerRetryAfterMs = payload.failure.providerRetryAfterMs;
+        // A configured subscription/quota freeze is a minimum wait. Provider
+        // Retry-After can extend it, but a short provider hint must not
+        // immediately hammer a five-hour subscription window.
+        const retryAfter = configuredFreezeMs > 0
+          ? Math.max(configuredFreezeMs, providerRetryAfterMs ?? 0) : providerRetryAfterMs;
         const delayMs = requestRetryDelay(custom, previous, retryAfter);
         if (delayMs === undefined) {
           return await stop('retry-delay-unsupported', 'NX_RETRY_DELAY_UNSUPPORTED', 'nexus-fallback', previous, maxRetries);
         }
+        const dueAt = Date.now() + delayMs;
         const retry = previous + 1;
         // Native persistence groups retries by turn/step/provider/policyKey.
         // Keep its attempt and identity separate from our shared recovery budget:
@@ -393,6 +506,10 @@ export function registerRequestRecovery(ctx: HostContext): () => void {
             retryId, turn: payload.turn, step: payload.step, provider: payload.provider, mode: 'normal',
             policyKey,
             retry: policyRetry, maxRetries, delayMs,
+            ...(configuredFreezeMs > 0 ? {
+              freezeRetryHours: custom.freezeRetryHours,
+              frozenUntil: new Date(dueAt).toISOString(),
+            } : {}),
             failure: { code: diagnosis.canonicalCode, message: `[${diagnosis.diagnosticCode}] ${diagnosis.message}`,
               ...(diagnosis.status === undefined ? {} : { status: diagnosis.status }),
               ...(diagnosis.requestId ? { requestId: ProviderRequestId(diagnosis.requestId) } : {}) },
@@ -401,8 +518,16 @@ export function registerRequestRecovery(ctx: HostContext): () => void {
         if (currentRetry(payload) <= previous) {
           return await stop('recovery-state-unavailable', 'NX_RECOVERY_FAILED', 'nexus-fallback', previous, maxRetries);
         }
-        await diagnostic(payload, diagnosis, { outcome: 'scheduled', source: 'nexus-fallback', retry, maxRetries, delayMs });
-        if (!await delay(delayMs, fused)) return await stop(stopped() ?? 'signal-aborted', 'NX_CANCELLED', 'nexus-fallback', retry, maxRetries);
+        const wake = configuredFreezeMs > 0 ? await createScheduleWake(agent, dueAt, fused) : undefined;
+        const wakeMode = wake ? 'host-schedule' : 'process-timer';
+        await diagnostic(payload, diagnosis, { outcome: 'scheduled', source: 'nexus-fallback', retry, maxRetries, delayMs, wakeMode,
+          ...(configuredFreezeMs > 0 ? {
+            freezeRetryHours: custom.freezeRetryHours,
+            frozenUntil: new Date(dueAt).toISOString(),
+          } : {}) });
+        const waited = await delay(Math.max(0, dueAt - Date.now()), fused, wake?.promise);
+        await deleteScheduleWake(wake);
+        if (!waited) return await stop(stopped() ?? 'signal-aborted', 'NX_CANCELLED', 'nexus-fallback', retry, maxRetries);
         const afterWait = stopped();
         if (afterWait) return await stop(afterWait, 'NX_CANCELLED', 'nexus-fallback', retry, maxRetries);
         try { agent.session.append('llm/retry-started', { retryId, turn: payload.turn, step: payload.step, retry: policyRetry }); }
@@ -440,6 +565,41 @@ export function registerRequestRecovery(ctx: HostContext): () => void {
     const remove = ctx.on(name, callback, options);
     if (typeof remove === 'function') removers.push(remove);
   };
+  listen('agent/inbox/inserted', ({ agent, message }: { agent: RecoveryPayload['agent']; message: any }) => {
+    const source = message?.source;
+    if (source?.kind !== 'schedule') return;
+    const token = contentText(message).match(new RegExp(`${SCHEDULE_WAKE_PREFIX}[a-f0-9-]+`))?.[0];
+    if (!token) return;
+    const wake = scheduleWakes.get(token);
+    // Internal wake messages must never reach the model, including after a
+    // cold Host restart where the original process-local waiter is gone.
+    try { (agent as any)?.inbox?.remove?.(message.id); } catch { /* Stale/disposed inbox. */ }
+    if (!wake) {
+      try { ctx.logger?.warn('Nexus retry wake arrived without a live waiter', { sessionId: agent?.id, token }); } catch {}
+      return;
+    }
+    if (wake.sessionId !== String(agent?.id)) return;
+    if (Date.now() >= wake.dueAt) {
+      scheduleWakes.delete(token);
+      wake.resolve(true);
+    }
+  }, { global: true });
+  listen('agent/created', ({ agent }: { agent: RecoveryPayload['agent'] }) => {
+    // A cold resume cannot reconstruct an in-flight open step through the
+    // public Agent API. Remove stale internal reminders so they remain
+    // non-model-visible; the durable llm/retry record remains the audit trail.
+    const service = scheduleService(ctx);
+    if (!service?.catalog || !agent?.id) return;
+    void service.catalog().then(records => Promise.all(records
+      .filter(record => record.sessionId === String(agent.id)
+        && record.title === SCHEDULE_WAKE_TITLE
+        && typeof record.prompt === 'string'
+        && record.prompt.startsWith(SCHEDULE_WAKE_PREFIX)
+        && !scheduleWakes.has(record.prompt)
+        && typeof record.id === 'string')
+      .map(record => service.delete({ sessionId: String(agent.id), id: record.id! }).catch(() => undefined))))
+      .catch(() => undefined);
+  }, { global: true });
   listen('agent/disposed', ({ agent }: RecoveryPayload) => {
     disposedAgents.add(agent);
     for (const wait of waits) if (wait.agent === agent) wait.controller.abort();
@@ -458,6 +618,11 @@ export function registerRequestRecovery(ctx: HostContext): () => void {
   const dispose = () => {
     if (lifetime.signal.aborted) return;
     lifetime.abort();
+    for (const wake of scheduleWakes.values()) {
+      scheduleWakes.delete(wake.token);
+      wake.resolve(false);
+      if (wake.scheduleId) void deleteScheduleWake(wake);
+    }
     for (const remove of removers.reverse()) {
       try { remove(); } catch { /* Every listener and projection gets a cleanup attempt. */ }
     }

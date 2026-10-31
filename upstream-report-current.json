@@ -1,0 +1,2131 @@
+{
+  "schemaVersion": 2,
+  "checkedAt": "2026-10-31T06:35:12.270Z",
+  "supportedHost": "0.2.1-rc.5",
+  "hostRelease": {
+    "status": "observed",
+    "repository": "https://github.com/deepseek-ai/deepseek-harness",
+    "version": "0.2.2-alpha.2",
+    "tag": "dsh-v0.2.2-alpha.2",
+    "revision": "f3803c96974ad4a94195fb97e5c637e9c2a3afe3",
+    "publishedAt": "2026-10-28T02:50:54Z",
+    "prerelease": true,
+    "url": "https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-alpha.2",
+    "channel": "published-including-prereleases",
+    "compatibility": "not-validated"
+  },
+  "sources": [
+    {
+      "id": "archive:DSH-agent-procedures",
+      "unavailable": "Upstream location was not supplied."
+    },
+    {
+      "id": "archive:Nexus-Aethra/Nexus-Terminal",
+      "git": {
+        "head": "e9b241d74af75ad365cbaf706d3e25a31a8e29f1",
+        "changed": true,
+        "differsFromPinned": true
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/cordis",
+      "npm": {
+        "version": "4.0.5",
+        "integrity": "sha512-Sktq5axy0owk9PdnivBRNOJjHEVEibCt0+TDDZcv0+UH2KS1M910fX4kn5y45YFsrpZIi1mJf/1s5VzywMUnyg==",
+        "selector": "latest",
+        "comparedPinnedVersion": "4.0.5",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-agent",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-e1seyUG26WYUAFX7tJJzhtg1aBwqIR7sFijt8S9DujS9alXwEdOZAYpJG531qqRGZSlM+XNT6z5AeH5KSjqdsA==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-agent-loop",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-lPQG7SpHdmbfWR5CRlNIMqtCR7ojJ3i1IZmnk1GzvdaHFzYTcAfxruib6a0ecTt7HQli06sLr7v1GAZi/d6M7w==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-api-gateway",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-5Wlz+8ejElX5t8zSc7cHeGk9eCDGAQApHaeJXwzycfkbAngglVoUVCdrp6xqmKqBRS45IUZHLh6IShiU/o1Xqw==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-api-remotes",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-RbSs2jnIf9KMN3jZLqQlSQbZlJhKfxPtULy91ANlzKCC8fQxMGLRhrgHIJVGA6o32jmF6GL5hzGKDkHQCjzvdA==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-api-session-controller",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-6mQ+oaQNnB/DrM+EtS7/sZVF8lA4o0ej8aaXKzBXHpOHj1BFVdeuasfNg+0Cu/bHiiu1yGJjptJXSvBFh+bOIg==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-api-workspace-controller",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-rEjrd/O7MLlvnWVnwCPuX8GLXFlpVjVpVfG6k36Oy88aK7m6m3Tl6xwsO8JpBip37JI1w6XBcyLTVdMrExHVZg==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-attachment",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-fl0hnNBtHHYpxN+X0WnR/+aGFq0tOWDQMImyDhJX4CA60OIlgReSPAn+VPrHtKkqK3h5t/4g2yMcsukX/0kehg==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-client-connection",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-FRazdhNDkp2j3jiykqMouOJlv26wg+BEMNOTw/Ex3QO0BHeTv0GKeo8uwVXZQZoA/kIsmUP8zRf75ZfbEeGaiA==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-client-locale",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-BsRQyLBnNbq6npmxyKWx3PyyaaddJygdDegJyQGGzgOpl6RjklWM2GcP80QMdOURjLbyxmrMuK2iukgSD+3Pog==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-client-modules",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-CV5MZmGQB7VWqhfCJAvlzM0FLlYhrY6a1oS3Sq5McaUTIwbv0km+0RXqX5B2FK+RSr+VMnW8m4MLjSCpaGYHzw==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-client-ui-chat",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-2sWllFW7EkzJWy0p68WnYZa9Ebkc/IdqAHd9/gM08zhEflr/2k7HHeUk3GjVWMCYG6JClgpGwEZxEHh9eA95fg==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-client-ui-conversation",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-EbQDWf1ASJ3cBlU1s+kb+Uk7vv5J+9U6EjA5/t87pEUbd/sZZmGeo5UjGa8vO52a9R1GQxLQrsuG+VsrqnWgfw==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-client-ui-input-trigger",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-/UQhIpdOCjI3sxY6rNHGcZT80MilpuJmawfnGBo36Xwme/bNgKfffp0mmdoBLtRcHseVUPK1pac97sTL10D87w==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-client-ui-layout",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-Dpi64wlOe1Dpz2Mr0QplpFkT0A58XWARyEOwD38FQ4AdsVJFNxnP6QQQN9itOfTwtQjQNoRD4UFNxfwhcEIEVA==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-client-ui-model-selection",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-Zo9qZlmNRZrwpSR3KOQma5hmP1vL93wXnWN0z4oewl0ikUeTmYJ52EMnieNFlxg6eseKd5+buDlHGRCt9LpuRQ==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-client-ui-plugin-manager",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-Znf2d50YRywaGc/3DfG406tHnut4L2nDpE5faNfvx9u/APrvlD9djycDG1jGLxTMmZkuUeV+2I8tKPWBJhhLyQ==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-client-ui-primitives",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-hjf2/KLaAUxDrAhdnr2QQj6TZKFNi/O2UUqrZtRCBxwFfcRzRPBiXq9ayK4qFxllDDL0ZnjvDoqTUMd86ipCKQ==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-client-ui-renderer",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-aEqbZxnzudASF7C2mK6a6uNkDoSpfHYwJPNnYfOBqYCjHxVf/o7kHbt2F5AWkeHiqlcFc5W0JCs3Qg4m2oIiJg==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-client-ui-session",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-IRz9khJrVIy5VwZz7yZDioJ1f59rp+w0FQuGXbHNMUuI8Hz1B0T0TFyLxSRXHQ5makFfuVshkmel4Rqrq7pgAw==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-client-ui-settings",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-tJ3OKD2gwVzvgztrC9INFa12uXZOAJ84yDnnVYPH0oxrs38r//kAPLGL2LfCObuYu85CdU+al/ohJ+h530YkMw==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-client-ui-settings-plugins",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-IP3pbtkxAgqAR/PPiDGMpimt9iLjyGjwqcMb37HlHJKVk4vNVrRBpCT07+5ghrXC+kDxa/BM+v8CqBhZcejuUg==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-client-ui-sidebar",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-gtb8rkbMZijfCfvYZRSOunxjxhBf+QrGJUifq7hQREbfpLAhYG/d/LPyMKWY8vjmpTkVomg86fnBvqS39TEw2A==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-client-ui-sidebar-right",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-28Tn03pBmbOAF0EeyRxy82VMoigRUdVryj/197142YKua97vIxg0B+nsbW6Bmx8K1VtKubVe4GRlb+TPaySzzg==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-client-ui-slots",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-OOl2LZXuoR2hXr4WHdl8dFnp2eONepBaphhnQLYSd+EAvtOKoh2xA7Uj1NvESgyYAzRzkYgJEzbNl6an/K47hQ==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-client-ui-subagent",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-iMyprCoh3+eJzF4k5MLAk0qSsPV/dag9pCWzlvrRFmOlXP8vXtVbX769A1UIIcCMyK092jvqyTIjlWOWelQDdw==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-client-ui-workspace",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-pxgHISg0wp+ZnLvtRj/SGyKxZxpoGUpQqqpp6qof3y/yUFQBqEU9KLNn9xEwG4SMcobQPW6tZO9gvI0yyHgbGw==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-commands",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-342a/wwaS5QqZqRsl3QGM/WCPIWeYfNBY0lTwrMZs0B+TQOKhPmo34665YeK29CRy7BPnYoG/PQWN2XdT2iLxw==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-compaction",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-g1dl/75jkyp/ob1RYwwupNeIacZ17d/jVRqovDLjAQbKxHykeeOSkVGhEQzzEgwEFpvGiSHbZ0hmKwGqHA7RzQ==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-compaction-basic",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-BHAZj5Bsw0jJZXjkcW4v3YwQb4Lu252ZZt/y0yBlWKkYqnzxgxjZTG2vwAB6lrAndsylQv2RyH/Ac93vG6sPww==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-fs",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-tKUWRUxlpBrFJT0eGRVUPCJDALizVyHwhT+a+otBnTOYZXjeqYI2uLzp3mqZn2n5uRg3f5ctA9mDOr+klRGS4A==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-fs-local",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-L7TNI7La9VJsmNPvwC+FOTQ4bVhO3rgHt8qfK5g4e16TPvfn1nldgE8oNv2+fR3mfc+JecXTAehvpYl0x1IVwA==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-fs-sandbox",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-gOgGeBOrjSWW4msAkx+cNPr+0z4NAR576C0PUogg0Zi4Y2jHBm7n7GgFkjYnYYazyJh1Tjmcn1/CKizszVMRrg==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-home-paths",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-Csxrpp2CFmdPWG3UYGsrGmE11GYpo/iuQuPHg/8ydPfykvhjC4F3BM6WSmYlrBrSE9SKEXVNyY32E2Ec3dHklg==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-http-proxy",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-u+tO+aEtoKPWzdjmCxWiTRvw7C/HO3Fwfc+oJDUvNpEjgBLJ7TBKV16upxAo05A03zYQRhpqJhpgaAav/Rhg3w==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-llm",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-AwlZx8DW4e0xg/xB/YzvORSHKKQWMyhJgFXT4J9+5QV3x3BI2M35kHxRD4LoBQ2wRO1tImgaCgA4tH1haMw6IQ==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-llm-retry",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-2VV3UOCsDkE6wz3jh09utf78yetNCPerkZORUtNVchdjFqmpEHX+9AP9eyUAHa4Vwil6wfsOolow61ycp+YbwQ==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-ptc-runtime",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-Xgu6fBWkSe3/xeZ+xJAriJtaS0YPnoCQgJD8od3/BS+4bpEWL167LMagFqeZB4ITuaBdKkybOvIwEppqUlTBZw==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-pwsh-local",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-VNR/3EEn0gK6ZbjyqFF7wpox6c6ty2cADHGGAZv5Vx/ZbBlAVTKr6mTYfPgQN5WhzHMPzBRnXmdy2RSU/LopHw==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-sandbox",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-GXgvCmabIQlnk55kn2Hs4eHGf9o2Nh62VumASxJ3AeYtHq6dE/cr15BvJXG5HqAQy0ZH++gby4fnkTSRiKEfTg==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-sandbox-policy",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-R7cwz/S6n1cWJYJvEgo+u3xRGBFeoLn0YopF/1uytftjKBuPslila3UtesPzussPT3kYWiWMGGvzrdJeTtPuWw==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-scope",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-BiniiKjbLL7bRzzqCcq2ldVqi6ZnFKOTWhCvooyl/r2CDhstZfV6x2Z1hxSe4z/Gi5Vk7/sRjpPrO30bGBEYfw==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-session",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-EvZBQIcxQCdz1gdUCgbUJMqTXSGQlnQpCYnogkNHyiuya7JWL8ye8ieqLBHRtqWarjSWxJWFtfHuun8EL81+jA==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-session-format-catalog",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-iyK9iV6I83WP6TFYJ/9CqfCmDRQcI9GwGX81kFsNNlDr62NicGAvRW3ydH5FePncXZ0Z2fyWJZNiER0JCuOVcw==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-session-persistence",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-+Cwfcx9O/7c6mVgfDdUbSATypG4Po2DsPAqUatJnwS1aBe9+srNZBTviTzq+0GQ1Jb2eq0eD1C9q9gzIZ2KNLQ==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-session-projection",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-RdVHzNU+UtS+pLc/PIF99/Eu34Epr2kKv1GhO2ir1Btqlk0FV2/8ZCeVhZIpiEug2e4AoaZwX1Cnuq4Liy86YQ==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-session-stats",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-HGJ37eciOSmokKUhkz2HfTme7FQUxVthuOpMvwSjnW6684qX/UVa/9uqIvUYNY+P0kEC8LmdzgIqsaX2d0fa/Q==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-settings",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-t1ZxV83EJa2xDO7Wlr+ZNEb3O7HnYh859dDxARHlaQX7yoVM2YGm89SYpa6qzh2X9+0/ZUl2q5DqsZRCNxbnIg==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-shell",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-71p5Zd+T6lSLfz96BFZobMKz9UMd03zkLo/0lZXIn7gVNmZoN55uHO4ubX2t+H9fh5e7xVOqEz/7uvchW08f+A==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-skill",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-UPbD0hXdNJw4dI+b95C2YFAhoZNDCcODveM9VlrEpeKx0wTZN4UHy6LmsdbVTXoKGWIxk5MXdWOCYB/Nce36Hw==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-ssh",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-7ZVZWnp2Iw5vZqlHH/7Yi3rxeylVEM1vMABpn8mQg79LVLiSuZxUIgArem7PcamUsiUhu6JLChxU8Cxbyex1MA==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-subagent",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-9owXbZytsbuNUy4ktKeIjTY2MnLSCg0XY6/l/+wn/96K5bIqnVt/ef1ExHDuz/nQAYtdQYucvz2oF6lG24WXoA==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-subprocess",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-rZHXZaeZWwKz6mFPVeuBL3vDgNrWrVppyBHdFR+CeOSmPvLi0tbjXZctuhWPCSLfn2kLZGFGPnRFimMdsjVWBQ==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-system-prompt",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-mB6uW6yam2zETmCBwivB+WuziY/UJtARPxi7S7VC+kJGk3VuoJkyoiEH7XwrpVzncFVHqy6QdIRPD3Baey2qOA==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-terminal",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-QSEY6aVGAkKB/QD9JxXjhiYVMSMcE+1VRbeRCDQZpfTk7UoDYXyaXbq5TPUtuW0PEocvDjBJ7E15W7HTzlNb6g==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-token-meter",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-OSaAG/+OkK5F7iB9DnJxRryjuCdAsRmk4eoVVMfA1c4eXBFjGoj1kbgeno7gp/CpVO4oFDEMetacTGdwiDa8bw==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-tools",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-2KXvznBB1R8rUpfdOmmmufeo65t3hqXDBjq7qSLCfM4RHibQz8WL692WBcTWznGnoMVWifIPXDfUas3SjJdNSw==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-user-approval",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-Jvvd67q5CHkPUZsIdspvMHKNRi4wsxNjVH5DJVTBgEXKl1hq8YwspzoPquTlunN5dpp26/+QPHHouWr7IHB0/Q==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-util-time",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-0BOeUcq781L6zU+F2V/g3WYXThfpYxD6cLiOQm1K8a/EjvM32AjfOMzHq6sUrbWpdSuOknbOzevNu9caaVIrkw==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-util-values",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-g5Qrz9cEENcnNEzXjiR+saN0aV4G/8w3FP57wlew+SwZPm3bW5K2cj3iA4Rjg5BS3FGZvnqS95RMOPrxNdulig==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/dsh-working-directory",
+      "npm": {
+        "version": "0.2.2-alpha.2",
+        "integrity": "sha512-rfBjLmOfn6dLErN/3Bh8iwFkQRwzPc+Jqwbjyc7kxshu9Hnkuk9rsSPf4HznZehhZN4sU13qx3/S6EZbnrwsJQ==",
+        "selector": "0.2.2-alpha.2",
+        "comparedPinnedVersion": "0.2.1-rc.5",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "host:@deepseek-ai/schemastery",
+      "npm": {
+        "version": "3.18.5",
+        "integrity": "sha512-Mnobvqf9rHsZYv4g5edj5ddxS1oF1kIdSlz0DunUgnY3LWG5F26MqvH3YOOsSaodCgyzJ16OMN9O99/s5Crtdw==",
+        "selector": "latest",
+        "comparedPinnedVersion": "3.18.5",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "ce7073d51254c26cd63b22a60835b8f948deb447",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "local:forge-tools",
+      "npmNotApplicable": "Private source-only runtime; Git revision and vendored file hashes are the release identity."
+    },
+    {
+      "id": "npm:@anionex/dsh-turn-rewind",
+      "npm": {
+        "version": "0.3.11",
+        "integrity": "sha512-BjtnHF7kTb7Ed93IfGaWoBUDnGsslfaA+hTo05xpPdKIZ3pypWTS4lRxlyHz34MA+o8EAt8CUsl4phmFaI6fnQ==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.3.11",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "737d716c5f693f96eb2adc3e9a79f4e55cda8735",
+        "changed": false,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "npm:@dragon-talon/dsh-openspec",
+      "npm": {
+        "version": "0.4.0",
+        "integrity": "sha512-tHKYD9uUi/fKS7xiN0E3SuIedgYEy8qn3Joqaoh08WrAkfEqKBoy5++IU9Iy9YNAc0Ujmq0/YehvrNFY1RIYXg==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.4.0",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "ff8a0b30e0f9280826afe6150bec7388aa46afab",
+        "changed": false,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "npm:@linxin666/dsh-client-ui-git-graph",
+      "npm": {
+        "version": "0.4.12",
+        "integrity": "sha512-ImI4Fip88IqDRSTfdlpjWoVMYZktDNvXlvYreTTCvZj8Htg/EjY1RtAJvHbQ/ZmsegyZdWA0iMNRMhPbR1DlsQ==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.4.12",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "abe07c77b0946a95ed37826be1e9cc9142a4b3f8",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "npm:@linxin666/dsh-client-ui-task-board",
+      "npm": {
+        "version": "0.4.12",
+        "integrity": "sha512-P/nZPberlNx9bakSzt+djzcNvkS8X30I/FCasLTFRCuxFf+LTE12Ir5hvFvHWKxMJH6J7mxN85wWz4W6DMvdWA==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.4.12",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "abe07c77b0946a95ed37826be1e9cc9142a4b3f8",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "npm:@linxin666/dsh-usage",
+      "npm": {
+        "version": "0.4.12",
+        "integrity": "sha512-Mpg54lkuX0F+XIliWATHCBCGjjqsNxlkgmP6m7CvZ70pFESL3lQjDhL6QA1sAV8E8m87spdzFhuCveKpMYsC/Q==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.4.12",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "abe07c77b0946a95ed37826be1e9cc9142a4b3f8",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "npm:@michengai/dsh-agency-agents",
+      "npm": {
+        "version": "1.2.20",
+        "integrity": "sha512-CYrLgYuCnJ3XTrSp9GIP8u4gn//11HHNm9b1PTcyrkTA33DKKoDj8yQ6qYHJlDuyimpXt/7GLUXJrVQGXr4G8w==",
+        "selector": "latest",
+        "comparedPinnedVersion": "1.2.18",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "49324960487f903b095a44d42158c34aef418753",
+        "changed": true,
+        "differsFromPinned": true
+      }
+    },
+    {
+      "id": "npm:@wenaixi/dsh-ponytail",
+      "npm": {
+        "version": "5.6.2",
+        "integrity": "sha512-SlV3hwDtvT3+6bOXIGk5EMK7KOeBmiowhdD+yZ3nmXr2S1pBHQZST+kdHlml6/MkLpXnu0WGsd63qEAsVO5Emg==",
+        "selector": "latest",
+        "comparedPinnedVersion": "5.6.2",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "7223820c9d7f78f4be1ada285fbf953d7867518c",
+        "changed": false,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "npm:@wenaixi/dsh-superpower",
+      "npm": {
+        "version": "8.0.0",
+        "integrity": "sha512-hoG7SDKQxrNZR294HT11whzPiA2GhIwh7Wk8pm1vueFfyxVwMcW3L7qY0pN3CQmIgqhWNUio9P94R1I/p/H4sQ==",
+        "selector": "latest",
+        "comparedPinnedVersion": "8.0.0",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "629dfff09b2808255b0e407913f86b5b3cdcd30a",
+        "changed": false,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "npm:dsh-better-display",
+      "npm": {
+        "version": "0.3.9",
+        "integrity": "sha512-wxEVWmHxqbmNHgEO38QkPv5AwCj5h9U71etgwji6O94q0tPAlzX3x610ypjLCiffEdgMZpB1e4NdNHQqCLpT8w==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.3.9",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "db149c5e1018045a2e0d721e5518fda17efde2e1",
+        "changed": false,
+        "differsFromPinned": true
+      }
+    },
+    {
+      "id": "npm:dsh-better-sidebar",
+      "npm": {
+        "version": "0.28.2",
+        "integrity": "sha512-JxtRoCoNA/02VexkInZ1K4+c/1Tvk+DVS01dRfjbGKxWfXGZ6NEyemsdERGOhQ3DsLxOWc4Mj0ol+5s+6V0Egg==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.28.2",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "2d736f5496fe97f4bba6af37d99861649b9ef3c0",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "npm:dsh-context",
+      "npm": {
+        "version": "0.78.2",
+        "integrity": "sha512-aqvtRTvvUWe41jdlZlfiPE0VSnr8I5KVLFXNLusHfnk3tXGOYuN5qoexiOMzaO+RbczKFsThUH7zeXXC+3q6WA==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.78.0",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "40ea15800953d7560509e4fd906cf05598f9f51e",
+        "changed": true,
+        "differsFromPinned": true
+      }
+    },
+    {
+      "id": "npm:dsh-cross-session-approval",
+      "npm": {
+        "version": "0.3.10",
+        "integrity": "sha512-37hRKYWvgPkjLH7p7MONIelXNMb8fyYagGAPYHsq/I4ohS1JGP5Nz6ocWciP4ik5bVOYMcKo+uouSaTSUdlJKA==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.3.10",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "e6206d105bf72f73f4ad5e087948da3e049e22f0",
+        "changed": false,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "npm:dsh-karpathy-methodology",
+      "npm": {
+        "version": "0.1.0",
+        "integrity": "sha512-hhsP5MPO0gBweMrAW6Yra9Whya+oxVmBNotH4gvz0f8oSF4uZ7hHj5I0kfXXUwvZKTMWcY9XWXzySHlwBKGbeQ==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.1.0",
+        "decision": "unchanged"
+      },
+      "gitError": "Public repository check failed: Command failed: git -c credential.interactive=false -c credential.helper= ls-remote https://github.com/satan9394/dsh-karpathy-methodology HEAD\nfatal: unable to get password from user\n"
+    },
+    {
+      "id": "npm:dsh-mnemon",
+      "npm": {
+        "version": "0.5.37",
+        "integrity": "sha512-srbVUbXVJhnsFq1rWfJ5AkMnafkbFe/1GH/hbl835Xum9Kc0DB1keYu8Q+mfdFzOcwJU/QAny+RO+GnjUgfrBQ==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.5.36",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "7cbdefc64c019a073cfdb493b0b516b5b7177bb6",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "npm:dsh-mnemon-provider-byterover",
+      "npm": {
+        "version": "0.5.5",
+        "integrity": "sha512-7JOmLOuL+fys+soebYmb6GYtvD9Xj4RL0xf1l8svUL2LKlNpTz68YikdJJBU+EUD292mGcxjX1VLbHGC/FDwiw==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.5.5",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "7cbdefc64c019a073cfdb493b0b516b5b7177bb6",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "npm:dsh-mnemon-provider-hindsight",
+      "npm": {
+        "version": "0.5.7",
+        "integrity": "sha512-sOEThpl56k6DuqSvOrma9ZFMAFmfll/XuUOLZkJ/4nB4M5z/fYvKMTMAmJ2PXUhWPO3KEnOj5m+V5axmrZefbg==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.5.7",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "7cbdefc64c019a073cfdb493b0b516b5b7177bb6",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "npm:dsh-mnemon-provider-holographic",
+      "npm": {
+        "version": "0.5.7",
+        "integrity": "sha512-WFzAILBve6zhG1+ZFOxHBNRacMdKyeh3VebfARhQglKRqXYiw4JQAFEFaPwqYx7dZfL6XYySQN/EiLF0idMn9Q==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.5.7",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "7cbdefc64c019a073cfdb493b0b516b5b7177bb6",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "npm:dsh-mnemon-provider-honcho",
+      "npm": {
+        "version": "0.5.5",
+        "integrity": "sha512-TKtpODsQ6MeLZ1zCgca37s656u9q89M1SimTqSvT6/GCRiqi9A0mAbqAj1uzAMcbTuHOYAr3hFSAQYo55TbcXQ==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.5.5",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "7cbdefc64c019a073cfdb493b0b516b5b7177bb6",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "npm:dsh-mnemon-provider-mem0",
+      "npm": {
+        "version": "0.5.5",
+        "integrity": "sha512-rxCSNx/TTMeaj7BjneMYtQOUjzNFiYB/7rFPZitBzQGdJmzVrm1KVDPZplXvHZaZ2XdQ86yfT1R+Le7NLjvrsQ==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.5.5",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "7cbdefc64c019a073cfdb493b0b516b5b7177bb6",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "npm:dsh-mnemon-provider-mnemon-native",
+      "npm": {
+        "version": "0.5.10",
+        "integrity": "sha512-5UXVMlgcOPGuhl4SOFY6GoG2a1Wq6m644wlvvM9dOXMv78AGchLD3bTotmCn4eu99r1nUWgEcJqzTtdeEpUJZg==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.5.10",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "7cbdefc64c019a073cfdb493b0b516b5b7177bb6",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "npm:dsh-mnemon-provider-openviking",
+      "npm": {
+        "version": "0.5.10",
+        "integrity": "sha512-S/e/zdEOHvHcuY7yrQuvAX2OKRXVRLqg+2CJU0ZM0EHT1G6/uscO8PsCbwXAjTcTvCO8fzkzbnC0TmkPXxIObg==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.5.10",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "7cbdefc64c019a073cfdb493b0b516b5b7177bb6",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "npm:dsh-mnemon-provider-retaindb",
+      "npm": {
+        "version": "0.5.6",
+        "integrity": "sha512-NyvMiF3G+WEmEYFyWrI7FhWdQAGYQnPWzLY2/K42ip5eV9ycVvMkeA6igowwvPbvVWuN7zdCFOGPHg+iNYT3Bw==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.5.6",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "7cbdefc64c019a073cfdb493b0b516b5b7177bb6",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "npm:dsh-mnemon-provider-supermemory",
+      "npm": {
+        "version": "0.5.5",
+        "integrity": "sha512-IvBpeRV1Gl/gACasyQZ9UmdsJhEoO3frzi2+SrOBqDuMqfus4kgdcadBMFcZJzrtq65h30arIRcSIIB3ZZda+w==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.5.5",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "7cbdefc64c019a073cfdb493b0b516b5b7177bb6",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "npm:dsh-mnemon-source-documents",
+      "npm": {
+        "version": "0.5.11",
+        "integrity": "sha512-UmlgqSLzRgVF4AmvjIqTqlmM/j1t5goW8I9Sk8tAnHY6NnojuxwWHwK2k2QpCWFak/LKs9owCwiNhRJd9oVLYQ==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.5.11",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "7cbdefc64c019a073cfdb493b0b516b5b7177bb6",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "npm:dsh-mnemon-source-memory-spaces",
+      "npm": {
+        "version": "0.5.24",
+        "integrity": "sha512-PNjCF3NF/l5SxCkXglM0R01Cxm18B08+Xr5AYh+8kVlzgFb6I6HnfbBD6X578qxUIgA0ZF1M8jbyS/orktKBfw==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.5.23",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "7cbdefc64c019a073cfdb493b0b516b5b7177bb6",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "npm:dsh-mnemon-source-runtime",
+      "npm": {
+        "version": "0.5.16",
+        "integrity": "sha512-X5yukZ0fwhZU4yUOyZaJoT4roAFy+azGg6VwDW4tgN/EvAPASbydo0O1876A+m8Hdt6EGIhGOyIgRUsCYEq4/A==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.5.16",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "7cbdefc64c019a073cfdb493b0b516b5b7177bb6",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "npm:dsh-mnemon-source-skills",
+      "npm": {
+        "version": "0.5.4",
+        "integrity": "sha512-K+m2+J3uuQJBHIXyeIUC+usYt+U8CniaCdQYalBi2VjEsK1GriJO/vHeu68Y63v0Sxl4YMkbWdriQKLbf5/0Ow==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.5.3",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "7cbdefc64c019a073cfdb493b0b516b5b7177bb6",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "npm:dsh-mnemon-strategy-auto-capture",
+      "npm": {
+        "version": "0.5.5",
+        "integrity": "sha512-jSCjednHJmDatWavhhDly8dnoNuclImx2H0U0EB8OgMw00xXXL/nWOHQLxKabOJnEykaDdl2EX7rTBX5xTuOJw==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.5.5",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "7cbdefc64c019a073cfdb493b0b516b5b7177bb6",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "npm:dsh-mnemon-strategy-default-three-tier",
+      "npm": {
+        "version": "0.5.11",
+        "integrity": "sha512-0Bcbq4skgkjTiOjuLaqOUb7KoPF1aF0qKUSM9ky2f0VHUbJfFlSRGXZW2/VpXnmOkLJ+xWENUTPxQHWrYgv8WQ==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.5.11",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "7cbdefc64c019a073cfdb493b0b516b5b7177bb6",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "npm:dsh-mnemon-strategy-general",
+      "npm": {
+        "version": "0.5.1",
+        "integrity": "sha512-UzJWKRPyMwVCcVKYuWI5DjDjGvq3cBA24xl2zGhSvAXY32E8KiiYVleAvle4XIhmAfRbjCcZNCFpQGKZTXuz7g==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.5.1",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "7cbdefc64c019a073cfdb493b0b516b5b7177bb6",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "npm:dsh-mnemon-strategy-light-context",
+      "npm": {
+        "version": "0.5.6",
+        "integrity": "sha512-rpuIqIiFQpWQEveQehLaO3b1wX1NeAEMUKChZ8NFa4+RwcPAX47t081VgRAWNnw4NgclenAenp9mTAQXOzmmxA==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.5.6",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "7cbdefc64c019a073cfdb493b0b516b5b7177bb6",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "npm:dsh-mnemon-strategy-scoped",
+      "npm": {
+        "version": "0.5.5",
+        "integrity": "sha512-HyJRpv4s8DzE9GZm7FnKUhxtwjv0eD9xcsYt5zQUbX1pH0e7jtkqaeozPfPgp0DHvjmv2nOaKOxDLzaw3B01qg==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.5.5",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "7cbdefc64c019a073cfdb493b0b516b5b7177bb6",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "npm:dsh-motion-ui",
+      "npm": {
+        "version": "0.8.9",
+        "integrity": "sha512-uQOI1CJicjfByQgVkMpPoftU2CFqenGZPlBOdMjFpp74DGL3CV1OT/LGN7dBCZSE8UcFoXvm+fO70/d/5STrFg==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.8.9",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "da5e7ea3355f386f646145719e0493a68a8b37be",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "npm:dsh-ops",
+      "npm": {
+        "version": "0.4.4",
+        "integrity": "sha512-HY8SCzrvVBInw5qdsapOz25wdrL/bzZyWUlQR9r+3ImiC+vBbj4/JdmeohmG/nxKU/3M4k83UhxCi15byiAslg==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.4.4",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "2c0b0397ce4b48436ff76cf5c5b039054240a45c",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "npm:dsh-skin-market",
+      "npm": {
+        "version": "0.1.72",
+        "integrity": "sha512-q0bk4v/y+hgYmwyRxkg2at/BeaWm6nYS+KLFjvsdDhWcgja5/9D2Tj0zU3Op5SEeNUDk53/Rb4Y0AnitPRYqcQ==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.1.71",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "6d9415127f5559f203b2ba129d7e8b8c2bc58c42",
+        "changed": true,
+        "differsFromPinned": true
+      }
+    },
+    {
+      "id": "npm:dsh-synapse",
+      "npm": {
+        "version": "0.5.6",
+        "integrity": "sha512-erJUHq6+qQB7ChHaPqNuDAfikZS86O14cWkaQdY2n7Y8NErZspEgm4nLCJ2GBL3Wuq87m/qIefGMFmLfqIdGJw==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.5.5",
+        "decision": "upgrade"
+      }
+    },
+    {
+      "id": "npm:dsh-thoughtdag",
+      "npm": {
+        "version": "0.5.26",
+        "integrity": "sha512-EtF4V2HOGj+X0EQq8rYYB/sroSKhxBc9+u7JRQLPRPv8ahi3enEXgvcgMk9UQPxOyjpAX0upqsai2I5kM9yBbw==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.5.26",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "0146dabc773a0123b8d1cdac54f64a01ae4b0a28",
+        "changed": false,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "SRC-01",
+      "npm": {
+        "version": "0.13.10",
+        "integrity": "sha512-LtgwueIekKnFJBGyZM07OBWyL+3K+6yClKsQ08Qz4FClJurgkkBjnioqAY7TGGAi4UooZDe2BloKKESPXKu/Xg==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.13.8",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "19fdcc1ca694f7a8bc16a2b7b614713af4550eb8",
+        "changed": false,
+        "differsFromPinned": true
+      }
+    },
+    {
+      "id": "SRC-02",
+      "npm": {
+        "version": "0.9.18",
+        "integrity": "sha512-L2T3V6vtD+OY2Gfm6vJ2IEHF6l1GnOvAFYNF/50WXFyeqohVI4EmKN5RZvLdivkitOphiEuj1GN96Xs/nZk3nA==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.9.16",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "b2fe4db4dffc1bf1d54e705de55d47a6bd02069c",
+        "changed": true,
+        "differsFromPinned": true
+      }
+    },
+    {
+      "id": "SRC-03",
+      "git": {
+        "head": "44b6b3eb65a1d50ceba0afb2c13acdd4a8b81423",
+        "changed": true,
+        "differsFromPinned": true
+      }
+    },
+    {
+      "id": "SRC-04",
+      "npm": {
+        "version": "0.5.37",
+        "integrity": "sha512-srbVUbXVJhnsFq1rWfJ5AkMnafkbFe/1GH/hbl835Xum9Kc0DB1keYu8Q+mfdFzOcwJU/QAny+RO+GnjUgfrBQ==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.5.36",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "7cbdefc64c019a073cfdb493b0b516b5b7177bb6",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "SRC-05",
+      "git": {
+        "head": "3dedecc0d4827624eba7e583a81c36e9c326872b",
+        "changed": true,
+        "differsFromPinned": true
+      }
+    },
+    {
+      "id": "SRC-06",
+      "git": {
+        "head": "65d8b220d4265f70441785aa22203f0e85ea3ec6",
+        "changed": false,
+        "differsFromPinned": false
+      }
+    },
+    {
+      "id": "SRC-07",
+      "npm": {
+        "version": "0.0.1-alpha.1",
+        "integrity": "sha512-3v3WNVjiwhc2UGGB+gjc5LvrTHgEHlNz+XXRTjMZyLaXK+ezBUcwepvN7MojTXVU/kty0KkiTL6tL5ECY2/N+A==",
+        "selector": "latest",
+        "comparedPinnedVersion": null,
+        "decision": "unavailable"
+      },
+      "git": {
+        "head": "bc5ea195a0fed1346ff171a5780bbb72a38c89c8",
+        "changed": true,
+        "differsFromPinned": true
+      }
+    },
+    {
+      "id": "SRC-08",
+      "npm": {
+        "version": "0.1.61",
+        "integrity": "sha512-6HmydNw24nvXw9sfb7evJDmW4NbNTVDE4xtzfvxG04v1e+l2ZqcVpQpq/nS0jelvopkpe1Hv7ppP/xQ46yfAKw==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.1.54",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "bb25c1d982da25c8af952790b5f4b621156c108c",
+        "changed": true,
+        "differsFromPinned": true
+      }
+    },
+    {
+      "id": "SRC-09",
+      "npm": {
+        "version": "0.28.2",
+        "integrity": "sha512-JxtRoCoNA/02VexkInZ1K4+c/1Tvk+DVS01dRfjbGKxWfXGZ6NEyemsdERGOhQ3DsLxOWc4Mj0ol+5s+6V0Egg==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.28.2",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "2d736f5496fe97f4bba6af37d99861649b9ef3c0",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "SRC-10",
+      "npm": {
+        "version": "0.3.9",
+        "integrity": "sha512-wxEVWmHxqbmNHgEO38QkPv5AwCj5h9U71etgwji6O94q0tPAlzX3x610ypjLCiffEdgMZpB1e4NdNHQqCLpT8w==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.3.9",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "db149c5e1018045a2e0d721e5518fda17efde2e1",
+        "changed": false,
+        "differsFromPinned": true
+      }
+    },
+    {
+      "id": "SRC-11",
+      "npm": {
+        "version": "1.2.5",
+        "integrity": "sha512-5Q6dPI46LE3qHsQfr+Qzjr6JwW0weuyocQh1Aej8p0crZxY44pGwl4jzQ5SpEET4yWRmvt99hufmJCthsZ9+Fg==",
+        "selector": "latest",
+        "comparedPinnedVersion": "1.2.4",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "d2bb1b8fb708bc01a0bc5d883164d857e5fde653",
+        "changed": false,
+        "differsFromPinned": true
+      }
+    },
+    {
+      "id": "SRC-12",
+      "npm": {
+        "version": "0.1.72",
+        "integrity": "sha512-q0bk4v/y+hgYmwyRxkg2at/BeaWm6nYS+KLFjvsdDhWcgja5/9D2Tj0zU3Op5SEeNUDk53/Rb4Y0AnitPRYqcQ==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.1.71",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "6d9415127f5559f203b2ba129d7e8b8c2bc58c42",
+        "changed": true,
+        "differsFromPinned": true
+      }
+    },
+    {
+      "id": "SRC-13",
+      "npm": {
+        "version": "0.0.1",
+        "integrity": "sha512-umnn07O37so3G+BcFpPbOGomzx83U7XmvQW1jYPgV+kOl+Y0ehWXbFjV0+88s0lbsZi1w/PWUsOwQ0GC7zCMlg==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.4.7",
+        "decision": "older-tag"
+      },
+      "git": {
+        "head": "abe07c77b0946a95ed37826be1e9cc9142a4b3f8",
+        "changed": true,
+        "differsFromPinned": true
+      }
+    },
+    {
+      "id": "SRC-14",
+      "npm": {
+        "version": "0.0.1",
+        "integrity": "sha512-umnn07O37so3G+BcFpPbOGomzx83U7XmvQW1jYPgV+kOl+Y0ehWXbFjV0+88s0lbsZi1w/PWUsOwQ0GC7zCMlg==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.4.7",
+        "decision": "older-tag"
+      },
+      "git": {
+        "head": "abe07c77b0946a95ed37826be1e9cc9142a4b3f8",
+        "changed": true,
+        "differsFromPinned": true
+      }
+    },
+    {
+      "id": "SRC-15",
+      "npm": {
+        "version": "0.86.1",
+        "integrity": "sha512-x6w9SbHI9lSdWRKIn3rudPy3xfJ+4ythqnafLqwHGn6B6JA0kvFo0t3u9GyTBaMZquT+k2wD+ZCgJKevEtDodQ==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.85.1",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "14bb41260093ce47c021b1a0af664302c865a68f",
+        "changed": false,
+        "differsFromPinned": true
+      }
+    },
+    {
+      "id": "SRC-16",
+      "npm": {
+        "version": "0.1.0",
+        "integrity": "sha512-6lDWL2qgS8rzYgJ8UPCQbEZqQV0UtaF+etncOmbiVaSDhtfyvOSHZcGBWS0+OOeKdpKMbW1b0p++zGEF/TEdHg==",
+        "selector": "latest",
+        "comparedPinnedVersion": "2.14.2",
+        "decision": "older-tag"
+      },
+      "gitError": "Public repository check failed: Command failed: git -c credential.interactive=false -c credential.helper= ls-remote https://github.com/GanyuanRan/Aegis HEAD\nfatal: unable to access 'https://github.com/GanyuanRan/Aegis/': schannel: failed to receive handshake, SSL/TLS connection failed\n"
+    },
+    {
+      "id": "SRC-17",
+      "npm": {
+        "version": "1.2.20",
+        "integrity": "sha512-CYrLgYuCnJ3XTrSp9GIP8u4gn//11HHNm9b1PTcyrkTA33DKKoDj8yQ6qYHJlDuyimpXt/7GLUXJrVQGXr4G8w==",
+        "selector": "latest",
+        "comparedPinnedVersion": "1.2.18",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "49324960487f903b095a44d42158c34aef418753",
+        "changed": true,
+        "differsFromPinned": true
+      }
+    },
+    {
+      "id": "SRC-18",
+      "npm": {
+        "version": "0.4.4",
+        "integrity": "sha512-HY8SCzrvVBInw5qdsapOz25wdrL/bzZyWUlQR9r+3ImiC+vBbj4/JdmeohmG/nxKU/3M4k83UhxCi15byiAslg==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.4.4",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "2c0b0397ce4b48436ff76cf5c5b039054240a45c",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "SRC-19",
+      "npm": {
+        "version": "0.4.0",
+        "integrity": "sha512-1F8W6mc26ic9N5HjjoKJDO1LWWFJAqGEda2pNetmiqgkrjYC1lP9L4udFGBGGre7C6uC+feLokNsobepQnH15Q==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.3.0",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "cc0c87f3a7a8627b175465f36a99e971e7eed507",
+        "changed": false,
+        "differsFromPinned": true
+      }
+    },
+    {
+      "id": "SRC-20",
+      "npmError": "HTTP 404: https://registry.npmjs.org/archify-repository/latest",
+      "git": {
+        "head": "a4065941f12be7967436261d9934784e381d423c",
+        "changed": true,
+        "differsFromPinned": true
+      }
+    },
+    {
+      "id": "SRC-21",
+      "npm": {
+        "version": "0.5.6",
+        "integrity": "sha512-erJUHq6+qQB7ChHaPqNuDAfikZS86O14cWkaQdY2n7Y8NErZspEgm4nLCJ2GBL3Wuq87m/qIefGMFmLfqIdGJw==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.5.5",
+        "decision": "upgrade"
+      }
+    },
+    {
+      "id": "SRC-22",
+      "git": {
+        "head": "1ef87cf80d074a02a6fc4c1dc600cf7216f327b2",
+        "changed": false,
+        "differsFromPinned": true
+      }
+    },
+    {
+      "id": "SRC-23",
+      "git": {
+        "head": "2e81d79a189563d96610903aeafad32200ffdaba",
+        "changed": false,
+        "differsFromPinned": false
+      }
+    },
+    {
+      "id": "SRC-24",
+      "npm": {
+        "version": "0.1.2",
+        "integrity": "sha512-GOlfDPOM4Vz8PJZqpl+ayD1Wd3h3fpxY4ycwjLLD7ICVYhJRX2H38LwzXkfdz6J6FKEBUCbiooBDL5g4yNN+1Q==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.1.3",
+        "decision": "older-tag"
+      },
+      "git": {
+        "head": "6e873bb6a1ee3add78f8e2ecce42dabaeb445e09",
+        "changed": false,
+        "differsFromPinned": false
+      }
+    },
+    {
+      "id": "SRC-25",
+      "git": {
+        "head": "a8e6c7d50fa9c27173acd95987d046241f5386f7",
+        "changed": false,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "SRC-26",
+      "git": {
+        "head": "e2fca6e2dc5d926bb33fbd1376780bb5e93f4974",
+        "changed": false,
+        "differsFromPinned": true
+      }
+    },
+    {
+      "id": "SRC-27",
+      "git": {
+        "head": "eafe881594a6c0ecac9e1e5e94323a1db992de87",
+        "changed": false,
+        "differsFromPinned": true
+      }
+    },
+    {
+      "id": "SRC-28",
+      "npm": {
+        "version": "0.3.11",
+        "integrity": "sha512-BjtnHF7kTb7Ed93IfGaWoBUDnGsslfaA+hTo05xpPdKIZ3pypWTS4lRxlyHz34MA+o8EAt8CUsl4phmFaI6fnQ==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.3.11",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "737d716c5f693f96eb2adc3e9a79f4e55cda8735",
+        "changed": false,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "SRC-29",
+      "npm": {
+        "version": "0.78.2",
+        "integrity": "sha512-aqvtRTvvUWe41jdlZlfiPE0VSnr8I5KVLFXNLusHfnk3tXGOYuN5qoexiOMzaO+RbczKFsThUH7zeXXC+3q6WA==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.78.0",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "40ea15800953d7560509e4fd906cf05598f9f51e",
+        "changed": true,
+        "differsFromPinned": true
+      }
+    },
+    {
+      "id": "SRC-30",
+      "npm": {
+        "version": "0.1.209",
+        "integrity": "sha512-Lz43W6+WXlR/FkdWAvYVXrxsK8IqXx4sPjru/cYaxm8/DtO5na9HBFR9Ab46kYuC0Wx5vfKeO6X9rR9W/qs4lw==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.1.209",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "7528debc9a0eb20ba9c911d4a1d77f87b7d4b242",
+        "changed": true,
+        "differsFromPinned": true
+      }
+    },
+    {
+      "id": "SRC-31",
+      "git": {
+        "head": "1f1bcb27fb8154c58f4b3190c00050efa09cb014",
+        "changed": false,
+        "differsFromPinned": true
+      }
+    },
+    {
+      "id": "SRC-32",
+      "npm": {
+        "version": "0.5.26",
+        "integrity": "sha512-EtF4V2HOGj+X0EQq8rYYB/sroSKhxBc9+u7JRQLPRPv8ahi3enEXgvcgMk9UQPxOyjpAX0upqsai2I5kM9yBbw==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.5.26",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "0146dabc773a0123b8d1cdac54f64a01ae4b0a28",
+        "changed": false,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "SRC-33",
+      "npm": {
+        "version": "0.1.16",
+        "integrity": "sha512-4ae3TYLzm2Yx7eZTyOmzKbwz1dLzkRi4n54OA7tnN7w66HCeK1hYR654DmLmxGmEplkrUCNhiWki3iQFsx9A+g==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.2.5",
+        "decision": "older-tag"
+      },
+      "git": {
+        "head": "fb2bf64a3e619b6a3bfe11088e968901ca23f787",
+        "changed": true,
+        "differsFromPinned": true
+      }
+    },
+    {
+      "id": "SRC-34",
+      "git": {
+        "head": "c6e2b5180917b8fd8952a0338d77c5318856e4a3",
+        "changed": false,
+        "differsFromPinned": false
+      }
+    },
+    {
+      "id": "SRC-35",
+      "git": {
+        "head": "31a7b16a14c4d801bb491700df3d1509ac31b5c4",
+        "changed": false,
+        "differsFromPinned": false
+      }
+    },
+    {
+      "id": "SRC-36",
+      "npm": {
+        "version": "2.0.2",
+        "integrity": "sha512-EpZwFQnpWwSBberXWwy7UdzdiZBb3IMzmJSf57okKALHBBo4bCpeDEZVmDOV/DY4D0j0r26EBP9o9+0LqnHuIg==",
+        "selector": "latest",
+        "comparedPinnedVersion": "2.0.2",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "26685fdb56687933ff7a236aada1c546e106df78",
+        "changed": true,
+        "differsFromPinned": true
+      }
+    },
+    {
+      "id": "SRC-37",
+      "git": {
+        "head": "13ed23a4a15eb190bd01cbe1c08559fb2054fa59",
+        "changed": true,
+        "differsFromPinned": true
+      }
+    },
+    {
+      "id": "SRC-38",
+      "npm": {
+        "version": "0.3.8",
+        "integrity": "sha512-1haYEAqrTU8qRMfJ/Cm9jPHRVnigFq5iH2srQfadROphppKFSvU9wkVr408ZEA1qMrN+h6AN7jFmObgLWdSsJg==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.3.6",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "e19276e14ee907753d994df5daa904afd8fcdfa5",
+        "changed": true,
+        "differsFromPinned": true
+      }
+    },
+    {
+      "id": "SRC-39",
+      "npm": {
+        "version": "8.0.0",
+        "integrity": "sha512-hoG7SDKQxrNZR294HT11whzPiA2GhIwh7Wk8pm1vueFfyxVwMcW3L7qY0pN3CQmIgqhWNUio9P94R1I/p/H4sQ==",
+        "selector": "latest",
+        "comparedPinnedVersion": "8.0.0",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "629dfff09b2808255b0e407913f86b5b3cdcd30a",
+        "changed": false,
+        "differsFromPinned": true
+      }
+    },
+    {
+      "id": "SRC-40",
+      "npm": {
+        "version": "5.6.2",
+        "integrity": "sha512-SlV3hwDtvT3+6bOXIGk5EMK7KOeBmiowhdD+yZ3nmXr2S1pBHQZST+kdHlml6/MkLpXnu0WGsd63qEAsVO5Emg==",
+        "selector": "latest",
+        "comparedPinnedVersion": "5.6.2",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "7223820c9d7f78f4be1ada285fbf953d7867518c",
+        "changed": false,
+        "differsFromPinned": false
+      }
+    },
+    {
+      "id": "SRC-41",
+      "npm": {
+        "version": "0.4.0",
+        "integrity": "sha512-tHKYD9uUi/fKS7xiN0E3SuIedgYEy8qn3Joqaoh08WrAkfEqKBoy5++IU9Iy9YNAc0Ujmq0/YehvrNFY1RIYXg==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.4.0",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "ff8a0b30e0f9280826afe6150bec7388aa46afab",
+        "changed": false,
+        "differsFromPinned": false
+      }
+    },
+    {
+      "id": "SRC-42",
+      "npm": {
+        "version": "1.16.0",
+        "integrity": "sha512-WQVhZoIR5PoacH/H0qh84VKMcXFbKCIKuAI96arHS3KiKYhJStlRrjUKGxLqLYKLym0j+2hAAY5MZUrPE5qXIA==",
+        "selector": "latest",
+        "comparedPinnedVersion": "1.15.0",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "27c0515724decc633818c735ee596481eec78a8b",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "SRC-43",
+      "npm": {
+        "version": "0.1.0",
+        "integrity": "sha512-hhsP5MPO0gBweMrAW6Yra9Whya+oxVmBNotH4gvz0f8oSF4uZ7hHj5I0kfXXUwvZKTMWcY9XWXzySHlwBKGbeQ==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.1.0",
+        "decision": "unchanged"
+      },
+      "gitError": "Public repository check failed: Command failed: git -c credential.interactive=false -c credential.helper= ls-remote https://github.com/satan9394/dsh-karpathy-methodology HEAD\nfatal: unable to get password from user\n"
+    },
+    {
+      "id": "SRC-44",
+      "git": {
+        "head": "2c606141936f1eeef17fa3043a72095b4765b9c2",
+        "changed": false,
+        "differsFromPinned": false
+      }
+    },
+    {
+      "id": "SRC-45",
+      "npm": {
+        "version": "0.8.9",
+        "integrity": "sha512-uQOI1CJicjfByQgVkMpPoftU2CFqenGZPlBOdMjFpp74DGL3CV1OT/LGN7dBCZSE8UcFoXvm+fO70/d/5STrFg==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.8.9",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "da5e7ea3355f386f646145719e0493a68a8b37be",
+        "changed": true,
+        "differsFromPinned": null
+      }
+    },
+    {
+      "id": "SRC-46",
+      "npm": {
+        "version": "0.3.10",
+        "integrity": "sha512-37hRKYWvgPkjLH7p7MONIelXNMb8fyYagGAPYHsq/I4ohS1JGP5Nz6ocWciP4ik5bVOYMcKo+uouSaTSUdlJKA==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.3.10",
+        "decision": "unchanged"
+      },
+      "git": {
+        "head": "e6206d105bf72f73f4ad5e087948da3e049e22f0",
+        "changed": false,
+        "differsFromPinned": false
+      }
+    },
+    {
+      "id": "SRC-47",
+      "npmNotApplicable": "Private source-only runtime; Git revision and vendored file hashes are the release identity.",
+      "git": {
+        "head": "db4c44f9a3534118dbe2138c01b0dc156c9c2f8e",
+        "changed": false,
+        "differsFromPinned": false
+      }
+    },
+    {
+      "id": "SRC-48",
+      "npm": {
+        "version": "0.5.3",
+        "integrity": "sha512-WZ53Poo8Q+5PzGPE0DRQipnWKnmBMWcTylptXYVavP7dZ1mvzvuhWCeAfAHXL4n3YqZhAZ6rbC2UOuJFmJYiNg==",
+        "selector": "latest",
+        "comparedPinnedVersion": "0.5.1",
+        "decision": "upgrade"
+      },
+      "git": {
+        "head": "6fb642129595a6357588c70812974951db304662",
+        "changed": false,
+        "differsFromPinned": true
+      }
+    },
+    {
+      "id": "upstream:ponytail",
+      "git": {
+        "head": "96608e078b2d5ea607c5c3b8b5a54d1c1fba6846",
+        "changed": true,
+        "differsFromPinned": true
+      }
+    },
+    {
+      "id": "upstream:superpowers",
+      "git": {
+        "head": "2ce8aa15d05bd57213e6f746f953aafb7ded7a8b",
+        "changed": false,
+        "differsFromPinned": true
+      }
+    }
+  ]
+}

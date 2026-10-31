@@ -82,7 +82,10 @@ async function fixture(t: TestContext) {
     for (const handle of handles.reverse()) await handle.dispose();
     await hook.dispose();
     for (const fiber of fibers.reverse()) await fiber.dispose();
-    await rm(directory, { recursive: true, force: true }); await rm(outside, { recursive: true, force: true });
+    // Windows may briefly retain a disposed screenshot directory handle.
+    // Bounded native retries still fail the test if cleanup cannot complete.
+    await rm(directory, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
+    await rm(outside, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
   });
   return { root, fibers, ctx, tools, connection, directory, outside, agent, adapter, f };
 }

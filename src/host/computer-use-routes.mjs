@@ -4,7 +4,7 @@ export const COMPUTER_USE_API = '/api/plugins/dsh-noemaloom/computer-use';
 const routes = new Set(['status', 'state', 'probe', 'doctor']);
 
 /**
- * Keep the upstream JSON handlers behind the rc.3 owner-only Connection channel.
+ * Keep the upstream JSON handlers behind the rc.5 owner-only Connection channel.
  * Raw webServer routes would bypass the carrier's Origin, login and principal
  * checks. The native chip and its per-session grant table retain ownership.
  */

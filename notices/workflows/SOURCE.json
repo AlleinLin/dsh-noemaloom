@@ -39,9 +39,9 @@
     },
     {
       "name": "@fission-ai/openspec",
-      "version": "1.15.0",
+      "version": "1.16.0",
       "license": "MIT",
-      "integrity": "sha512-lG/EPEiL22bB70yKJhWWSPk1UQGLnwO7Dp+hNc/jUmBwb0qxPLzHCUkXEfkny4iYDOsgnsNQmc39/g9QcvnBnA==",
+      "integrity": "sha512-WQVhZoIR5PoacH/H0qh84VKMcXFbKCIKuAI96arHS3KiKYhJStlRrjUKGxLqLYKLym0j+2hAAY5MZUrPE5qXIA==",
       "licenses": [
         {
           "file": "LICENSE",
@@ -79,9 +79,9 @@
     },
     {
       "name": "dsh-motion-ui",
-      "version": "0.8.8",
+      "version": "0.8.9",
       "license": "MIT",
-      "integrity": "sha512-VWh3Sm3rLI4oQvOepfej6Mp67sE/uUYlHrAJS6MaUX1wbuVQkDPkO8aJ64bgr64Fh219os/9XBz60EO8Xv/6pw==",
+      "integrity": "sha512-uQOI1CJicjfByQgVkMpPoftU2CFqenGZPlBOdMjFpp74DGL3CV1OT/LGN7dBCZSE8UcFoXvm+fO70/d/5STrFg==",
       "licenses": [
         {
           "file": "LICENSE",

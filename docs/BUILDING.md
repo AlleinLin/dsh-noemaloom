@@ -4,7 +4,7 @@
 
 - Node.js **24.22.1** LTS recommended (pinned in `.nvmrc`); patched 22.x and
   26.x releases listed in `package.json` are also supported.
-- DeepSeek Harness Desktop **0.2.1-rc.3** for runtime installation.
+- DeepSeek Harness Desktop **0.2.1-rc.5** for runtime installation.
 - Windows and PowerShell for the supplied Desktop installer.
 - Python 3.10+ for the optional Python memory bridges; check each vendored component's
   `pyproject.toml` or `package.json` and install the dependencies for the feature you enable.
@@ -36,8 +36,7 @@ Desktop GUI, external-model requests and optional Python/service behavior are no
 covered by a successful JavaScript CI job.
 
 The separate cognition check compiles every vendored Python source and executes
-all 37 regression modules selected through the 0.9.14 changes and retained source
-completion. Each module runs in a separate Python process with isolated memory
+the retained regression modules and the new/changed regressions through Cognition 0.9.18. Each module runs in a separate Python process with isolated memory
 roots and an isolated copy of the complete public source. Its report records individual exit codes and optional upstream baseline
 skips. Windows desktop control is checked separately with
 `node tools/acceptance/computer-use-windows.mjs --fixture-input --output evidence/computer-use`;
@@ -75,7 +74,7 @@ the plugin. Newer or unrecognized versions are rejected; the script never downgr
 `-VerifyOnly` never upgrades. Desktop must remain fully exited throughout installation.
 Download failures retry three times with backoff; verified installers are cached under
 `%LOCALAPPDATA%\dsh-noemaloom\host-installers`. An offline installer can be supplied
-with `-HostInstallerPath 'C:\Downloads\deepseek-harness-0.2.1-rc.3-win-x64.exe'`;
+with `-HostInstallerPath 'C:\Downloads\deepseek-harness-0.2.1-rc.5-win-x64.exe'`;
 the same size, digest and signature checks still apply. The script does not uninstall
 Desktop or delete user profiles. An official installer error or version mismatch
 stops the operation before plugin installation.

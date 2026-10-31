@@ -359,6 +359,31 @@ test('explicit context overflow inside PI message reaches native overflow recove
 });
 
 for (const kind of ['parent', 'child'] as const) {
+  test(`the real ${kind} freezes a rate-limited request and resumes the same step once`, async t => {
+    const h = await fixture(t, {
+      productionRecovery: true,
+      recoveryDefaults: { freezeRetryHours: 0.00001, maxRetries: 1 },
+      async *produce(_request, attempt) {
+        if (attempt === 1) yield { type: 'finish', reason: { kind: 'error',
+          failure: { code: 'RATE_LIMIT', message: 'subscription window exhausted' } } };
+        else yield* toolResponse(attempt);
+      },
+    });
+    const parent = (await h.create(`freeze-${kind}-parent`)).agent;
+    const agent = kind === 'child' ? (await h.create('freeze-child-worker', undefined, parent)).agent : parent;
+    await h.start(agent);
+    assertCompleted(agent, 2);
+    const retries = eventsOf(agent, 'llm/retry');
+    assert.equal(retries.length, 1);
+    assert.equal(retries[0].data.delayMs, 36);
+    assert.equal(eventsOf(agent, 'llm/retry-started').length, 1);
+    assert.equal(eventsOf(agent, 'turn/start').length, 1);
+    assert.equal(eventsOf(agent, 'step/start').length, 1);
+    assert.equal(eventsOf(agent, 'user/message').length, 1);
+    assert.equal(h.toolsExecuted(), 1);
+    if (kind === 'child') assert.equal(eventsOf(parent, 'turn/start').length, 0);
+  });
+
   test(`the real ${kind} completes after 64 PI failures with one tool dispatch and no synthetic followup`, async t => {
     const h = await fixture(t, {
       productionRecovery: true,

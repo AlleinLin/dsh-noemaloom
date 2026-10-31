@@ -60,7 +60,7 @@ test('packaged OpenSpec CLI runs inside a Windows-style workspace without global
   const cli = fileURLToPath(new URL('../bin/openspec.js', import.meta.resolve('@fission-ai/openspec')));
   const exec = promisify(execFile), env = { ...process.env, OPENSPEC_TELEMETRY: '0', DO_NOT_TRACK: '1', CI: 'true' };
   const version = await exec(process.execPath, [cli, '--version'], { cwd: directory, env, windowsHide: true, timeout: 30_000 });
-  assert.match(version.stdout, /1\.15\.0/);
+  assert.match(version.stdout, /1\.16\.0/);
   await exec(process.execPath, [cli, 'init', '--tools', 'none'], { cwd: directory, env, windowsHide: true, timeout: 30_000 });
   assert.match(await readFile(join(directory, 'openspec/config.yaml'), 'utf8'), /schema:/);
   const definitions = [];
@@ -79,7 +79,17 @@ test('weekly inventory covers all source units, native archives and complete run
   for (const source of sources.units) assert.ok(inventory.sources.some(row => row.id === source.id), source.id);
   for (const archive of sources.nativeArchives) assert.ok(inventory.sources.some(row => row.id === `archive:${archive.identity}`));
   for (const [name, version] of Object.entries(pkg.dependencies).filter(([name]) => /dsh-/.test(name) && !name.startsWith('@deepseek-ai/'))) {
-    assert.equal(inventory.npmPlugins.find(row => row.package === name)?.pinned.version, version, name);
+    const row = inventory.npmPlugins.find(row => row.package === name);
+    if (version.startsWith('file:vendor/')) {
+      const vendored = JSON.parse(await readFile(`${version.slice(5)}/package.json`, 'utf8'));
+      const provenance = JSON.parse(await readFile(`${version.slice(5)}/SOURCE.json`, 'utf8'));
+      assert.equal(vendored.name, name);
+      assert.equal(row?.pinned.version, vendored.version, name);
+      assert.equal(provenance.version, vendored.version, name);
+      assert.equal(provenance.repository, row.repository, name);
+    } else {
+      assert.equal(row?.pinned.version, version, name);
+    }
   }
   assert.equal(inventory.policy.independentUpdateUi, false);
   assert.equal(inventory.sources.find(row => row.id === 'archive:DSH-agent-procedures').repository, null);
@@ -103,23 +113,23 @@ test('managed update adapters remove independent update entry points and reject 
       assert.doesNotMatch(result.source, /action:.*t\("versions.checkAction"\)/);
       assert.match(result.source, /providers/, 'memory functionality remains');
     }
-    if (name === 'dsh-context') assert.match(result.source, /function yl\(\)\{return Promise.resolve\(null\)\}/);
+    if (name === 'dsh-context') assert.match(result.source, /function jl\(\)\{return Promise.resolve\(null\)\}/);
     if (name.includes('agency')) {
-      assert.match(result.source, /function Hc\(\)\{return null\}/);
+      assert.match(result.source, /function Vc\(\)\{return null\}/);
       let bootstrap;
       const findBootstrap = node => {
-        if (ts.isFunctionDeclaration(node) && node.name?.text === 'Uc') bootstrap = node;
+        if (ts.isFunctionDeclaration(node) && node.name?.text === 'Hc') bootstrap = node;
         ts.forEachChild(node, findBootstrap);
       };
       findBootstrap(ast);
       assert.ok(bootstrap);
       // Execute the retained bootstrap in a realm with no DOM/network globals.
       // It must install neither the updater's observer nor its eager GET.
-      const dispose = Function(`${bootstrap.getText(ast)}; return Uc({})`)();
+      const dispose = Function(`${bootstrap.getText(ast)}; return Hc({})`)();
       assert.equal(typeof dispose, 'function');
       assert.doesNotThrow(dispose);
     }
-    const symbols = { 'dsh-context': ['Sl', 'yl'], 'dsh-mnemon': ['VersionDialog'], '@michengai/dsh-agency-agents': ['Hc', 'Uc'] }[name];
+    const symbols = { 'dsh-context': ['Pl', 'jl'], 'dsh-mnemon': ['VersionDialog'], '@michengai/dsh-agency-agents': ['Vc', 'Hc'] }[name];
     for (const symbol of symbols) {
       const drifted = original.replace(`function ${symbol}(`, `function renamed_${symbol}(`);
       assert.notEqual(drifted, original, 'the mutation must rename this package’s actual managed updater');

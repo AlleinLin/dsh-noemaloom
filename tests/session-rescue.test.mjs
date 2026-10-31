@@ -12,7 +12,7 @@ import { existsSync } from 'node:fs';
 const exec = promisify(execFile);
 const script = resolve(existsSync('scripts/session-rescue.mjs') ? 'scripts/session-rescue.mjs' : 'session-rescue.mjs');
 const session = 'session-rescue-fixture';
-async function fixture(owner = { status: 'reconciliation-required', phase: 'decision-started' }, packageName = '@local/dsh-nexus', hostVersion = '0.2.1-rc.3') {
+async function fixture(owner = { status: 'reconciliation-required', phase: 'decision-started' }, packageName = '@local/dsh-nexus', hostVersion = '0.2.1-rc.5') {
   const root = await mkdtemp(join(tmpdir(), 'nexus-rescue-test-'));
   const packageRoot = join(root, 'package'), dataRoot = join(root, 'data');
   await mkdir(join(packageRoot, 'lib'), { recursive: true });
@@ -40,7 +40,7 @@ class Fixture extends BasicCompactionEngine {
     close: () => rm(root, { recursive: true, force: true }),
   };
 }
-for (const version of ['0.2.1-rc.2', '0.2.1-rc.3']) {
+for (const version of ['0.2.1-rc.2', '0.2.1-rc.3', '0.2.1-rc.5']) {
   test(`session rescue recognizes the renamed package on ${version} while retaining the same data directory`, async t => {
     const f = await fixture(undefined, 'dsh-noemaloom', version);
     t.after(f.close);

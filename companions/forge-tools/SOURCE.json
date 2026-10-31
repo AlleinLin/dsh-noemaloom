@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
   "package": "@local/dsh-forge-tools",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "kind": "original-local-companion",
   "developmentDirectory": "D:\\dshplugin\\tools",
   "upstreamRepository": null,
   "maintainedSnapshot": "companions/forge-tools",
-  "host": "0.2.1-rc.3",
-  "sdkRevision": "1f81c047fc48fa190a683e469daa699857e9afe8",
+  "host": "0.2.1-rc.5",
+  "sdkRevision": "b830ec950faba0a46dda564be3e2d854afed94f1",
   "license": "MIT",
   "relation": "Separate optional Desktop bundle; no automatic installation.",
   "reproduce": [

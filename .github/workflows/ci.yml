@@ -42,7 +42,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
       - run: npm run pack:delivery
-      - name: Install the exact rc.3 Forge companion SDK
+      - name: Install the exact rc.5 Forge companion SDK
         working-directory: companions/forge-tools
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Audit the Forge companion dependency graph

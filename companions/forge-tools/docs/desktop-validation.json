@@ -1,5 +1,5 @@
 {
-  "host": "0.2.1-rc.3",
+  "host": "0.2.1-rc.5",
   "platform": "win32-x64",
   "surface": "Original installed Electron Desktop",
   "origin": "dsh-app://app",
@@ -77,7 +77,7 @@
     }
   ],
   "permissionCompatibility": {
-    "version": "0.1.5",
+    "version": "0.1.6",
     "perCallSessionMode": "danger-full-access",
     "scope": "Normal native tools through actual Desktop Agent loop; top-level SDK run_code is not modified or covered.",
     "cases": [
@@ -148,8 +148,8 @@
     ]
   },
   "pwsh": {
-    "firstMs": 560,
-    "warmMs": 8,
+    "firstMs": 530,
+    "warmMs": 9,
     "residentStarts": 1,
     "residentCalls": 2
   },

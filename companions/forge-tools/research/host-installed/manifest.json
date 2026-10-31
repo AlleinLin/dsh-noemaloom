@@ -1,32 +1,32 @@
 [
   {
-    "source": "D:/dshplugin/research/dsh-desktop-rc3/app/resources/app.asar/dsh/node_modules/@deepseek-ai/dsh-base/cordis.patch.yml",
-    "target": "D:/dshplugin/tools/research/host-installed/dsh-base/cordis.patch.yml",
+    "source": "D:/dshplugin/research/dsh-desktop-rc5/app/resources/app-extracted/dsh/node_modules/@deepseek-ai/dsh-base/cordis.patch.yml",
+    "target": "companions/forge-tools/research/host-installed/dsh-base/cordis.patch.yml",
     "sha256": "a2cc57868a4d016609801e28781262515483dde29b41c2742d9a3b27a6f52f77"
   },
   {
-    "source": "D:/dshplugin/research/dsh-desktop-rc3/app/resources/app.asar/dsh/node_modules/@deepseek-ai/dsh-web-app/cordis.patch.yml",
-    "target": "D:/dshplugin/tools/research/host-installed/dsh-web-app/cordis.patch.yml",
+    "source": "D:/dshplugin/research/dsh-desktop-rc5/app/resources/app-extracted/dsh/node_modules/@deepseek-ai/dsh-web-app/cordis.patch.yml",
+    "target": "companions/forge-tools/research/host-installed/dsh-web-app/cordis.patch.yml",
     "sha256": "cdceb423fc34c31ceb9c47ef2117a88eeda6fd9cc21f94d58cfd21e7c3e035de"
   },
   {
-    "source": "D:/dshplugin/research/dsh-desktop-rc3/app/resources/app.asar/dsh/node_modules/@deepseek-ai/dsh-web-app/presets/standard.patch.yml",
-    "target": "D:/dshplugin/tools/research/host-installed/dsh-web-app/presets/standard.patch.yml",
+    "source": "D:/dshplugin/research/dsh-desktop-rc5/app/resources/app-extracted/dsh/node_modules/@deepseek-ai/dsh-web-app/presets/standard.patch.yml",
+    "target": "companions/forge-tools/research/host-installed/dsh-web-app/presets/standard.patch.yml",
     "sha256": "0d398d2a6872a73a106cb3bd19303ecccf1637e1fcad4d0bf9d8a72d2c2c68f5"
   },
   {
-    "source": "D:/dshplugin/research/dsh-desktop-rc3/app/resources/app.asar/dsh/node_modules/@deepseek-ai/dsh-web-app/presets/cordis.patch.yml",
-    "target": "D:/dshplugin/tools/research/host-installed/dsh-web-app/presets/cordis.patch.yml",
+    "source": "D:/dshplugin/research/dsh-desktop-rc5/app/resources/app-extracted/dsh/node_modules/@deepseek-ai/dsh-web-app/presets/cordis.patch.yml",
+    "target": "companions/forge-tools/research/host-installed/dsh-web-app/presets/cordis.patch.yml",
     "sha256": "01b0fc94fd49136b332254a7ae5658e43ffe646f7248047dba65d499cfc74596"
   },
   {
-    "source": "D:/dshplugin/research/dsh-desktop-rc3/app/resources/app.asar/dsh/node_modules/@deepseek-ai/dsh-web-app/presets/ptc.patch.yml",
-    "target": "D:/dshplugin/tools/research/host-installed/dsh-web-app/presets/ptc.patch.yml",
+    "source": "D:/dshplugin/research/dsh-desktop-rc5/app/resources/app-extracted/dsh/node_modules/@deepseek-ai/dsh-web-app/presets/ptc.patch.yml",
+    "target": "companions/forge-tools/research/host-installed/dsh-web-app/presets/ptc.patch.yml",
     "sha256": "9e355c947bf61c3d2fe9bf3214b386f83c0d99d37579ce22576d4b82cb6e1a2c"
   },
   {
-    "source": "D:/dshplugin/research/dsh-desktop-rc3/app/resources/app.asar/dsh/node_modules/@deepseek-ai/dsh-web-app/presets/minimal.patch.yml",
-    "target": "D:/dshplugin/tools/research/host-installed/dsh-web-app/presets/minimal.patch.yml",
+    "source": "D:/dshplugin/research/dsh-desktop-rc5/app/resources/app-extracted/dsh/node_modules/@deepseek-ai/dsh-web-app/presets/minimal.patch.yml",
+    "target": "companions/forge-tools/research/host-installed/dsh-web-app/presets/minimal.patch.yml",
     "sha256": "a2a9ba1c9c392a45466708f18bc0aefbf300577f9b544dc06049f73a8a5b3267"
   }
 ]

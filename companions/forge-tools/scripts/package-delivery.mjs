@@ -13,7 +13,7 @@ if ((await readdir('presets')).some(file => /^cli(?:-pwsh)?\.patch\.yml$/i.test(
   throw new Error('Run the Desktop build first: stale CLI overlays remain in presets');
 await mkdir(delivery, { recursive: true });
 const reportNames = ['BENCHMARK.md', 'benchmark.json', 'RESILIENCE.md', 'resilience-results.json',
-  'RESEARCH.md', 'PERMISSIONS.md', 'VALIDATION.md', 'host-validation.json', 'compatibility-rc3.json'];
+  'RESEARCH.md', 'PERMISSIONS.md', 'VALIDATION.md', 'host-validation.json', 'compatibility-rc3.json', 'compatibility-rc5.json'];
 const controlledNames = new Set(['Install.ps1', 'Install-Example.ps1', 'INSTALL_FOR_AI.md',
   'README.md', 'package-inventory.json', 'SHA256SUMS.txt',
   'cli.patch.yml', 'cli-pwsh.patch.yml', 'desktop-validation.json', ...reportNames]);

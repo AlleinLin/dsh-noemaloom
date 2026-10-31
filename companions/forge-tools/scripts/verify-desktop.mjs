@@ -145,7 +145,7 @@ try {
   await writeFile(path.join(profile, 'pnpm-workspace.yaml'),
     'packages:\n  - .\n\nnodeLinker: hoisted\nautoInstallPeers: false\n');
   launch(['plugin', '--profile', 'desktop', 'add', '--offline', '--ignore-scripts', '--save-exact',
-    path.join(root, 'delivery/local-dsh-forge-tools-0.1.5.tgz')]);
+    path.join(root, 'delivery/local-dsh-forge-tools-0.1.6.tgz')]);
   await writeFile(path.join(profile, 'cordis.patch.yml'), `
 - id: llm-deepseek
   config:
@@ -235,7 +235,7 @@ try {
   const firstPwsh = jsonResult(8);
   const warmPwsh = jsonResult(9);
   const status = jsonResult(11);
-  assert.equal(status.version, '0.1.5');
+  assert.equal(status.version, '0.1.6');
   assert.equal(firstPwsh.mode, 'persistent');
   assert.equal(warmPwsh.mode, 'persistent');
   assert.equal(status.pwsh.residentStarts, 1);
@@ -248,7 +248,7 @@ try {
   await cdp.evaluate(`[...document.querySelectorAll('tr')].filter(x=>x.innerText.includes('pwsh{'))[1].scrollIntoView({block:'center'});true`);
   await screenshot('desktop-tools-trace.png');
   const report = {
-    host: '0.2.1-rc.3', platform: 'win32-x64', surface: 'Original installed Electron Desktop',
+    host: '0.2.1-rc.5', platform: 'win32-x64', surface: 'Original installed Electron Desktop',
     origin: 'dsh-app://app', profile: 'desktop', preset: 'standard', result: 'passed',
     noPresetSwitchRequired: true, isolatedProductHome: true, isolatedElectronUserData: true,
     isolatedDefaultWorkspace: true,
