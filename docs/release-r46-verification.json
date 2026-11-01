@@ -1,0 +1,49 @@
+{
+  "release": "R46",
+  "status": "local validation passed; real user Desktop was not started",
+  "host": {
+    "version": "0.2.1-rc.5",
+    "candidate": "0.2.2-alpha.2",
+    "candidateDecision": "observed-not-adopted"
+  },
+  "upstream": {
+    "report": "docs/upstream-audit-2026-11-01.json",
+    "inventoryCount": 153,
+    "pinsChanged": false
+  },
+  "feature": {
+    "module": "workflow/prompt/schedule",
+    "mainAgent": true,
+    "subagent": true,
+    "rangeMinutes": {
+      "minimum": 1,
+      "maximum": 10080
+    },
+    "retryWhenHostUnavailableSeconds": 30,
+    "storageScope": "conversation.workflow-injections"
+  },
+  "validation": {
+    "check": {
+      "command": "npm run check",
+      "passed": 2409,
+      "failed": 0,
+      "artifactsVerified": true
+    },
+    "delivery": {
+      "command": "npm run pack:delivery",
+      "npmAuditVulnerabilities": 0,
+      "packageSha256": "e91df078bc0700075a25ba6a527f0433d653c931dcf5ad2bd856dc3a82acaecb"
+    },
+    "localInstall": {
+      "status": "INSTALLED_AND_FILES_VERIFIED",
+      "path": "C:/Users/Allei/.dsh/profiles/desktop/node_modules/dsh-noemaloom",
+      "hostVersion": "0.2.1-rc.5",
+      "hostUpgraded": false,
+      "desktopStarted": false
+    }
+  },
+  "limitations": [
+    "真实用户 DSH 未由本轮自动启动，需用户重新打开后点击主代理或子代理输入栏的“延时”验证交互。",
+    "未修改会话数据库、未终止代理、未重启宿主。"
+  ]
+}

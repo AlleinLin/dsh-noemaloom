@@ -80,3 +80,11 @@ DSH 0.2.1-rc.5 的 `commandUi` 对 `sessions.subagentAddress(sessionId)` 直接�
 时间/时区片段，只注入当前 UTC/GMT ISO 时间；宿主用于路由的
 `clientTimeZone` 不会复制到提示。定时任务需要时统一提交 UTC，用户要求北京
 等民用时间由模型从 UTC 算术换算后展示。关闭选项仅用于兼容性诊断，标准配置默认开启。
+
+## 定时固定文字注入（R46）
+
+R46 在主代理和子代理的会话输入栏共用“延时”按钮。用户填写等待分钟数和固定文字
+后，计划写入当前会话的 `workflow-injections` 持久化范围；到点通过正式宿主
+`sessions('inject')` 注入，宿主暂不可用时保留为 `queued` 并按 30 秒边界重试。
+计划可取消，等待范围为 1 分钟至 7 天。主代理与子代理按各自会话隔离保存，跨会话
+发送仍遵循 `agents:message` 权限。

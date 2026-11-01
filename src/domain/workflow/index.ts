@@ -21,7 +21,8 @@ const runtimes = new WeakMap<NexusServices, Runtime>();
 function runtime(services: NexusServices): Runtime {
   const existing = runtimes.get(services); if (existing) return existing;
   const scheduler = new WorkflowScheduler(services);
-  const value: Runtime = { scheduler, agents: new AgentLibrary(services), cli: new CliService(services), collaboration: new CollaborationService(services), productivity: new Productivity(services), orchestration: new OrchestrationService(services), advisor: new AdvisorService(services, scheduler), github: new GithubTaskBoard(services, scheduler), ready: scheduler.initialize() };
+  const productivity = new Productivity(services);
+  const value: Runtime = { scheduler, agents: new AgentLibrary(services), cli: new CliService(services), collaboration: new CollaborationService(services), productivity, orchestration: new OrchestrationService(services), advisor: new AdvisorService(services, scheduler), github: new GithubTaskBoard(services, scheduler), ready: Promise.all([scheduler.initialize(), productivity.initialize()]).then(() => undefined) };
   runtimes.set(services, value); return value;
 }
 function capability(action: string, description: string, mutating = false, properties: JsonRecord = {}, requiredFields: string[] = [], permission?: string): Capability {
@@ -49,7 +50,7 @@ const workflowCapabilities: Capability[] = [
   capability('evidence/export', '导出脱敏 Run、事件、证据 refs、版本及许可清单', false, runId, ['runId']),
   capability('artifact/get', '按需获取 Run 结果正文并校验 hash', false, { artifactId: string }, ['artifactId']),
   ...['list', 'create', 'update', 'archive', 'remove', 'import', 'export'].map(action => capability(`todo/${action}`, '四目标待办、四象限、有效日期、证据完成、Markdown 标签和 CAS', !['list', 'export'].includes(action), { ...todoFields, query: string, today: string, limit: number, legacyTags: record, originalBody: string }, action === 'create' ? ['content'] : [])),
-  ...['list', 'get', 'create', 'update', 'apply', 'revoke', 'pause', 'injections', 'tick'].map(action => capability(`prompt/${action}`, '版本化提示词与有来源、可撤销的定次/连续注入', !['list', 'get', 'injections'].includes(action), { id: string, templateId: string, name: string, content: string, description: string, category: string, tags: strings, enabled: boolean, bindings: record, query: string, schedule: { enum: ['once', 'rounds', 'every', 'continuous', 'immediate'] }, rounds: number, everyTurns: number, sessionId: string, expectedRevision: number, turn: number })),
+  ...['list', 'get', 'create', 'update', 'apply', 'schedule', 'revoke', 'pause', 'injections', 'tick'].map(action => capability(`prompt/${action}`, action === 'schedule' ? '在指定延时后向主代理或子代理会话发送固定文字；计划持久化并由正式宿主注入接口投递' : '版本化提示词与有来源、可撤销的定次/连续注入', !['list', 'get', 'injections'].includes(action), { id: string, templateId: string, name: string, content: string, text: string, description: string, category: string, tags: strings, enabled: boolean, bindings: record, query: string, schedule: { enum: ['once', 'rounds', 'every', 'continuous', 'immediate', 'delay'] }, rounds: number, everyTurns: number, delayMinutes: number, sessionId: string, expectedRevision: number, turn: number })),
   capability('models/list', '从正式宿主枚举精确模型身份；能力、价格和实际身份未知保持 unknown', false),
   ...['list', 'resolve', 'select'].map(action => capability(`routes/${action}`, '确定性模型策略、硬过滤、严格候选池、费用未知和亲和性预览', action === 'select', { reference: string, nodeId: string, roleId: string, prompt: string, policy: record, approvedPool: { type: 'array', items: { anyOf: [record, string] } }, inputTokens: number, maxOutputTokens: number, unknownCostPolicy: record, currentAffinity: record, hysteresisThreshold: number, remainingBudget: record, allowedRegions: strings, authorizationRef: string, allowedExecutorIds: strings, toolSchemaTokens: number, retriesReserved: number, promptEpoch: string, toolSurfaceEpoch: string, rendererVersion: string, cacheNamespace: string, excludedModelKeys: strings, excludedContextLineageIds: strings })),
   ...['list', 'get', 'save', 'validate', 'compile', 'catalog', 'framework', 'roles', 'generate', 'validate_leaf', 'leaves/list', 'leaves/get', 'leaves/generation', 'compile_leaf'].map(action => capability(`blueprints/${action}`, 'Metis 16 框架、26 角色、蓝图保护门与有版本来源的三轴生成方法读取/编译；接同一 TaskPlan/Run', ['save', 'compile', 'generate', 'compile_leaf'].includes(action), { id: string, blueprintId: string, blueprint: record, goal: string, shape: record, prompts: record, oracles: record, allowAgents: boolean, expectedRevision: number, authorizationRefs: strings, budgets: record, maxOutputTokens: number, approvedPool: { type: 'array', items: { anyOf: [record, string] } }, unknownCostPolicy: record, requireObservedRoutes: boolean, requireDifferentModel: boolean, remainingBudget: record, allowedRegions: strings, allowedExecutorIds: strings, input: record, leaf: record, leafId: string, leafHash: string, generationId: string, generationAttempt: { type: 'integer', minimum: 1, maximum: 2 }, rolePolicies: record, adaptations: record })),
@@ -111,7 +112,7 @@ export function createWorkflowModule(services: NexusServices): NexusModule {
       if (action === 'evidence/export') return rt.scheduler.export(id, context);
       throw new NexusError('INVALID_ARGUMENT', `未知 workflow action ${action}`);
     },
-    dispose: () => rt.scheduler.dispose(),
+    dispose: async () => { rt.productivity.dispose(); await rt.scheduler.dispose(); },
   };
 }
 

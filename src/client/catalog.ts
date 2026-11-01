@@ -83,7 +83,7 @@ export function findAction(catalog: DomainDefinition[], domain: string, choices:
 export const fieldLabels: Record<string, string> = {
   id: '身份 ID', title: '标题', name: '名称', content: '内容', text: '正文', query: '查询', path: '工作区相对路径', destination: '目标路径',
   goal: '目标', prompt: '执行指令', description: '说明', scope: '作用范围', type: '类型', model: '模型', provider: '提供方',
-  sessionId: '会话 ID', runId: '运行 ID', planId: '计划 ID', expertId: '代理 ID', canvasId: '画布 ID', nodeId: '节点 ID',
+  sessionId: '会话 ID', runId: '运行 ID', planId: '计划 ID', expertId: '代理 ID', canvasId: '画布 ID', nodeId: '节点 ID', delayMinutes: '延时（分钟）',
   branch: '分支', tags: '标签', command: '命令', args: '参数', timeoutMs: '超时（毫秒）', credentialRef: '凭据引用',
   expectedHash: '基础内容 Hash', expectedRevision: '基础修订号', mode: '模式', limit: '加载上限', dryRun: '先预演', enabled: '启用',
   nodes: '执行节点', edges: '依赖连线', checks: '独立验证器', role: '角色', dependsOn: '依赖节点', blueprintId: '蓝图 ID',
@@ -96,6 +96,7 @@ export const actionLabels: Record<string, string> = {
   'plans/list': '执行计划', 'plan/get': '计划详情', 'todo/create': '新建任务', 'todo/list': '任务清单',
   'blueprints/list': '编排蓝图', 'blueprints/compile': '编译蓝图', 'models/list': '可用模型', 'models.list': '可用模型',
   'git.status': '仓库状态', 'git.diff': '查看差异', 'git.log': '提交历史', 'git.commit': '提交已暂存修改',
+  'prompt/schedule': '延时发送固定文字',
   'terminal.run': '执行命令', 'terminal.open': '打开宿主终端', 'jobs.list': '后台作业',
   compress: '压缩选中范围', decompress: '恢复压缩内容', decide: '自治压缩决策', prepare: '编译上下文',
   'epochs/get': '配置 epoch', 'cache/report': '缓存证据', 'wire/diff': '前缀差异', 'policy/get': '压缩策略',

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { registerContextMaintenance, compactionOutcome } from '../src/client/ContextMaintenance.js';
 import { registerRequestRetryButton } from '../src/client/RequestRetryButton.js';
+import { registerDelayedMessageButton } from '../src/client/DelayedMessageButton.js';
 import type { ClientContext, NexusApi } from '../src/client/types.js';
 
 test('the subagent-only slash contribution and button share exact-session compression without submitting a prompt', async () => {
@@ -87,4 +88,26 @@ test('retry/freeze trigger is registered in the right input seat and keeps the e
   assert.equal(element.props.api, api);
   cleanup();
   assert.equal(disposed, true);
+});
+
+test('delayed message trigger shares the right input seat used by main and subagent composers', () => {
+  const registrations: any[] = [];
+  const api = {} as NexusApi;
+  const ctx = {
+    slots: {
+      inject(_name: string, mount: () => any) { return mount(); },
+      register(definition: any, component: any) {
+        registrations.push({ definition, component });
+        return () => {};
+      },
+    },
+  } as unknown as ClientContext;
+  const cleanup = registerDelayedMessageButton(ctx, api);
+  assert.equal(registrations[0].definition.name, 'conversation.input.right');
+  assert.equal(registrations[0].definition.id, 'noemaloom.delayed-message');
+  assert.equal(registrations[0].definition.order, 95);
+  const element = registrations[0].component({ sessionId: 'child-session' });
+  assert.equal(element.props.sessionId, 'child-session');
+  assert.equal(element.props.api, api);
+  cleanup();
 });

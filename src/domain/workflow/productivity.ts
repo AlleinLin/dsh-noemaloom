@@ -5,6 +5,20 @@ import { projectId } from '../memory/types.js';
 
 interface Todo extends JsonRecord { id: string; content: string; scope: string; status: string; quadrant: number; due?: string; date?: string; category?: string; createdAt: string; updatedAt: string; doneAt?: string; archivedAt?: string; ownerSessionId: string; }
 interface Prompt extends JsonRecord { id: string; name: string; content: string; description: string; enabled: boolean; bindings?: string[]; source: string; }
+interface ScheduledInjection extends JsonRecord {
+  id: string;
+  sessionId: string;
+  body: string;
+  status: 'scheduled' | 'delivering' | 'completed' | 'queued' | 'failed' | 'paused' | 'revoked';
+  dueAt: string;
+  delayMinutes: number;
+  attempts: number;
+  createdAt: string;
+  updatedAt?: string;
+  deliveredAt?: string;
+  receipt?: unknown;
+  deliveryError?: string;
+}
 const dateOnly = (value: unknown): string | undefined => {
   if (value === undefined || value === null || value === '') return undefined;
   const parsed = typeof value === 'string' ? new Date(`${value}T00:00:00Z`) : new Date(NaN);
@@ -12,8 +26,87 @@ const dateOnly = (value: unknown): string | undefined => {
   return value;
 };
 const today = (): string => new Date().toISOString().slice(0, 10);
+const MAX_DELAY_MINUTES = 10_080;
+const MAX_TIMER_MS = 2_147_000_000;
+const RETRY_DELAY_MS = 30_000;
 export class Productivity {
+  private readonly timers = new Map<string, ReturnType<typeof setTimeout>>();
+  private readonly delivering = new Set<string>();
+  private disposed = false;
+  private initialized = false;
   constructor(private readonly services: NexusServices) {}
+  async initialize(): Promise<void> {
+    if (this.initialized || this.disposed) return;
+    this.initialized = true;
+    const rows = await this.services.store.list<ScheduledInjection>('workflow-injections');
+    for (const row of rows) {
+      if (this.disposed) return;
+      if (['scheduled', 'queued'].includes(row.value.status)) this.schedule(row.id, row.value.dueAt);
+    }
+  }
+  dispose(): void {
+    this.disposed = true;
+    for (const timer of this.timers.values()) clearTimeout(timer);
+    this.timers.clear();
+  }
+  private schedule(id: string, dueAt: string, delay = 0): void {
+    if (this.disposed) return;
+    const due = Date.parse(dueAt);
+    if (!Number.isFinite(due)) return;
+    const wait = Math.max(0, due - Date.now(), delay);
+    const timer = this.timers.get(id);
+    if (timer) clearTimeout(timer);
+    const handle = setTimeout(() => {
+      this.timers.delete(id);
+      void this.deliverScheduled(id);
+    }, Math.min(wait, MAX_TIMER_MS));
+    handle.unref?.();
+    this.timers.set(id, handle);
+  }
+  private async deliverScheduled(id: string): Promise<void> {
+    if (this.disposed || this.delivering.has(id)) return;
+    this.delivering.add(id);
+    try {
+      const row = await this.services.store.get<ScheduledInjection>('workflow-injections', id);
+      if (!row || !['scheduled', 'queued'].includes(row.value.status)) return;
+      const due = Date.parse(row.value.dueAt);
+      if (Number.isFinite(due) && due > Date.now()) {
+        this.schedule(id, row.value.dueAt);
+        return;
+      }
+      const value: ScheduledInjection = {
+        ...row.value, status: 'delivering', attempts: Number(row.value.attempts ?? 0) + 1, updatedAt: now(),
+      };
+      const delivering = await this.services.store.put('workflow-injections', id, value, row.revision);
+      try {
+        const receipt = await this.services.host.sessions('inject', {
+          sessionId: value.sessionId,
+          text: value.body,
+          source: { kind: 'plugin', id: 'dsh-nexus', operation: 'scheduled-prompt' },
+          injectionId: value.id,
+        });
+        await this.services.store.put('workflow-injections', id, {
+          ...value, status: 'completed', receipt, deliveredAt: now(), updatedAt: now(), deliveryError: undefined,
+        }, delivering.revision);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        const current = await this.services.store.get<ScheduledInjection>('workflow-injections', id);
+        if (!current || !['delivering', 'scheduled', 'queued'].includes(current.value.status)) return;
+        const retry: ScheduledInjection = {
+          ...current.value, status: 'queued', deliveryError: message, updatedAt: now(),
+        };
+        await this.services.store.put('workflow-injections', id, retry, current.revision);
+        this.schedule(id, retry.dueAt, RETRY_DELAY_MS);
+      }
+    } catch (error) {
+      // A concurrent revoke/pause or a transient CAS conflict is observed on
+      // the next durable scan; never turn a background timer into a process
+      // level rejection.
+      try { this.services.emit('nexus.workflow.scheduled-injection-error', { id, message: error instanceof Error ? error.message : String(error) }); } catch { /* observational */ }
+    } finally {
+      this.delivering.delete(id);
+    }
+  }
   private scope(row: JsonRecord, context: DispatchContext): void {
     if (context.sessionId && row.scope === 'session' && row.ownerSessionId !== context.sessionId) throw new NexusError('SCOPE_MISMATCH', '对象属于另一会话');
     if (context.scopeLevel !== 'global' && row.projectId && row.projectId !== projectId(context.workspaceRoot ?? this.services.workspaceRoot)) throw new NexusError('SCOPE_MISMATCH', '对象属于另一工作区');
@@ -113,6 +206,25 @@ export class Productivity {
       }
       const row = await this.services.store.get('workflow-injections', String(injection.id));
       return this.services.store.put('workflow-injections', String(injection.id), injection, row?.revision ?? 0);
+    }
+    if (action === 'schedule') {
+      const sessionId = text(params.sessionId ?? context.sessionId, 'sessionId', 256);
+      const body = text(params.text ?? params.content, 'text', 20000);
+      const delayMinutes = Number(params.delayMinutes);
+      if (!Number.isFinite(delayMinutes) || delayMinutes <= 0 || delayMinutes > MAX_DELAY_MINUTES) {
+        throw new NexusError('INVALID_ARGUMENT', `delayMinutes 必须大于0且不超过${MAX_DELAY_MINUTES}分钟`);
+      }
+      if (context.sessionId && sessionId !== context.sessionId && !context.permissions?.has('agents:message')) {
+        throw new NexusError('AUTHORIZATION_REQUIRED', '向其他会话注入需要明确发送授权');
+      }
+      const dueAt = new Date(Date.now() + Math.round(delayMinutes * 60_000)).toISOString();
+      const injection: ScheduledInjection = {
+        id: newId('injection'), sessionId, body, status: 'scheduled', dueAt,
+        delayMinutes, attempts: 0, createdAt: now(), updatedAt: now(),
+      };
+      const row = await this.services.store.put('workflow-injections', injection.id, injection, 0);
+      this.schedule(injection.id, dueAt);
+      return row;
     }
     const id = typeof params.id === 'string' ? params.id : newId('prompt');
     const current = (await this.prompts()).find(p => p.id === id);
