@@ -109,12 +109,49 @@ test('toggle command cleanup uses explicit composer ownership and preserves newl
   assert.deepEqual(cleared, [['main', '']]);
 });
 
+test('addressed subagent model selection uses authenticated host RPC while main sessions retain official directory writes', async () => {
+  const calls = [];
+  const store = { getSnapshot: () => ({ current: null, groups: [], failures: [], status: 'ready', error: null }) };
+  const officialSelect = async selection => { officialSelect.last = selection; };
+  const directories = {
+    child: { store, load: async () => {}, select: async () => { throw new Error('official child select must not run'); } },
+    main: { store, load: async () => {}, select: officialSelect },
+  };
+  const api = await loadAdapted('src/client/modeldir.ts', {
+    './services': {
+      stash: {
+        sessions: { subagentAddress: id => id === 'child' ? { parentSessionId: 'main', childId: 'child' } : undefined },
+        modelDirectories: { directoryFor: id => directories[id] },
+        connection: { rpc: { async call(channel, endpoint, payload) { calls.push({ channel, endpoint, payload }); return { ok: true, value: { ok: true, data: { sessionId: 'child' } } }; } } },
+      },
+    },
+    './diag': { diagDebug() {} },
+  });
+  const child = api.getSessionDirectory('child');
+  await child.select({ provider: 'deepseek', model: 'deepseek-chat', reasoningEffort: 'high' });
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].channel, '/api');
+  assert.equal(calls[0].endpoint, 'nexus/rpc');
+  assert.equal(calls[0].payload.scope.level, 'session');
+  assert.equal(calls[0].payload.scope.sessionId, 'child');
+  assert.equal(calls[0].payload.payload.params.domain, 'session');
+  assert.equal(calls[0].payload.payload.params.sessionId, 'child');
+  assert.equal(calls[0].payload.payload.params.provider, 'deepseek');
+  assert.equal(calls[0].payload.payload.params.model, 'deepseek-chat');
+  assert.equal(calls[0].payload.payload.params.reasoningEffort, 'high');
+  const main = api.getSessionDirectory('main');
+  assert.equal(main.select, officialSelect);
+  await main.select({ provider: 'deepseek', model: 'deepseek-reasoner' });
+  assert.deepEqual(officialSelect.last, { provider: 'deepseek', model: 'deepseek-reasoner' });
+});
+
 test('delivery factory is rebuilt from adapted source and bundles the patched sanitizer', async () => {
   const rebuilt = await buildCodinputClient();
   assert.equal(rebuilt.dependencies.find(pkg => pkg.name === 'dompurify').version, '3.4.17');
   assert.ok(rebuilt.inputs.includes('vendor/codinput/src/client/cm.ts'));
   assert.ok(rebuilt.adaptations.includes('editor-view-scoped-hooks'));
   assert.ok(rebuilt.adaptations.includes('viewport-bounded-scrollable-menus'));
+  assert.ok(rebuilt.adaptations.includes('subagent-model-selection-via-authenticated-host-rpc'));
   assert.ok(rebuilt.requires.every(name => ['react', 'react-dom', 'react/jsx-runtime'].includes(name)));
 });
 

@@ -20,6 +20,7 @@ export const CODINPUT_ADAPTATIONS = [
   'preserve-native-tab-pointer-gestures',
   'restored-context-surface-estimate',
   'native-left-right-input-slots-from-reviewed-upstream-0.3.8',
+  'subagent-model-selection-via-authenticated-host-rpc',
 ];
 
 /** Fail closed when upstream changes; the recorded vendor itself stays verbatim. */

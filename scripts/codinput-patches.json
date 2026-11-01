@@ -172,5 +172,69 @@
         "after": "{known ? `~${shortTokens(displayTokens)}` : '—'} / {shortTokens(windowTokens)}"
       }
     ]
+  },
+  {
+    "file": "src/client/services.ts",
+    "upstreamSha256": "5a3dee9736843626cc3ca85dc3720f2b488d7b578aeabe5f9e3017457ecf7046",
+    "replacements": [
+      {
+        "before": "export interface ServiceStash {\n  slots?: SlotsService;",
+        "after": "export interface ServiceStash {\n  /** 官方 connection RPC；子代理模型选择绕过官方目录的 addressed-session 限制。 */\n  connection?: { rpc?: { call(channel: string, endpoint: string, payload: unknown, signal?: AbortSignal): Promise<any> } };\n  slots?: SlotsService;"
+      },
+      {
+        "before": "export function installServices(ctx: ClientContext): void {\n  // 消费 conversation 服务",
+        "after": "export function installServices(ctx: ClientContext): void {\n  // connection 不在组件静态服务面上暴露给 vendor 组件；通过 stash 传递最小 RPC 面。\n  runGuarded('stash.connection', () => {\n    stash.connection = ctx.get('connection') as ServiceStash['connection'];\n  });\n\n  // 消费 conversation 服务"
+      }
+    ]
+  },
+  {
+    "file": "src/client/host-types.ts",
+    "upstreamSha256": "0cd0f85be1e6b3f20ceed4fd0dad8699e51d7a0dcdb19c9206ad02d1102a4d90",
+    "replacements": [
+      {
+        "before": "export interface SessionsFace {\n  binding(id: string): SessionBinding | undefined;\n  scope(id: string): unknown;\n}",
+        "after": "export interface SessionsFace {\n  binding(id: string): SessionBinding | undefined;\n  scope(id: string): unknown;\n  /** addressed subagent 的官方地址；存在时官方 modelDirectories.select 会拒绝写入。 */\n  subagentAddress?(id: string): unknown;\n}"
+      }
+    ]
+  },
+  {
+    "file": "src/client/modeldir.ts",
+    "upstreamSha256": "012ea1ee98255aa77d933bd0089b7f43e8ddfb9dfc1594226a02de73dc559eb9",
+    "replacements": [
+      {
+        "before": "export interface SessionDirectory {\n  store: HostObservable<DirectorySnapshot>;\n  load(): Promise<unknown>;\n  select(selection: ModelSelection): Promise<void>;\n}\n\n/** 取 per-session 目录（官方 directoryFor）；服务或会话缺席返回 null。 */",
+        "after": "export interface SessionDirectory {\n  store: HostObservable<DirectorySnapshot>;\n  load(): Promise<unknown>;\n  select(selection: ModelSelection): Promise<void>;\n}\n\nfunction addressedSubagent(sessionId: string): boolean {\n  const probe = stash.sessions?.subagentAddress;\n  if (typeof probe !== 'function') return false;\n  try { return probe.call(stash.sessions, sessionId) !== undefined; } catch { return false; }\n}\n\n/**\n * 官方目录对 addressed subagent 故意不可写。Codinput 仍须提供同一模型\n * 选择体验，因此走已认证的 connection-owner Nexus RPC；宿主 session-bridge\n * 会把选择安装到该 live Agent 的下一轮 prompt assembly。\n */\nlet selectionSequence = 0;\n\nasync function selectAddressedSubagent(sessionId: string, selection: ModelSelection): Promise<void> {\n  const rpc = stash.connection?.rpc;\n  if (typeof rpc?.call !== 'function') throw new Error('宿主连接 RPC 不可用，无法切换子代理模型');\n  const requestId = `codinput-model:${sessionId}:${Date.now().toString(36)}:${++selectionSequence}`;\n  const params = {\n    domain: 'session', sessionId, provider: selection.provider, model: selection.model,\n    ...(selection.reasoningEffort ? { reasoningEffort: selection.reasoningEffort } : {}),\n  };\n  const envelope = await rpc.call('/api', 'nexus/rpc', {\n    protocolVersion: 1, method: 'nexus.command',\n    scope: { level: 'session', sessionId },\n    payload: { action: 'model.select', requestId, params },\n  });\n  if (!envelope || envelope.ok !== true) throw new Error(String(envelope?.error?.message ?? '模型切换请求失败'));\n  const response = envelope.value;\n  if (!response || response.ok !== true) throw new Error(String(response?.error?.message ?? '宿主拒绝了模型切换'));\n  if (response.data?.sessionId && response.data.sessionId !== sessionId) throw new Error('宿主返回了不匹配的子代理会话');\n}\n\n/** 取 per-session 目录（官方 directoryFor）；服务或会话缺席返回 null。 */"
+      },
+      {
+        "before": "  try {\n    return dir.directoryFor(sessionId);\n  } catch (error) {",
+        "after": "  try {\n    const original = dir.directoryFor(sessionId);\n    if (!original || !addressedSubagent(sessionId)) return original;\n    // 保留官方 store/load（目录仍负责 catalog 与当前投影），只替换被官方\n    // assertAvailable 拒绝的 select 写入。\n    return {\n      store: original.store,\n      load: () => original.load(),\n      select: (selection: ModelSelection) => selectAddressedSubagent(sessionId, selection),\n    };\n  } catch (error) {"
+      }
+    ]
+  },
+  {
+    "file": "src/client/components/ModelMenu.tsx",
+    "upstreamSha256": "9e13ba56a8b0b317f06826fba8d7fa6a516596de9ced6be588300c901201e240",
+    "replacements": [
+      {
+        "before": "function modelLabel(selection: ModelSelection | null, groups: readonly ModelProviderGroup[]): string {",
+        "after": "function sameSelection(left: ModelSelection | null | undefined, right: ModelSelection | null | undefined): boolean {\n  return left?.provider === right?.provider && left?.model === right?.model\n    && left?.reasoningEffort === right?.reasoningEffort;\n}\n\nfunction modelLabel(selection: ModelSelection | null, groups: readonly ModelProviderGroup[]): string {"
+      },
+      {
+        "before": "  const [anchor, setAnchor] = useState<{ left: number; top: number; right: number; bottom: number } | null>(null);\n\n  // 服务缺席",
+        "after": "  const [anchor, setAnchor] = useState<{ left: number; top: number; right: number; bottom: number } | null>(null);\n  // 子代理模型选择经宿主 RPC 成功后，官方目录不会回写 addressed session；\n  // 这一层投影让触发器与菜单立即显示新模型，直到目录回读确认。\n  const [localSelection, setLocalSelection] = useState<ModelSelection | null>(null);\n\n  // 服务缺席"
+      },
+      {
+        "before": "  const snap = useSnapshot(directory?.store) as DirectorySnapshot | undefined;\n\n  // 首次打开时",
+        "after": "  const snap = useSnapshot(directory?.store) as DirectorySnapshot | undefined;\n\n  useEffect(() => {\n    setLocalSelection(null);\n  }, [sessionId]);\n\n  useEffect(() => {\n    if (localSelection && sameSelection(localSelection, snap?.current)) setLocalSelection(null);\n  }, [localSelection, snap?.current]);\n\n  // 首次打开时"
+      },
+      {
+        "before": "  const current = snap?.current ?? null;\n  const groups = snap?.groups ?? [];",
+        "after": "  const current = localSelection ?? snap?.current ?? null;\n  const groups = snap?.groups ?? [];"
+      },
+      {
+        "before": "    try {\n      await directory.select(next);\n    } catch (error) {",
+        "after": "    try {\n      await directory.select(next);\n      setLocalSelection(next);\n      // 主代理官方目录会异步回写；子代理目录可能只更新 catalog，回读\n      // 仍可刷新其他状态，localSelection 负责当前模型的即时显示。\n      void directory.load().catch(() => {});\n    } catch (error) {"
+      }
+    ]
   }
 ]
