@@ -150,6 +150,38 @@ test('addressed subagent model selection uses authenticated host RPC while main 
   assert.deepEqual(officialSelect.last, { provider: 'deepseek', model: 'deepseek-reasoner' });
 });
 
+test('addressed subagent model selection also detects the rc.5 session-list projection', async () => {
+  const calls = [];
+  const directories = {
+    child: { store: {}, load: async () => {}, select: async () => { throw new Error('official child select must not run'); } },
+  };
+  const api = await loadAdapted('src/client/modeldir.ts', {
+    './services': {
+      stash: {
+        sessions: {
+          list: {
+            getSnapshot: () => ({ byId: { child: { origin: 'subagent', parentId: 'main' } } }),
+          },
+        },
+        modelDirectories: { directoryFor: id => directories[id] },
+        connection: {
+          rpc: {
+            async call(channel, endpoint, payload) {
+              calls.push({ channel, endpoint, payload });
+              return { ok: true, value: { ok: true, data: { sessionId: 'child' } } };
+            },
+          },
+        },
+      },
+    },
+    './diag': { diagDebug() {} },
+  });
+  await api.getSessionDirectory('child').select({ provider: 'anthropic', model: 'claude-opus-5-5' });
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].payload.payload.params.sessionId, 'child');
+  assert.equal(calls[0].payload.payload.params.model, 'claude-opus-5-5');
+});
+
 test('delivery factory is rebuilt from adapted source and bundles the patched sanitizer', async () => {
   const rebuilt = await buildCodinputClient();
   assert.equal(rebuilt.dependencies.find(pkg => pkg.name === 'dompurify').version, '3.4.17');
