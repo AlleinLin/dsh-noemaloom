@@ -14,6 +14,7 @@
 - 新增真实 RPC 路由回归，修复前重现“此领域动作未注册”。
 - 新增已释放子会话回归，修复前重现 `SESSION_NOT_LIVE`；修复后验证正式追加、flush、句柄释放，以及插件重建后请求装配仍采用新模型，不调用 `agents.resume`。
 - `node --import tsx --test tests/session-model-selection.test.ts tests/codinput-adaptation.test.mjs`：10 项通过。
+- 相邻压缩绑定测试的模拟 Agent 补齐正式 `session.header` 字段；原模拟只有 id/ctx，新增生命周期监听使这个缺失被 CI 检出。
 - `npm run typecheck`、`npm run build`、`npm run pack:delivery` 通过，依赖审计 0 漏洞。
 - 在用户实际 Desktop profile 安装，关键文件摘要全部匹配。
 - 在实际打开的历史子代理页面点击 `hjmclaude` 下的 `claude-opus-5-5`，名称由 `Claude Opus 5.5` 变为 `claude-opus-5-5`，没有选择错误。

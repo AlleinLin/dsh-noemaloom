@@ -11,7 +11,7 @@ import { HarnessError } from '@deepseek-ai/dsh-llm';
 
 test('the production compression bridge reaches the provider isolated below the agent preset and releases it on unload', async t => {
   const root = new Context(), id = `binding-${randomUUID()}`, signal = new AbortController().signal;
-  const agent = { id, ctx: root };
+  const agent = { id, ctx: root, session: { header: { id } } };
   const calls: any[] = [];
   let host!: ReturnType<typeof createHostAdapter>;
   const owner = root.plugin({ name: 'compaction-binding-host', apply(ctx: Context) {
