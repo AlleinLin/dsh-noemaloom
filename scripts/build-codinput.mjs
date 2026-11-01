@@ -21,6 +21,7 @@ export const CODINPUT_ADAPTATIONS = [
   'restored-context-surface-estimate',
   'native-left-right-input-slots-from-reviewed-upstream-0.3.8',
   'subagent-model-selection-via-authenticated-host-rpc',
+  'codinput-connection-injection-for-model-selection',
 ];
 
 /** Fail closed when upstream changes; the recorded vendor itself stays verbatim. */

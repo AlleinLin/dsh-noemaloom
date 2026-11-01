@@ -109,6 +109,11 @@ test('toggle command cleanup uses explicit composer ownership and preserves newl
   assert.deepEqual(cleared, [['main', '']]);
 });
 
+test('Codinput declares the connection service required by the subagent model adapter', async () => {
+  const source = adaptCodinputSource('src/client/index.tsx', await readFile('vendor/codinput/src/client/index.tsx'));
+  assert.ok(source.includes("export const inject = ['slots', 'conversation', 'connection']"));
+});
+
 test('addressed subagent model selection uses authenticated host RPC while main sessions retain official directory writes', async () => {
   const calls = [];
   const store = { getSnapshot: () => ({ current: null, groups: [], failures: [], status: 'ready', error: null }) };
@@ -152,6 +157,7 @@ test('delivery factory is rebuilt from adapted source and bundles the patched sa
   assert.ok(rebuilt.adaptations.includes('editor-view-scoped-hooks'));
   assert.ok(rebuilt.adaptations.includes('viewport-bounded-scrollable-menus'));
   assert.ok(rebuilt.adaptations.includes('subagent-model-selection-via-authenticated-host-rpc'));
+  assert.ok(rebuilt.adaptations.includes('codinput-connection-injection-for-model-selection'));
   assert.ok(rebuilt.requires.every(name => ['react', 'react-dom', 'react/jsx-runtime'].includes(name)));
 });
 

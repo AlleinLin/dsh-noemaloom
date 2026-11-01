@@ -142,6 +142,10 @@
     "upstreamSha256": "174bc28c4b860a690525158f232d0ebcfcbc48ad963dc002eab18925c961c4cd",
     "replacements": [
       {
+        "before": "export const inject = ['slots', 'conversation'];",
+        "after": "// connection is required by the addressed-subagent model adapter; the adapter\n// still consumes only the narrow rpc face from services.ts.\nexport const inject = ['slots', 'conversation', 'connection'];"
+      },
+      {
         "before": "  // ---- 去掉 dockkit「拖动标签页→浮动/换位」手势（产品决策 2026-09-20：\n  // 悬浮只经主输入卡片 pin 按钮进入）。capture 相位拦掉 tab chip 的\n  // pointerdown，dockkit 的 press→drag 追踪不再启动；点击激活走独立\n  // click 事件、关闭按钮有专属 pointerdown 处理，均不受影响。 ----\n  runGuarded('draggate.install', () => {\n    const w = window as unknown as { __dshCodinputDragGate?: boolean };\n    if (w.__dshCodinputDragGate) return;\n    w.__dshCodinputDragGate = true;\n    document.addEventListener(\n      'pointerdown',\n      (event) => {\n        if (!(event.target instanceof Element)) return;\n        if (event.target.closest('[data-dockkit-tab-close]')) return;\n        if (event.target.closest('[data-dockkit-tab]')) event.stopPropagation();\n      },\n      { capture: true },\n    );\n  });\n\n",
         "after": "  // Native dockkit owns tab dragging; never capture document-wide pointer events.\n\n"
       }
@@ -183,7 +187,7 @@
       },
       {
         "before": "export function installServices(ctx: ClientContext): void {\n  // 消费 conversation 服务",
-        "after": "export function installServices(ctx: ClientContext): void {\n  // connection 不在组件静态服务面上暴露给 vendor 组件；通过 stash 传递最小 RPC 面。\n  runGuarded('stash.connection', () => {\n    stash.connection = ctx.get('connection') as ServiceStash['connection'];\n  });\n\n  // 消费 conversation 服务"
+        "after": "export function installServices(ctx: ClientContext): void {\n  // connection 通过独立注入拿到，避免与 commandUi/sessions 的异步服务面耦合。\n  // rc.5 的 connection accessor 只在声明过该服务的 fiber 上稳定可读。\n  runGuarded('stash.connection', () => {\n    ctx.inject(['connection'], (scope: Record<string, unknown>) => {\n      stash.connection = scope['connection'] as ServiceStash['connection'];\n    });\n  });\n\n  // sessions 单独注入：子代理判断不能因为 commandUi 尚未就绪而丢失。\n  runGuarded('stash.sessions', () => {\n    ctx.inject(['sessions'], (scope: Record<string, unknown>) => {\n      stash.sessions = scope['sessions'] as SessionsFace;\n    });\n  });\n\n  // 消费 conversation 服务"
       }
     ]
   },
