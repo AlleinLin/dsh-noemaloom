@@ -139,7 +139,8 @@ test('addressed subagent model selection uses authenticated host RPC while main 
   assert.equal(calls[0].endpoint, 'nexus/rpc');
   assert.equal(calls[0].payload.scope.level, 'session');
   assert.equal(calls[0].payload.scope.sessionId, 'child');
-  assert.equal(calls[0].payload.payload.params.domain, 'session');
+  assert.equal(calls[0].payload.payload.params.domain, 'agents');
+  assert.equal(calls[0].payload.payload.action, 'session/model.select');
   assert.equal(calls[0].payload.payload.params.sessionId, 'child');
   assert.equal(calls[0].payload.payload.params.provider, 'deepseek');
   assert.equal(calls[0].payload.payload.params.model, 'deepseek-chat');
@@ -180,6 +181,57 @@ test('addressed subagent model selection also detects the rc.5 session-list proj
   assert.equal(calls.length, 1);
   assert.equal(calls[0].payload.payload.params.sessionId, 'child');
   assert.equal(calls[0].payload.payload.params.model, 'claude-opus-5-5');
+});
+
+test('model picker reaches the registered agents capability through the real RPC route', async () => {
+  const { createAgentsModule } = await import('../src/domain/workflow/index.ts');
+  const { registerRpcRoute } = await import('../src/host/routes.ts');
+  const { OperationController } = await import('../src/host/lifecycle.ts');
+  const calls = [];
+  const services = {
+    workspaceRoot: process.cwd(),
+    store: { async list() { return []; }, async get() { return undefined; } },
+    emit() {},
+    host: { async sessions(action, params) { calls.push({ action, params }); return { sessionId: params.sessionId }; } },
+  };
+  const agents = createAgentsModule(services);
+  let route;
+  const ctx = {
+    get: name => name === 'sessions' ? { get: id => ({ header: { id, cwd: process.cwd() } }) } : undefined,
+    connection: { fetch: { register(value) { route = value; return async () => {}; } } },
+  };
+  const controller = new OperationController();
+  registerRpcRoute(ctx, {
+    services,
+    capabilities: domain => domain === agents.id ? agents.capabilities : [],
+    async dispatch(domain, payload, context) {
+      assert.equal(domain, agents.id);
+      return { ok: true, data: await agents.dispatch(payload, context) };
+    },
+  }, controller, 65536);
+  const api = await loadAdapted('src/client/modeldir.ts', {
+    './services': { stash: {
+      sessions: { subagentAddress: () => ({ parentSessionId: 'main' }) },
+      modelDirectories: { directoryFor: () => ({ store: {}, load: async () => {} }) },
+      connection: { rpc: { async call(channel, method, payload) {
+        const response = await route.fetch(new Request(`http://fixture.invalid${channel}/${method}`, {
+          method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ type: 'client-request', rpcId: 'picker', method, payload }),
+        }));
+        return (await response.json()).result;
+      } } },
+    } },
+    './diag': { diagDebug() {} },
+  });
+  try {
+    await api.getSessionDirectory('child').select({ provider: 'hjmclaude', model: 'claude-opus-5-5' });
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].action, 'model.select');
+    assert.equal(calls[0].params.sessionId, 'child');
+    assert.equal(calls[0].params.model, 'claude-opus-5-5');
+  } finally {
+    await controller.dispose();
+  }
 });
 
 test('delivery factory is rebuilt from adapted source and bundles the patched sanitizer', async () => {

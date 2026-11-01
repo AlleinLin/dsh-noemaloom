@@ -6,7 +6,7 @@ import {
   type Agent, type AgentHandle, type AgentOptions, type ModelSelectionRef,
 } from '@deepseek-ai/dsh-agent';
 import { createUserMessage, ReasoningEffortId, type UserMessage } from '@deepseek-ai/dsh-llm';
-import { buildForkSeed, SessionId, SessionLogOffset, SessionSeq, type SessionEvent, type SessionHeader } from '@deepseek-ai/dsh-session';
+import { buildForkSeed, SessionId, SessionLogOffset, SessionSeq, snapshotSessionEvent, type SessionEvent, type SessionHeader } from '@deepseek-ai/dsh-session';
 import { SANDBOX_MODES, setSandboxMode } from '@deepseek-ai/dsh-sandbox-policy';
 import { NexusError, type JsonRecord, type NexusServices, type StoredRecord } from '../ports/contracts.js';
 import { NEXUS_SOURCE } from './source.js';
@@ -127,6 +127,81 @@ export function createSessionBridge(
     if (!agent) throw new NexusError('SESSION_NOT_LIVE', '会话没有存活的 Agent；请先显式 resume/open');
     return agent;
   };
+  function selectionFor(agent: Agent) {
+    let selection = selections.get(agent.id);
+    if (selection?.agent !== agent) {
+      selection?.dispose();
+      const ref: ModelSelectionRef = { current: undefined, assembled: undefined };
+      selection = { agent, ref, dispose: installModelSelection(agent.ctx, ref) };
+      selections.set(agent.id, selection);
+    }
+    return selection!;
+  }
+  // Native subagents release their Agent at idle. Their next native continuation
+  // reconstructs creation options from the descriptor, so restore the user's
+  // later model choice from the official log before that continuation can run.
+  const removeSelectionRestore = ctx.on?.('agent/created', async ({ agent }: { agent: Agent }) => {
+    if (agent.session.header.origin !== 'subagent') return;
+    const source = await nativeSnapshot(agent.id);
+    const event = source.events.findLast(event => event.seq >= source.inheritedEventCount && event.type === 'model/selection' as string);
+    const selected = object(event?.data);
+    if (typeof selected.provider !== 'string' || typeof selected.model !== 'string') return;
+    selectionFor(agent).ref.current = {
+      provider: selected.provider, model: selected.model,
+      ...(typeof selected.reasoningEffort === 'string' ? { reasoningEffort: ReasoningEffortId(selected.reasoningEffort) } : {}),
+    };
+  });
+  const removeSelectionRelease = ctx.on?.('agent/disposed', ({ agent }: { agent: Agent }) => {
+    const selection = selections.get(agent.id);
+    if (selection?.agent === agent) {
+      selection.dispose();
+      selections.delete(agent.id);
+    }
+  });
+  async function selectSessionModel(id: string, params: JsonRecord): Promise<JsonRecord> {
+    // A new route without an explicit effort uses the selected provider's
+    // default, rather than inheriting an effort from the previous provider.
+    const selected = await optionsFor(params);
+    if (!selected?.provider || !selected.model) throw new NexusError('INVALID_ARGUMENT', '需要明确模型路由');
+    const nextSelection = {
+      provider: selected.provider, model: selected.model,
+      ...(selected.reasoningEffort ? { reasoningEffort: selected.reasoningEffort } : {}),
+    };
+    const applyLive = async (agent: Agent) => {
+      (agent.session as any).append('model/selection', nextSelection);
+      selectionFor(agent).ref.current = nextSelection;
+      if (await requireService('sessions', 'flush').flush(agent.session) !== true) {
+        throw new NexusError('SESSION_DURABILITY_UNVERIFIED', '模型已选择，但宿主尚未确认保存，请重试');
+      }
+    };
+    const current = findAgent(id);
+    if (current) await applyLive(current);
+    else {
+      // Claim only the official append-only persistence handle. Do not create
+      // an Agent, resume its inbox, inject input, or change subagent ownership.
+      let handle;
+      try {
+        handle = await requireService('sessionPersistence', 'open').open(SessionId(id), 'write', { signal: pluginSignal });
+      } catch (error) {
+        const raced = findAgent(id);
+        if (!raced) throw error;
+        await applyLive(raced);
+      }
+      if (handle) {
+        try {
+          if (handle.id !== id || handle.header.id !== id) throw new NexusError('HOST_CONTRACT_UNSUPPORTED', '宿主返回了不同会话的保存句柄');
+          const { events } = await handle.read(0, undefined, { signal: pluginSignal });
+          const event = snapshotSessionEvent({
+            type: 'model/selection', seq: SessionSeq(events.length), time: Date.now(), data: nextSelection,
+          } as any);
+          await handle.append([event], { signal: pluginSignal });
+          await handle.flush({ signal: pluginSignal });
+        } finally { await handle.close(); }
+      }
+    }
+    return { sessionId: id, selected: nextSelection, effective: 'next-prompt-assembly',
+      persistedOnNextRequest: false, durableSelectionEvent: true, durable: true, authenticated: 'upstream-on-call' };
+  }
   async function workspaceIdentity(cwd: string): Promise<string> {
     const canonical = await realpath(cwd);
     const info = await stat(canonical, { bigint: true });
@@ -691,18 +766,12 @@ export function createSessionBridge(
           completion: 'session-status-is-not-an-activation-verdict', revision: revision(snapshot) };
       }
       case 'model.select': case 'models.select': {
-        const agent = liveAgent(text(params, 'sessionId', sessionId));
-        const selected = await optionsFor(params, agent);
-        if (!selected?.provider || !selected.model) throw new NexusError('INVALID_ARGUMENT', '需要明确模型路由');
-        let selection = selections.get(agent.id);
-        if (selection?.agent !== agent) {
-          selection?.dispose();
-          const ref: ModelSelectionRef = { current: undefined, assembled: undefined };
-          selection = { agent, ref, dispose: installModelSelection(agent.ctx, ref) };
-          selections.set(agent.id, selection);
-        }
-        selection.ref.current = { provider: selected.provider, model: selected.model, ...(selected.reasoningEffort ? { reasoningEffort: selected.reasoningEffort } : {}) };
-        return { sessionId: agent.id, selected: selection.ref.current, effective: 'next-prompt-assembly', persistedOnNextRequest: true, authenticated: 'upstream-on-call' };
+        const id = text(params, 'sessionId', sessionId), key = `model-select:${id}`;
+        const previous = inflight.get(key);
+        const pending = (previous ? previous.catch(() => {}) : Promise.resolve()).then(() => selectSessionModel(id, params));
+        inflight.set(key, pending);
+        try { return await pending; }
+        finally { if (inflight.get(key) === pending) inflight.delete(key); }
       }
       case 'permissions': {
         const agent = liveAgent(text(params, 'sessionId', sessionId));
@@ -730,6 +799,8 @@ export function createSessionBridge(
       let pendingError: unknown;
       try { await bounded(Promise.allSettled([...inflight.values()]), 30_000, 'pending session publications'); }
       catch (error) { pendingError = error; }
+      if (typeof removeSelectionRestore === 'function') removeSelectionRestore();
+      if (typeof removeSelectionRelease === 'function') removeSelectionRelease();
       for (const selection of selections.values()) selection.dispose();
       selections.clear();
       const results = await Promise.allSettled([...owned].map(async ([id, handle]) => {
