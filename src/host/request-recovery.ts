@@ -28,8 +28,14 @@ const STOP_REASONS = new Set([
   'budget-denied', 'session-deleted', 'recovery-handler-failed',
   'recovery-state-unavailable', 'recovery-record-failed', 'native-retry-stopped',
   'context-compactor-unavailable', 'context-compacted', 'no-proven-context-reduction', 'no-safe-bounded-range', 'summary-model-declined-safe-range',
-  'retry-settings-unavailable',
+  'retry-settings-unavailable', 'context-maintenance-not-retryable',
 ]);
+// Automatic preparation may safely repeat only when the native lane is
+// temporarily occupied. A failed proposal, missing window, disabled
+// compression, or an unproven effect cannot change by replaying the same
+// request; retrying those failures used to leave child agents in an endless
+// same-step countdown until the host cancelled it.
+const RETRYABLE_PREPARATION_MAINTENANCE = new Set(['CTX_NATIVE_BUSY']);
 
 export interface RequestRecoveryDiagnostic {
   schemaVersion: 1;
@@ -435,6 +441,11 @@ export function registerRequestRecovery(ctx: HostContext): () => void {
       const initialStop = stopped();
       if (initialStop) return await stop(initialStop, 'NX_CANCELLED');
       const unattributedAbort = diagnosis.diagnosticCode === 'NX_ABORT_UNATTRIBUTED';
+      if (payload.recoveryStage === 'preparation'
+        && diagnosis.diagnosticCode === 'NX_CONTEXT_MAINTENANCE'
+        && !RETRYABLE_PREPARATION_MAINTENANCE.has(diagnosis.canonicalCode)) {
+        return await stop('context-maintenance-not-retryable', 'NX_CONTEXT_MAINTENANCE', 'nexus-fallback');
+      }
       const policy = validPolicy(payload.retryPolicy) ? payload.retryPolicy : undefined;
       let configured: RequestRetryOptions;
       try {

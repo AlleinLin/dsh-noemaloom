@@ -508,6 +508,20 @@ test('settings read failures retain the last known policy, including explicit di
   assert.equal(h.events.filter(event => event.type === 'llm/retry').length, 2);
 });
 
+test('automatic context maintenance stops on a deterministic preparation failure instead of replaying the same step', async t => {
+  const h = await fixture(t, true, true);
+  await h.configure({ mode: 'inherit', maxRetries: 64 });
+  const result = await h.ctx.waterfall(scopeTarget(h.agent, h.agent), 'agent/request-error', {
+    agent: h.agent, turn: 1, step: 1, provider: 'fixture-provider',
+    failure: { code: 'CTX_NO_SAFE_RANGE', message: 'no safe range' },
+    recoveryStage: 'preparation', signal: new AbortController().signal,
+  } as any, async () => undefined);
+  assert.equal(result, undefined);
+  assert.equal(h.events.filter(event => event.type === 'llm/retry').length, 0);
+  assert.equal(h.diagnostics().at(-1).diagnosticCode, 'NX_CONTEXT_MAINTENANCE');
+  assert.equal(h.diagnostics().at(-1).stopReason, 'context-maintenance-not-retryable');
+});
+
 test('overflow recovery retries its safe stage under one durable budget before allowing a changed request', async t => {
   const h = await fixture(t, true, true);
   await h.configure({ mode: 'inherit', maxRetries: 5 });
