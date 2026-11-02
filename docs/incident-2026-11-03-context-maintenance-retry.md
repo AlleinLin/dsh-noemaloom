@@ -1,0 +1,48 @@
+# 2026-11-03 自动上下文维护重试事故
+
+## 已核实事实
+
+- 受影响会话：`session-29f0f470-9beb-4ff9-8317-3fe3b3cc2b92`
+- 工作区：`D:\human2api`
+- 原始记录：`D:\dshplugin\research\session-29f0-last-events.jsonl`
+- 发生版本：此前的 R47
+- 宿主：官方 Desktop `0.2.1-rc.5`
+- 重试策略：`maxRetries=64`、`freezeRetryHours=0`、`retryOpaqueProviderErrors=true`
+- 失败阶段：`phase=automatic-context-maintenance`
+- 失败标识：`CTX_PREPARATION_COOLDOWN` / `NX_CONTEXT_MAINTENANCE`
+- 终止结果：`NX_RETRY_EXHAUSTED`
+
+原始记录最后阶段反复出现同一个 `CTX_PREPARATION_COOLDOWN`，可见重试编号从
+46 持续到 64。该请求不是新的用户输入，也不是新的工具步骤；它重复进入同一个
+自动上下文维护步骤，直到共享重试预算耗尽。
+
+## 根因
+
+统一恢复入口只在收到 `recoveryStage=preparation` 时拦截确定性的上下文维护失败。
+旧版某条原生宿主转发路径没有保留这个阶段字段，导致
+`CTX_PREPARATION_COOLDOWN` 被当作普通模型请求失败，进入了默认 64 次重试链。
+维护步骤因此被重复执行，原步骤没有留下可用的显式恢复入口。
+
+## 修复
+
+从 0.4.3 起，统一恢复入口对不可重试的上下文维护代码做全局保护：
+
+- 阶段字段缺失时仍停止，不创建 `llm/retry`；
+- `CTX_PREPARATION_*`、`CTX_NO_SAFE_RANGE` 和 `CTX_PRESSURE_REMAINS_HIGH`
+  不进入供应商重试；
+- 原输入、已完成工具结果和会话状态保留在原步骤；
+- 维护失败通过持久诊断和“恢复当前步骤”入口继续；
+- `CTX_NATIVE_BUSY` 仍保留有限的同一步恢复路径。
+
+## 验证
+
+- 定向请求恢复回归：40 项通过；
+- 新增回归：阶段标记缺失的 `CTX_PREPARATION_COOLDOWN` 产生 0 次
+  `llm/retry`；
+- TypeScript 检查通过；
+- 完整离线测试集结果：2480 项通过、1 项环境性失败；失败是测试夹具临时租约目录
+  在清理阶段已不存在（`ENOENT`），与请求恢复断言无关；
+- 未发送真实模型请求，未读取或修改用户原始会话内容。
+
+这份记录只描述本地插件行为。它不能恢复已经由供应商计费的额度，也不能凭空
+恢复未保存的外部工作；原始会话日志和恢复备份均保留。

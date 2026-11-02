@@ -522,6 +522,18 @@ test('automatic context maintenance stops on a deterministic preparation failure
   assert.equal(h.diagnostics().at(-1).stopReason, 'context-maintenance-not-retryable');
 });
 
+test('deterministic preparation cooldown never enters provider retry when the host omits its stage marker', async t => {
+  const h = await fixture(t, true, true);
+  await h.configure({ mode: 'inherit', maxRetries: 64 });
+  assert.equal(await h.recover({
+    code: 'CTX_PREPARATION_COOLDOWN',
+    message: '上一辅助压缩意图已终止',
+  } as any), undefined);
+  assert.equal(h.events.filter(event => event.type === 'llm/retry').length, 0);
+  assert.equal(h.diagnostics().at(-1).diagnosticCode, 'NX_CONTEXT_MAINTENANCE');
+  assert.equal(h.diagnostics().at(-1).stopReason, 'context-maintenance-not-retryable');
+});
+
 test('overflow recovery retries its safe stage under one durable budget before allowing a changed request', async t => {
   const h = await fixture(t, true, true);
   await h.configure({ mode: 'inherit', maxRetries: 5 });

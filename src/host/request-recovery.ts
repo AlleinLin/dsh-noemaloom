@@ -441,9 +441,18 @@ export function registerRequestRecovery(ctx: HostContext): () => void {
       const initialStop = stopped();
       if (initialStop) return await stop(initialStop, 'NX_CANCELLED');
       const unattributedAbort = diagnosis.diagnosticCode === 'NX_ABORT_UNATTRIBUTED';
-      if (payload.recoveryStage === 'preparation'
-        && diagnosis.diagnosticCode === 'NX_CONTEXT_MAINTENANCE'
-        && !RETRYABLE_PREPARATION_MAINTENANCE.has(diagnosis.canonicalCode)) {
+      // Context maintenance failures are a separate recovery domain from
+      // provider/model retries. Older host paths could omit
+      // `recoveryStage=preparation` when they forwarded the released error,
+      // which let deterministic preparation failures enter the generic retry
+      // loop and replay the same maintenance step up to the full budget.
+      // Keep the stage-specific retry allowlist, but fail closed for every
+      // non-retryable maintenance code even when that marker is absent.
+      if (diagnosis.diagnosticCode === 'NX_CONTEXT_MAINTENANCE'
+        && !RETRYABLE_PREPARATION_MAINTENANCE.has(diagnosis.canonicalCode)
+        && (payload.recoveryStage === 'preparation' || diagnosis.canonicalCode.startsWith('CTX_PREPARATION_')
+          || diagnosis.canonicalCode === 'CTX_NO_SAFE_RANGE'
+          || diagnosis.canonicalCode === 'CTX_PRESSURE_REMAINS_HIGH')) {
         return await stop('context-maintenance-not-retryable', 'NX_CONTEXT_MAINTENANCE', 'nexus-fallback');
       }
       const policy = validPolicy(payload.retryPolicy) ? payload.retryPolicy : undefined;
