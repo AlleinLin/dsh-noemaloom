@@ -69,7 +69,7 @@ body:has(style[data-nexus-native-appearance]) [class$="_headline"]:has([data-nex
 .nexus-delayed-message-field small { color: var(--dsw-alias-label-tertiary, #98918a); line-height: 1.45; }
 .nexus-delayed-message-duration { display: flex; align-items: center; gap: 8px; }
 .nexus-delayed-message-duration input { width: 130px; }
-.nexus-delayed-message-duration em { color: var(--dsw-alias-label-tertiary, #98918a); font-style: normal; }
+.nexus-delayed-message-duration em { flex-shrink: 0; white-space: nowrap; color: var(--dsw-alias-label-tertiary, #98918a); font-style: normal; }
 .nexus-delayed-message-field input, .nexus-delayed-message-field textarea { box-sizing: border-box; width: 100%; min-width: 0; padding: 9px 10px; border: 1px solid var(--dsw-alias-border-l2, #ffffff22); border-radius: 9px; color: inherit; background: var(--dsw-alias-bg-surface, #ffffff08); font: inherit; }
 .nexus-delayed-message-presets { display: flex; flex-wrap: wrap; gap: 6px; }
 .nexus-delayed-message-presets button { border: 1px solid #8884; border-radius: 999px; padding: 5px 9px; color: inherit; background: transparent; cursor: pointer; font: inherit; font-size: 11px; }

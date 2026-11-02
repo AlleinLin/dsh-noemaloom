@@ -3,7 +3,7 @@
   "release": "R50",
   "version": "0.4.2",
   "host": "0.2.1-rc.5",
-  "packageSha256": "093bc61c2a2067fbd8410abf0778e94b08f2dbd0026ab3d534df3ef5a3c6c09e",
+  "packageSha256": "fe3a4dcaacd30861e851c169bb7f6372dbe738b34bb5d23f26d40251d0f37bcd",
   "tests": {
     "passed": 2477,
     "failed": 0,
@@ -26,7 +26,7 @@
   "desktop": {
     "passed": true,
     "caseCount": 6,
-    "sourceHash": "4c6afab67b7399b1ad9814ae4c05b59341230d85801e333ed4017fe11fd184e7",
+    "sourceHash": "df04e9d4fb21aec2c90ef47c1a39d2457b725cc6c1801063af8561fd0aea491a",
     "sourceUnchangedDuringRun": true,
     "report": "validation/desktop-delayed-message.json",
     "screenshot": "validation/child-delivered.png",
@@ -44,7 +44,7 @@
     ]
   },
   "evidenceBoundary": {
-    "changeBetweenFullTestsAndDesktop": "Only the Desktop harness dialog-close wait changed; runtime source and package did not change.",
+    "changeBetweenFullTestsAndDesktop": "Desktop harness dialog-close wait, release documentation and one client CSS rule keeping the minute unit on one line. Rebuilt/audited the final package and reran all six Desktop cases; host key-file hashes are unchanged.",
     "changeAfterDesktop": "Release verification documentation only.",
     "priorHarnessFailures": [
       "fixture Cordis insertion",
