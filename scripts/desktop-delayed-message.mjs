@@ -172,12 +172,15 @@ try {
     return { text, revoked: true };
   });
   let restartText;
-  await check('child schedule survives actual isolated Desktop shutdown and continues on restart', async () => {
+  await check('main and child schedules survive actual isolated Desktop shutdown and continue on restart', async () => {
+    const mainText = `desktop-main-restart-${randomUUID()}`;
+    await schedule(ids.parentId, mainText, '0.2'); await dismiss();
     restartText = `desktop-restart-${randomUUID()}`; await schedule(ids.childId, restartText, '0.2'); await dismiss();
     await close(); await start();
+    await waitDelivered(ids.parentId, mainText);
     const value = await waitDelivered(ids.childId, restartText);
     assert.equal(value.sessions[ids.childId].header.parentSession, ids.parentId);
-    return { id: ids.childId, originalParent: ids.parentId, text: restartText };
+    return { id: ids.childId, originalParent: ids.parentId, text: restartText, mainText };
   });
   await check('replaying the completed request identity cannot duplicate native input', async () => {
     const before = await fixture({ action: 'snapshot' });

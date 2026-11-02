@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { deliverSubagentPrompt } from '@deepseek-ai/dsh-subagent/internal';
 import { createUserMessage } from '@deepseek-ai/dsh-llm';
-import { createScheduledPromptDelivery } from '../src/host/scheduled-prompt.js';
+import { createScheduledPromptDelivery, resolveScheduledRoot } from '../src/host/scheduled-prompt.js';
 import { stepProgressServices, deferred } from './step-progress-fixture.js';
 
 function fixture() {
@@ -41,6 +41,27 @@ function fixture() {
     beforeSend(fn: () => Promise<void>) { beforeSend = fn; } };
 }
 const params = { sessionId: 'child', requestId: 'plan-1', text: 'scheduled fixed text' };
+
+test('cold scheduled root uses the Web session owner that restores presets and model selection', async () => {
+  const agent = { id: 'root', options: { provider: 'saved-provider', model: 'saved-model' } };
+  const calls: string[] = [];
+  const ctx: any = { get(name: string) {
+    if (name === 'sessionController') return { async resolveAgent(id: string) { calls.push(id); return { agent }; } };
+    throw new Error(`raw service ${name} must not bypass the Web session owner`);
+  } };
+  assert.equal(await resolveScheduledRoot(ctx, 'root'), agent);
+  assert.deepEqual(calls, ['root']);
+});
+
+test('cold scheduled root handles native owner rejection and validates the exact identity', async () => {
+  await assert.rejects(resolveScheduledRoot({ get: () => undefined } as any, 'root'), { code: 'HOST_CAPABILITY_UNAVAILABLE' });
+  await assert.rejects(resolveScheduledRoot({ get: () => ({
+    resolveAgent: async () => ({ error: { code: 'session/not-found' } }),
+  }) } as any, 'root'), { code: 'SESSION_NOT_FOUND' });
+  await assert.rejects(resolveScheduledRoot({ get: () => ({
+    resolveAgent: async () => ({ agent: { id: 'another-root' } }),
+  }) } as any, 'root'), { code: 'HOST_CONTRACT_UNSUPPORTED' });
+});
 
 test('released native child routes through its exact parent, wakes, and deduplicates after plugin restart', async () => {
   const f = fixture(), bridge = f.bridge();

@@ -62,9 +62,19 @@ export function DelayedMessageButton({ api, sessionId }: Props): React.ReactElem
   React.useEffect(() => {
     if (!dialog.current || !open) return;
     dialog.current.showModal();
-    void loadPlans();
-    const timer = setInterval(() => { void loadPlans(); }, 2000);
-    return () => { clearInterval(timer); loadVersion.current++; if (dialog.current?.open) dialog.current.close(); };
+    let stopped = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const refresh = async () => {
+      await loadPlans();
+      if (!stopped) timer = setTimeout(() => { void refresh(); }, 2000);
+    };
+    void refresh();
+    return () => {
+      stopped = true;
+      clearTimeout(timer);
+      loadVersion.current++;
+      if (dialog.current?.open) dialog.current.close();
+    };
   }, [open, loadPlans]);
 
   const close = () => { if (!busy) { setOpen(false); setError(''); setMessage(''); } };

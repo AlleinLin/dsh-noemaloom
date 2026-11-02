@@ -14,7 +14,7 @@ import type { HostContext, NexusConfig } from './types.js';
 import { optionalChildField, resolveChildModelOptions } from './child-models.js';
 import { nativeWorkspaces, sessionTitles } from './session-metadata.js';
 import { isHumanInputMessage } from '../shared/step-pause.js';
-import { createScheduledPromptDelivery } from './scheduled-prompt.js';
+import { createScheduledPromptDelivery, resolveScheduledRoot } from './scheduled-prompt.js';
 
 interface NativeSnapshot {
   session: SessionHeader;
@@ -130,7 +130,7 @@ export function createSessionBridge(
     return agent;
   };
   const scheduledPrompts = createScheduledPromptDelivery(ctx, pluginSignal, services, findAgent,
-    id => resume(id, {}), nativeSnapshot, flush);
+    id => resolveScheduledRoot(ctx, id), nativeSnapshot, flush);
   function selectionFor(agent: Agent) {
     let selection = selections.get(agent.id);
     if (selection?.agent !== agent) {

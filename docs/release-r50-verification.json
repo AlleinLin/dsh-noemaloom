@@ -3,18 +3,19 @@
   "release": "R50",
   "version": "0.4.2",
   "host": "0.2.1-rc.5",
-  "packageSha256": "fe3a4dcaacd30861e851c169bb7f6372dbe738b34bb5d23f26d40251d0f37bcd",
+  "packageSha256": "cf628d1fd166790044502e3ac6807d17d8c7668251c03a55c920ddc344dc7d3f",
   "tests": {
-    "passed": 2477,
+    "passed": 2479,
     "failed": 0,
     "cancelled": 0,
     "skipped": 0,
     "suites": 17,
-    "sourceHash": "d8e4177edba87f0bbe9491050ac55ddfc746757062a4d94a6b2b79b21f4b5f84",
+    "sourceHash": "c5953873f89a7e464e7c2548311c7d0c2b08aa8617bec5528f44b05c4d303667",
     "sourceUnchangedDuringRun": true,
-    "receipt": "validation/delayed-message-r50.json",
+    "receipt": "validation/delayed-message-r50-final.json",
     "junit": "validation/tests.junit.xml",
-    "relatedRegressionPassed": 67
+    "relatedRegressionPassed": 22,
+    "relatedRegressionReport": "validation/related-regression.log"
   },
   "checks": {
     "typecheck": "passed",
@@ -26,7 +27,7 @@
   "desktop": {
     "passed": true,
     "caseCount": 6,
-    "sourceHash": "df04e9d4fb21aec2c90ef47c1a39d2457b725cc6c1801063af8561fd0aea491a",
+    "sourceHash": "fef157cb4502cbb6911c01efc993883f5adf0eef77a80765ac57fc66730c748d",
     "sourceUnchangedDuringRun": true,
     "report": "validation/desktop-delayed-message.json",
     "screenshot": "validation/child-delivered.png",
@@ -39,12 +40,12 @@
       "main composer schedule wakes idle main and the model receives fixed text",
       "cold child receives fixed text in its original session and parent relationship",
       "cancelled child schedule is not delivered",
-      "child schedule survives actual isolated Desktop shutdown and restart",
+      "main and child schedules survive actual isolated Desktop shutdown and restart, with both model requests receiving the original text",
       "repeated request identity cannot duplicate native input"
     ]
   },
   "evidenceBoundary": {
-    "changeBetweenFullTestsAndDesktop": "Desktop harness dialog-close wait, release documentation and one client CSS rule keeping the minute unit on one line. Rebuilt/audited the final package and reran all six Desktop cases; host key-file hashes are unchanged.",
+    "changeBetweenFullTestsAndDesktop": "Client serial polling and its slow-response DOM regression only; host key-file hashes are unchanged. Final 22 related regressions, typecheck, build, package audit and all six Desktop cases passed.",
     "changeAfterDesktop": "Release verification documentation only.",
     "priorHarnessFailures": [
       "fixture Cordis insertion",
@@ -52,6 +53,19 @@
       "adapter metadata",
       "main model route selection",
       "dialog close while cancellation RPC was still busy"
+    ],
+    "additionalDefectsFoundAndFixed": [
+      {
+        "problem": "Generic cold-root Agent resume bypassed the Web session owner's model and preset setup.",
+        "fix": "Use official sessionController.resolveAgent and verify both main and child model receipt after actual Desktop restart.",
+        "before": "validation/cold-main-before-fix.json"
+      },
+      {
+        "problem": "Overlapping two-second polling could discard all slower replies and leave the visible plan stale after real delivery.",
+        "fix": "Serial polling; actual browser regression with 2200ms replies failed before the fix and passed after it.",
+        "before": "validation/slow-poll-before-fix.log",
+        "desktopBefore": "validation/status-refresh-before-fix.json"
+      }
     ],
     "priorIsolatedStartupCrash": {
       "code": "0xe0000008",

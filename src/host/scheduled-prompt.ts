@@ -25,6 +25,22 @@ const messageOf = (event: SessionEvent) => {
   return typeof data.role === 'string' ? data : object(data.message);
 };
 
+/** Ordinary Web sessions need the API owner's preset and model-selection setup. */
+export async function resolveScheduledRoot(ctx: HostContext, sessionId: string): Promise<Agent> {
+  const controller = ctx.get('sessionController');
+  if (typeof controller?.resolveAgent !== 'function') {
+    throw new NexusError('HOST_CAPABILITY_UNAVAILABLE', '宿主主会话恢复入口不可用');
+  }
+  const result = await controller.resolveAgent(SessionId(sessionId));
+  if (result?.error) {
+    const error = object(result.error);
+    throw new NexusError(error.code === 'session/not-found' ? 'SESSION_NOT_FOUND' : 'HOST_CAPABILITY_UNAVAILABLE',
+      result.error instanceof Error ? result.error.message : '宿主暂时无法恢复该主会话');
+  }
+  if (result?.agent?.id !== sessionId) throw new NexusError('HOST_CONTRACT_UNSUPPORTED', '宿主恢复了不同的主会话');
+  return result.agent;
+}
+
 /**
  * A scheduled user action must wake its exact session. A cold native child is
  * continued by its original parent/runtime, never resumed as an independent
