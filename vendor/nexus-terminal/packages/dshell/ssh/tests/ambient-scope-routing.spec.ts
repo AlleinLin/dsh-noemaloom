@@ -20,7 +20,7 @@
  * path the device itself was asked about.
  */
 import { AsyncLocalStorage } from 'node:async_hooks'
-import { mkdtemp, rm } from 'node:fs/promises'
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Context, Service } from '@deepseek-ai/cordis'
@@ -36,6 +36,16 @@ const DEVICE_SESSION = 's-device'
 
 /** A session that runs on this machine. */
 const LOCAL_SESSION = 's-local'
+
+/**
+ * The file the device half of the seam is asked about.
+ *
+ * It is spelled in the device's grammar, because that is what the device lane records:
+ * the probe sits below the path translation, so it sees the path the device itself
+ * would have been asked about. Nothing here reads it — the device half never touches
+ * this machine's disk — so it does not have to exist anywhere.
+ */
+const DEVICE_FILE = '/root/.bashrc'
 
 /** A translator that answers with the key; the wording is not what is under test. */
 const translate = ((key: string): string => key) as DshellSshTranslate
@@ -62,8 +72,18 @@ class WorkspaceReader extends Service {
   }
 }
 
-/** The ambient call the Gateway leaves on the context it dispatches under. */
-function ambientCall(scope: string | undefined): {
+/**
+ * The ambient call the Gateway leaves on the context it dispatches under.
+ *
+ * The path is a parameter because the two halves of the seam read different files: the
+ * device half is asked about a path in the device's own grammar, and the host half reads
+ * a file that has to exist on this machine.
+ *
+ * @param scope - the session the call was made under, or undefined for an ambient one.
+ * @param path - the file the call names.
+ * @returns the invocation context the Gateway would leave behind.
+ */
+function ambientCall(scope: string | undefined, path: string): {
   readonly service: string
   readonly request: {
     readonly namespace: string
@@ -76,7 +96,7 @@ function ambientCall(scope: string | undefined): {
     request: {
       namespace: 'workspaceFiles',
       method: 'read',
-      args: scope === undefined ? { path: '/root/.bashrc' } : { workspaceFileScopeId: scope, path: '/root/.bashrc' },
+      args: scope === undefined ? { path } : { workspaceFileScopeId: scope, path },
     },
   }
 }
@@ -85,10 +105,23 @@ let root = ''
 let hostCwd = ''
 let mount = ''
 
+/**
+ * The file the host half of the seam reads.
+ *
+ * It has to exist on THIS machine, because the three cases that assert the read was
+ * answered locally really read it. A path that no machine can read — `/root/.bashrc`
+ * on a CI runner that does not run as root — turns a routing assertion into a
+ * permission error, and the failure says nothing about the routing.
+ */
+let hostFile = ''
+
 beforeEach(async () => {
   root = await mkdtemp(join(tmpdir(), 'dshell-ambient-scope-'))
   hostCwd = join(root, 'home')
   mount = join(root, 'mount')
+  await mkdir(hostCwd, { recursive: true })
+  hostFile = join(hostCwd, 'notes.txt')
+  await writeFile(hostFile, 'a note on this machine')
   vi.restoreAllMocks()
 })
 
@@ -155,13 +188,13 @@ describe('a browser-initiated read of a device file', () => {
     stubDevice()
 
     const reader = new WorkspaceReader(ctx)
-    const receiver = ctx.extend({ invocation: ambientCall(DEVICE_SESSION) }).get('workspaceReader') as WorkspaceReader
-    await receiver.read(hostCwd, '/root/.bashrc')
+    const receiver = ctx.extend({ invocation: ambientCall(DEVICE_SESSION, DEVICE_FILE) }).get('workspaceReader') as WorkspaceReader
+    await receiver.read(hostCwd, DEVICE_FILE)
 
     // The workspace root the scope named is this machine's directory, and the
     // device's answer to it is the device's own root.
     expect(devicePaths()).toContain('/root')
-    expect(devicePaths()).toContain('/root/.bashrc')
+    expect(devicePaths()).toContain(DEVICE_FILE)
   })
 
   it('is answered by this machine when the call names no session', async () => {
@@ -170,7 +203,7 @@ describe('a browser-initiated read of a device file', () => {
 
     const reader = new WorkspaceReader(ctx)
     const receiver = ctx.get('workspaceReader') as WorkspaceReader
-    await receiver.read(hostCwd, '/root/.bashrc')
+    await receiver.read(hostCwd, hostFile)
 
     expect(devicePaths()).toEqual([])
   })
@@ -180,8 +213,8 @@ describe('a browser-initiated read of a device file', () => {
     stubDevice()
 
     const reader = new WorkspaceReader(ctx)
-    const receiver = ctx.extend({ invocation: ambientCall(LOCAL_SESSION) }).get('workspaceReader') as WorkspaceReader
-    await receiver.read(hostCwd, '/root/.bashrc')
+    const receiver = ctx.extend({ invocation: ambientCall(LOCAL_SESSION, hostFile) }).get('workspaceReader') as WorkspaceReader
+    await receiver.read(hostCwd, hostFile)
 
     expect(devicePaths()).toEqual([])
   })
@@ -191,8 +224,8 @@ describe('a browser-initiated read of a device file', () => {
     stubDevice()
 
     const reader = new WorkspaceReader(ctx)
-    const receiver = ctx.extend({ invocation: ambientCall('s-unknown') }).get('workspaceReader') as WorkspaceReader
-    await reader.read(hostCwd, '/root/.bashrc')
+    const receiver = ctx.extend({ invocation: ambientCall('s-unknown', hostFile) }).get('workspaceReader') as WorkspaceReader
+    await reader.read(hostCwd, hostFile)
 
     expect(devicePaths()).toEqual([])
   })
@@ -204,12 +237,12 @@ describe('a browser-initiated read of a device file', () => {
     const reader = new WorkspaceReader(ctx)
     // The tool layer's own session is the one that decides: the ambient scope
     // of a different session must not take the call away from it.
-    const receiver = ctx.extend({ invocation: ambientCall(LOCAL_SESSION) }).get('workspaceReader') as WorkspaceReader
+    const receiver = ctx.extend({ invocation: ambientCall(LOCAL_SESSION, DEVICE_FILE) }).get('workspaceReader') as WorkspaceReader
     await ctx.agents.withInitiator(
       { id: DEVICE_SESSION, session: { header: { cwd: hostCwd } } } as never,
-      async () => await receiver.read(hostCwd, '/root/.bashrc'),
+      async () => await receiver.read(hostCwd, DEVICE_FILE),
     )
 
-    expect(devicePaths()).toContain('/root/.bashrc')
+    expect(devicePaths()).toContain(DEVICE_FILE)
   })
 })

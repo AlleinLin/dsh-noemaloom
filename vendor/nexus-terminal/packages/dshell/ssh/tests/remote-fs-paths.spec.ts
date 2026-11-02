@@ -15,8 +15,15 @@
  * not on the device, and the device is never asked.
  *
  * The predicate is lexical — a path is the device's if it is spelled as the
- * device spells paths — so the same spelling is the failing one on every
- * platform, and the assertions below hold wherever they run.
+ * device spells paths — and that holds on every platform, but it has a
+ * consequence this spec now states rather than hides.
+ *
+ * The seam refuses a path by its spelling alone: the device's protocol admits an
+ * absolute POSIX path and nothing else, so a Windows path is refused on the spot.
+ * On a POSIX host there is no such spelling — every absolute path already looks
+ * like a device path, and a host path outside the mount cannot be told apart from
+ * a device path by anything but the mapping. The three cases below are therefore
+ * about a Windows host, and they are skipped elsewhere.
  */
 
 import { describe, expect, it } from 'vitest'
@@ -35,12 +42,17 @@ const HOME = resolve(sep, 'home', 'reader')
 const MAPPING = { mount: MOUNT, remoteRoot: '/root', alias: HOME }
 
 /**
- * A path in the HOST's grammar: not a slash, so not the device's.
+ * A path in the HOST's grammar: absolute on this machine, and outside the
+ * device's tree.
  *
- * The spelling is the point — a Windows path on a Windows host, and the
- * same literal on a POSIX one, because the question is lexical.
+ * A Windows path, because that is the spelling the device's protocol refuses
+ * outright. On a POSIX host every absolute path is already a device path, so
+ * there is no host spelling to refuse and nothing for these cases to prove.
  */
 const HOST_PATH = 'C:\\Windows\\notepad.exe'
+
+/** The three cases below are about a Windows host; see the file's own note. */
+const describeWindowsHost = describe.skipIf(process.platform !== 'win32')
 
 /** A translator that answers with the key; the refusals are not what is under test. */
 const translate = ((key: string): string => key) as DshellSshTranslate
@@ -77,7 +89,7 @@ function remoteOver(fake: FakeConnection): RemoteFileSystem {
   })
 }
 
-describe('a path the device cannot be asked about', () => {
+describeWindowsHost('a path the device cannot be asked about', () => {
   it('is not put on the wire', async () => {
     const fake = new FakeConnection()
     const remote = remoteOver(fake)

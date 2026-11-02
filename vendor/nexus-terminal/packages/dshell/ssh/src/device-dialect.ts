@@ -432,11 +432,11 @@ export function installDeviceDialect(ctx: Context, router: SshRouter): () => voi
     applied.get(sessionId)?.dispose()
     applied.delete(sessionId)
   })
-  router.onAssignmentChanged = (sessionId: string): void => {
+  const unlistenAssignment = router.onAssignment((sessionId: string): void => {
     const agent = host.agents.list().find(candidate => String(candidate.id) === sessionId)
     if (agent === undefined) return
     apply(sessionId, agent)
-  }
+  })
 
   /**
    * Put the device's contract in every live agent's scope.
@@ -461,6 +461,6 @@ export function installDeviceDialect(ctx: Context, router: SshRouter): () => voi
   return () => {
     for (const entry of applied.values()) entry.dispose()
     applied.clear()
-    router.onAssignmentChanged = undefined
+    unlistenAssignment()
   }
 }

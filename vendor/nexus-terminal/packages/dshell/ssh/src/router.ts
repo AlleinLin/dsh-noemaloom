@@ -282,8 +282,38 @@ export class SshRouter {
    * while this one is about a SESSION and names the device it now runs on.
    * What the model is told about a session's world follows the assignment, so
    * the two have to be able to move together.
+   *
+   * A LIST of listeners rather than one slot, because more than one thing
+   * follows the assignment: the device dialect that gives a bound session its
+   * own shell, and the forward tool that gives it a way to reach a port on
+   * that device. A single slot would have let the second quietly replace the
+   * first, and the symptom would be a session that kept its local shell after
+   * it had been bound to a device.
    */
   onAssignmentChanged: ((sessionId: string, deviceId: string | null) => void) | undefined
+
+  /**
+   * The listeners told when a session's assignment changed.
+   *
+   * Kept beside {@link onAssignmentChanged} so that the two cannot disagree:
+   * the field is the last listener installed the old way, and the list is
+   * where every listener lives now.
+   */
+  private readonly assignmentListeners: ((sessionId: string, deviceId: string | null) => void)[] = []
+
+  /**
+   * Listen for a session's assignment changing.
+   *
+   * @param listener - what to tell.
+   * @returns a disposer removing the listener.
+   */
+  onAssignment(listener: (sessionId: string, deviceId: string | null) => void): () => void {
+    this.assignmentListeners.push(listener)
+    return () => {
+      const index = this.assignmentListeners.indexOf(listener)
+      if (index >= 0) this.assignmentListeners.splice(index, 1)
+    }
+  }
 
   /**
    * The device's verified helper connection, when one is up right now.
@@ -445,7 +475,7 @@ export class SshRouter {
     }
     await this.bindings.set(sessionId, deviceId, remoteRoot, assigned)
     if (deviceId !== null) this.onDeviceChanged?.(deviceId, 'bound')
-    this.onAssignmentChanged?.(sessionId, deviceId)
+    this.notifyAssignmentChanged(sessionId, deviceId)
   }
 
   /**
@@ -482,10 +512,20 @@ export class SshRouter {
    * @param deviceId - the device whose sessions moved.
    */
   private notifyDeviceSessions(deviceId: string): void {
-    if (this.onAssignmentChanged === undefined) return
     for (const assignment of this.bindings.all()) {
-      if (assignment.deviceId === deviceId) this.onAssignmentChanged(assignment.sessionId, deviceId)
+      if (assignment.deviceId === deviceId) this.notifyAssignmentChanged(assignment.sessionId, deviceId)
     }
+  }
+
+  /**
+   * Tell every listener that a session's assignment changed.
+   *
+   * @param sessionId - the session whose assignment changed.
+   * @param deviceId - the device it now runs on, or null when it runs here.
+   */
+  private notifyAssignmentChanged(sessionId: string, deviceId: string | null): void {
+    this.onAssignmentChanged?.(sessionId, deviceId)
+    for (const listener of [...this.assignmentListeners]) listener(sessionId, deviceId)
   }
 
   /**

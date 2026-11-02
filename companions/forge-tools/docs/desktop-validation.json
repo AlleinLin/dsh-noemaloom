@@ -148,7 +148,7 @@
     ]
   },
   "pwsh": {
-    "firstMs": 530,
+    "firstMs": 544,
     "warmMs": 9,
     "residentStarts": 1,
     "residentCalls": 2

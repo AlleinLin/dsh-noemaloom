@@ -2,80 +2,155 @@
   "purpose": "Exact public source fixtures for unchanged Python regressions only; no Rust engine or installer is executed by the host.",
   "files": [
     {
-      "file": "docs/plans/真源索引_通用机制_v0.3.md",
-      "sha256": "0707799e13196b45fdcfb846f058d5b2b30b31e2e3a4c894687fdc2f5903a2f6"
+      "file": "docs/hive/检索路径与认知结构契约_v0.1.md",
+      "sha256": "192b0dd99314cecca991fe21cd0df376b412562710e9cc82b95d7af0ba5e738c",
+      "origin": "retained-public-fixture-from-prior-reviewed-source"
     },
     {
-      "file": "docs/hive/检索路径与认知结构契约_v0.1.md",
-      "sha256": "192b0dd99314cecca991fe21cd0df376b412562710e9cc82b95d7af0ba5e738c"
+      "file": "docs/mdcg/CCG六要素编译.md",
+      "sha256": "afa49de1a6e7e4ecbdadc02fb5e571f0b78ea2c6dff48123fc37e3be64aeb04f",
+      "origin": "npm:0.9.21"
+    },
+    {
+      "file": "docs/mdcg/MCP工具名口径_v1.0.md",
+      "sha256": "5fbfa296c2ff5548857d630ee715ea6f61f58c324567576e4add1205d3ec8d64",
+      "origin": "npm:0.9.21"
+    },
+    {
+      "file": "docs/mdcg/cogmap_ops.md",
+      "sha256": "210b556b2b69f9215e31f488979bdf15e26b79e49bb59d260b6e50b725d391c2",
+      "origin": "npm:0.9.21"
+    },
+    {
+      "file": "docs/mdcg/guardrail-charter.md",
+      "sha256": "6b29aee273653e7d46e1716180e81a9c8ce36c379e9038ef7c3761a5a819184e",
+      "origin": "npm:0.9.21"
+    },
+    {
+      "file": "docs/mdcg/recall_metadata.md",
+      "sha256": "7126f6a9422d9d63dfda4d599d4db352b92b51869b346a210a30e00326cacf9a",
+      "origin": "npm:0.9.21"
+    },
+    {
+      "file": "docs/mdcg/世界模型功能端_使用与运维_v1.0.md",
+      "sha256": "2c430dd3e3e15de341827671f67c3e9c137e6d59687efcfa680a801442211f4d",
+      "origin": "npm:0.9.21"
+    },
+    {
+      "file": "docs/mdcg/写入别名aliases规范_v0.6.md",
+      "sha256": "d14eada96e3264cb585a07486dd6e5cb357eb0b11a46a6a7ce605e02ffcb38e3",
+      "origin": "npm:0.9.21"
+    },
+    {
+      "file": "docs/plans/真源索引_通用机制_v0.3.md",
+      "sha256": "0707799e13196b45fdcfb846f058d5b2b30b31e2e3a4c894687fdc2f5903a2f6",
+      "origin": "retained-public-fixture-from-prior-reviewed-source"
     },
     {
       "file": "rust/src/engine.rs",
-      "sha256": "f9c9fed1a22158773724315f00c9bdde31671df6ef97b972f7ace6bbf5ef51c2"
+      "sha256": "f9c9fed1a22158773724315f00c9bdde31671df6ef97b972f7ace6bbf5ef51c2",
+      "origin": "retained-public-fixture-from-prior-reviewed-source"
     },
     {
       "file": "rust/src/freshness.rs",
-      "sha256": "70dd8e672855a644cdfe86fc05648073058c47d7b431d9c31d5421c1547d33f5"
+      "sha256": "70dd8e672855a644cdfe86fc05648073058c47d7b431d9c31d5421c1547d33f5",
+      "origin": "retained-public-fixture-from-prior-reviewed-source"
     },
     {
       "file": "rust/src/retrieval.rs",
-      "sha256": "1ce03ee9092f61efa53a4260e63b21b24f1c2506abf8ba80df3e86bf1e126bd1"
-    },
-    {
-      "file": "src/index.ts",
-      "sha256": "aced8d2a8cc05f07f674a589e0e69ccd9816062c3efb4b981a236a3b9bb4ee4e"
-    },
-    {
-      "file": "scripts/workspace_index.py",
-      "sha256": "55e1b57326f481fb8e37adbc434866f4cfc1acde6b8fdfa8a9a7b0a5232f2bc9"
+      "sha256": "1ce03ee9092f61efa53a4260e63b21b24f1c2506abf8ba80df3e86bf1e126bd1",
+      "origin": "retained-public-fixture-from-prior-reviewed-source"
     },
     {
       "file": "scripts/build_ui.py",
-      "sha256": "3dee0fd435f8d74b829200462835863c154d4966bc519d63b3f4111dc9a96070"
+      "sha256": "3dee0fd435f8d74b829200462835863c154d4966bc519d63b3f4111dc9a96070",
+      "origin": "retained-public-fixture-from-prior-reviewed-source"
+    },
+    {
+      "file": "scripts/workspace_index.py",
+      "sha256": "55e1b57326f481fb8e37adbc434866f4cfc1acde6b8fdfa8a9a7b0a5232f2bc9",
+      "origin": "npm:0.9.21"
+    },
+    {
+      "file": "src/index.ts",
+      "sha256": "aced8d2a8cc05f07f674a589e0e69ccd9816062c3efb4b981a236a3b9bb4ee4e",
+      "origin": "npm:0.9.21"
     },
     {
       "file": "ui/minimal/install.ps1",
-      "sha256": "1caec89c56cae9a6d0d8ef9b2fad38858aa3bf5a9fd7449e29d08b37ee9c67c1"
+      "sha256": "1caec89c56cae9a6d0d8ef9b2fad38858aa3bf5a9fd7449e29d08b37ee9c67c1",
+      "origin": "npm:0.9.21"
     },
     {
       "file": "ui/minimal/integrity.json",
-      "sha256": "4766274ee25c94bd9d39a4a6436c4f80892d2d70c827fe8bc9b6f7e03df71306"
-    },
-    {
-      "file": "ui/minimal/payload/web/client.js",
-      "sha256": "fea2f301980d2cf5cd67a66e2a12f21a69f255e512f56d34a80ec86634de560c"
-    },
-    {
-      "file": "ui/minimal/payload/lib/lib/console_web.mjs",
-      "sha256": "9c8f8450571729688033033f35345b18e9eeb68b871e3a4c53a9b619f28aa61e"
-    },
-    {
-      "file": "ui/minimal/payload/web/entry.js",
-      "sha256": "e5b602282eabcdffe207065b113ac148e96dcf799d09009871c475546a7663a6"
-    },
-    {
-      "file": "ui/minimal/payload/lib/client.js",
-      "sha256": "89b4fe09b105a378b1404ed13c06f9416e12f234e64db6c2a529b6196675aa20"
+      "sha256": "4766274ee25c94bd9d39a4a6436c4f80892d2d70c827fe8bc9b6f7e03df71306",
+      "origin": "npm:0.9.21"
     },
     {
       "file": "ui/minimal/payload/build-ui.mjs",
-      "sha256": "893e304fbb82810478041f30ac4a7c32cdb42a6c63a238f051a044370a38e103"
+      "sha256": "893e304fbb82810478041f30ac4a7c32cdb42a6c63a238f051a044370a38e103",
+      "origin": "npm:0.9.21"
     },
     {
-      "file": "ui/minimal/payload/web/app.js",
-      "sha256": "a49b152f6b28a6a5123afcaba273ae4f775f2eaab496a57bcaf9ab4cc4a86c05"
+      "file": "ui/minimal/payload/lib/client.js",
+      "sha256": "89b4fe09b105a378b1404ed13c06f9416e12f234e64db6c2a529b6196675aa20",
+      "origin": "npm:0.9.21"
+    },
+    {
+      "file": "ui/minimal/payload/lib/lib/console_web.mjs",
+      "sha256": "9c8f8450571729688033033f35345b18e9eeb68b871e3a4c53a9b619f28aa61e",
+      "origin": "npm:0.9.21"
     },
     {
       "file": "ui/minimal/payload/src/lib/console_web.mjs",
-      "sha256": "9c8f8450571729688033033f35345b18e9eeb68b871e3a4c53a9b619f28aa61e"
+      "sha256": "9c8f8450571729688033033f35345b18e9eeb68b871e3a4c53a9b619f28aa61e",
+      "origin": "npm:0.9.21"
+    },
+    {
+      "file": "ui/minimal/payload/web/app.js",
+      "sha256": "9273439830a14b5ec7802d6f25a47d4a4268f8ee132a735c0e029fe2d843a446",
+      "origin": "npm:0.9.21"
+    },
+    {
+      "file": "ui/minimal/payload/web/client.js",
+      "sha256": "fea2f301980d2cf5cd67a66e2a12f21a69f255e512f56d34a80ec86634de560c",
+      "origin": "npm:0.9.21"
+    },
+    {
+      "file": "ui/minimal/payload/web/entry.js",
+      "sha256": "e5b602282eabcdffe207065b113ac148e96dcf799d09009871c475546a7663a6",
+      "origin": "npm:0.9.21"
     },
     {
       "file": "ui/minimal/payload/web/index.html",
-      "sha256": "9f056dd4769effd75f98a9121cbefbb3704a430fccf0d656b75fd4bc12114da4"
+      "sha256": "9f056dd4769effd75f98a9121cbefbb3704a430fccf0d656b75fd4bc12114da4",
+      "origin": "npm:0.9.21"
     },
     {
       "file": "ui/minimal/payload/web/style.css",
-      "sha256": "58b2f345b3975eadf66ed030f7e9aa6047f7c225e0fad94f6af3843db934eda4"
+      "sha256": "58b2f345b3975eadf66ed030f7e9aa6047f7c225e0fad94f6af3843db934eda4",
+      "origin": "npm:0.9.21"
+    },
+    {
+      "file": "docs/mdcg/认知图_MD目录方案_v0.1.md",
+      "sha256": "d9d064a2ba5e4a92e62d94196dd099be4ac6aee83e73ff525b27c050800379a4",
+      "origin": "git:5cf81083a63b80d3383eee0fb3a5a05178f2113a",
+      "url": "https://raw.githubusercontent.com/FuRongJun-1999/dsh-memory/5cf81083a63b80d3383eee0fb3a5a05178f2113a/docs/mdcg/%E8%AE%A4%E7%9F%A5%E5%9B%BE_MD%E7%9B%AE%E5%BD%95%E6%96%B9%E6%A1%88_v0.1.md",
+      "purpose": "Public fixture required by upstream test_p27_docindex; release npm omits this specification."
+    },
+    {
+      "file": "scripts/_mdcg_reindex_dshlogs.py",
+      "sha256": "d93f05ff4def086180a307d686ef0fd94b7aa58e92fbf31d3e1847bc60367437",
+      "origin": "git:5cf81083a63b80d3383eee0fb3a5a05178f2113a",
+      "url": "https://raw.githubusercontent.com/FuRongJun-1999/dsh-memory/5cf81083a63b80d3383eee0fb3a5a05178f2113a/scripts/_mdcg_reindex_dshlogs.py",
+      "purpose": "Imported only by upstream synthetic test_logref; never registered in the host or used against user sessions."
+    },
+    {
+      "file": "scripts/dsh_log_index.py",
+      "sha256": "7ef523c213d5ce29a280005a9aa045482ab27510fb8c0a71929cb787b40b681b",
+      "origin": "git:5cf81083a63b80d3383eee0fb3a5a05178f2113a",
+      "url": "https://raw.githubusercontent.com/FuRongJun-1999/dsh-memory/5cf81083a63b80d3383eee0fb3a5a05178f2113a/scripts/dsh_log_index.py",
+      "purpose": "Imported only by upstream synthetic test_logref; never registered in the host or used against user sessions."
     }
   ],
   "publishedRegressionSource": "npm @furongjun1999/dsh-memory@0.9.18",

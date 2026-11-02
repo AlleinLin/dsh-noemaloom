@@ -52,7 +52,14 @@ export async function apply(ctx, config) {
         const data = JSON.parse(prompt.split(marker)[1].split('\n\n本轮压缩状态：')[0]);
         text = JSON.stringify({ decision: 'compress', content: [{ startId: data[0].ref, endId: data.at(-1).ref,
           summary: '保留任务：完成独立桌面子代理压缩验收；此前全部内容是测试夹具。已完成的操作不得重复。'.repeat(6), topic: '桌面夹具历史' }] });
-      } else if (request.messages.at(-1)?.content?.some(block => block.type === 'text' && block.text === 'fixture-call-compact')) {
+      } else if ((() => {
+        // Native context providers can append system envelopes after the user.
+        // Select this synthetic input and stop choosing the tool after its
+        // actual result, rather than relying on its position in the array.
+        const index = request.messages.findLastIndex(message => message.role === 'user'
+          && message.content?.some(block => block.type === 'text' && block.text === 'fixture-call-compact'));
+        return index >= 0 && !request.messages.slice(index + 1).some(message => message.role === 'tool');
+      })()) {
         const id = ToolCallId(`fixture-self:${randomUUID()}`), args = JSON.stringify({ action: 'compact', requestId: `desktop-self:${randomUUID()}` });
         yield { type: 'block-start', index: 0, blockType: 'tool-call' };
         yield { type: 'tool-call-delta', index: 0, id, name: 'compact_context', argumentsDelta: args };

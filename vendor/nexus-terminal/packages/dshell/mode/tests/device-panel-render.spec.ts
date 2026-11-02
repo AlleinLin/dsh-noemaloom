@@ -20,6 +20,7 @@ import { createElement, type ReactElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { DshellDevicePanelBody, SortHead } from '../src/client/device-panel.js'
+import { publishForwards } from '../src/client/device-forward.js'
 import { devicePanelView, type DevicePanelPage } from '../src/client/device-panel-view.js'
 import { DEVICE_NOTE_KEYS, zh } from '../src/client/locales.js'
 import type { DshellDeviceDetailResponse } from '../src/device-detail-protocol.js'
@@ -65,6 +66,7 @@ const METRICS: DshellDeviceMetrics = {
 /** The panel, drawn on one page. */
 function draw(page: DevicePanelPage): string {
   return renderToStaticMarkup(createElement(DshellDevicePanelBody, {
+    sessionId: 's-device',
     view: devicePanelView(DETAIL, METRICS),
     page,
     onPage: () => {},
@@ -74,6 +76,15 @@ function draw(page: DevicePanelPage): string {
 }
 
 describe('the device panel', () => {
+  it('offers a forward on every port', () => {
+    // The forward button is the way to reach a port from this machine, so
+    // every port row carries one.
+    const html = draw('ports')
+
+    expect(html).toContain('data-dshell-device-forward="port"')
+    expect(html).toContain('转发')
+  })
+
   it('draws the four pages, and the machine on the overview', () => {
     const html = draw('overview')
 

@@ -110,6 +110,12 @@ export interface PtyStreamState {
    * difference between a connection that dropped and one that never came up is
    * invisible from the wire alone, and the two need opposite presentations
    * (a marker appended to a working terminal vs. a full failure screen).
+   *
+   * On a rebind of a session this page has already seen reach a prompt, the
+   * fact is seeded from per-session memory rather than reset: the host's own
+   * `ready` frame re-asserts the truth one round trip into the handshake, and
+   * without the seed every session switch would re-render the first-dial
+   * screen over a terminal that is about to work.
    */
   ready: boolean
   /** Automatic reconnect attempts spent since this connection last worked. */
@@ -284,6 +290,18 @@ export class PtyStreamService extends Service {
   })
 
   private readonly histories = new Map<string, SessionHistory>()
+  /**
+   * The sessions whose main shell this page has seen reach a prompt.
+   *
+   * The wire state describes one session at a time, so a session switch would
+   * otherwise present the next session as one that never answered — and a
+   * device session's presentation for that shape is the first-dial screen,
+   * which would flash over a live terminal on every switch. Seeding `ready`
+   * from this set keeps the switch to the tail-marker form; the host's own
+   * `ready` frame remains the authority the moment it arrives. Kept for the
+   * page's life, like `histories`.
+   */
+  private readonly prompted = new Set<string>()
   /** Per-session block lists, exactly as the host ordered them. The stored
    * copy is mutable because a live block grows by deltas. */
   private readonly blockLists = new Map<string, {
@@ -745,12 +763,24 @@ export class PtyStreamService extends Service {
 
   private openChannel(dshSessionId: string): void {
     this.closeChannel()
+    // A bind is the reader choosing this session, and a retry budget belongs to
+    // the failure that spent it. Opening the carrier is what turns the page
+    // back onto this shell — the ordinary act of switching sessions — so the
+    // budget resets here even when the session is the one this state already
+    // describes: a viewer that comes back must not be met with the retry count
+    // of a socket that died while they were away, and the count is what draws
+    // "reconnecting" over a terminal that is about to work.
+    this.attempt = 0
     if (this.state.getSnapshot().sessionId !== dshSessionId) {
-      // A different session starts from a clean slate: the retry budget, the
-      // failure report and the readiness all belong to the session that earned
-      // them, and carrying them over would show session B's view the state of
-      // session A.
-      this.attempt = 0
+      // A different session starts from a clean slate: the failure report
+      // belongs to the session that earned it, and carrying it over would show
+      // session B's view the state of session A. Readiness is the one fact
+      // that crosses the switch, and only as a memory: whether this session's
+      // shell ever reached a prompt decides panel-vs-marker, and re-asking it
+      // of a shell this page has already seen at a prompt would re-render the
+      // first-dial screen over a terminal that is about to work — the flash
+      // every session switch would carry. The host's own `ready` frame lands
+      // one round trip into the handshake and re-asserts the truth.
       this.patch({
         sessionId: dshSessionId,
         status: 'connecting',
@@ -759,7 +789,7 @@ export class PtyStreamService extends Service {
         tui: undefined,
         reason: undefined,
         detail: undefined,
-        ready: false,
+        ready: this.prompted.has(dshSessionId),
         attempt: 0,
         maxAttempts: MAX_AUTO_ATTEMPTS,
         exhausted: false,
@@ -771,9 +801,20 @@ export class PtyStreamService extends Service {
         failure: undefined,
       })
     } else {
-      this.patch({ sessionId: dshSessionId, status: 'connecting', since: Date.now() })
+      this.patch({ sessionId: dshSessionId, status: 'connecting', since: Date.now(), attempt: 0, exhausted: false })
     }
     let channel: PtyChannel
+    /**
+     * Whether this carrier has already said the shell is gone.
+     *
+     * The host sends its death frame BEFORE the snapshot, so a replay that
+     * arrives after one describes a shell that is still dead: the retry that
+     * frame scheduled is what is being watched, and a replay must not cancel
+     * it. A replay with no death frame in front of it is the opposite claim —
+     * the carrier came back for a shell that never went away — and that is
+     * what refills the budget below.
+     */
+    let deathAnnounced = false
     channel = openPtyChannel({
       sessionId: dshSessionId,
       stream: 'main',
@@ -784,6 +825,7 @@ export class PtyStreamService extends Service {
           // a no-op on the other path.
           channel.send({ kind: 'bind', sessionId: dshSessionId })
           this.boundId = dshSessionId
+          deathAnnounced = false
           this.patch({ status: 'connecting' })
           // Replay the grid this session's view already asked for: a request
           // made while the carrier was still connecting was remembered, not
@@ -794,7 +836,8 @@ export class PtyStreamService extends Service {
           // A superseded channel (handover already moved on) must never feed
           // history: its carrier may still deliver while it winds down.
           if (this.channel !== channel) return
-          this.ingestMainFrame(dshSessionId, frame)
+          if (frame.kind === 'closed' || frame.kind === 'error') deathAnnounced = true
+          this.ingestMainFrame(dshSessionId, frame, deathAnnounced)
         },
         onClose: () => {
           // Only the current channel owns teardown and reconnection; a
@@ -819,11 +862,23 @@ export class PtyStreamService extends Service {
     this.channelSession = dshSessionId
   }
 
-  /** Fold one main-stream frame into the session's state and history. */
-  private ingestMainFrame(dshSessionId: string, frame: WireFrame): void {
+  /**
+   * Fold one main-stream frame into the session's state and history.
+   * @param dshSessionId - the session this channel was opened for.
+   * @param frame - the decoded frame.
+   * @param deathAnnounced - whether the host already said this shell is gone on
+   *   this carrier, which is what tells a live replay apart from the snapshot
+   *   that follows a death.
+   */
+  private ingestMainFrame(dshSessionId: string, frame: WireFrame, deathAnnounced = false): void {
     if (frame.kind === 'output' && typeof frame.chunk === 'string') {
       this.boundId = dshSessionId
-      if (frame.replay !== true) this.resetRetry()
+      // A replay normally means "here is the scrollback you missed", not "the
+      // shell answered" — so it must not refill the budget. The exception is a
+      // replay that arrived with no death in front of it: that is a carrier
+      // that came back to a shell which never stopped running, which is exactly
+      // the successful reconnect the retry counter is waiting to be cleared by.
+      if (frame.replay !== true || !deathAnnounced) this.resetRetry()
       this.patch({ status: 'open' })
       this.ingest(dshSessionId, {
         text: frame.chunk,
@@ -870,18 +925,23 @@ export class PtyStreamService extends Service {
         host: typeof frame.host === 'string' ? frame.host : '',
         home: typeof frame.home === 'string' ? frame.home : '',
       })
-      if (typeof frame.ready === 'boolean') this.patch({ ready: frame.ready })
+      if (typeof frame.ready === 'boolean') {
+        if (frame.ready) this.prompted.add(dshSessionId)
+        this.patch({ ready: frame.ready })
+      }
       return
     }
     if (frame.kind === 'ready') {
       // The shell reached its prompt. Until this arrives the view shows a
       // connecting state rather than an empty terminal.
+      if (frame.ready !== false) this.prompted.add(dshSessionId)
       this.patch({ ready: frame.ready !== false })
       return
     }
     if (frame.kind === 'closed') {
       // Kept, not just logged: this is what the end-of-terminal marker says,
       // and what tells "the link dropped" apart from "it never came up".
+      if (frame.ready === true) this.prompted.add(dshSessionId)
       this.patch({
         status: 'closed',
         reason: typeof frame.reason === 'string' ? frame.reason : undefined,

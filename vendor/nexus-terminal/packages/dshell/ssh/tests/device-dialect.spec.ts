@@ -238,6 +238,31 @@ class FakeRouter {
   onAssignmentChanged: ((sessionId: string, deviceId: string | null) => void) | undefined
   private readonly targets = new Map<string, { name: string; remoteRoot: string }>()
   private readonly ready = Promise.resolve()
+  private readonly listeners: ((sessionId: string, deviceId: string | null) => void)[] = []
+
+  /**
+   * Listen for a session's assignment changing.
+   *
+   * A LIST, like the router's own: the dialect and the forward tool both follow
+   * the assignment, and a single slot would have let the second replace the
+   * first.
+   *
+   * @param listener - what to tell.
+   * @returns a disposer removing the listener.
+   */
+  onAssignment(listener: (sessionId: string, deviceId: string | null) => void): () => void {
+    this.listeners.push(listener)
+    return () => {
+      const index = this.listeners.indexOf(listener)
+      if (index >= 0) this.listeners.splice(index, 1)
+    }
+  }
+
+  /** Tell every listener that a session's assignment changed. */
+  notify(sessionId: string, deviceId: string | null): void {
+    this.onAssignmentChanged?.(sessionId, deviceId)
+    for (const listener of [...this.listeners]) listener(sessionId, deviceId)
+  }
 
   bind(sessionId: string, name: string, remoteRoot: string): void {
     this.targets.set(sessionId, { name, remoteRoot })
@@ -427,7 +452,7 @@ describe('a binding that arrives after the agent', () => {
     expect(ctx.visible(agent)).toEqual(['pwsh'])
 
     target.bind('session-on-device', 'tencent', '/root')
-    target.onAssignmentChanged?.('session-on-device', 'tencent')
+    target.notify('session-on-device', 'tencent')
 
     expect(ctx.visible(agent)).toEqual(['bash'])
   })
@@ -438,11 +463,11 @@ describe('a binding that arrives after the agent', () => {
     installDeviceDialect(ctx as unknown as Context, target as unknown as SshRouter)
 
     target.bind('session-on-device', 'tencent', '/root')
-    target.onAssignmentChanged?.('session-on-device', 'tencent')
+    target.notify('session-on-device', 'tencent')
     expect(ctx.visible(agent)).toEqual(['bash'])
 
     target.unbind('session-on-device')
-    target.onAssignmentChanged?.('session-on-device', null)
+    target.notify('session-on-device', null)
 
     expect(ctx.visible(agent)).toEqual(['pwsh'])
   })

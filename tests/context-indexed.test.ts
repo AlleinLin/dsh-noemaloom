@@ -9,6 +9,7 @@ import type { ContextSession } from '../src/domain/context/types.js';
 import { AtomicStore } from '../src/domain/storage/index.js';
 import type { StoredRecord } from '../src/ports/contracts.js';
 import { buildCompressibleRanges } from '../vendor/acp-kernel/src/recommend.js';
+import { buildProjectionShared, collectCoverage, projectUnit } from '../vendor/acp-kernel/src/unit-projection.js';
 import {
   activeAncestorIds, baseIdOf, bindIndexedArchive, countMessageTokens, createContentStore, createCore,
   createInitialState, defaultConfig, highestUsedIndex, indexToRef,
@@ -188,6 +189,30 @@ function withBlocks(blocks: CompressionBlock[], ids: string[]): CompressionState
   state.nextRunId = state.nextBlockId;
   return state;
 }
+
+test('shared upstream projections retain indexed coverage and the last uncovered user anchor', () => {
+  const messages = [pinned, text('live-user', 'Current admitted request.', 'user'),
+    text('answer-a'), text('answer-b'), text('covered-user', 'An already folded request.', 'user')];
+  const state = withBlocks([block('b1', ['cold-history', 'covered-user'])], messages.map(message => message.id));
+  const working = workingFor(state, messages);
+  for (const entry of working.blocks) {
+    entry.directMessageIds = [];
+    entry.effectiveMessageIds = [];
+  }
+  const indexed = bindIndexedArchive(working, factsFor(state));
+  const fullShared = buildProjectionShared(messages, state, policy);
+  const indexedShared = buildProjectionShared(messages, indexed, policy);
+  assert.equal(fullShared.anchorMessage?.id, 'live-user');
+  assert.equal(indexedShared.anchorMessage?.id, 'live-user', 'coverage comes from archive facts, not thin headers');
+  const args = { messages, config: policy, startRef: state.messageRefs.byRaw['answer-a'],
+    endRef: state.messageRefs.byRaw['answer-b'] };
+  const full = projectUnit({ ...args, state, shared: fullShared,
+    preExistingCoverage: collectCoverage(state, messages.map(message => message.id)) });
+  const actual = projectUnit({ ...args, state: indexed, shared: indexedShared,
+    preExistingCoverage: collectCoverage(indexed, messages.map(message => message.id)) });
+  assert.deepEqual(actual, full);
+  assert.deepEqual(working.blocks[0].effectiveMessageIds, [], 'no cold history is hydrated into the working window');
+});
 function blockHeader(value: CompressionBlock) {
   const { directMessageIds: _d, effectiveMessageIds: _e, directBlockIds: _c, createdAt: _clock, ...header } = value;
   return header;
@@ -606,7 +631,13 @@ test('indexed ancestor restoration requires the loaded closure and preserves ref
     messages: structuredClone(messages), config: refoldConfig, ranges });
   assert.deepEqual(rejectedIndexed.result, rejectedFull.result);
   assert.equal(rejectedIndexed.result.blocksCreated, 0);
-  assert.ok(rejectedIndexed.result.errors.some(error => error.includes('b3')));
+  // Upstream #4521 treats a fully consumed resubmission as a safe no-op.
+  // Keep the unrestored ancestor diagnostic and never rewrite its summary.
+  assert.equal(rejectedIndexed.result.noop, true);
+  assert.deepEqual(rejectedIndexed.result.errors, []);
+  assert.ok(rejectedIndexed.result.warnings.some(warning => warning.includes('b3')));
+  assert.equal(rejectedIndexed.workingState.blocks.find(value => value.blockId === 'b3')!.summary,
+    unrestored.blocks.find(value => value.blockId === 'b3')!.summary);
   const full = core.applyCompression({ state: structuredClone(restored), messages: structuredClone(messages), config: refoldConfig, ranges });
   const indexed = core.applyCompression({ storageMode: 'indexed-v1',
     workingState: workingFor(restored, messages, ['leaf-a', 'leaf-b'], ['b1', 'b3']),

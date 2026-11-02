@@ -113,7 +113,7 @@ test('managed update adapters remove independent update entry points and reject 
       assert.doesNotMatch(result.source, /action:.*t\("versions.checkAction"\)/);
       assert.match(result.source, /providers/, 'memory functionality remains');
     }
-    if (name === 'dsh-context') assert.match(result.source, /function jl\(\)\{return Promise.resolve\(null\)\}/);
+    if (name === 'dsh-context') assert.match(result.source, /function Ll\(\)\{return Promise.resolve\(null\)\}/);
     if (name.includes('agency')) {
       assert.match(result.source, /function Vc\(\)\{return null\}/);
       let bootstrap;
@@ -129,7 +129,7 @@ test('managed update adapters remove independent update entry points and reject 
       assert.equal(typeof dispose, 'function');
       assert.doesNotThrow(dispose);
     }
-    const symbols = { 'dsh-context': ['Pl', 'jl'], 'dsh-mnemon': ['VersionDialog'], '@michengai/dsh-agency-agents': ['Vc', 'Hc'] }[name];
+    const symbols = { 'dsh-context': ['Bl', 'Ll'], 'dsh-mnemon': ['VersionDialog'], '@michengai/dsh-agency-agents': ['Vc', 'Hc'] }[name];
     for (const symbol of symbols) {
       const drifted = original.replace(`function ${symbol}(`, `function renamed_${symbol}(`);
       assert.notEqual(drifted, original, 'the mutation must rename this package’s actual managed updater');

@@ -20,7 +20,11 @@
     "package:linux": "node scripts/package-linux.mjs",
     "package:linux:dir": "node scripts/package-linux.mjs --dir",
     "package:linux:prepare": "node scripts/package-linux.mjs --prepare-only",
-    "lint": "echo 'lint deferred: dshell packages do not yet carry oxlint config; copy dsh/.oxlintrc.json when ready'"
+    "check:upstream": "vitest run scripts/tests/upstream-surface.spec.ts scripts/tests/upstream-surface-bites.spec.ts",
+    "lint": "echo 'lint deferred: dshell packages do not yet carry oxlint config; copy dsh/.oxlintrc.json when ready'",
+    "sync:host-range": "node scripts/sync-host-range.mjs",
+    "sync:host-range:check": "node scripts/sync-host-range.mjs --check",
+    "fetch:upstream": "node scripts/fetch-upstream.mjs"
   },
   "devDependencies": {
     "@types/node": "^24",
@@ -78,7 +82,7 @@
       "@deepseek-ai/dsh-token-meter": "link:./dsh/packages/llm/token-meter",
       "@deepseek-ai/dsh-tools": "link:./dsh/packages/core/tools",
       "@deepseek-ai/schemastery": "link:./dsh/vendor/schemastery",
-      "node-pty": "link:./dsh/node_modules/.pnpm/node-pty@1.2.0-beta.15_patch_hash=9d30053266d0f39d3debe894c675867f6782da6bcadbc94a693b3cfb9eff8ed0/node_modules/node-pty"
+      "node-pty": "link:./dsh/packages/subprocess/subprocess-local/node_modules/node-pty"
     }
   },
   "license": "MIT"

@@ -6,14 +6,15 @@
   "archiveRoot": "Nexus-Terminal-main/",
   "archiveEntries": 375,
   "license": "MIT",
-  "dshellPackageVersion": "0.1.15",
+  "dshellPackageVersion": "0.1.16",
   "preserved": "Pinned upstream Git tree (including device-detail and session-owned file routing); original user archive retained as acquisition history. Local Windows transformations remain in nexus-adapter/.",
   "adaptations": "nexus-adapter/ holds explicit fail-closed build transformations and Windows platform support.",
-  "revision": "3fc6eacd7df4800e793b742be85a5877ae82cdf8",
+  "revision": "82e1bf5a0859ea866f88505cff36c8c76b74bb38",
   "sourceKind": "git-snapshot",
   "snapshot": {
     "repo": "https://github.com/Nexus-Aethra/Nexus-Terminal",
-    "revision": "3fc6eacd7df4800e793b742be85a5877ae82cdf8",
-    "sha256": "964d6929a1767ba59df47ef9bc8693f70410e5d930a2cc21894e4867b1b6c1a6"
-  }
+    "revision": "82e1bf5a0859ea866f88505cff36c8c76b74bb38",
+    "sha256": "79435d47536e4e50a4d27f69a1a5e4264cadcbfada18c4707e711267445c97e9"
+  },
+  "sourceReview": "docs/upstream-audit-2026-11-02.json"
 }

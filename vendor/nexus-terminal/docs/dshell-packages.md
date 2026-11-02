@@ -586,6 +586,22 @@ when it contributes to model-visible state.
 
 ### The publishing environment (this deployment)
 
+- **An alpha never reaches GitHub.** An alpha goes to npm under the `alpha`
+  dist-tag and stops there: no git tag, no GitHub release. The npm dist-tag
+  is the whole of the alpha's reach, and it is enough — it is where a tester
+  installs from, and it is what a rollback returns to.
+
+  The reason is the audience. A GitHub release is announced to everyone who
+  starred the repository, and a star is a statement about the project, not
+  about a release candidate. Every star of this repository would get a
+  notification about a build nobody asked for, and the second one would be
+  the one that taught them to ignore the channel. A git tag is quieter but
+  not silent — it shows up in the releases list and in every clone — so the
+  alpha does not get one either.
+
+  A stable release is different: it gets the git tag and the GitHub release,
+  because that is what a star IS a subscription to.
+
 - The npm CLI here defaults to the **npmmirror** registry: `~/.bashrc` exports
   `npm_config_registry="https://registry.npmmirror.com/"`. That mirror is
   read-only, so every publish must pass `--registry=https://registry.npmjs.org/`

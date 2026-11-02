@@ -141,20 +141,25 @@ Which dshell release you want depends on which dsh you have:
 
 | dsh | dshell |
 |---|---|
-| `0.2.1-rc.3` | **`0.1.15`** — the npm `latest` dist-tag |
+| `0.2.1-rc.3` **and every other 0.2.1 release**, plus `0.2.0`, `0.1.7`, `0.1.6`, `0.1.5` | **`0.1.16`** — the npm `latest` dist-tag |
+| `0.2.1-rc.3` only | **`0.1.15`** — superseded by `0.1.16` |
 | `0.2.1-rc.2` | **`0.1.14`** |
 | `0.2.0-rc.2`, `0.2.0-rc.1`, `0.1.7-rc.2`, `0.1.6-alpha.2`, `0.1.5-rc.2` | **`0.1.13`** |
 
 dsh checks every `@deepseek-ai/dsh-*` peer a plugin declares against its own version and skips the
-whole bundle when one does not match, so a dshell release names the exact dsh versions it supports.
-To run one anyway: `dsh plugin --profile <name> allow-version <package@version> --dsh-version
-<exact> --accept-risk`, which records the grant in the profile's `compatibility.json`.
+whole bundle when one does not match, so a dshell release declares the dsh versions it supports.
+That declaration is a range, not a list of exact versions, so a dsh patch or release candidate on
+a line dshell already runs on installs without waiting for a dshell release. The window is one
+file, `dsh-upstream.json` (`support.range`), and every manifest carries it: installing a dsh from
+a newer minor line than that window is what `allow-version` is for — `dsh plugin --profile <name>
+allow-version <package@version> --dsh-version <exact> --accept-risk`, which records the grant in
+the profile's `compatibility.json`.
 
 ```sh
 # One package: the bundle is the patch layer, it depends on the other ten dshell
 # packages, and dshell-ssh carries the one dsh package a stock profile does not
 # ship (`@deepseek-ai/dsh-ssh`, its SSH execution provider).
-dsh plugin --profile web add -w @nexus-aethra/dshell-bundle@0.1.15
+dsh plugin --profile web add -w @nexus-aethra/dshell-bundle@latest
 
 dsh web
 ```
@@ -162,7 +167,7 @@ dsh web
 dsh prints a tokenized URL (for example `http://127.0.0.1:3080/?token=…`). Open it in a browser.
 
 In the **desktop app**, the same install is available as a window: `设置 → 插件`, and give it
-`@nexus-aethra/dshell-bundle@0.1.15` (it installs from npmjs and pins the version exactly).
+`@nexus-aethra/dshell-bundle@0.1.16` (it installs from npmjs and pins the version exactly).
 
 > Skipping step 2 is not fatal — dsh boots and reports the two rows as `did not activate`, and the
 > rest of dshell works. It is listed because the SSH device sessions and the agent's terminal tool

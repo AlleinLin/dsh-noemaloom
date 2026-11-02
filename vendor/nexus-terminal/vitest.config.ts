@@ -29,5 +29,11 @@ export default defineConfig({
   test: {
     environment: 'node',
     include: ['packages/*/*/tests/**/*.spec.ts', 'scripts/tests/**/*.spec.ts'],
+    // The surface specs walk the whole upstream checkout -- 358 packages of source --
+    // and parse four catalogs out of it. That is a filesystem walk of a size the
+    // default five-second budget does not cover, and a CI runner is slower than a
+    // developer machine. The upstream project raises the same budget for its own
+    // equivalent checks (`DSH_COVERAGE_TEST_TIMEOUT_MS`), for the same reason.
+    testTimeout: 120_000,
   },
 })

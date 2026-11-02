@@ -820,6 +820,9 @@ def _write_values(ctx) -> dict:
         # 出口专有（见 _OUTLET_ONLY）：gated 面传给 writelimit 记账用。
         "role": a.get("role"),
         "tags": a.get("tags"),
+        # issue #722 反馈：`cg(op=write, aliases=...)` 曾静默丢弃——读侧 `_like`
+        # 早已把 aliases 并进召回串，写侧这条唯一取值点漏了它。
+        "aliases": a.get("aliases"),
         "condition_space": a.get("condition_space"),
         "verification_basis": (a.get("verification_basis")
                                or (ctx.get("verdict") or {}).get("basis")),
@@ -877,6 +880,10 @@ _OUTLET_PARAMS = (
     ("verification_state", "verification_state", "verification_state"),
     ("check_strength", "check_strength", "check_strength"),
     ("uncertain_refs", "uncertain_refs", "uncertain_refs"),
+    # issue #722 反馈（yunluo4444 实测）：`cg(op=write, aliases=...)` 曾静默丢弃——
+    # 本条表是两出口形参的唯一真源，缺此格则 `_outlet_kwargs` 不产出该键。
+    # 两列都填 `"aliases"`（不填 None）⇒ 不进 `_OUTLET_ONLY` 的双向核对范围。
+    ("aliases", "aliases", "aliases"),
 )
 
 #: 值为 None 的格（＝该出口无此形参）的**登记理由**。守卫双向核对：
@@ -1257,7 +1264,10 @@ _AUTONOMY_META_KEYS = ("tags", "condition_space", "verification_basis",
                        # confirm 档出单 → accept 重放会丢该声明（与
                        # verification_state 同款的「两条路径元数据不等价」坑）。
                        "check_strength",
-                       "override")
+                       "override",
+                       # issue #722 反馈（yunluo4444 实测）：确认档出单 → accept 重放时曾丢 aliases
+                       # （直写有、走审核队列后没有），与 issue50-c F1「两条路径元数据不等价」同族。
+                       "aliases")
 
 
 # 生效条件：ctx 的 a/cg/nid 就绪时以 forgetting.prior_node 判「同 id 已存在」（存在=C 改写、不存在=A 新增）并交 autonomy_modes.decide 判定——ALLOW 返回 None 放行（与改动前同一条链）；FORBID 返回 ok=False/moved_to="autonomy_forbidden" 的终态（fail-closed，不落盘、不出单）；CONFIRM 经 autonomy_modes.propose_mutation 出变更单（复用既有 propose 单点）并返回 ok=True/committed=False/moved_to="review_queue" 的终态（**不落盘**）；

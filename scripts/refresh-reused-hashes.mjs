@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 // Explicit reusable-source roots only. Never capture profiles, artifacts or credentials.
 const root = fileURLToPath(new URL('../', import.meta.url));
 const ledger = JSON.parse(await readFile(resolve(root, 'sources.lock.json'), 'utf8'));
-const roots = ['vendor/acp-kernel', 'vendor/memory-cognition', 'vendor/memsearch',
+const roots = ['vendor/acp-kernel', 'vendor/memory-cognition', 'vendor/memsearch', 'vendor/nexus-terminal',
   'vendor/codinput', 'vendor/computer-use', 'vendor/mnemon-providers', 'vendor/veyra-code', 'assets/methods',
   'assets/market', 'assets/presets', 'assets/diagrams', 'assets/notices', 'src/upstream',
   'notices/step-pause', 'notices/originals', 'notices/workflows', 'notices/editor'];

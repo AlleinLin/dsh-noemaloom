@@ -30,6 +30,10 @@ import DshellFsPlugin from './fs-routing.js'
 import { hostCopy } from './host-locales.js'
 import { sshDeviceRoot } from './paths.js'
 import { createSshRoute } from './route.js'
+import { Forwarder } from './forward/forwarder.js'
+import { createForwardRoute } from './forward/route.js'
+import { installForwardTool } from './forward/tool.js'
+import { deviceTransport } from './transport/transport.js'
 import { installShellRouting, SSH_ROUTING_SERVICE, SshRouter } from './router.js'
 import { installSpawnRouting } from './spawn-routing.js'
 import { installDeviceDialect } from './device-dialect.js'
@@ -124,6 +128,23 @@ function installRouting(ctx: Context, router: SshRouter): void {
       'dshell-ssh: device route',
     )
   })
+  // The forwarder: a socket on this machine in front of a port on the
+  // device. It rides the pooled connection the transport already holds, so
+  // it needs no service of its own.
+  ctx.inject(['connection'], (forwardCtx) => {
+    const forwarder = new Forwarder(deviceTransport())
+    forwardCtx.effect(
+      () => forwardCtx.connection.fetch.register(createForwardRoute({ forwarder, router })),
+      'dshell-ssh: forward route',
+    )
+    // Every forward is a socket this host opened, so the host closing has
+    // to close them: a listener left behind would keep a port bound after
+    // the session that asked for it is gone.
+    forwardCtx.effect(
+      () => () => { forwarder.stopAll() },
+      'dshell-ssh: forward teardown',
+    )
+  })
   // The contract a bound session's agent sees: the DEVICE's shell, not the
   // host's. It needs the tool registry (to shadow the host's shell tool in the
   // agent's own scope) and the agent registry (to know which agents exist and
@@ -132,6 +153,16 @@ function installRouting(ctx: Context, router: SshRouter): void {
     dialectCtx.effect(
       () => installDeviceDialect(dialectCtx, router),
       'dshell-ssh: device dialect',
+    )
+  })
+  // The forward tool: what the MODEL can ask for, beside the panel that lets
+  // the READER ask for one. Both drive the same forwarder, so a forward one
+  // of them opened is one the other can see.
+  ctx.inject(['tools', 'agents', 'connection'], (toolCtx) => {
+    const forwarder = new Forwarder(deviceTransport())
+    toolCtx.effect(
+      () => installForwardTool(toolCtx, { forwarder, router }),
+      'dshell-ssh: forward tool',
     )
   })
 }

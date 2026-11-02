@@ -2,10 +2,10 @@
 
 Repository: https://github.com/ranxianglei/billion-context
 
-Pinned release source commit: `39a0ada58f396ec6e5ee29fdbaa01c01b74f14d9`
+Pinned release source commit: `e226544f556712e33f3ef1d9fe5b4dc2b7715e15`
 
-Upstream path: `kernel/`; package version: `acp-kernel 0.0.169`; license: MIT.
-This is the kernel in the published `billion-context 0.1.209` release.
+Upstream path: `kernel/`; package version: `acp-kernel 0.0.176`; license: MIT.
+This is the kernel in the published `billion-context 0.1.211` release.
 
 The complete kernel `src/`, upstream `tests/` and fixtures are retained. The
 wire/bili-message.ts self-package type import is changed to ../types.js so the
@@ -41,3 +41,11 @@ no storage schema or existing session history is rewritten by this upgrade.
 The 2026-10-29 rebase preserves local indexed clone ownership while carrying upstream
 refLedgerAligned through sync and fold clones. It retains exact covered ranges and the
 new upstream schema/coverage regressions without rewriting persisted user sessions.
+
+The 2026-11-02 rebase resolves three source conflicts while retaining indexed coverage,
+fail-closed archive facts, refLedgerAligned, transactional persistence and native step
+ownership. Upstream 0.0.176 adds timestamp retention, no-progress retry/anchor fixes,
+shared screening and absorb-debt nudges. The new shared projection queries only
+current candidate IDs through indexed facts; thin headers never imply empty coverage.
+The exact full commit is resolved from the published npm dist/build-info, independently
+of the later moving Git HEAD. Full original kernel regressions remain in tests/.

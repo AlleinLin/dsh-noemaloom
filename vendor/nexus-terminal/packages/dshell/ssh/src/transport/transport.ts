@@ -220,6 +220,21 @@ export interface SshClient {
   connect(config: ConnectConfig): unknown
   on(event: string, listener: (...args: never[]) => void): unknown
   exec(command: string, options: ExecOptions, callback: (error: Error | undefined, channel: ClientChannel) => void): unknown
+  /**
+   * Open a forwarded connection to the device, the way `ssh -L` does.
+   *
+   * `srcIP`/`srcPort` are the address the DEVICE should see the connection
+   * coming from, and `dstIP`/`dstPort` are where it should go. The callback
+   * receives the channel when the device accepted the request, or the error
+   * it refused it with.
+   */
+  forwardOut(
+    srcIP: string,
+    srcPort: number,
+    dstIP: string,
+    dstPort: number,
+    callback: (error: Error | undefined, channel: ClientChannel) => void,
+  ): unknown
   end(): void
 }
 
@@ -370,6 +385,63 @@ export class DeviceTransport {
       return await offered.promise
     } finally {
       clearTimeout(timer)
+    }
+  }
+
+  /**
+   * Open a forwarded connection to the device, the way `ssh -L` does.
+   *
+   * The channel rides the POOLED connection, so a forward costs no extra
+   * session: the device that already holds one connection for the terminal,
+   * the file reads and the helper keeps one connection, and a forward is
+   * another channel on it.
+   *
+   * The consequence is the one a reader has to be told about: a channel is a
+   * channel, and when the connection dies every channel on it dies with it.
+   * A forward is therefore NOT rebuilt here — the forwarder that owns it
+   * watches for the close and re-opens, because only it knows which forwards
+   * were meant to outlive the connection.
+   *
+   * @param device - the device to reach.
+   * @param srcIP - the address the device should see the connection coming from.
+   * @param srcPort - the port the device should see the connection coming from.
+   * @param dstIP - the address on the device to connect to.
+   * @param dstPort - the port on the device to connect to.
+   * @returns the channel the device opened, once it accepted the request.
+   * @throws The error the device refused the request with.
+   */
+  async forward(
+    device: DeviceConnection,
+    srcIP: string,
+    srcPort: number,
+    dstIP: string,
+    dstPort: number,
+  ): Promise<ClientChannel> {
+    const dial = async (): Promise<ClientChannel> => {
+      const client = await this.pooled(device)
+      return await new Promise<ClientChannel>((resolve, reject) => {
+        let settled = false
+        client.forwardOut(srcIP, srcPort, dstIP, dstPort, (error: Error | undefined, channel: ClientChannel) => {
+          if (error !== undefined && error !== null) {
+            if (!settled) { settled = true; reject(error) }
+            return
+          }
+          if (settled) { channel.close(); return }
+          settled = true
+          resolve(channel)
+        })
+      })
+    }
+    try {
+      return await dial()
+    } catch (error) {
+      // The same retry the command path makes: a pooled connection that turned
+      // out to be dead fails its first channel, and one fresh dial is the honest
+      // retry. A device that REFUSES a forward is a different thing — it is
+      // the device saying no, and a second dial would be answered no again.
+      if (classifyDeviceError(error) !== 'transport') throw error
+      this.release(device.id)
+      return await dial()
     }
   }
 

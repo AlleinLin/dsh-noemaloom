@@ -130,6 +130,18 @@ export type PtyTransport = 'auto' | 'ws' | 'stream'
 /** Storage key for the transport override. */
 const TRANSPORT_KEY = 'dshell.transport'
 
+/**
+ * How long the websocket handshake may take before it counts as a failure.
+ *
+ * Longer than a healthy loopback or LAN handshake by a wide margin, so only a
+ * socket that is genuinely stuck reaches it — a NAT that dropped the mapping, a
+ * laptop that slept mid-handshake, a host that stopped accepting while the page
+ * was in the background. Without a bound, that state is indistinguishable from
+ * "still connecting": no close, no error, no retry, and a screen that never
+ * resolves.
+ */
+const CONNECT_TIMEOUT_MS = 15_000
+
 /** Read the persisted preference; anything unrecognized means `auto`. */
 export function transportPreference(): PtyTransport {
   try {
@@ -180,10 +192,29 @@ class WsChannel implements PtyChannel {
   private readonly socket: WebSocket
   private state: 'connecting' | 'open' | 'closed' = 'connecting'
   private deliberate = false
+  /** Guards the handshake; cleared on open, on close, and on dispose. */
+  private connectTimer: ReturnType<typeof setTimeout> | undefined
 
   constructor(url: string, handlers: PtyChannelHandlers) {
     this.socket = new WebSocket(url)
+    // A socket that never finishes connecting is the one failure this carrier
+    // cannot otherwise report: the browser keeps it in CONNECTING through a
+    // silent network, so neither `onopen` nor `onclose` ever runs and the screen
+    // stays on "connecting" forever without spending a retry attempt. Closing it
+    // ourselves turns that silence into the ordinary close path, which is where
+    // the retry budget lives.
+    this.connectTimer = setTimeout(() => {
+      if (this.state !== 'connecting') return
+      // The state moves first: closing the socket raises `onclose` too, and the
+      // handler there must see a closed carrier rather than report one close
+      // twice (which would spend two retry attempts on one failure).
+      this.state = 'closed'
+      try { this.socket.close() } catch { /* already gone */ }
+      handlers.onError()
+      handlers.onClose()
+    }, CONNECT_TIMEOUT_MS)
     this.socket.onopen = () => {
+      clearTimeout(this.connectTimer)
       this.state = 'open'
       handlers.onOpen()
     }
@@ -197,8 +228,10 @@ class WsChannel implements PtyChannel {
       handlers.onFrame(frame)
     }
     this.socket.onclose = () => {
+      clearTimeout(this.connectTimer)
+      const alreadyClosed = this.state === 'closed'
       this.state = 'closed'
-      if (!this.deliberate) handlers.onClose()
+      if (!this.deliberate && !alreadyClosed) handlers.onClose()
     }
     this.socket.onerror = () => {
       if (!this.deliberate) handlers.onError()
@@ -217,6 +250,7 @@ class WsChannel implements PtyChannel {
   dispose(): void {
     this.deliberate = true
     this.state = 'closed'
+    clearTimeout(this.connectTimer)
     this.socket.close()
   }
 }

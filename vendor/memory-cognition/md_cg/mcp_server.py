@@ -754,6 +754,10 @@ KERNEL_TOOLS = [
                                    "**edges 的缺省轴**——派生边只有记录时刻，无效力声明）"),
             layer=_p("string", "层：anchor|structural|knowledge|contextual|self"),
             tags=_p("array", "标签（cap:xxx 会作为 route 的建议能力名）"),
+            aliases=_p("array", "写入别名（issue #722）：把「用户以后可能怎么问这件事」的说法"
+                              "写进来（3–8 个，口语/情绪/近义都算）。只参与词法召回，**不进 tags**"
+                              "（tags 被机器判据占用：是不是任务卡、能不能当锚点）。"
+                              "⚠️ 不要机械抽词——实测从功能名切词提升 +0，别名只能「想」出来"),
             importance=_p("number", "重要性 0-1"),
             importance_hint=_p("number", "write gated=true 时的重要性提示"
                                         "（≥0.7 触发保护优先，直接 ACCEPT）"),

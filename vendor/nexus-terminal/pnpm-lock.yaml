@@ -53,7 +53,7 @@ overrides:
   '@deepseek-ai/dsh-token-meter': link:./dsh/packages/llm/token-meter
   '@deepseek-ai/dsh-tools': link:./dsh/packages/core/tools
   '@deepseek-ai/schemastery': link:./dsh/vendor/schemastery
-  node-pty: link:./dsh/node_modules/.pnpm/node-pty@1.2.0-beta.15_patch_hash=9d30053266d0f39d3debe894c675867f6782da6bcadbc94a693b3cfb9eff8ed0/node_modules/node-pty
+  node-pty: link:./dsh/packages/subprocess/subprocess-local/node_modules/node-pty
 
 importers:
 
@@ -581,8 +581,8 @@ importers:
         specifier: workspace:^
         version: link:../storage
       node-pty:
-        specifier: link:../../../dsh/node_modules/.pnpm/node-pty@1.2.0-beta.15_patch_hash=9d30053266d0f39d3debe894c675867f6782da6bcadbc94a693b3cfb9eff8ed0/node_modules/node-pty
-        version: link:../../../dsh/node_modules/.pnpm/node-pty@1.2.0-beta.15_patch_hash=9d30053266d0f39d3debe894c675867f6782da6bcadbc94a693b3cfb9eff8ed0/node_modules/node-pty
+        specifier: link:../../../dsh/packages/subprocess/subprocess-local/node_modules/node-pty
+        version: link:../../../dsh/packages/subprocess/subprocess-local/node_modules/node-pty
       ws:
         specifier: ^8.21.0
         version: 8.21.3
@@ -676,7 +676,7 @@ importers:
         specifier: link:../../../dsh/packages/core/session
         version: link:../../../dsh/packages/core/session
       '@deepseek-ai/dsh-session-query':
-        specifier: 0.1.5-rc.2 || 0.1.6-alpha.2 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2 || 0.2.1-rc.2 || 0.2.1-rc.3
+        specifier: 0.1.5-rc.2 || 0.1.6-alpha.2 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2 || >=0.2.1-rc.2 <0.2.2-0
         version: 0.1.6-alpha.2(efzmo6jhbtrurmkattjbpnrtpi)
       '@deepseek-ai/schemastery':
         specifier: link:../../../dsh/vendor/schemastery

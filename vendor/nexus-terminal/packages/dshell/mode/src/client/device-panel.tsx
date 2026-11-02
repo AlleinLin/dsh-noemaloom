@@ -28,7 +28,9 @@ import type { PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots
 import { Input, SegmentedTabs, Tag, type SegmentedTab } from '@deepseek-ai/dsh-client-ui-primitives'
 // Type-only: pulls the right-Sidebar SlotMap merge (the tab-body seat + its hooks).
 import type {} from '@deepseek-ai/dsh-client-ui-sidebar-right/client'
+import type { DshellForwardResponse, DshellForwardView } from '@nexus-aethra/dshell-std'
 import { deviceDetailSeat } from './device-detail.js'
+import { deviceForwardSeat, forwardFor, forwardLabel, readForwards } from './device-forward.js'
 import { deviceMetricsSeat } from './device-metrics.js'
 import {
   devicePanelView,
@@ -70,7 +72,10 @@ export type DevicePanelProps =
  * control: a head that has to be clipped is a head that cannot be read.
  */
 const PROCESS_COLUMNS = '44px minmax(0, 1fr) 58px 58px'
-const PORT_COLUMNS = '44px 48px minmax(0, 1fr) minmax(0, 110px)'
+const PORT_COLUMNS = '44px 48px minmax(0, 1fr) minmax(0, 110px) 72px'
+
+/** The answer a panel draws before the host has said anything about forwards. */
+const EMPTY_FORWARDS: DshellForwardResponse = { forwards: [] }
 const CONTAINER_COLUMNS = 'minmax(0, 1fr) minmax(0, 1fr) minmax(0, auto)'
 
 /**
@@ -369,6 +374,30 @@ const styles = {
     minWidth: 0,
     overflow: 'hidden',
     textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  } as CSSProperties,
+  /** The forward button on a port row: a small, quiet action. */
+  forward: {
+    border: '0.5px solid var(--dsw-alias-border-l3)',
+    background: 'transparent',
+    color: 'var(--dsw-alias-label-secondary)',
+    font: 'inherit',
+    fontSize: 11,
+    padding: '1px 6px',
+    borderRadius: 3,
+    cursor: 'pointer',
+    whiteSpace: 'nowrap',
+  } as CSSProperties,
+  /** The same button, for a port that already has a forward. */
+  forwardOn: {
+    border: '0.5px solid var(--dsw-alias-border-l3)',
+    background: 'transparent',
+    color: 'var(--dsw-alias-state-business-primary)',
+    font: 'inherit',
+    fontSize: 11,
+    padding: '1px 6px',
+    borderRadius: 3,
+    cursor: 'pointer',
     whiteSpace: 'nowrap',
   } as CSSProperties,
   /** The container's state, with the dot that says whether it is healthy. */
@@ -682,11 +711,21 @@ function ContainerRow({ row, last }: {
  *
  * The holder is a LINK, not a word: the first question about a port is who
  * holds it, and the process list is where the answer is read.
+ *
+ * The forward button is the last column: it is the way to reach this port from
+ * this machine, and it says which it is — a port that already has a forward
+ * names the local port it landed on, and one that does not offers to open one.
  */
-function PortRow({ row, last, onHold }: {
+function PortRow({ row, last, onHold, forward, onForward, t }: {
   row: DevicePanelPortRow
   last: boolean
   onHold: (name: string) => void
+  /** The forward that already carries this port, if there is one. */
+  forward: DshellForwardView | undefined
+  /** Open a forward for this port, or stop the one that carries it. */
+  onForward: (row: DevicePanelPortRow, forward: DshellForwardView | undefined) => void
+  /** The reader's copy. */
+  t: DevicePanelProps['t']
 }): ReactNode {
   return (
     <div
@@ -711,12 +750,22 @@ function PortRow({ row, last, onHold }: {
             {row.processName}
           </button>
         )}
+      <button
+        type="button"
+        data-dshell-device-forward="port"
+        style={forward === undefined ? styles.forward : styles.forwardOn}
+        onClick={() => { onForward(row, forward) }}
+      >
+        {forwardLabel(forward, t('device.forward.open'))}
+      </button>
     </div>
   )
 }
 
 /** What the panel's body needs, so it can be drawn without a browser. */
 export interface DevicePanelBodyProps {
+  /** The session the panel is about; a forward belongs to one. */
+  readonly sessionId: string
   /** What the host said about the session's machine. */
   readonly view: import('./device-panel-view.js').DevicePanelView | undefined
   /** The page on screen. */
@@ -734,7 +783,7 @@ export interface DevicePanelBodyProps {
  * @param props - the view, the state, and the copy.
  * @returns the panel's content.
  */
-export function DshellDevicePanelBody({ view, page, onPage, onRefresh, t }: DevicePanelBodyProps): ReactNode {
+export function DshellDevicePanelBody({ sessionId, view, page, onPage, onRefresh, t }: DevicePanelBodyProps): ReactNode {
   // The rows' hover lives in a stylesheet, because inline styles cannot say
   // `:hover`.
   useEffect(injectHoverCss, [])
@@ -749,6 +798,31 @@ export function DshellDevicePanelBody({ view, page, onPage, onRefresh, t }: Devi
   const [containerQuery, setContainerQuery] = useState('')
   const [containerSort, setContainerSort] = useState<readonly SortKey<ContainerSortKey>[]>([{ key: 'name', direction: 'asc' }])
   const [expandedPid, setExpandedPid] = useState<number | undefined>(undefined)
+
+  // The forwards of this session: what the host holds open on this machine.
+  // They are read when the ports page is on screen, because a forward is
+  // something the reader asks for ON that page — and a reader who never
+  // opens the page should not pay for the request.
+  const forwardSubscribe = useCallback((listener: () => void) => deviceForwardSeat.subscribe(listener), [])
+  const forwardSnapshot = useCallback(() => deviceForwardSeat.getSnapshot(sessionId), [sessionId])
+  // The server draws the panel before any answer has arrived, and a panel
+  // drawn then must still be a panel: an EMPTY answer, not a missing one.
+  const forwardServerSnapshot = useCallback(() => EMPTY_FORWARDS, [])
+  const forwardState = useSyncExternalStore(forwardSubscribe, forwardSnapshot, forwardServerSnapshot)
+  const forwards = forwardState?.forwards ?? []
+  useEffect(() => {
+    if (page !== 'ports') return
+    void readForwards(sessionId)
+  }, [page, sessionId])
+
+  /** Open a forward for one port, or stop the one that carries it. */
+  const onForward = useCallback((row: DevicePanelPortRow, forward: DshellForwardView | undefined) => {
+    if (forward === undefined) {
+      void deviceForwardSeat.open(sessionId, row.port)
+      return
+    }
+    void deviceForwardSeat.stop(sessionId, forward.localPort)
+  }, [sessionId])
 
   const pages = useMemo<readonly [SegmentedTab<DevicePanelPage>, ...SegmentedTab<DevicePanelPage>[]]>(() => ([
     { id: 'overview', value: 'overview', label: t('device.page.overview'), panelId: 'dshell-device-page-overview' },
@@ -930,6 +1004,7 @@ export function DshellDevicePanelBody({ view, page, onPage, onRefresh, t }: Devi
                       <SortHead label={t('device.column.port')} sorts={portSort} column="port" fallback={PORT_FALLBACK.port} onSort={(column, shift) => { setPortSort(sorts => nextSort(sorts, column, shift)) }} onFlip={(column) => { setPortSort(sorts => flipSort(sorts, column, PORT_FALLBACK[column])) }} t={t} />
                       <SortHead label={t('device.column.address')} sorts={portSort} column="address" fallback={PORT_FALLBACK.address} onSort={(column, shift) => { setPortSort(sorts => nextSort(sorts, column, shift)) }} onFlip={(column) => { setPortSort(sorts => flipSort(sorts, column, PORT_FALLBACK[column])) }} t={t} />
                       <SortHead label={t('device.column.process')} sorts={portSort} column="process" fallback={PORT_FALLBACK.process} align="right" onSort={(column, shift) => { setPortSort(sorts => nextSort(sorts, column, shift)) }} onFlip={(column) => { setPortSort(sorts => flipSort(sorts, column, PORT_FALLBACK[column])) }} t={t} />
+                      <span style={{ ...styles.mono, ...styles.dim, textAlign: 'right' }}>{t('device.column.forward')}</span>
                     </div>
                     {shownPorts.length === 0
                       ? <div style={styles.empty}>{t('device.list.empty')}</div>
@@ -938,6 +1013,9 @@ export function DshellDevicePanelBody({ view, page, onPage, onRefresh, t }: Devi
                           key={`${row.proto}-${String(row.port)}-${row.address}`}
                           row={row}
                           last={index === shownPorts.length - 1}
+                          forward={forwardFor(forwards, row.port)}
+                          onForward={onForward}
+                          t={t}
                           onHold={(name) => {
                             // The first question about a port is who holds
                             // it, and the process list is where the answer
@@ -1002,6 +1080,7 @@ export function DshellDevicePanel({ sessionId, t }: DevicePanelProps): ReactNode
       // The key resets the reader's filters and ordering when the session
       // changes: they are answers to a question about ONE machine.
       key={sessionId}
+      sessionId={sessionId}
       view={view}
       page={page}
       onPage={setPage}

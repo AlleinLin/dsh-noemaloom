@@ -96,6 +96,8 @@ export {
   leanPack,
   LEAN_HOW_TO_COMPRESS,
   leanHowToCompress,
+  LEAN_HOW_TO_COMPRESS_TIMESTAMPED,
+  TIMELINE_RULE_LINE,
   builtinSource,
   createDirPackSource,
   createPackResolver,
@@ -294,6 +296,7 @@ export {
   renderVisibleRefs,
   renderRefsNode,
   createRenderRefsNode,
+  formatTagTime,
 } from "./render-refs.js";
 export type { RenderStrategy } from "./render-refs.js";
 export { resolveTransformChannel } from "./transform-channel.js";

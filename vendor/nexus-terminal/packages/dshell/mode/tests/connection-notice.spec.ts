@@ -86,6 +86,27 @@ describe('the screens that were already there', () => {
   })
 })
 
+describe('coming back to a terminal that never failed', () => {
+  // Switching session and returning is the ordinary way a device terminal is
+  // used, and it re-opens the carrier: the wire is briefly `connecting` while
+  // the socket's handshake runs. That is not a retry, and the retry marker is
+  // the one thing on screen that would say otherwise — so a switch must never
+  // be able to leave a count behind it.
+  it('never shows a retry count for a rebind with nothing to retry', () => {
+    // attempt 0 is what the bind resets it to; the marker's own guard is what
+    // this pins, because the count is rendered from this value alone.
+    expect(connectionView(facts({ status: 'connecting', bound: true, ready: true, attempt: 0 })))
+      .toEqual({ kind: 'notice', tone: 'connecting' })
+  })
+
+  it('still shows the count for a retry that really is running', () => {
+    // The complement: a genuine failure must keep its count visible, or the
+    // reader loses the one signal that says how much of the budget is gone.
+    const view = connectionView(facts({ status: 'closed', bound: true, ready: true, attempt: 2 }))
+    expect(view).toEqual({ kind: 'notice', tone: 'failed' })
+  })
+})
+
 describe('a host key that changed', () => {
   it('gets a screen, because the only way out is a decision, not a retry', () => {
     expect(connectionView(facts({ status: 'error', bound: true, failure: 'hostKey' })))

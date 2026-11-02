@@ -620,6 +620,62 @@ export interface BufferResponse extends BufferState {
 /** Exact `/api` route path owned by the SSH device registry. */
 export const DSHELL_SSH_PATH = '/api/dshell/ssh'
 
+// ─── ssh — port forwards: the tunnel, its state, their requests/responses ───
+
+/** Exact `/api` route path owned by the port forwarder. */
+export const DSHELL_SSH_FORWARD_PATH = '/api/dshell/ssh/forward'
+
+/**
+ * How a forward is doing.
+ *
+ * `starting` is a real state and not a formality: the device has to accept the
+ * request, and until it does there is no tunnel. A reader shown only `running`
+ * and `failed` would have to guess which one they are in.
+ */
+export type DshellForwardStatus = 'starting' | 'running' | 'failed' | 'stopped'
+
+/** One forward, as a reader sees it. */
+export interface DshellForwardView {
+  /** The session this forward belongs to. */
+  readonly sessionId: string
+  /** The device the traffic goes to. */
+  readonly deviceId: string
+  /** The device's display name, as the reader named it. */
+  readonly deviceName: string
+  /** The port on the device that is being reached. */
+  readonly devicePort: number
+  /** The port on the reader's own machine that is listening. */
+  readonly localPort: number
+  /** The address on the reader's own machine that is listening. */
+  readonly localAddress: string
+  /** How the forward is doing. */
+  readonly status: DshellForwardStatus
+  /** Why it failed, when it did; undefined otherwise. */
+  readonly error?: string | undefined
+}
+
+/** What a reader asks the forwarder to do. */
+export type DshellForwardRequest =
+  | { readonly op: 'list'; readonly sessionId?: string | undefined }
+  | {
+    readonly op: 'open'
+    readonly sessionId: string
+    readonly devicePort: number
+    /** The local port to listen on; 0 asks the system for one. */
+    readonly localPort?: number | undefined
+  }
+  | { readonly op: 'stop'; readonly sessionId: string; readonly localPort: number }
+
+/** What the forwarder answers. */
+export interface DshellForwardResponse {
+  /** Every forward the reader may see. */
+  readonly forwards: readonly DshellForwardView[]
+  /** The forward the request was about, when it was about one. */
+  readonly forward?: DshellForwardView | undefined
+  /** Why the request failed, when it did. */
+  readonly error?: string | undefined
+}
+
 /** Settings namespace owned by this plugin; also the device card's slot key. */
 export const SSH_SETTINGS_NAMESPACE = 'dshell-ssh'
 

@@ -1,6 +1,6 @@
 {
   "name": "@nexus-aethra/dshell-storage",
-  "version": "0.1.15",
+  "version": "0.1.16",
   "description": "dshell storage engines: the mediums behind the std storage contract. Currently a SQLite command-history store on Node's built-in node:sqlite, so there is no native dependency and no install script; host-only, never imported by a client bundle.",
   "license": "MIT",
   "repository": {

@@ -2,12 +2,12 @@
 
 Repository: https://github.com/FuRongJun-1999/dsh-memory
 
-Published package: `@furongjun1999/dsh-memory 0.9.18`
+Published package: `@furongjun1999/dsh-memory 0.9.21`
 
-Observed upstream commit (package identity is npm integrity): `b2fe4db4dffc1bf1d54e705de55d47a6bd02069c`
+Observed Git HEAD (not a package gitHead; package identity is npm integrity): `5cf81083a63b80d3383eee0fb3a5a05178f2113a`
 
 Archive integrity:
-`sha512-L2T3V6vtD+OY2Gfm6vJ2IEHF6l1GnOvAFYNF/50WXFyeqohVI4EmKN5RZvLdivkitOphiEuj1GN96Xs/nZk3nA==`
+`sha512-/Xl6bsSbHj6tcid6X6dTJvghan7KGz0rrw7WAkFN9KVMA31mstkQ/c+d2YoZOge4DH013pXZT0fisC2EN09Jag==`
 
 The complete upstream `md_cg/` tree, `utf8_boot.py`, policy, character
 blocks, package manifest and MIT license are retained. The original npm
@@ -28,3 +28,18 @@ register or execute a Rust engine or the upstream installer. UI tests write
 only to temporary directories. The isolated source copy receives a synthetic
 Git HEAD before testing so the upstream oracle and its negative control run
 without access to the working repository or user Git hooks.
+
+The 2026-11-02 release also carries the exact upstream PR729 aliases forwarding fix
+in mcp_server.py, op_table.py and writepipe.py. UPSTREAM-FIXES.json records
+the published base and exact Git-file hashes. These three source files use
+upstream Git LF; their npm base used CRLF. The normalized semantic delta is only
+alias parameter discovery, both write outlets and confirmation replay metadata.
+The Git-only session5 log resolver is not imported; trusted native identity remains
+authoritative. The seven newly published operator documents are copied verbatim.
+
+The public MD-directory specification and two log-index scripts listed in
+`VALIDATION-FIXTURES.json` are additional fixtures for the unchanged P27 and
+logref regressions. The logref runner uses only synthetic temporary logs.
+These scripts are not imported by `nexus_bridge.py`, registered as host hooks,
+or executed against user sessions. CI pins zstandard 0.25.0 to exercise the
+logref body rather than counting its missing-dependency skip as coverage.

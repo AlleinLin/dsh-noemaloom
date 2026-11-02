@@ -116,6 +116,11 @@ export function syncBlocks(
     ...(runtime ? { lastPassIds: state.lastPassIds ? [...state.lastPassIds] : undefined } : {}),
     // Preserve upstream alignment without losing local indexed membership.
     refLedgerAligned: state.refLedgerAligned,
+    // #4313: first-sight time stamps must survive the sync clone — dropping
+    // them here would re-mint every stamped message a fresh wall-clock value
+    // on the very next turn (timestamp drift = receipt range churn, and the
+    // stored-value contract of the tag's time attribute broken).
+    tsStamps: state.tsStamps ? { ...state.tsStamps } : undefined,
   };
   if (runtime) inheritIndexedState(state, result);
 

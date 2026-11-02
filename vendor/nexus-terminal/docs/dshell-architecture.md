@@ -228,6 +228,47 @@ If the harness restarts, `ready` reports a new `mainPtyId` (or none,
 if `ensureMainShell` fails). Browser-side state is reset; xterm.js
 shows a fresh prompt.
 
+#### What a rebind is not
+
+Switching session and coming back re-opens the carrier, so the wire is
+briefly `connecting` while the handshake runs. That is a rebind, not a
+retry, and the two must not share a presentation: the retry counter says
+how much of a failure budget is gone, so showing it for an ordinary switch
+reports a fault where there is none. Four rules keep them apart.
+
+The budget resets when a bind opens the carrier, not only when live output
+arrives. `attempt` is spent by failures, and the reader choosing the
+session is not one: a socket that died while the page was elsewhere must
+not be able to greet the reader with its count when they come back.
+
+A replay counts as a successful reconnect when no death preceded it. The
+host sends its `closed` frame *before* the snapshot, so a replay after one
+describes a shell that is still dead and must leave the scheduled retry
+alone. A replay with nothing in front of it is the opposite claim — the
+carrier came back to a shell that never stopped — and that is what refills
+the budget.
+
+The websocket handshake is bounded (`CONNECT_TIMEOUT_MS`). A socket the
+browser holds in CONNECTING through a silent network raises neither
+`onopen` nor `onclose`, so without a bound it is indistinguishable from
+"still connecting": no close, no retry, and a screen that never resolves.
+The timeout turns that silence into the ordinary close path, where the
+budget lives.
+
+Readiness crosses a switch as a memory, not as a reset. The panel-vs-marker
+choice consumes `ready`, and `ready` describes one session at a time — so
+zeroing it on a switch would present the next session as one that never
+answered, and a device session would re-render the first-dial screen over a
+terminal that is about to work, on every switch. The client therefore
+remembers, per session, that its shell reached a prompt, and seeds `ready`
+from that memory while the handshake runs. The host's own `ready` frame
+lands one round trip in and remains the only authority; the memory covers
+nothing but the window in front of it.
+
+The device PTY's lifetime belongs to the dsh session, not to the browser's
+socket — it is a channel on the pool § 19 describes — so a rebind costs a
+replay and nothing else. What the reader was running keeps running.
+
 ## 5. RPC contracts (host ↔ browser Remote)
 
 dshell uses the existing Typert Remote stream only for control
@@ -988,6 +1029,22 @@ parent's listing, since the directory they want is already in front of them.
   file. What that excludes is listed there too.
 
 These mirror `dshell-design.md` § 2 and are normative.
+
+### What ends a shell, and what only looks like it
+
+`session/disposed` is the session store releasing its entry, and the bridge
+kills the session's PTYs on it. That is right for a genuine end, and wrong for
+the cases the event cannot distinguish: the store also releases an entry when
+the process re-enters the same id (an HMR reload of the host plugin is the
+common one). Killing the shell there stops work nobody asked to stop.
+
+So the handler asks first. `ctx.sessions.get(id)` is the authority on whether
+an id still names a live session, and a session that is live again by the time
+the handler runs keeps its shell. A composition without a session store (a bare
+test context) cannot answer, and is read as "the disposal is final" — that
+direction is deliberate: a shell outliving its session forever is a leak, while
+a shell killed for a session that still exists is lost work, and only one of
+those is recoverable by the reader.
 
 ## 17. Phase plan
 

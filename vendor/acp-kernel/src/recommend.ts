@@ -31,12 +31,17 @@ import {
   isMessageLatestProtected,
   isMessageProtectedWithPairing,
   isNeverPreserveRecent,
+  lastUserAnchor,
 } from "./protected.js";
 import { countMessageTokens } from "./tokenize.js";
 import { computeIntegrityWithdrawals } from "./turn-integrity.js";
 import { evaluateRefold } from "./refold.js";
 import { segmentGroups } from "./segment.js";
-import { projectUnit, collectCoverage } from "./unit-projection.js";
+import {
+  projectUnit,
+  collectCoverage,
+  buildProjectionShared,
+} from "./unit-projection.js";
 import { BoundaryNotFoundError } from "./boundaries.js";
 import type { UnitProjection } from "./unit-projection.js";
 import { indexedRuntime, rethrowArchiveFailure } from "./indexed-runtime.js";
@@ -144,12 +149,10 @@ export function computeProtectedRefs(
   // skipped above — user intent is always protected regardless of recent
   // tool results.
   if (preserveN > 0) {
-    for (let i = messages.length - 1; i >= 0; i--) {
-      const msg = messages[i]!;
-      if (msg.role !== "user" || isSyntheticOrPruned(msg, covered)) continue;
-      const ref = state.messageRefs.byRaw[msg.id];
+    const anchor = lastUserAnchor(messages, covered, config);
+    if (anchor) {
+      const ref = state.messageRefs.byRaw[anchor.id];
       if (ref && ref !== "BLOCKED") result.add(ref);
-      break;
     }
   }
 
@@ -666,6 +669,8 @@ export function screenRecommendedUnits(
 ): CompressibleRange[] {
   if (units.length === 0) return units;
   const coverage = collectCoverage(state, source.map(message => message.id));
+  // Reuse upstream per-pass projections while querying only the admitted window.
+  const shared = buildProjectionShared(source, state, config);
   return units.filter((unit) => {
     let projection: UnitProjection | undefined;
     try {
@@ -677,6 +682,7 @@ export function screenRecommendedUnits(
         endRef: unit.endRef,
         preExistingCoverage: coverage,
         protectedMessageIds: protectedRefs,
+        shared,
       });
     } catch (err) {
       rethrowArchiveFailure(err);

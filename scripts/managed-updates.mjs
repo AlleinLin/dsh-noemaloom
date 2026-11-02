@@ -5,8 +5,8 @@ import ts from 'typescript';
 export function suppressManagedUpdateUi(packageName, source) {
   const rules = {
     'dsh-context': [
-      ['Pl', 'Ml().then', 'function Pl(){return null}'],
-      ['jl', '/dsh-context/latest', 'function jl(){return Promise.resolve(null)}'],
+      ['Bl', 'Rl().then', 'function Bl(){return null}'],
+      ['Ll', '/dsh-context/latest', 'function Ll(){return Promise.resolve(null)}'],
     ],
     'dsh-mnemon': [
       ['VersionDialog', 'versions', 'function VersionDialog(){return null}'],

@@ -11,13 +11,13 @@ export interface OriginalDefinition {
 
 export const ORIGINAL_PLUGINS: readonly OriginalDefinition[] = [
   { id: 'better-sidebar', packageName: 'dsh-better-sidebar', version: '0.28.2', role: 'sidebar', client: true },
-  { id: 'context', packageName: 'dsh-context', version: '0.78.2', role: 'conversation', client: true },
+  { id: 'context', packageName: 'dsh-context', version: '0.79.0', role: 'conversation', client: true },
   { id: 'better-display', packageName: 'dsh-better-display', version: '0.3.9', role: 'conversation', client: true },
-  { id: 'mnemon', packageName: 'dsh-mnemon', version: '0.5.37', role: 'memory', client: true },
-  { id: 'task-board', packageName: '@linxin666/dsh-client-ui-task-board', version: '0.4.12', role: 'workspace', client: true },
-  { id: 'git-graph', packageName: '@linxin666/dsh-client-ui-git-graph', version: '0.4.12', role: 'sidebar', client: true },
-  { id: 'usage', packageName: '@linxin666/dsh-usage', version: '0.4.12', role: 'settings', client: true },
-  { id: 'agency-agents', packageName: '@michengai/dsh-agency-agents', version: '1.2.20', role: 'settings', client: true },
+  { id: 'mnemon', packageName: 'dsh-mnemon', version: '0.5.38', role: 'memory', client: true },
+  { id: 'task-board', packageName: '@linxin666/dsh-client-ui-task-board', version: '0.4.13', role: 'workspace', client: true },
+  { id: 'git-graph', packageName: '@linxin666/dsh-client-ui-git-graph', version: '0.4.13', role: 'sidebar', client: true },
+  { id: 'usage', packageName: '@linxin666/dsh-usage', version: '0.4.13', role: 'settings', client: true },
+  { id: 'agency-agents', packageName: '@michengai/dsh-agency-agents', version: '1.2.21', role: 'settings', client: true },
   { id: 'turn-rewind', packageName: '@anionex/dsh-turn-rewind', version: '0.3.11', role: 'conversation', client: true },
   { id: 'codinput', packageName: 'dsh-codinput', version: '0.3.8', role: 'input', client: true, vendor: 'vendor/codinput', revision: 'e19276e14ee907753d994df5daa904afd8fcdfa5' },
   { id: 'superpowers', packageName: '@wenaixi/dsh-superpower', version: '8.0.0', role: 'settings', client: true },
@@ -30,7 +30,7 @@ export const ORIGINAL_PLUGINS: readonly OriginalDefinition[] = [
   { id: 'computer-use', packageName: '@local/dsh-computer-use', version: '1.40.3', role: 'input', client: true, vendor: 'vendor/computer-use', revision: 'db4c44f9a3534118dbe2138c01b0dc156c9c2f8e' },
   // These original SPA hosts are reused by original-canvases.tsx. Their old
   // body-level overlay clients are deliberately not executed.
-  { id: 'thoughtdag', packageName: 'dsh-thoughtdag', version: '0.5.26', role: 'canvas', client: false },
+  { id: 'thoughtdag', packageName: 'dsh-thoughtdag', version: '0.5.27', role: 'canvas', client: false },
   { id: 'synapse', packageName: 'dsh-synapse', version: '0.5.6', role: 'canvas', client: false },
 ];
 

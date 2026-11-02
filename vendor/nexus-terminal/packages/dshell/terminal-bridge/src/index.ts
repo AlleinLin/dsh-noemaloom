@@ -408,8 +408,16 @@ export class DshellTerminalBridge extends Service {
     // Session dispose (sidebar delete, host-side cleanup) → mark the
     // session's main PTY dead so the bindClient sequence can forward the
     // close frame and the dispose timer frees the node-pty.
+    //
+    // Disposal is asked about before anything is destroyed, because the event
+    // is the session store releasing its entry and NOT a statement that the
+    // user wants the shell gone. A session that is live again by the time this
+    // runs — a host re-entering it, an HMR reload that detached and re-attached
+    // the same id — is a session whose shell nobody asked to kill, and killing
+    // that shell would stop work the reader can see running.
     ctx.on('session/disposed', (session: Session) => {
       const sessionId = String(session.id)
+      if (this.sessionIsLive(sessionId)) return
       for (const record of this.mains.values()) {
         if (record.dshSessionId !== sessionId) continue
         this.markDead(record, 'session closed')
@@ -1239,6 +1247,13 @@ export class DshellTerminalBridge extends Service {
    */
   private markDead(record: MainRecord, reason: string): void {
     if (record.dead !== undefined) return
+    // One line per shell death, because "the terminal died" has several
+    // distinct causes and they need different fixes: an `exited` status is the
+    // remote shell ending, `session closed` is this bridge acting on a
+    // disposal, and `spawn plan changed` is a rebind replacing the shell.
+    // Without the reason recorded, a report of "it disconnected" cannot be
+    // told apart from the others after the fact.
+    console.info(`dshell-bridge: shell for ${record.dshSessionId} ended (${reason})`)
     const text = record.buffer.text()
     const detail = diagnosticTail(text)
     record.dead = { reason, detail, ready: record.ready, time: Date.now(), failure: record.session.failure }
@@ -1320,6 +1335,26 @@ export class DshellTerminalBridge extends Service {
     delete record.disposeTimer
     this.agents.delete(record.agent)
     await record.buffer.close().catch(() => {})
+  }
+
+  /**
+   * Whether the session store still holds this id as a live session.
+   *
+   * The store is the authority on what exists, and it is optional: a
+   * composition without it (the desktop shell does compose it, a bare test
+   * context does not) cannot answer, so the absence of an answer is read as
+   * "assume the disposal is final" rather than as "keep every shell alive".
+   * That direction matters — a shell outliving its session forever is a leak,
+   * while a shell killed for a session that still exists is lost work.
+   * @param dshSessionId - the session id the disposal named.
+   * @returns true when a live session still answers to that id.
+   */
+  private sessionIsLive(dshSessionId: string): boolean {
+    const sessions = this.ctx.get('sessions') as
+      | { get?: (id: SessionId) => Session | undefined }
+      | undefined
+    if (sessions?.get === undefined) return false
+    return sessions.get(dshSessionId as SessionId) !== undefined
   }
 
   private async disposeAll(): Promise<void> {

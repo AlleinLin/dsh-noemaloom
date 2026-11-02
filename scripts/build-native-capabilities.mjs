@@ -11,10 +11,10 @@ export const NATIVE_PACKAGES = ['std', 'storage', 'bundle', 'conversation', 'ter
 export const NATIVE_CLIENTS = ['conversation', 'terminal-bridge', 'mode', 'ssh', 'buffer', 'files', 'usage'];
 const reviewedSources = {
   'packages/dshell/terminal-bridge/src/pty.ts': '374634d08386ec4ef450a28ab5d0bd23911b11beb3d954d610c93852402af165',
-  'packages/dshell/terminal-bridge/src/index.ts': 'f0fd766c6414049343de964df440b5e37e073b3e2c4307490eafb92ad6e7a8c1',
+  'packages/dshell/terminal-bridge/src/index.ts': '187eda2700cfb934d30d7b78143e70db5b59c9fd200bd305755f05d6b845a87f',
   'packages/dshell/files/src/route.ts': 'ee2875e843272796e34b62e575fb48057a4befa2b3e251449e434a95c68bc762',
   'packages/dshell/mode/src/client/completion.ts': '7379d042c7ac18ee1d04b619c0c8d640bf2c76b4deeb74dc066ccf1a92f27d98',
-  'packages/dshell/std/src/contracts.ts': '26f76481d7ed44ce29831aee751d96d585e700ad2dc36afb911cab335805575b',
+  'packages/dshell/std/src/contracts.ts': '39f4c618b573684c7eef1f64ead87bd47eb8a2ce1dab67d4e08fc5c2b2a854b8',
   'packages/dshell/ssh/src/connection.ts': 'cd883c9c9ad2ba278eef90dd2e33522c90cdc3df1bcb7c66b8b5419a7f42a8b2',
   'packages/dshell/commands/src/index.ts': '5ab8edd905035b18204a1b6b3c8557696240ec283a4c4ae2c3efb46f88577a51',
   'packages/dshell/mode/src/index.ts': '1f66307134431742d5bedfe6763c02eeec01ff2c63904c020e7f7c214e8306dd',

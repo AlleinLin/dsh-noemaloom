@@ -1,0 +1,106 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          # No gate below pushes, fetches from this repository, or reads its
+          # history -- `repo-hygiene.spec.ts` asks git for the tracked file list,
+          # which a shallow checkout answers. So the credentials are not needed,
+          # and leaving them out keeps them out of the clone.
+          persist-credentials: false
+
+      # The repo builds against an upstream dsh checkout that is git-ignored here,
+      # so every gate below resolves `@deepseek-ai/dsh-*` through a directory this
+      # checkout does not contain. The tag comes from dsh-upstream.json rather than
+      # from whatever a local mirror happens to hold.
+      - name: fetch the pinned dsh checkout
+        run: node scripts/fetch-upstream.mjs
+      - name: verify the checkout matches the pin
+        run: node scripts/fetch-upstream.mjs --check
+
+      # Two pnpm versions meet here, and they must not be pinned to one.
+      #
+      # This repository is pnpm 9 (packageManager in the root manifest); the dsh
+      # checkout is pnpm 11 (packageManager in dsh/package.json). They are not
+      # interchangeable: pnpm 10 moved `overrides` out of package.json into
+      # pnpm-workspace.yaml, so pnpm 9 reads dsh's override list as empty while
+      # dsh's lockfile records three, and `pnpm install --frozen-lockfile` fails
+      # with ERR_PNPM_LOCKFILE_CONFIG_MISMATCH before a single gate runs.
+      #
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 24
+      # corepack resolves the pnpm version from the nearest packageManager field,
+      # so the same `pnpm` on PATH is 9.15.0 in this repository and 11.28.5 inside
+      # dsh/. The dsh steps call `corepack pnpm` explicitly so the version they
+      # get is the one dsh declares, not whatever the repository happens to pin.
+      - name: enable corepack
+        run: corepack enable
+
+      # dsh is a pnpm workspace of its own. Its packages resolve types through
+      # `lib/types`, which is build output: a fresh clone has `src/` only, so the
+      # host program has to be built before anything here can typecheck against it.
+      - name: install dsh
+        working-directory: dsh
+        run: corepack pnpm install --frozen-lockfile
+
+      # dsh's packages resolve through two different build outputs, and a
+      # fresh clone has neither. `tsc -b` writes the declarations every
+      # package's `types` entry points at (`lib/types`), and `tsdown` writes
+      # the runnable JavaScript every package's `main` and `exports` point at
+      # (`lib/index.js`). The type check alone only produces the first, and a
+      # suite that imports a dsh package then fails with "Failed to resolve
+      # entry for package" rather than with anything about the code.
+      #
+      # Both faces are needed: dshell's `files` package reads the browser half
+      # of a client package, so the client build is not optional for this
+      # repository's type check. dsh's own `build:lib:host` is the host half of
+      # this plus the desktop bundle, which no gate below reads.
+      - name: build dsh packages
+        working-directory: dsh
+        run: |
+          corepack pnpm exec tsc -b tsconfig.host.json
+          corepack pnpm exec tsdown --config-loader native --env.DSH_BUILD_FACE host
+          corepack pnpm exec tsc -b tsconfig.client.json
+          corepack pnpm exec tsdown --config-loader native --env.DSH_BUILD_FACE client
+
+      # The node-pty override resolves through the dsh checkout, so this step
+      # has to follow the dsh install above.
+      - name: install dshell
+        run: pnpm install --frozen-lockfile
+
+      # dshell's own packages ship a build output too, and the ssh suite reads
+      # it: the device helper is a bundle (`lib/helper.js`) that the helper
+      # artifact spec checks by opening the file. Without this step that spec
+      # fails on a missing file rather than on anything about the helper.
+      - name: build dshell packages
+        run: pnpm build
+
+      # The range dsh peers are graded by lives in one file; a manifest carrying a
+      # different one is the failure mode that silently disables rows in a profile.
+      - name: host range matches the pin
+        run: node scripts/sync-host-range.mjs --check
+      - name: typecheck
+        run: pnpm run typecheck
+      - name: test
+        run: pnpm test
+
+      # Consumes the upstream source tree directly (service catalog, browser
+      # context merges, slot catalog), so it runs last: it is the check that says
+      # the surface dshell uses still exists upstream.
+      - name: upstream surface
+        run: pnpm run check:upstream
