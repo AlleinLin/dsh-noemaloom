@@ -58,6 +58,7 @@ export function workspaceStore(base: NexusStore, root: string, sessionId?: strin
   };
 }
 type Factory = (services: NexusServices) => NexusModule;
+const DELAYED_SCOPES = 'workflow-delayed-scopes';
 export async function workspaceModules(base: NexusServices, factories: Factory[]): Promise<NexusModule[]> {
   const instances = new Map<string, Promise<{ modules: NexusModule[]; services: NexusServices }>>();
   const retired = new Set<number>();
@@ -75,6 +76,19 @@ export async function workspaceModules(base: NexusServices, factories: Factory[]
           ...base, workspaceRoot: canonical,
           dataDir: level === 'global' ? base.dataDir : join(base.dataDir, level === 'session' ? 'sessions' : 'workspaces', key),
           store: level === 'global' ? base.store : workspaceStore(base.store, canonical, level === 'session' ? ctx.sessionId : undefined),
+          async retainDelayedScope() {
+            if (level === 'global') return;
+            const prior = await base.store.get(DELAYED_SCOPES, key);
+            if (prior) return;
+            try {
+              await base.store.put(DELAYED_SCOPES, key, {
+                workspaceRoot: canonical, scopeLevel: level,
+                ...(level === 'session' ? { sessionId: ctx.sessionId } : {}),
+              }, 0);
+            } catch (error) {
+              if (!(error instanceof NexusError) || error.code !== 'REVISION_CONFLICT') throw error;
+            }
+          },
           invoke: (domain, request, context) => base.invoke(domain, request, {
             sessionId: level === 'session' ? ctx.sessionId : undefined, ...context, scopeLevel: context?.scopeLevel ?? level,
             workspaceRoot: context?.workspaceRoot ?? canonical,
@@ -87,6 +101,30 @@ export async function workspaceModules(base: NexusServices, factories: Factory[]
     return pending;
   };
   const initial = await instance(base.workspaceRoot, { scopeLevel: 'global' });
+  // Workspace/session modules are normally lazy. Delayed work cannot depend
+  // on a human opening its conversation after each host restart.
+  for (const row of await base.store.list<DispatchContext>(DELAYED_SCOPES)) {
+    const scope = row.value;
+    if (typeof scope.workspaceRoot !== 'string' || !['workspace', 'session'].includes(String(scope.scopeLevel))
+      || scope.scopeLevel === 'session' && typeof scope.sessionId !== 'string') continue;
+    try {
+      const canonical = await realpath(scope.workspaceRoot);
+      if (workspaceIdentity(canonical) !== workspaceIdentity(scope.workspaceRoot)) continue;
+      const store = workspaceStore(base.store, canonical, scope.scopeLevel === 'session' ? scope.sessionId : undefined);
+      const plans = await store.list<any>('workflow-injections');
+      if (!plans.some(plan => typeof plan.value.dueAt === 'string'
+        && ['scheduled', 'queued', 'delivering', 'unknown'].includes(plan.value.status))) {
+        await base.store.remove(DELAYED_SCOPES, row.id, row.revision);
+        continue;
+      }
+      await instance(canonical, scope);
+    } catch (error) {
+      // One deleted/unavailable workspace must not prevent unrelated sessions
+      // or the host from starting. Keep its index for a later supported read.
+      base.emit('nexus.workflow.scope-restore-failed', { id: row.id,
+        message: error instanceof Error ? error.message : String(error) });
+    }
+  }
   return initial.modules.map((module, index) => ({
     ...module,
     async dispatch(request, context: DispatchContext = {}) {

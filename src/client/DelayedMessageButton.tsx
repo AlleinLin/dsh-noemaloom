@@ -33,24 +33,38 @@ export function DelayedMessageButton({ api, sessionId }: Props): React.ReactElem
   const [error, setError] = React.useState('');
   const [message, setMessage] = React.useState('');
   const dialog = React.useRef<HTMLDialogElement>(null);
+  const currentSession = React.useRef(sessionId);
+  const loadVersion = React.useRef(0);
+  currentSession.current = sessionId;
   const scope = React.useMemo(() => ({ level: 'session' as const, sessionId: sessionId ?? '' }), [sessionId]);
 
   const loadPlans = React.useCallback(async () => {
     if (!sessionId) return;
+    const version = ++loadVersion.current;
     try {
       const result = await api.call('workflow', 'prompt/injections', {}, { scope });
-      setPlans(asRows(result).map(row => row?.value ? { ...row.value, id: row.id, revision: row.revision } : row)
-        .filter(item => ['scheduled', 'queued'].includes(String(item.status))));
+      if (currentSession.current !== sessionId || version !== loadVersion.current) return;
+      const rows = asRows(result).map(row => row?.value ? { ...row.value, id: row.id, revision: row.revision } : row)
+        .filter(item => (item.schedule === 'delay' || item.dueAt && item.delayMinutes)
+          && ['scheduled', 'queued', 'delivering', 'unknown', 'failed', 'completed'].includes(String(item.status)));
+      setPlans([...rows.filter(item => item.status !== 'completed').sort((a, b) => String(a.dueAt).localeCompare(String(b.dueAt))),
+        ...rows.filter(item => item.status === 'completed').sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt))).slice(0, 6)]);
     } catch (cause) {
-      setError(errorData(cause).message);
+      if (currentSession.current === sessionId && version === loadVersion.current) setError(errorData(cause).message);
     }
   }, [api, scope, sessionId]);
+
+  React.useEffect(() => {
+    setPlans([]); setOpen(false); setError(''); setMessage(''); setText(''); setBusy(false);
+    loadVersion.current++;
+  }, [sessionId]);
 
   React.useEffect(() => {
     if (!dialog.current || !open) return;
     dialog.current.showModal();
     void loadPlans();
-    return () => { if (dialog.current?.open) dialog.current.close(); };
+    const timer = setInterval(() => { void loadPlans(); }, 2000);
+    return () => { clearInterval(timer); loadVersion.current++; if (dialog.current?.open) dialog.current.close(); };
   }, [open, loadPlans]);
 
   const close = () => { if (!busy) { setOpen(false); setError(''); setMessage(''); } };
@@ -62,12 +76,13 @@ export function DelayedMessageButton({ api, sessionId }: Props): React.ReactElem
     try {
       const result: any = await api.call('workflow', 'prompt/schedule',
         { sessionId, text: text.trim(), delayMinutes: value }, { scope, mutating: true });
+      if (currentSession.current !== sessionId) return;
       const dueAt = result?.value?.dueAt ?? result?.dueAt;
       setText(''); setMessage(`已安排在 ${localDate(dueAt)} 发送`);
       await loadPlans();
     } catch (cause) {
-      setError(errorData(cause).message);
-    } finally { setBusy(false); }
+      if (currentSession.current === sessionId) setError(errorData(cause).message);
+    } finally { if (currentSession.current === sessionId) setBusy(false); }
   };
   const revoke = async (item: Data) => {
     setBusy(true); setError('');
@@ -75,8 +90,8 @@ export function DelayedMessageButton({ api, sessionId }: Props): React.ReactElem
       await api.call('workflow', 'prompt/revoke', { id: item.id }, { scope, revision: item.revision, mutating: true });
       await loadPlans();
     } catch (cause) {
-      setError(errorData(cause).message);
-    } finally { setBusy(false); }
+      if (currentSession.current === sessionId) setError(errorData(cause).message);
+    } finally { if (currentSession.current === sessionId) setBusy(false); }
   };
   if (!sessionId) return null;
   return <span className="nexus-delayed-message-control" data-nexus-delayed-message-session={sessionId}>
@@ -120,15 +135,19 @@ export function DelayedMessageButton({ api, sessionId }: Props): React.ReactElem
           <label className="nexus-delayed-message-field">
             <span>发送内容</span>
             <textarea aria-label="延时发送内容" rows={4} maxLength={20000} value={text} onChange={event => setText(event.target.value)} placeholder="例如：请继续检查刚才的测试结果。" />
-            <small>到点后作为一条固定文字进入会话，并沿用该会话的模型和权限。</small>
+            <small>到点后继续当前会话；支持已空闲的可继续子代理。DSH 须保持运行，关闭后会在下次启动时补发；父代理暂不可用时会等待。</small>
           </label>
           {message && <p className="nexus-delayed-message-success" role="status">{message}</p>}
           {error && <p className="nexus-delayed-message-error" role="alert">{error}</p>}
           {plans.length > 0 && <section className="nexus-delayed-message-plans">
-            <h3>待发送</h3>
+            <h3>发送记录</h3>
             {plans.map(item => <div key={item.id} className="nexus-delayed-message-plan">
-              <div><strong>{localDate(item.dueAt)}</strong><span title={String(item.body)}>{String(item.body)}</span></div>
-              <button type="button" disabled={busy} onClick={() => void revoke(item)}>取消</button>
+              <div>
+                <strong>{({ scheduled: '待发送', queued: '等待重试', delivering: '发送中', unknown: '核对回执中', failed: '发送失败', completed: '已送达' } as Record<string, string>)[String(item.status)]} · {localDate(item.dueAt)}</strong>
+                <span title={String(item.body)}>{String(item.body)}</span>
+                {item.deliveryError && <small role="status">{String(item.deliveryError)}</small>}
+              </div>
+              {['scheduled', 'queued', 'failed'].includes(String(item.status)) && <button type="button" disabled={busy} onClick={() => void revoke(item)}>{item.status === 'failed' ? '移除' : '取消'}</button>}
             </div>)}
           </section>}
         </div>

@@ -1,6 +1,6 @@
 {
   "name": "dsh-noemaloom",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Noemaloom: a memory, context and multi-model orchestration workbench for DeepSeek Harness Desktop.",
   "private": true,
   "type": "module",

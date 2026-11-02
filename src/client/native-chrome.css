@@ -82,6 +82,7 @@ body:has(style[data-nexus-native-appearance]) [class$="_headline"]:has([data-nex
 .nexus-delayed-message-plan strong { font-size: 11px; color: var(--dsw-alias-brand-primary, #d99779); }
 .nexus-delayed-message-plan span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--dsw-alias-label-secondary, #b9b1aa); }
 .nexus-delayed-message-plan button { flex: none; }
+.nexus-delayed-message-plan small { white-space: normal; overflow-wrap: anywhere; color: var(--dsw-alias-label-secondary, #b9b1aa); line-height: 1.5; }
 .nexus-delayed-message-dialog > footer { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 22px 18px; }
 .nexus-delayed-message-dialog > footer .is-primary { color: var(--dsw-alias-bg-base, #292724); background: var(--dsw-alias-brand-primary, #d99779); border-color: transparent; }
 .nexus-request-retry-dialog {

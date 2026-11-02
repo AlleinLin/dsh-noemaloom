@@ -14,6 +14,7 @@ import type { HostContext, NexusConfig } from './types.js';
 import { optionalChildField, resolveChildModelOptions } from './child-models.js';
 import { nativeWorkspaces, sessionTitles } from './session-metadata.js';
 import { isHumanInputMessage } from '../shared/step-pause.js';
+import { createScheduledPromptDelivery } from './scheduled-prompt.js';
 
 interface NativeSnapshot {
   session: SessionHeader;
@@ -62,6 +63,7 @@ const ACTIONS = new Set([
   'create', 'fork', 'fork.lookup', 'spawn', 'open', 'resume', 'wake', 'continue',
   'prompt', 'inject', 'context.restore', 'memory.refresh', 'cancel', 'rename', 'status', 'activation/status',
   'model.select', 'models.select', 'permissions', 'setPermission', 'activation.lookup',
+  'scheduled.prompt',
 ]);
 
 const object = (value: unknown): JsonRecord => value !== null && typeof value === 'object' && !Array.isArray(value) ? value as JsonRecord : {};
@@ -127,6 +129,8 @@ export function createSessionBridge(
     if (!agent) throw new NexusError('SESSION_NOT_LIVE', '会话没有存活的 Agent；请先显式 resume/open');
     return agent;
   };
+  const scheduledPrompts = createScheduledPromptDelivery(ctx, pluginSignal, services, findAgent,
+    id => resume(id, {}), nativeSnapshot, flush);
   function selectionFor(agent: Agent) {
     let selection = selections.get(agent.id);
     if (selection?.agent !== agent) {
@@ -676,6 +680,7 @@ export function createSessionBridge(
     pluginSignal.throwIfAborted();
     const sessionId = typeof params.sessionId === 'string' ? params.sessionId : typeof params.id === 'string' ? params.id : '';
     switch (action) {
+      case 'scheduled.prompt': return scheduledPrompts.dispatch(params);
       case 'scope.workspaces': return { items: nativeWorkspaces(ctx) };
       case 'list': {
         const query = requireService('sessionQuery', 'listSessions');
@@ -796,6 +801,7 @@ export function createSessionBridge(
     dispatch,
     async dispose() {
       closing = true;
+      await bounded(scheduledPrompts.drain(), 30_000, 'scheduled prompt deliveries');
       let pendingError: unknown;
       try { await bounded(Promise.allSettled([...inflight.values()]), 30_000, 'pending session publications'); }
       catch (error) { pendingError = error; }

@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "release": "R50",
+  "version": "0.4.2",
+  "host": "0.2.1-rc.5",
+  "packageSha256": "093bc61c2a2067fbd8410abf0778e94b08f2dbd0026ab3d534df3ef5a3c6c09e",
+  "tests": {
+    "passed": 2477,
+    "failed": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "suites": 17,
+    "sourceHash": "d8e4177edba87f0bbe9491050ac55ddfc746757062a4d94a6b2b79b21f4b5f84",
+    "sourceUnchangedDuringRun": true,
+    "receipt": "validation/delayed-message-r50.json",
+    "junit": "validation/tests.junit.xml",
+    "relatedRegressionPassed": 67
+  },
+  "checks": {
+    "typecheck": "passed",
+    "build": "passed",
+    "generatedArtifacts": "passed",
+    "packageAudit": "passed",
+    "npmVulnerabilities": 0
+  },
+  "desktop": {
+    "passed": true,
+    "caseCount": 6,
+    "sourceHash": "4c6afab67b7399b1ad9814ae4c05b59341230d85801e333ed4017fe11fd184e7",
+    "sourceUnchangedDuringRun": true,
+    "report": "validation/desktop-delayed-message.json",
+    "screenshot": "validation/child-delivered.png",
+    "harness": "scripts/desktop-delayed-message.mjs",
+    "fixture": "tests/fixtures/scheduled-desktop-host.mjs",
+    "copiedUserData": false,
+    "remoteModelRequests": 0,
+    "cases": [
+      "prepare a real native continuable child and verify it is released",
+      "main composer schedule wakes idle main and the model receives fixed text",
+      "cold child receives fixed text in its original session and parent relationship",
+      "cancelled child schedule is not delivered",
+      "child schedule survives actual isolated Desktop shutdown and restart",
+      "repeated request identity cannot duplicate native input"
+    ]
+  },
+  "evidenceBoundary": {
+    "changeBetweenFullTestsAndDesktop": "Only the Desktop harness dialog-close wait changed; runtime source and package did not change.",
+    "changeAfterDesktop": "Release verification documentation only.",
+    "priorHarnessFailures": [
+      "fixture Cordis insertion",
+      "overly strict workspace assertion",
+      "adapter metadata",
+      "main model route selection",
+      "dialog close while cancellation RPC was still busy"
+    ],
+    "priorIsolatedStartupCrash": {
+      "code": "0xe0000008",
+      "phase": "startup",
+      "javascriptRootCauseIdentified": false,
+      "report": "validation/delayed-message-startup-crash.log"
+    }
+  },
+  "localInstallation": "NOT_INSTALLED_RUNNING_USER_DESKTOP_UNTOUCHED",
+  "limitations": [
+    "No real provider, five-hour wall-clock wait, long-running stress or real user session history was exercised.",
+    "Intermittent Desktop crashes remain unresolved; passing short startup controls and this six-case run do not prove a crash fix.",
+    "One-shot children cannot continue. A cold parent that is itself a child must become available through its own native owner.",
+    "Legacy previously attempted plans without a stable native identity fail explicitly instead of being blindly resent.",
+    "Desktop must be running to execute; overdue plans resume at next startup. This does not wake a powered-off computer.",
+    "Delivered means durable host admission, not a successful provider response or quota reset."
+  ]
+}

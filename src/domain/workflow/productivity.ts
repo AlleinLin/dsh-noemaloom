@@ -9,7 +9,8 @@ interface ScheduledInjection extends JsonRecord {
   id: string;
   sessionId: string;
   body: string;
-  status: 'scheduled' | 'delivering' | 'completed' | 'queued' | 'failed' | 'paused' | 'revoked';
+  status: 'scheduled' | 'delivering' | 'completed' | 'queued' | 'unknown' | 'failed' | 'paused' | 'revoked';
+  schedule?: 'delay';
   dueAt: string;
   delayMinutes: number;
   attempts: number;
@@ -29,6 +30,8 @@ const today = (): string => new Date().toISOString().slice(0, 10);
 const MAX_DELAY_MINUTES = 10_080;
 const MAX_TIMER_MS = 2_147_000_000;
 const RETRY_DELAY_MS = 30_000;
+const isDelayed = (value: JsonRecord): boolean => value.schedule === 'delay'
+  || typeof value.dueAt === 'string' && typeof value.delayMinutes === 'number';
 export class Productivity {
   private readonly timers = new Map<string, ReturnType<typeof setTimeout>>();
   private readonly delivering = new Set<string>();
@@ -41,7 +44,17 @@ export class Productivity {
     const rows = await this.services.store.list<ScheduledInjection>('workflow-injections');
     for (const row of rows) {
       if (this.disposed) return;
-      if (['scheduled', 'queued'].includes(row.value.status)) this.schedule(row.id, row.value.dueAt);
+      // Old inject-based attempts had no stable native identity. Their crash
+      // boundary cannot be safely replayed under a new request id.
+      if (isDelayed(row.value) && row.value.schedule !== 'delay' && row.value.attempts > 0
+        && ['queued', 'delivering', 'unknown'].includes(row.value.status)) {
+        await this.services.store.put('workflow-injections', row.id, {
+          ...row.value, status: 'failed', updatedAt: now(),
+          deliveryError: '旧版计划曾尝试投递，但没有可核对的固定消息标识。请先查看会话记录，再决定是否重新安排；本次不会自动重复发送。',
+        }, row.revision);
+        continue;
+      }
+      if (isDelayed(row.value) && ['scheduled', 'queued', 'delivering', 'unknown'].includes(row.value.status)) this.schedule(row.id, row.value.dueAt);
     }
   }
   dispose(): void {
@@ -68,7 +81,7 @@ export class Productivity {
     this.delivering.add(id);
     try {
       const row = await this.services.store.get<ScheduledInjection>('workflow-injections', id);
-      if (!row || !['scheduled', 'queued'].includes(row.value.status)) return;
+      if (!row || !isDelayed(row.value) || !['scheduled', 'queued', 'delivering', 'unknown'].includes(row.value.status)) return;
       const due = Date.parse(row.value.dueAt);
       if (Number.isFinite(due) && due > Date.now()) {
         this.schedule(id, row.value.dueAt);
@@ -77,32 +90,44 @@ export class Productivity {
       const value: ScheduledInjection = {
         ...row.value, status: 'delivering', attempts: Number(row.value.attempts ?? 0) + 1, updatedAt: now(),
       };
-      const delivering = await this.services.store.put('workflow-injections', id, value, row.revision);
+      await this.services.store.put('workflow-injections', id, value, row.revision);
       try {
-        const receipt = await this.services.host.sessions('inject', {
+        const receipt = object(await this.services.host.sessions('scheduled.prompt', {
           sessionId: value.sessionId,
           text: value.body,
           source: { kind: 'plugin', id: 'dsh-nexus', operation: 'scheduled-prompt' },
-          injectionId: value.id,
-        });
+          requestId: value.id,
+        }));
+        const current = await this.services.store.get<ScheduledInjection>('workflow-injections', id);
+        if (!current || current.value.status !== 'delivering') return;
+        const accepted = receipt.accepted === true && receipt.durable === true;
+        const status = accepted ? 'completed' : receipt.state === 'failed' ? 'failed' : receipt.state === 'waiting' ? 'queued' : 'unknown';
         await this.services.store.put('workflow-injections', id, {
-          ...value, status: 'completed', receipt, deliveredAt: now(), updatedAt: now(), deliveryError: undefined,
-        }, delivering.revision);
+          ...current.value, status, receipt, ...(accepted ? { deliveredAt: now() } : {}), updatedAt: now(),
+          deliveryError: accepted ? undefined : String(receipt.deliveryError ?? '尚未核实宿主是否收到消息，不会重复发送。'),
+        }, current.revision);
+        if (status === 'queued' || status === 'unknown') this.schedule(id, value.dueAt, RETRY_DELAY_MS);
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         const current = await this.services.store.get<ScheduledInjection>('workflow-injections', id);
         if (!current || !['delivering', 'scheduled', 'queued'].includes(current.value.status)) return;
+        const permanent = error instanceof NexusError && ['SESSION_NOT_FOUND', 'NOT_RESUMABLE', 'UNAUTHORIZED', 'IDEMPOTENCY_CONFLICT', 'INVALID_ARGUMENT'].includes(error.code);
         const retry: ScheduledInjection = {
-          ...current.value, status: 'queued', deliveryError: message, updatedAt: now(),
+          ...current.value, status: permanent ? 'failed' : 'queued', deliveryError: message, updatedAt: now(),
         };
         await this.services.store.put('workflow-injections', id, retry, current.revision);
-        this.schedule(id, retry.dueAt, RETRY_DELAY_MS);
+        if (!permanent) this.schedule(id, retry.dueAt, RETRY_DELAY_MS);
       }
     } catch (error) {
-      // A concurrent revoke/pause or a transient CAS conflict is observed on
-      // the next durable scan; never turn a background timer into a process
-      // level rejection.
+      // A concurrent CAS/store failure must not strand an active plan until
+      // the next process restart. Terminal/revoked plans remain untouched.
       try { this.services.emit('nexus.workflow.scheduled-injection-error', { id, message: error instanceof Error ? error.message : String(error) }); } catch { /* observational */ }
+      try {
+        const current = await this.services.store.get<ScheduledInjection>('workflow-injections', id);
+        if (current && ['scheduled', 'queued', 'delivering', 'unknown'].includes(current.value.status)) {
+          this.schedule(id, current.value.dueAt, RETRY_DELAY_MS);
+        }
+      } catch { /* The durable intent remains available on restart. */ }
     } finally {
       this.delivering.delete(id);
     }
@@ -169,13 +194,21 @@ export class Productivity {
     if (action === 'revoke' || action === 'pause') {
       const row = await required<JsonRecord>(this.services, 'workflow-injections', text(params.id, 'id', 128));
       if (context.sessionId && row.value.sessionId !== context.sessionId) throw new NexusError('SCOPE_MISMATCH', '注入计划属于其他会话');
-      return this.services.store.put('workflow-injections', row.id, { ...row.value, status: action === 'pause' ? 'paused' : 'revoked', updatedAt: now() }, request.expectedRevision ?? row.revision);
+      if (isDelayed(row.value) && ['delivering', 'unknown', 'completed'].includes(String(row.value.status))) {
+        throw new NexusError('DELIVERY_ALREADY_STARTED', '消息已开始投递或正在核对回执，无法保证撤回；请查看投递状态。');
+      }
+      const saved = await this.services.store.put('workflow-injections', row.id, { ...row.value, status: action === 'pause' ? 'paused' : 'revoked', updatedAt: now() }, request.expectedRevision ?? row.revision);
+      const timer = this.timers.get(row.id);
+      if (timer) clearTimeout(timer);
+      this.timers.delete(row.id);
+      return saved;
     }
     if (action === 'apply' || action === 'tick') {
       let injection: JsonRecord;
       if (action === 'tick') {
         const row = await required<JsonRecord>(this.services, 'workflow-injections', text(params.id, 'id', 128)); injection = row.value;
         if (context.sessionId && injection.sessionId !== context.sessionId) throw new NexusError('SCOPE_MISMATCH', '注入计划属于其他会话');
+        if (isDelayed(injection)) return row;
         if (injection.status !== 'active' && injection.status !== 'queued') return row;
         const turn = Number(params.turn ?? 0), last = Number(injection.lastTurn ?? -1);
         if (turn <= last || turn % Number(injection.everyTurns ?? 1)) return row;
@@ -219,9 +252,10 @@ export class Productivity {
       }
       const dueAt = new Date(Date.now() + Math.round(delayMinutes * 60_000)).toISOString();
       const injection: ScheduledInjection = {
-        id: newId('injection'), sessionId, body, status: 'scheduled', dueAt,
+        id: newId('injection'), sessionId, body, schedule: 'delay', status: 'scheduled', dueAt,
         delayMinutes, attempts: 0, createdAt: now(), updatedAt: now(),
       };
+      await this.services.retainDelayedScope?.();
       const row = await this.services.store.put('workflow-injections', injection.id, injection, 0);
       this.schedule(injection.id, dueAt);
       return row;
@@ -239,7 +273,7 @@ export class Productivity {
   /** Called by the host turn hook; advisor output is not reclassified as a user instruction. */
   async onTurn(sessionId: string, turn: number): Promise<void> {
     const rows = await this.services.store.list<JsonRecord>('workflow-injections');
-    for (const row of rows.filter(r => r.value.sessionId === sessionId && ['queued', 'active'].includes(String(r.value.status)))) {
+    for (const row of rows.filter(r => r.value.sessionId === sessionId && !isDelayed(r.value) && ['queued', 'active'].includes(String(r.value.status)))) {
       if (Number(row.value.lastTurn ?? -1) >= turn) continue;
       await this.prompt({ action: 'prompt/tick', params: { id: row.id, turn } }, { sessionId, actorId: 'plugin:dsh-nexus' });
     }

@@ -194,6 +194,8 @@ export interface NexusServices {
   /** Installed package root, used for bundled read-only resources. */
   packageRoot?: string;
   signal?: AbortSignal;
+  /** Persist the current scope so delayed work is restored before a UI visit. */
+  retainDelayedScope?(): Promise<void>;
   emit(event: string, data: unknown): void;
   /** Calls the same dispatcher used by authenticated UI and native tools. */
   invoke(domain: string, request: NexusRequest, context?: DispatchContext): Promise<unknown>;
