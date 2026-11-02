@@ -79,6 +79,7 @@ async function fixture() {
       nativeContext: context, runningLanes: sharedRunning ? localRunning : new Map(),
       pendingSummaries: new WeakMap(), officialOwners: new WeakMap(), nativeOverflowRetries: new WeakMap(), idleRangeAgents: new WeakSet(),
       admissions: new WeakMap(), requestRoutes: new WeakMap(), assemblies: new WeakMap(), lastResults: new WeakMap(),
+      preparationWaits: new Map(), recoveryLifetime: new AbortController(),
       synchronize: async () => ({ nudge: { shouldInject: nudge } }),
       measurePressure: async () => ({ automaticEnabled: true, compressionAllowed: true, enabled: true,
         occupiedTokens: nudge ? 9000 : 100, thresholdTokens: 8000, windowTokens: 10000 }),

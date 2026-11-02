@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict';
 import test, { type TestContext } from 'node:test';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { appendFile, mkdtemp, readFile, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { Context } from '@deepseek-ai/cordis';
 import { AgentRegistry, type Agent, type AgentHandle } from '@deepseek-ai/dsh-agent';
 import { AgentLoop } from '@deepseek-ai/dsh-agent-loop';
 import { LlmAdapter, LlmError, LlmRuntime, ToolCallId, createUserMessage, type GenerateOptions, type StreamChunk } from '@deepseek-ai/dsh-llm';
-import { SessionId, SessionStore, pluginRecordOf } from '@deepseek-ai/dsh-session';
+import { SessionId, SessionStore, appendPluginRecord, pluginRecordOf } from '@deepseek-ai/dsh-session';
 import { SessionProjectionRegistry } from '@deepseek-ai/dsh-session-projection';
 import { SystemPrompt } from '@deepseek-ai/dsh-system-prompt';
 import { TokenMeter } from '@deepseek-ai/dsh-token-meter';
@@ -36,7 +36,7 @@ async function within<T>(pending: Promise<T>, label: string) {
 type SummaryFault = 'metadata-rate' | 'model-rate' | 'model-timeout' | 'model-auth' | 'model-budget' | 'model-permission' | 'model-pending';
 async function fixture(t: TestContext, options: { window?: number; overflow?: boolean; wait?: boolean; failReceipt?: boolean;
   summaryUnavailable?: boolean; summaryFault?: SummaryFault; toolFailure?: boolean; retryBudget?: number;
-  scoped?: boolean; selfTool?: boolean } = {}) {
+  scoped?: boolean; selfTool?: boolean; fileEffect?: boolean } = {}) {
   const dir = await mkdtemp(path.join(os.tmpdir(), 'nexus-native-context-'));
   const root = new Context(), fibers: any[] = [], handles: AgentHandle[] = [];
   const store = createAtomicStore(dir), requests: GenerateOptions[] = [], summaries: any[] = [];
@@ -97,7 +97,9 @@ async function fixture(t: TestContext, options: { window?: number; overflow?: bo
         if (options.summaryFault === 'metadata-rate') throw summaryError();
       }
       if (model === 'summary-large' && options.summaryUnavailable) throw new Error('Local summary directory unavailable');
-      return { provider: _provider, id: model, name: model, context: { contextWindow: model === 'summary-large' ? 1000000 : conversationWindow }, defaultMaxTokens: 256 };
+      return { provider: _provider, id: model, name: model,
+        ...(model === 'summary-large' || conversationWindow ? { context: { contextWindow: model === 'summary-large' ? 1000000 : conversationWindow } } : {}),
+        defaultMaxTokens: 256 };
     }
     async *stream(request: GenerateOptions): AsyncGenerator<StreamChunk> {
       requests.push(request);
@@ -141,6 +143,7 @@ async function fixture(t: TestContext, options: { window?: number; overflow?: bo
     ctx.tools.register(defineContentToolFixture({ name: 'fixture_work', description: 'Local work once', parameters: {},
       async execute(_args, exec) {
         const id = String(exec.agent!.id); toolRuns.set(id, (toolRuns.get(id) ?? 0) + 1);
+        if (options.fileEffect) await appendFile(path.join(dir, `${id}.txt`), 'executed\n');
         if (options.toolFailure) throw toHarnessError(new NexusError('FILE_READ_FAILED', 'Local tool read unavailable'),
           { phase: 'tool:fixture.read' });
         return [{ type: 'text', text: 'Completed local operation once. ' + 'verified tool detail '.repeat(100) }];
@@ -196,7 +199,16 @@ async function fixture(t: TestContext, options: { window?: number; overflow?: bo
     agent.followup(createUserMessage({ source: { kind: 'user' }, content: [{ type: 'text', text }] }));
     await within(agent.whenIdle(), `agent ${agent.id} waiting for idle`);
   }
-  return { ctx: driverCtx, dir, store, services, module, create, seed, start, engine, fallback, requests, summaries, toolRuns,
+  async function waitForPause(agent: Agent) {
+    for (let count = 0; count < 1000; count++) {
+      const status = (engine as any).preparationRecoveryStatus(agent);
+      if (status.available) return status;
+      await new Promise(resolve => setTimeout(resolve, 10));
+    }
+    throw new Error(`Native context fixture did not pause ${agent.id}`);
+  }
+  return { ctx: driverCtx, dir, store, services, module, create, seed, start, waitForPause, engine, fallback, requests, summaries, toolRuns,
+    disposeDriver: () => driver.dispose(),
     setWindow(value: number) { conversationWindow = value; } };
 }
 
@@ -394,8 +406,12 @@ test('automatic target defers a failed preparation while the next request still 
     assert.ok(f.summaries.length <= 1, 'a terminal auxiliary decision is not replayed in the same cooldown');
   }
   const f = await fixture(t, { window: 5000, wait: true }), agent = await f.create('native-context-hard-pressure');
-  await f.seed(agent, 14); await f.start(agent);
+  await f.seed(agent, 14);
+  const running = f.start(agent);
+  await f.waitForPause(agent);
   assert.equal(f.requests.length, 0, 'a request that does not fit is blocked even when the auxiliary model waits');
+  assert.equal(agent.status, 'running', 'the original step stays resumable without ending its turn');
+  agent.cancel({ kind: 'user' }); await running;
 });
 
 test('real parent and child continue their same steps after auxiliary rate limits and timeouts, with one attempt per cooldown', async t => {
@@ -452,15 +468,16 @@ test('auxiliary authority denies and uncertain effects remain stops for a real c
 
 test('actual pressure and provider overflow retain recoverable auxiliary causes without an unchanged request retry', async t => {
   const hard = await fixture(t, { window: 5000, summaryFault: 'metadata-rate', retryBudget: 0 }), full = await hard.create('aux-hard-full');
-  await hard.seed(full, 14); await hard.start(full);
+  await hard.seed(full, 14);
+  const running = hard.start(full);
+  await hard.waitForPause(full);
   assert.equal(hard.requests.length, 0);
-  const end = full.session.snapshotEvents().filter(event => event.type === 'turn/end').at(-1);
-  assert.equal(end?.data.reason?.kind, 'error');
-  const failure = (end?.data.reason as any).error;
-  assert.equal(failure.code, 'CTX_SUMMARY_MODEL_UNAVAILABLE');
-  assert.equal(failure.status, 429);
-  assert.equal(failure.providerRetryAfterMs, 75000);
-  assert.match(failure.message, /RATE_LIMIT/);
+  const paused = await hard.engine.contextStatus(full, new AbortController().signal);
+  assert.equal(paused.recovery.code, 'CTX_SUMMARY_MODEL_UNAVAILABLE');
+  const hardDiagnostic = (await readNativeCompactionDiagnostics(hard.services, full.id)).lanes[0] as any;
+  assert.equal(hardDiagnostic.diagnostics.at(-1).status, 429);
+  assert.equal(hardDiagnostic.diagnostics.at(-1).providerRetryAfterMs, 75000);
+  full.cancel({ kind: 'user' }); await running;
   const f = await fixture(t, { window: 1000000, overflow: true, summaryFault: 'model-rate' }), parent = await f.create('aux-overflow-parent');
   const child = await f.create('aux-overflow-child', parent);
   await f.seed(child, 14); await f.start(child);
@@ -511,6 +528,170 @@ test('a real child recovers transient automatic maintenance without skipping adm
   assert.equal(f.requests.length, 2);
   assert.equal(f.toolRuns.get(child.id), 1);
   assert.equal(parent.session.snapshotEvents().some(event => event.type === 'turn/start'), false);
+});
+
+test('a deterministic preparation failure preserves the unadmitted input and resumes the same child step without a prompt', async t => {
+  const f = await fixture(t, { window: 30000, retryBudget: 0 }), parent = await f.create('resume-parent');
+  const child = await f.create('resume-child', parent);
+  await f.seed(child, 14);
+  const original = f.engine.compactIfNeeded.bind(f.engine);
+  let failed = true;
+  f.engine.compactIfNeeded = async (agent: any, trigger: any, signal: AbortSignal) => {
+    if (failed) {
+      failed = false;
+      throw new NexusError('CTX_NO_SAFE_RANGE', 'fixture deterministic preparation failure');
+    }
+    return original(agent, trigger, signal);
+  };
+  const running = f.start(child);
+  await f.waitForPause(child);
+  assert.equal(child.session.snapshotEvents().filter(event => event.type === 'llm/retry').length, 0);
+  let status = await f.engine.contextStatus(child, new AbortController().signal);
+  assert.equal(status.recovery.state, 'resume-required');
+  assert.equal(status.recovery.available, true);
+  const queued = await f.engine.resumeAfterMaintenance(child, { requestId: 'resume-child-step' }, new AbortController().signal);
+  assert.equal(queued.queued, true);
+  await running;
+  status = await f.engine.contextStatus(child, new AbortController().signal);
+  assert.equal(status.recovery.state, 'available');
+  assert.equal(child.session.snapshotEvents().filter(event => event.type === 'turn/end').at(-1)?.data.reason?.kind, 'completed');
+  assert.equal(f.toolRuns.get(child.id), 1);
+  assert.equal(child.session.snapshotEvents().filter(event => event.type === 'turn/start').length, 15,
+    'recovery continues the original turn');
+  assert.ok(f.requests[0]?.messages.some(message => message.role === 'user'
+    && message.content.some((block: any) => block.text === 'Complete the local work.')),
+  'recovery must preserve the original input that failed before model admission');
+  assert.equal(child.session.snapshotEvents().filter(event => event.type === 'user/message'
+    && (event.data as any).source.kind !== 'runtime-context').length, 15, 'no synthetic message is added to recover');
+});
+
+test('main and child resume after a completed tool without repeating its file side effect or request admission', async t => {
+  const f = await fixture(t, { window: 1000000, fileEffect: true }), parent = await f.create('resume-tool-parent');
+  const child = await f.create('resume-tool-child', parent), failed = new Set<string>(), admissions = new Map<string, number>();
+  const original = f.engine.compactIfNeeded.bind(f.engine);
+  f.ctx.on('agent/request', async ({ agent }: any, next) => {
+    admissions.set(agent.id, (admissions.get(agent.id) ?? 0) + 1); return next();
+  });
+  f.engine.compactIfNeeded = async (agent, trigger, signal) => {
+    if (f.toolRuns.get(agent.id) === 1 && !failed.has(agent.id)) {
+      failed.add(agent.id); throw new NexusError('CTX_NO_SAFE_RANGE', 'Fixture failure after completed work');
+    }
+    return original(agent, trigger, signal);
+  };
+  for (const agent of [parent, child]) {
+    const running = f.start(agent);
+    await f.waitForPause(agent);
+    assert.equal(f.toolRuns.get(agent.id), 1);
+    assert.equal(await readFile(path.join(f.dir, `${agent.id}.txt`), 'utf8'), 'executed\n');
+    const before = agent.session.snapshotEvents().length;
+    await new Promise(resolve => setTimeout(resolve, 30));
+    assert.equal(agent.session.snapshotEvents().length, before, 'waiting produces no retry loop or model dispatch');
+    const results = await Promise.all([1, 2].map(() => f.engine.resumeAfterMaintenance(agent,
+      { requestId: `resume-once:${agent.id}` }, new AbortController().signal)));
+    assert.equal(results.filter(result => result.idempotent === false).length, 1);
+    await running;
+    assert.equal(f.toolRuns.get(agent.id), 1);
+    assert.equal(await readFile(path.join(f.dir, `${agent.id}.txt`), 'utf8'), 'executed\n',
+      'the real file side effect must still occur exactly once after recovery');
+    assert.equal(admissions.get(agent.id), 2, 'each native step resolves downstream admission once');
+    const events = agent.session.snapshotEvents();
+    assert.equal(events.filter(event => event.type === 'llm/retry').length, 0);
+    assert.equal(events.filter(event => event.type === 'step/start').length, 2);
+    assert.equal(events.filter(event => event.type === 'turn/start').length, 1);
+    assert.equal(events.filter(event => event.type === 'turn/end').at(-1)?.data.reason?.kind, 'completed');
+    const second = f.requests.filter(request => request.sessionId === agent.id)[1];
+    assert.ok(second?.messages.some(message => message.role === 'tool'), 'the completed result reaches the original next step');
+  }
+});
+
+test('explicit resume that still cannot fit stays paused without sending the oversized request or starting a retry loop', async t => {
+  const f = await fixture(t, { window: 5000, wait: true }), agent = await f.create('resume-still-full');
+  const running = f.start(agent, 'Keep the entire task input. '.repeat(2000));
+  await f.waitForPause(agent);
+  const before = (f.engine as any).preparationWaits.get(agent).record.id;
+  await f.engine.resumeAfterMaintenance(agent, { requestId: 'still-full' }, new AbortController().signal);
+  await f.waitForPause(agent);
+  assert.notEqual((f.engine as any).preparationWaits.get(agent).record.id, before);
+  assert.equal(f.requests.length, 0);
+  const events = agent.session.snapshotEvents();
+  assert.equal(events.filter(event => event.type === 'llm/retry').length, 0);
+  assert.equal(events.filter(event => event.type === 'turn/start').length, 1);
+  assert.equal(events.filter(event => event.type === 'step/start').length, 1);
+  assert.equal(events.some(event => event.type === 'turn/end'), false);
+  await createScopeModule(f.services).dispatch({ action: 'configure', params: { feature: 'context-compaction',
+    config: { enabled: false } }, expectedRevision: 1 },
+  { scopeLevel: 'global', actorId: 'connection-owner', permissions: new Set(['scope.configure']) });
+  await f.engine.resumeAfterMaintenance(agent, { requestId: 'disabled-still-full' }, new AbortController().signal);
+  await f.waitForPause(agent);
+  assert.equal(f.requests.length, 0, 'disabling automatic maintenance cannot admit an oversized recovery request');
+  f.setWindow(1000000);
+  await f.engine.resumeAfterMaintenance(agent, { requestId: 'window-corrected' }, new AbortController().signal);
+  await running;
+  assert.equal(agent.session.snapshotEvents().filter(event => event.type === 'turn/end').at(-1)?.data.reason?.kind, 'completed');
+  assert.equal(f.toolRuns.get(agent.id), 1);
+  assert.ok(f.requests[0].messages.some(message => message.role === 'user'
+    && message.content.some((block: any) => block.text === 'Keep the entire task input. '.repeat(2000))));
+});
+
+test('unknown model windows keep recovery status readable and historical records cannot revive a released preparation', async t => {
+  const f = await fixture(t, { window: 0 }), agent = await f.create('resume-unknown-window');
+  const running = f.start(agent);
+  await f.waitForPause(agent);
+  const status = await f.engine.contextStatus(agent, new AbortController().signal);
+  assert.equal(status.windowTokens, null);
+  assert.equal(status.measurement.state, 'unavailable');
+  assert.equal(status.recovery.available, true);
+  f.setWindow(1000000);
+  await f.engine.resumeAfterMaintenance(agent, { requestId: 'metadata-corrected' }, new AbortController().signal);
+  await running;
+  const record = agent.session.snapshotEvents().map(pluginRecordOf).filter(record => record?.type === 'plugin:nexus/context-recovery')
+    .find(record => (record?.data as any).state === 'resume-required')!;
+  appendPluginRecord(agent.session, 'plugin:nexus/context-recovery', record.data as any);
+  const cold = await f.engine.contextStatus(agent, new AbortController().signal);
+  assert.equal(cold.recovery.state, 'interrupted');
+  assert.equal(cold.recovery.available, false);
+  await assert.rejects(f.engine.resumeAfterMaintenance(agent, { requestId: 'historical-click' }, new AbortController().signal),
+    { code: 'CTX_NO_RECOVERY_REQUIRED' });
+});
+
+test('unloading the plugin releases its retained preparation without dispatching a model or reviving on a stale click', async t => {
+  const f = await fixture(t, { window: 0 }), agent = await f.create('resume-plugin-unload');
+  const running = f.start(agent);
+  await f.waitForPause(agent);
+  await f.disposeDriver();
+  await running;
+  assert.equal(f.requests.length, 0);
+  assert.equal((f.engine as any).preparationWaits.size, 0);
+  const records = agent.session.snapshotEvents().map(pluginRecordOf).filter(record => record?.type === 'plugin:nexus/context-recovery');
+  assert.equal((records.at(-1)?.data as any).state, 'interrupted');
+  await assert.rejects(f.engine.resumeAfterMaintenance(agent, { requestId: 'disposed-resume' }, new AbortController().signal),
+    { code: 'CTX_NO_RECOVERY_REQUIRED' });
+});
+
+test('user and parent cancellation leave paused preparation promptly and cannot be revived by a stale recovery click', async t => {
+  for (const kind of ['user', 'parent'] as const) {
+    const f = await fixture(t, { window: 1000000 }), parent = await f.create(`cancel-parent-${kind}`);
+    const child = await f.create(`cancel-child-${kind}`, parent);
+    const original = f.engine.compactIfNeeded.bind(f.engine);
+    let fail = true;
+    f.engine.compactIfNeeded = async (agent, trigger, signal) => {
+      if (fail) { fail = false; throw new NexusError('CTX_NO_SAFE_RANGE', 'Pause before cancellation'); }
+      return original(agent, trigger, signal);
+    };
+    const running = f.start(child);
+    await f.waitForPause(child);
+    child.cancel({ kind }); await running;
+    assert.equal(child.status, 'idle');
+    assert.equal(f.requests.length, 0);
+    const end = child.session.snapshotEvents().filter(event => event.type === 'turn/end').at(-1);
+    assert.equal(end?.data.reason?.kind, 'aborted');
+    assert.equal((end?.data.reason as any).reason.kind, kind);
+    await assert.rejects(f.engine.resumeAfterMaintenance(child, { requestId: 'stale-resume' }, new AbortController().signal),
+      { code: 'CTX_NO_RECOVERY_REQUIRED' });
+    await f.start(child, 'New explicit user input after cancellation.');
+    assert.equal(child.session.snapshotEvents().filter(event => event.type === 'turn/end').at(-1)?.data.reason?.kind, 'completed');
+    assert.equal(f.toolRuns.get(child.id), 1);
+  }
 });
 
 test('current-route pressure includes pending input, system, tools and output reserve', async t => {

@@ -6,9 +6,13 @@ import { Icon } from './components.js';
 import { errorData } from './transport.js';
 import { boundedRead } from '../shared/bounded-read.js';
 
-type State = { open: boolean; settings: boolean; busy: boolean; loading: boolean; status?: Data; result?: Data; error?: string; requestId?: string; viewOwner?: string };
+type State = { open: boolean; settings: boolean; busy: boolean; loading: boolean; status?: Data; result?: Data; error?: string;
+  requestId?: string; resumeRequestId?: string; operation?: 'compact' | 'resume'; viewOwner?: string };
 const empty: State = Object.freeze({ open: false, settings: false, busy: false, loading: false });
 export function compactionOutcome(result: Data): string {
+  if (result.queued === true) return result.idempotent === true
+    ? '已收到恢复操作，正在重新检查原步骤的上下文。'
+    : '正在重新检查上下文；通过检查后继续原步骤。';
   if (result.committed === true) return `已压缩${Number.isFinite(result.beforeTokens) && Number.isFinite(result.afterTokens)
     ? ` · ${Math.round(result.beforeTokens).toLocaleString()} → ${Math.round(result.afterTokens).toLocaleString()} token` : ''}`;
   if (result.officialEffect === 'unknown') return '压缩结果待核实；保留原请求编号，未重复执行。';
@@ -52,12 +56,24 @@ export function registerContextMaintenance(raw: ClientContext, api: NexusApi) {
     // A lost reply keeps the same id. Only an acknowledged terminal receipt
     // permits a subsequent explicit intention to allocate a different id.
     const requestId = state(id).requestId ?? `manual-compact:${Date.now().toString(36)}:${++serial}`;
-    publish(id, { open: true, settings: false, busy: true, error: undefined, result: undefined, requestId });
+    publish(id, { open: true, settings: false, busy: true, operation: 'compact', error: undefined, result: undefined, requestId });
     try {
       const result = await api.call('context', 'maintenance/compact', {}, {
         scope: { level: 'session', sessionId: id }, requestId, mutating: true, signal: lifetime.signal,
       });
       publish(id, { result, requestId: result.officialEffect === 'unknown' ? requestId : undefined });
+    } catch (error) { publish(id, { error: errorData(error).message }); }
+    finally { publish(id, { busy: false }); if (!disposed) void load(id); }
+  };
+  const resume = async (id: string) => {
+    if (!owned(id) || state(id).busy || disposed) return;
+    const requestId = state(id).resumeRequestId ?? `context-resume:${Date.now().toString(36)}:${++serial}`;
+    publish(id, { open: true, settings: false, busy: true, operation: 'resume', error: undefined, result: undefined, resumeRequestId: requestId });
+    try {
+      const result = await api.call('context', 'maintenance/resume', {}, {
+        scope: { level: 'session', sessionId: id }, requestId, mutating: true, signal: lifetime.signal,
+      });
+      publish(id, { result, resumeRequestId: undefined });
     } catch (error) { publish(id, { error: errorData(error).message }); }
     finally { publish(id, { busy: false }); if (!disposed) void load(id); }
   };
@@ -72,7 +88,13 @@ export function registerContextMaintenance(raw: ClientContext, api: NexusApi) {
       return () => { if (element.open) element.close(); };
     }, []);
     React.useEffect(() => { void load(id); }, [id]);
-    const status = value.status, percent = Number(status?.occupancyPercent);
+    const recoveryState = value.status?.recovery?.state;
+    React.useEffect(() => {
+      if (!['resume-required', 'checking'].includes(recoveryState)) return;
+      const timer = setInterval(() => { void load(id); }, 2000);
+      return () => clearInterval(timer);
+    }, [id, recoveryState]);
+    const status = value.status, percent = typeof status?.occupancyPercent === 'number' ? status.occupancyPercent : NaN;
     return createPortal(<dialog ref={ref} className="nexus-compaction-dialog" aria-label="上下文压缩"
       data-nexus-compaction-session={id} onCancel={event => { event.preventDefault(); close(); }}>
       <header><strong>上下文压缩</strong><button type="button" aria-label="关闭上下文压缩" onClick={close}><Icon name="close" size={16} /></button></header>
@@ -81,17 +103,19 @@ export function registerContextMaintenance(raw: ClientContext, api: NexusApi) {
         {status && <div className="nexus-compaction-metrics">
           <strong>{Number.isFinite(percent) ? `${percent.toFixed(1)}%` : '窗口未知'}</strong>
           <span>{status.occupiedTokens?.toLocaleString()} / {status.windowTokens?.toLocaleString()} token</span>
-          <span>自动压缩{status.enabled ? '开启' : '关闭'} · 阈值 {status.thresholdPercent}%</span>
+          <span>{typeof status.enabled === 'boolean' ? `自动压缩${status.enabled ? '开启' : '关闭'} · 阈值 ${status.thresholdPercent}%` : '占用暂不可测；可查看设置与恢复状态'}</span>
           <span>压缩模型 · {status.summary?.state === 'available' ? `${status.summary.provider}/${status.summary.model}` : '暂不可用'}</span>
         </div>}
         {value.loading && <p role="status">正在读取当前会话…</p>}
-        {value.busy && <p role="status">正在压缩当前会话，关闭此窗口不影响执行…</p>}
+        {value.busy && <p role="status">{value.operation === 'resume' ? '正在恢复原步骤…' : '正在压缩当前会话，关闭此窗口不影响执行…'}</p>}
         {value.error && <p role="alert">{value.error}</p>}
         {value.result && <p role="status">{compactionOutcome(value.result)}</p>}
         {status?.maintenance?.state !== undefined && status.maintenance.state !== 'available'
           && <p role="status">{status.maintenance.recovery}</p>}
+        {['resume-required', 'checking', 'interrupted'].includes(status?.recovery?.state) && <p role="status">{status?.recovery.message}</p>}
         <div className="nexus-compaction-actions">
-          <button type="button" className="nexus-compaction-primary" disabled={value.busy} onClick={() => void compact(id)}>立即压缩</button>
+          <button type="button" className="nexus-compaction-primary" disabled={value.busy || ['resume-required', 'checking'].includes(recoveryState)} onClick={() => void compact(id)}>立即压缩</button>
+          {['resume-required', 'checking'].includes(recoveryState) && <button type="button" disabled={value.busy || status?.recovery?.available !== true} onClick={() => void resume(id)}>恢复当前步骤</button>}
           <button type="button" disabled={value.loading} onClick={() => { publish(id, { error: undefined }); void load(id); }}>刷新状态</button>
           <button type="button" aria-expanded={value.settings} onClick={() => publish(id, { settings: !value.settings })}>压缩设置</button>
         </div>
@@ -137,7 +161,7 @@ export function registerContextMaintenance(raw: ClientContext, api: NexusApi) {
   });
   if (typeof inject === 'function') cleanups.push(inject);
   return {
-    state, compact, load,
+    state, compact, resume, load,
     dispose() {
       if (disposed) return; disposed = true; lifetime.abort();
       for (const cleanup of cleanups.reverse()) if (typeof cleanup === 'function') cleanup();

@@ -11,20 +11,25 @@ function provider(ctx: HostContext, agent: any) {
  * does not recreate one. Read a detached official Session for status; acquire
  * an official, prompt-free maintenance handle only for an explicit UI write.
  * The persistence writer lock arbitrates races with native continuation. */
-export async function contextMaintenance(ctx: HostContext, sessionId: string, action: 'status' | 'compact',
+export async function contextMaintenance(ctx: HostContext, sessionId: string, action: 'status' | 'compact' | 'resume',
   requestId: unknown, signal: AbortSignal, actorId?: string) {
   signal.throwIfAborted();
   const agents = ctx.get('agents');
   const run = async (agent: any) => {
     const owner = provider(ctx, agent);
-    if (!owner?.contextStatus || !owner?.selfCompaction) throw new NexusError('CTX_NATIVE_PROVIDER_UNAVAILABLE', '统一压缩后端尚未就绪，请稍后重试');
+    if (!owner?.contextStatus || action === 'compact' && !owner?.selfCompaction
+      || action === 'resume' && !owner?.resumeAfterMaintenance) {
+      throw new NexusError('CTX_NATIVE_PROVIDER_UNAVAILABLE', '统一上下文维护后端尚未就绪，请稍后重试');
+    }
     if (action === 'status') return owner.contextStatus(agent, signal);
-    if (actorId !== 'connection-owner') throw new NexusError('PERMISSION_DENIED', '此入口只接受用户手动压缩；模型请调用 compact_context');
+    if (actorId !== 'connection-owner') throw new NexusError('PERMISSION_DENIED', '此入口只接受用户维护与恢复操作；模型请调用 compact_context');
+    if (action === 'resume') return owner.resumeAfterMaintenance(agent, { requestId: typeof requestId === 'string' ? requestId : undefined }, signal);
     if (agent.status !== 'idle') throw new NexusError('CTX_NATIVE_BUSY', '子代理仍在执行，自动压缩将在下次请求前检查；手动操作未停止任务');
     return owner.selfCompaction(agent, { action: 'compact', requestId }, signal);
   };
   const live = agents?.get?.(sessionId);
   if (live) return run(live);
+  if (action === 'resume') throw new NexusError('CTX_NO_RECOVERY_REQUIRED', '原步骤已释放；请通过原生输入或父代理消息继续任务');
   if (actorId !== 'connection-owner') throw new NexusError('PERMISSION_DENIED', '读取或维护已释放的子代理需要用户界面权限');
   const snapshot = await ctx.get('sessionQuery')?.readSession?.(SessionId(sessionId), signal);
   if (!snapshot || snapshot.session?.id !== sessionId || !Array.isArray(snapshot.events)) {

@@ -3,6 +3,7 @@ import type { HostContext } from './types.js';
 interface NativeCompactor {
   compactRanges(agent: any, params: Record<string, unknown>, signal: AbortSignal): Promise<any>;
   recoverOverflow?(payload: any, managed?: { retry: number; maxRetries: number }): Promise<{ kind: 'retry' } | undefined>;
+  resumeAfterMaintenance?(agent: any, args: { requestId?: string }, signal: AbortSignal): Promise<any>;
   selfCompaction?(agent: any, args: any, signal: AbortSignal): Promise<any>;
   contextStatus?(agent: any, signal: AbortSignal, requestId?: string): Promise<any>;
 }

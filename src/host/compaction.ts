@@ -1,5 +1,5 @@
 import { BasicCompactionEngine } from '@deepseek-ai/dsh-compaction-basic';
-import { isSurfaceEvent, SessionSeq, type SessionEvent } from '@deepseek-ai/dsh-session';
+import { appendPluginRecord, isSurfaceEvent, pluginRecordOf, SessionSeq, type SessionEvent } from '@deepseek-ai/dsh-session';
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { z } from 'zod';
@@ -45,10 +45,61 @@ const nativeSurfaceSchema = z.object({
 type NativeSurfaceState = z.infer<typeof nativeSurfaceSchema>;
 type LaneLease = { record: StoredRecord<NativeLaneOwner>; retained: boolean; completed?: boolean; lease?: Lease };
 const RUNNING_LANES = Symbol.for('dsh-nexus.native-compaction.running.v1');
+const CONTEXT_RECOVERY_RECORD = 'plugin:nexus/context-recovery';
+const CONTEXT_RECOVERY_KEY = 'nexusContextRecovery';
+type ContextRecoveryState = 'resume-required' | 'checking' | 'cleared' | 'cancelled' | 'interrupted';
+interface ContextRecoveryRecord {
+  schemaVersion: 1;
+  id: string;
+  sessionId: string;
+  state: ContextRecoveryState;
+  turn: number;
+  step: number;
+  provider: string;
+  code: string;
+  reason: string;
+  requestId?: string;
+  at: string;
+}
+declare module '@deepseek-ai/dsh-session/types' {
+  interface PluginRecordMap {
+    'plugin:nexus/context-recovery': ContextRecoveryRecord;
+  }
+}
+declare module '@deepseek-ai/dsh-session-projection/types' {
+  interface SessionProjectionStateMap {
+    nexusContextRecovery: ContextRecoveryRecord | null;
+  }
+}
+const contextRecoverySchema = z.object({
+  schemaVersion: z.literal(1), id: z.string(), sessionId: z.string(),
+  state: z.enum(['resume-required', 'checking', 'cleared', 'cancelled', 'interrupted']),
+  turn: z.number().int().nonnegative(), step: z.number().int().nonnegative(),
+  provider: z.string(), code: z.string(), reason: z.string(), requestId: z.string().optional(), at: z.string(),
+});
+const contextRecoveryProjection = {
+  key: CONTEXT_RECOVERY_KEY,
+  stateVersion: 1, stateSchema: contextRecoverySchema.nullable(),
+  init: (): ContextRecoveryRecord | null => null,
+  apply(state: ContextRecoveryRecord | null, event: SessionEvent): ContextRecoveryRecord | null {
+    const record = pluginRecordOf(event);
+    if (record?.type === CONTEXT_RECOVERY_RECORD) {
+      const parsed = contextRecoverySchema.safeParse(record.data);
+      return parsed.success ? parsed.data : state;
+    }
+    if (state && ['resume-required', 'checking'].includes(state.state)
+      && (event.type === 'turn/end' || event.type === 'step/start')) {
+      return { ...state, state: 'interrupted' };
+    }
+    return state;
+  },
+};
 function runningLanes(): Map<string, string> {
   const runtime = globalThis as typeof globalThis & { [RUNNING_LANES]?: Map<string, string> };
   return runtime[RUNNING_LANES] ??= new Map();
 }
+type PreparationWait = { agent: any; signal: AbortSignal; record: ContextRecoveryRecord;
+  resume?: () => void; cancel: () => void; manual: boolean };
 
 /**
  * Read-only host projection: retain current identity/position and the empty
@@ -106,6 +157,8 @@ export default class NexusCompactionEngine extends BasicCompactionEngine {
   private idleRangeAgents = new WeakSet<object>();
   private runningLanes = runningLanes();
   private laneLeases?: LeaseManager;
+  private preparationWaits = new Map<object, PreparationWait>();
+  private recoveryLifetime = new AbortController();
 
   constructor(ctx: any, config: any = {}, ownership: { fallback?: boolean } = {}) {
     super(ctx, { ...config, auto: false });
@@ -115,6 +168,11 @@ export default class NexusCompactionEngine extends BasicCompactionEngine {
       throw new NexusError('HOST_CAPABILITY_UNAVAILABLE', 'DSH 公有 sessionProjections registry 不可用；不能反复扫描完整日志冒充增量同步');
     }
     projections.register(nativeSurfaceProjection);
+    projections.register(contextRecoveryProjection);
+    ctx.effect(() => () => {
+      this.recoveryLifetime.abort();
+      for (const agent of this.preparationWaits.keys()) this.finishPreparationWait(agent, 'interrupted');
+    });
     const binding = registerNativeCompactionBinding(ctx, this, ownership);
     if (ownership.fallback) for (const agent of ctx.get('agents')?.list?.() ?? []) binding.bind(agent);
     ctx.get('systemPrompt').context({
@@ -139,9 +197,26 @@ export default class NexusCompactionEngine extends BasicCompactionEngine {
       this.requestRoutes.set(agent, route);
       const admission = this.admissions.get(agent);
       if (admission) admission.route = route;
+      let explicitRecovery = false;
       try {
         while (!signal.aborted) {
-          try { await this.compactIfNeeded(agent, 'pressure', signal); break; }
+          try {
+            // An explicit resume is a new maintenance intention; it may try
+            // preparation again during the auxiliary cooldown. Existing
+            // official effects still pass through reconcileOnly first.
+            if (explicitRecovery) {
+              const wait = this.preparationWaits.get(agent);
+              if (wait) wait.manual = true;
+            }
+            await this.compactIfNeeded(agent, 'pressure', signal);
+            if (explicitRecovery) {
+              const current = await this.measurePressure(agent, signal);
+              if (current.occupiedTokens >= current.windowTokens) {
+                throw new NexusError('CTX_PRESSURE_REMAINS_HIGH', '当前请求仍超过有效窗口；原步骤继续暂停，未发送模型请求');
+              }
+            }
+            break;
+          }
           catch (error) {
             // A preparation throw occurs before the native stream seam. Only
             // repeat this maintenance stage; waterfall next() is one-shot and
@@ -151,11 +226,24 @@ export default class NexusCompactionEngine extends BasicCompactionEngine {
               failure: annotateNativeFailure(error, { phase: 'automatic-context-maintenance', signalAborted: signal.aborted }),
               recoveryStage: 'preparation',
             }, async () => undefined);
-            if (decision?.kind !== 'retry') throw error;
+            if (decision?.kind === 'retry') continue;
+            if (mustStopAfterAuxiliaryFailure(error, signal)
+              || classifyFailure(error).diagnosticCode !== 'NX_CONTEXT_MAINTENANCE') throw error;
+            // Keep the original entered step and claimed input alive. Ending
+            // this turn would lose inputs not yet admitted to the surface.
+            // A click releases only this seam; next() and tools are not rerun.
+            explicitRecovery = await this.waitForPreparationResume({ agent, signal, turn, step, provider: route.provider }, error);
+            if (!explicitRecovery) throw error;
           }
         }
+        // A user may have explicitly resumed a prior preparation failure. Once
+        // this request has passed the same preparation seam, retire the
+        // durable recovery affordance. This is observational and must never
+        // block the model request.
+        this.finishPreparationWait(agent, signal.aborted ? 'cancelled' : 'cleared');
       } finally {
-        // Retries are the same step; its original input has already landed.
+        this.finishPreparationWait(agent, signal.aborted ? 'cancelled' : 'interrupted');
+        // Keep claimed input and assembly until this original seam exits.
         this.admissions.delete(agent);
       }
       return route;
@@ -213,10 +301,25 @@ export default class NexusCompactionEngine extends BasicCompactionEngine {
   }
 
   async contextStatus(agent: any, signal: AbortSignal, requestId?: string): Promise<any> {
-    const measured = await this.measurePressure(agent, signal);
-    const { header: _header, ...pressure } = measured;
+    let measured: Awaited<ReturnType<typeof measureContextPressure>> | undefined;
+    let pressure: any;
+    try {
+      measured = await this.measurePressure(agent, signal);
+      const { header: _header, ...metrics } = measured;
+      pressure = metrics;
+    } catch (error) {
+      if (mustStopAfterAuxiliaryFailure(error, signal)) throw error;
+      // Missing model metadata is itself a preparation failure. Keep the
+      // recovery control and settings readable instead of failing this whole
+      // page on the same missing window again.
+      pressure = { occupiedTokens: null, windowTokens: null, occupancyPercent: null,
+        measurement: { state: 'unavailable', code: nativeErrorIdentity(error).code } };
+    }
     let summary: any;
-    try { summary = { state: 'available', ...await this.summaryPolicy(agent, signal, measured) }; }
+    try {
+      summary = measured ? { state: 'available', ...await this.summaryPolicy(agent, signal, measured) }
+        : { state: 'unavailable', recovery: '当前模型窗口未知；请检查模型目录与压缩设置' };
+    }
     catch (error) { summary = { state: 'unavailable', code: (error as any)?.code, recovery: '请用户在上下文设置中修正压缩模型；会话模型未更改' }; }
     const owner = await this.nativeContext.get('nexus').services.store.get(NATIVE_OWNER_COLLECTION, this.laneKey(agent));
     const store = this.nativeContext.get('nexus').services.store;
@@ -226,7 +329,82 @@ export default class NexusCompactionEngine extends BasicCompactionEngine {
     return { sessionId: agent.id, ...pressure, summary, requests,
       maintenance: owner && owner.value.status !== 'released' ? { state: owner.value.status, phase: owner.value.phase, operationId: owner.value.operationId,
         recovery: '已有维护所有者；等待原操作结束，未知效果须先核实正式收据，勿重复执行' } : { state: 'available' },
+      recovery: this.preparationRecoveryStatus(agent),
       lastResult: this.lastResults.get(agent) ?? null };
+  }
+
+  private preparationRecoveryStatus(agent: any): any {
+    const wait = this.preparationWaits.get(agent);
+    const record = wait?.record ?? this.nativeContext.get('sessionProjections').stateOf(agent.session, CONTEXT_RECOVERY_KEY);
+    if (!record || record.state === 'cleared' || record.state === 'cancelled') return { state: 'available', available: false };
+    return { state: wait ? record.state : 'interrupted', available: !!wait?.resume && !wait.signal.aborted,
+      turn: record.turn, step: record.step, code: record.code, reason: record.reason,
+      message: !wait ? '原步骤已结束或宿主已重启；请通过原生输入或父代理消息继续任务'
+        : record.state === 'checking' ? '正在检查原步骤的上下文；工具不会重新执行'
+        : '原步骤已暂停，输入与工具结果仍保留。修正压缩设置后点击「恢复当前步骤」' };
+  }
+
+  private publishPreparationRecovery(agent: any, record: ContextRecoveryRecord): void {
+    try { appendPluginRecord(agent.session, CONTEXT_RECOVERY_RECORD, record); }
+    catch { /* The live seam remains usable if diagnostic persistence fails. */ }
+  }
+
+  private waitForPreparationResume(payload: any, error: unknown): Promise<boolean> {
+    const { agent, signal } = payload;
+    if (signal.aborted || this.recoveryLifetime.signal.aborted) return Promise.resolve(false);
+    const identity = nativeErrorIdentity(error, 'CTX_PREPARATION_FAILED');
+    const record: ContextRecoveryRecord = {
+      schemaVersion: 1, id: `context-recovery:${randomUUID()}`, sessionId: String(agent.id),
+      state: 'resume-required', turn: payload.turn, step: payload.step,
+      provider: typeof payload.provider === 'string' ? payload.provider : 'unknown',
+      code: identity.code, reason: '自动上下文维护未完成，等待显式恢复原步骤',
+      at: new Date().toISOString(),
+    };
+    return new Promise(resolve => {
+      let settled = false;
+      const finish = (resume: boolean) => {
+        if (settled) return;
+        settled = true;
+        signal.removeEventListener('abort', cancel);
+        this.recoveryLifetime.signal.removeEventListener('abort', cancel);
+        wait.resume = undefined;
+        resolve(resume);
+      };
+      const cancel = () => finish(false);
+      const wait: PreparationWait = { agent, signal, record, resume: () => finish(true), cancel, manual: false };
+      this.preparationWaits.set(agent, wait);
+      signal.addEventListener('abort', cancel, { once: true });
+      this.recoveryLifetime.signal.addEventListener('abort', cancel, { once: true });
+      this.publishPreparationRecovery(agent, record);
+      if (signal.aborted || this.recoveryLifetime.signal.aborted) cancel();
+    });
+  }
+
+  private finishPreparationWait(agent: any, state: 'cleared' | 'cancelled' | 'interrupted'): void {
+    const wait = this.preparationWaits.get(agent);
+    if (!wait) return;
+    this.preparationWaits.delete(agent);
+    wait.cancel();
+    this.publishPreparationRecovery(agent, { ...wait.record, state, at: new Date().toISOString() });
+  }
+
+  /**
+   * Release only the original live preparation await. No inbox mutation,
+   * private driver call, new turn, or model-visible control message is used.
+   * The owner still rechecks the full context and reconciles official effects.
+   */
+  async resumeAfterMaintenance(agent: any, args: { requestId?: string }, signal: AbortSignal): Promise<any> {
+    signal.throwIfAborted();
+    const wait = this.preparationWaits.get(agent);
+    if (!wait || wait.signal.aborted || this.recoveryLifetime.signal.aborted) {
+      throw new NexusError('CTX_NO_RECOVERY_REQUIRED', '当前会话没有保留的维护暂停步骤；请通过原生输入或父代理消息继续');
+    }
+    if (!wait.resume) return { sessionId: agent.id, queued: true, idempotent: true, state: 'checking' };
+    const requestId = args.requestId;
+    wait.record = { ...wait.record, state: 'checking', ...(requestId ? { requestId } : {}), at: new Date().toISOString() };
+    this.publishPreparationRecovery(agent, wait.record);
+    wait.resume();
+    return { sessionId: agent.id, queued: true, idempotent: false, state: 'checking' };
   }
 
   async selfCompaction(agent: any, args: any, signal: AbortSignal): Promise<any> {
@@ -448,7 +626,7 @@ export default class NexusCompactionEngine extends BasicCompactionEngine {
             throw new NexusError('CTX_NO_SAFE_RANGE', '本步已达到压缩阈值，但没有安全限窗压缩范围；未发送原请求。空闲时调整保留策略、缩小输入或修正模型窗口', { reason: proposal.reason });
           }
           return this.commitProposal(agent, proposal, signal, owner);
-        }, signal, trigger === 'pressure');
+        }, signal, trigger === 'pressure' && !this.preparationWaits.get(agent)?.manual);
         if (!result) throw new NexusError('CTX_PREPARATION_COOLDOWN', '上一辅助压缩意图已终止，自动维护暂缓且未重发；先检查诊断，或由用户发起新的明确压缩意图');
         pressure = await this.measurePressure(agent, signal);
         this.lastResults.set(agent, { reason: 'formal-commit', hostCompactionId: result?.compactionId, occupiedTokens: pressure.occupiedTokens });

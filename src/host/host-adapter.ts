@@ -410,13 +410,13 @@ export function createHostAdapter(ctx: HostContext, config: NexusConfig, workspa
           }
           return [...ids];
         }
-        case 'context.maintenance/status': case 'context.maintenance/compact': {
+        case 'context.maintenance/status': case 'context.maintenance/compact': case 'context.maintenance/resume': {
           const authority = hostAuthority.getStore();
           if (authority?.actorId === 'native-tool'
             && (authority.sessionId !== sessionId || authority.toolExecution?.agent !== ctx.get('agents')?.get?.(sessionId))) {
             throw new NexusError('PERMISSION_DENIED', '模型只能查询当前调用智能体的维护状态');
           }
-          return contextMaintenance(ctx, sessionId, action.endsWith('/status') ? 'status' : 'compact',
+          return contextMaintenance(ctx, sessionId, action.endsWith('/status') ? 'status' : action.endsWith('/resume') ? 'resume' : 'compact',
             params.requestId, authority?.signal ?? pluginSignal, authority?.actorId);
         }
         case 'context.compress': {

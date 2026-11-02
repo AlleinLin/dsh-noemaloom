@@ -101,6 +101,36 @@ test('a native persistence ownership race refuses cold compaction without retryi
   assert.equal(resumes, 1); assert.equal(compactions, 0);
 });
 
+test('explicit recovery addresses the exact paused child without sending a chat prompt', async t => {
+  const root = new Context(), signal = new AbortController().signal;
+  const child = { id: `resume-child-${randomUUID()}`, status: 'running', ctx: root,
+    followup() { throw new Error('recovery must not inject input'); } };
+  const calls: any[] = [];
+  let host: ReturnType<typeof createHostAdapter>;
+  const fiber = root.plugin({ name: 'resume-maintenance-host', apply(ctx: Context) {
+    ctx.provide('agents', { get: (id: string) => id === child.id ? child : undefined } as any);
+    host = createHostAdapter(ctx as unknown as HostContext, {}, process.cwd(), signal);
+    registerNativeCompactionBinding(ctx as unknown as HostContext, {
+      async compactRanges() { throw new Error('not used'); },
+      async contextStatus() { return { recovery: { state: 'resume-required', available: true } }; },
+      async resumeAfterMaintenance(agent: any, args: any) {
+        calls.push({ agent, args }); return { sessionId: agent.id, queued: true };
+      },
+    }).bind(child);
+  } }); await fiber.await();
+  t.after(async () => { await host.dispose(); await fiber.dispose(); });
+  const result = await hostAuthority.run({ sessionId: child.id, actorId: 'connection-owner', signal },
+    () => host.sessions('context.maintenance/resume', { sessionId: child.id, requestId: 'resume-intent' }));
+  assert.deepEqual(result, { sessionId: child.id, queued: true });
+  assert.equal(calls[0].agent, child);
+  assert.equal(calls[0].args.requestId, 'resume-intent');
+  await assert.rejects(hostAuthority.run({ sessionId: child.id, actorId: 'native-tool', signal },
+    () => host.sessions('context.maintenance/resume', { sessionId: child.id })), { code: 'PERMISSION_DENIED' });
+  await assert.rejects(hostAuthority.run({ actorId: 'connection-owner', signal },
+    () => host.sessions('context.maintenance/resume', { sessionId: 'cold-child' })), { code: 'CTX_NO_RECOVERY_REQUIRED' });
+  assert.equal(calls.length, 1);
+});
+
 test('cold forked subagents preserve the exact native inherited cut and never guess a missing boundary', async () => {
   const id = SessionId('cold-fork-child'), inheritedEventCount = 1;
   const session = Session.create(id, [{ type: 'session/end-seed', seq: 0, time: 1, data: {} }] as any, {

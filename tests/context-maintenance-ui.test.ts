@@ -66,6 +66,43 @@ test('unknown manual outcomes retain the original intent instead of replaying a 
   runtime.dispose();
 });
 
+test('recovery keeps the exact child, suppresses duplicate clicks and retains a separate request id after a lost reply', async () => {
+  const calls: any[] = [];
+  let reject!: (reason: Error) => void;
+  const api = { call: async (_domain: string, action: string, _params: any, options: any) => {
+    calls.push({ action, options });
+    if (action === 'maintenance/status') return { recovery: { state: 'resume-required', available: true } };
+    if (action === 'maintenance/compact') return { officialEffect: 'unknown' };
+    if (calls.filter(call => call.action === 'maintenance/resume').length === 1) {
+      return new Promise((_resolve, rejectReply) => { reject = rejectReply; });
+    }
+    return { queued: true, idempotent: true };
+  } } as unknown as NexusApi;
+  const ctx = { sessions: { binding: (id: string) => id === 'child' ? { sessionId: id } : undefined },
+    slots: { inject: (_name: string, mount: () => any) => mount(), register: () => () => {} },
+  } as unknown as ClientContext;
+  const runtime = registerContextMaintenance(ctx, api);
+  await runtime.compact('child');
+  const compactId = runtime.state('child').requestId;
+  const pending = runtime.resume('child');
+  await runtime.resume('child');
+  assert.equal(calls.filter(call => call.action === 'maintenance/resume').length, 1);
+  reject(new Error('reply lost'));
+  await pending;
+  const resumeId = runtime.state('child').resumeRequestId;
+  assert.ok(resumeId); assert.notEqual(resumeId, compactId);
+  await runtime.resume('child');
+  const resumes = calls.filter(call => call.action === 'maintenance/resume');
+  assert.deepEqual(resumes.map(call => call.options.requestId), [resumeId, resumeId]);
+  assert.ok(resumes.every(call => call.options.scope.sessionId === 'child' && call.options.mutating));
+  assert.equal(runtime.state('child').requestId, compactId);
+  assert.equal(runtime.state('child').resumeRequestId, undefined);
+  assert.match(compactionOutcome(runtime.state('child').result!), /已收到恢复操作/);
+  await runtime.resume('unbound');
+  runtime.dispose(); await runtime.resume('child');
+  assert.equal(calls.filter(call => call.action === 'maintenance/resume').length, 2);
+});
+
 test('retry/freeze trigger is registered in the right input seat and keeps the exact session id', () => {
   const registrations: any[] = [];
   let disposed = false;
