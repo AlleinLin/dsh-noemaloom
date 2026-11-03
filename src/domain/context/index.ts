@@ -975,7 +975,18 @@ export function createContextModule(services: NexusServices): NexusModule {
           const decision = parsedDecision as JsonRecord;
           if (decision.decision === 'wait') return { decision: 'wait', reason: 'summary-model-declined-safe-range',
             nativeApplied: false, recovery: '模型未提供可应用的受限摘要；本意图已结束，不自动重复。请用户检查保留策略或选择较小完整范围' };
-          const parsed = parseCompressArgs({ content: decision.content });
+          if (decision.summary !== undefined && decision.content !== undefined) {
+            throw new NexusError('CTX_DECISION_INVALID', '原生摘要不能同时声明正文协议与自选范围，未修改宿主');
+          }
+          // The host already selected a complete, balanced native span.
+          // Bind new summary-only responses to that exact span; asking a
+          // model to recreate per-block refs allowed fabricated endpoints
+          // and partial native-message selections. Legacy explicit content
+          // still passes the original exact-source and nativeSpan checks.
+          const parsed = parseCompressArgs({ content: decision.summary !== undefined ? [{
+            startRef: bounded.messages[0]!.ref, endRef: bounded.messages.at(-1)!.ref,
+            summary: decision.summary, topic: decision.topic,
+          }] : decision.content });
           if (!parsed.diagnostics.ok) throw new NexusError('CTX_RANGE_INVALID', '模型未提供有效原生折叠提案', parsed.diagnostics);
           ranges = parsed.ranges;
           const sourceRefs = new Set(bounded.messages.map(message => message.ref));

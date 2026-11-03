@@ -41,6 +41,8 @@ test('the real recovery dialog lets a narrow-screen child resume its exact step 
         buttons:[...d.querySelectorAll('button')].map(b=>({text:b.textContent,disabled:b.disabled}))}; })()`);
     assert.equal(state.session, 'paused-child');
     assert.match(state.text, /窗口未知/); assert.doesNotMatch(state.text, /0\.0%/);
+    assert.match(state.text, /自动压缩已暂停/);
+    assert.match(state.text, /上次摘要校验失败，自动付费维护已暂停/);
     assert.ok(state.left >= 0 && state.right <= 420);
     assert.equal(state.buttons.find(button => button.text === '立即压缩').disabled, true);
     assert.equal(state.buttons.find(button => button.text === '恢复当前步骤').disabled, false);

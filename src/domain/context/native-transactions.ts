@@ -196,6 +196,10 @@ export interface NativeLaneOwner {
   consecutivePreparationFailures?: number;
   /** Suppresses new auxiliary admissions; never releases an official owner. */
   auxiliaryRetryAfter?: string;
+  /** Deterministic auxiliary failures require a changed policy or explicit
+   * user intent, not just elapsed time, before another automatic paid call. */
+  automaticPaused?: boolean;
+  automaticPolicyHash?: string;
   startedAt: string;
   updatedAt: string;
 }

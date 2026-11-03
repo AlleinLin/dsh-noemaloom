@@ -19,7 +19,7 @@ test('appending history preserves all earlier message bytes regardless of new gu
   const sourceStart = before.indexOf(canonicalJson(history));
   const reusable = Buffer.byteLength(before.slice(0, sourceStart) + canonicalJson(history).slice(0, -1));
   assert.ok(compareBytes(before, after).prefixBytes >= reusable);
-  assert.ok(after.endsWith('本次仅选择一个范围；不满足条件则 wait。'));
+  assert.ok(after.includes('精确范围由宿主绑定'));
 });
 
 test('native and auxiliary compression share source prefix but keep distinct range constraints', () => {

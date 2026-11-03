@@ -23,6 +23,7 @@ import type { ContextArchiveHead } from '../domain/context/archive-types.js';
 import type { ContextSession } from '../domain/context/types.js';
 import { summaryRequestBudget } from './auxiliary-input.js';
 import { EXPECTED_DSH_VERSION } from '../shared/host-compatibility.js';
+import { effectiveSettings } from '../domain/scope.js';
 
 export function manualSummaryRequest(input: any, sessionId: string,
   policy: { provider: string; model: string; summaryMaxTokens: number }, signal?: AbortSignal): ModelRequest {
@@ -45,6 +46,9 @@ const nativeSurfaceSchema = z.object({
 type NativeSurfaceState = z.infer<typeof nativeSurfaceSchema>;
 type LaneLease = { record: StoredRecord<NativeLaneOwner>; retained: boolean; completed?: boolean; lease?: Lease };
 const RUNNING_LANES = Symbol.for('dsh-nexus.native-compaction.running.v1');
+const DETERMINISTIC_PREPARATION_FAILURES = new Set([
+  'CTX_DECISION_INVALID', 'CTX_RANGE_INVALID', 'CTX_NATIVE_PARTIAL_MESSAGE', 'CTX_NATIVE_NO_PROGRESS',
+]);
 const CONTEXT_RECOVERY_RECORD = 'plugin:nexus/context-recovery';
 const CONTEXT_RECOVERY_KEY = 'nexusContextRecovery';
 type ContextRecoveryState = 'resume-required' | 'checking' | 'cleared' | 'cancelled' | 'interrupted';
@@ -327,6 +331,8 @@ export default class NexusCompactionEngine extends BasicCompactionEngine {
     const ids: string[] = requestId ? [hashObject({ lane: this.laneKey(agent), requestId })] : head?.value.ids ?? [];
     const requests = (await Promise.all(ids.map(id => store.get('context.nativeSelfRequests', id)))).filter(Boolean).map(row => row.value);
     return { sessionId: agent.id, ...pressure, summary, requests,
+      automaticPause: owner?.value.automaticPaused ? { code: owner.value.errorCode,
+        recovery: '上次摘要校验失败，自动付费维护已暂停；修正压缩设置或显式发起一次压缩后再试' } : null,
       maintenance: owner && owner.value.status !== 'released' ? { state: owner.value.status, phase: owner.value.phase, operationId: owner.value.operationId,
         recovery: '已有维护所有者；等待原操作结束，未知效果须先核实正式收据，勿重复执行' } : { state: 'available' },
       recovery: this.preparationRecoveryStatus(agent),
@@ -649,15 +655,19 @@ export default class NexusCompactionEngine extends BasicCompactionEngine {
           const remaining = await this.measurePressure(agent, signal);
           if (!signal.aborted && (terminal || ownPreparation) && remaining.occupiedTokens < remaining.windowTokens) {
             const cooldown = isNexusError(error) && error.code === 'CTX_PREPARATION_COOLDOWN';
+            const automaticPaused = owner?.value.automaticPaused === true;
             const prior = this.lastResults.get(agent);
             const recorded = owner?.value.diagnostics?.at(-1);
             const reason = cooldown ? recorded?.code ?? prior?.reason ?? error.code : nativeErrorIdentity(error).code;
             this.lastResults.set(agent, { reason, outcome: 'maintenance-deferred',
               ...failureMetadata(cooldown ? recorded ?? prior : error),
-              ...(cooldown ? { cooldown: true } : {}),
+              ...(cooldown ? { cooldown: !automaticPaused } : {}),
+              ...(automaticPaused ? { automaticPaused: true } : {}),
               ...(owner?.value.auxiliaryRetryAfter ? { auxiliaryRetryAfter: owner.value.auxiliaryRetryAfter } : {}),
               occupiedTokens: remaining.occupiedTokens, windowTokens: remaining.windowTokens,
-              recovery: '当前请求仍可容纳；维护已终止或已核实提交，按冷却策略等待新的明确维护机会' });
+              recovery: automaticPaused
+                ? '当前请求仍可容纳，继续原任务；摘要校验失败已暂停自动付费维护，修正设置或显式压缩前不会自动重发'
+                : '当前请求仍可容纳；维护已终止或已核实提交，按冷却策略等待新的明确维护机会' });
             return null;
           }
         } catch { /* Failed proof preserves the original failure; no request is admitted. */ }
@@ -1058,6 +1068,8 @@ export default class NexusCompactionEngine extends BasicCompactionEngine {
       traceId: diagnostic.traceId, errorCode: diagnostic.code,
       diagnostics: appendNativeDiagnostic(owner.record.value, diagnostic),
       consecutivePreparationFailures: failures, auxiliaryRetryAfter: retryAfter,
+      ...(owner.record.value.automaticPolicyHash && DETERMINISTIC_PREPARATION_FAILURES.has(diagnostic.code)
+        ? { automaticPaused: true } : {}),
     });
     owner.completed = true;
     return diagnostic;
@@ -1223,7 +1235,21 @@ export default class NexusCompactionEngine extends BasicCompactionEngine {
       if (previous && previous.value.status !== 'released') {
         throw new NexusError('CTX_NATIVE_BUSY', '原生收据对账期间另一操作已取得该 lane');
       }
-      if (automatic && previous?.value.auxiliaryRetryAfter
+      const automaticPolicyHash = automatic ? await this.automaticPolicyHash(agent, key) : undefined;
+      if (automatic && previous?.value.phase === 'preparation-failed'
+          && DETERMINISTIC_PREPARATION_FAILURES.has(previous.value.errorCode ?? '')
+          && !previous.value.automaticPolicyHash) {
+        // Older receipts lacked a policy fingerprint. Adopt their known
+        // deterministic failure as paused instead of billing one more
+        // automatic attempt just to migrate the receipt.
+        previous = await store.put(NATIVE_OWNER_COLLECTION, key, { ...previous.value,
+          automaticPaused: true, automaticPolicyHash }, previous.revision);
+      }
+      if (automatic && previous?.value.automaticPaused
+          && previous.value.automaticPolicyHash === automaticPolicyHash) return null as T;
+      const changedPausedPolicy = previous?.value.automaticPaused
+        && previous.value.automaticPolicyHash !== automaticPolicyHash;
+      if (automatic && !changedPausedPolicy && previous?.value.auxiliaryRetryAfter
           && Date.parse(previous.value.auxiliaryRetryAfter) > Date.now()) {
         const priorFailure = previous.value.diagnostics?.at(-1);
         if (priorFailure && mustStopAfterAuxiliaryFailure(priorFailure)) {
@@ -1242,6 +1268,7 @@ export default class NexusCompactionEngine extends BasicCompactionEngine {
         kind, startedThroughSeq: agent.session.seq - 1, startedAt: now, updatedAt: now, leaseProtocol: 1,
         diagnostics: (previous?.value.diagnostics ?? []).slice(-16),
         consecutivePreparationFailures: previous?.value.consecutivePreparationFailures ?? 0,
+        ...(automaticPolicyHash ? { automaticPolicyHash } : {}),
         ...(previous?.value.auxiliaryRetryAfter ? { auxiliaryRetryAfter: previous.value.auxiliaryRetryAfter } : {}),
       } satisfies NativeLaneOwner, previous?.revision ?? 0);
       const owner: LaneLease = { record, retained: false, lease };
@@ -1289,6 +1316,20 @@ export default class NexusCompactionEngine extends BasicCompactionEngine {
           }
         }
       }
+  }
+
+  private async automaticPolicyHash(agent: any, key: string): Promise<string> {
+    const services = this.nativeContext.get('nexus').services;
+    const workspaceRoot = agent.session.header.cwd ?? services.workspaceRoot;
+    const scope = { sessionId: agent.id, workspaceRoot, scopeLevel: 'session' as const };
+    const [compaction, context, head] = await Promise.all([
+      effectiveSettings(services.store, workspaceRoot, scope, 'context-compaction'),
+      effectiveSettings(services.store, workspaceRoot, scope, 'context'),
+      services.store.get('context.sessions', key) as Promise<StoredRecord<ContextSession | ContextArchiveHead> | undefined>,
+    ]);
+    const session = head?.value.schemaVersion === 2 ? head.value.session : head?.value;
+    return hashObject({ compaction: compaction.effective, context: context.effective,
+      policy: session?.config ?? null, route: this.admission(agent).route ?? agent.options ?? null });
   }
 
   protected override async summarize(input: any, agent: any, signal?: AbortSignal): Promise<any> {

@@ -283,11 +283,40 @@ for (const code of ['CTX_DECISION_INVALID', 'CTX_RANGE_INVALID', 'CTX_NATIVE_NO_
       h.setPropose(async () => ({ decision: 'wait' }));
       await h.expireCooldown();
       assert.equal(await h.first.compactIfNeeded(h.agent, 'pressure', h.signal()), null);
-      assert.deepEqual(h.calls, ['native/propose', 'native/propose']);
+      assert.deepEqual(h.calls, ['native/propose'], 'expiry cannot authorize another paid attempt after a deterministic failure');
+      assert.equal(await h.engine(false).compactIfNeeded(h.agent, 'pressure', h.signal()), null);
+      assert.deepEqual(h.calls, ['native/propose'], 'a restarted engine honors the durable automatic pause');
+      await h.first.compactRanges(h.agent, { autonomous: true }, h.signal());
+      assert.deepEqual(h.calls, ['native/propose', 'native/propose'], 'explicit maintenance remains a separate user intention');
       assert.equal((await h.owner()).value.status, 'released');
     } finally { await h.close(); }
   });
 }
+
+test('a user policy correction permits a fresh automatic intention without waiting for the old cooldown', async () => {
+  const h = await fixture();
+  try {
+    h.setPropose(async () => { throw new NexusError('CTX_RANGE_INVALID', 'invalid source boundary'); });
+    await h.first.compactIfNeeded(h.agent, 'pressure', h.signal());
+    assert.equal((await h.owner()).value.automaticPaused, true);
+    await h.store.put('scope-settings', 'global/context-compaction', { defaults: { thresholdPercent: 75 } }, 0);
+    h.setPropose(async () => ({ decision: 'wait' }));
+    await h.first.compactIfNeeded(h.agent, 'pressure', h.signal());
+    assert.deepEqual(h.calls, ['native/propose', 'native/propose']);
+    assert.notEqual((await h.owner()).value.automaticPaused, true);
+  } finally { await h.close(); }
+});
+
+test('legacy deterministic failure receipts are paused without billing an automatic migration attempt', async () => {
+  const h = await fixture();
+  try {
+    await h.seed('preparation-failed', { status: 'released', kind: 'autonomous', errorCode: 'CTX_RANGE_INVALID' });
+    await h.first.compactIfNeeded(h.agent, 'pressure', h.signal());
+    assert.deepEqual(h.calls, []);
+    assert.equal((await h.owner()).value.automaticPaused, true);
+    assert.ok((await h.owner()).value.automaticPolicyHash);
+  } finally { await h.close(); }
+});
 
 test('cancelled auxiliary preparation is terminal, cancellation propagates and the next request is usable', async () => {
   const h = await fixture();
@@ -501,8 +530,7 @@ test('diagnostic history is bounded and exports only the selected session and al
       traceId: 'trace_diagnostic_fixture', prompt: 'private user message', apiKey: 'fake-must-not-escape',
     }); });
     for (let i = 0; i < 20; i++) {
-      await h.first.compactIfNeeded(h.agent, 'pressure', h.signal());
-      await h.expireCooldown();
+      await assert.rejects(h.first.compactRanges(h.agent, { autonomous: true }, h.signal()));
     }
     assert.equal((await h.owner()).value.diagnostics?.length, 16);
     const view = await readNativeCompactionDiagnostics(h.services, h.agent.id);

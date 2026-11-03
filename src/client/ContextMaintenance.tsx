@@ -103,13 +103,14 @@ export function registerContextMaintenance(raw: ClientContext, api: NexusApi) {
         {status && <div className="nexus-compaction-metrics">
           <strong>{Number.isFinite(percent) ? `${percent.toFixed(1)}%` : '窗口未知'}</strong>
           <span>{status.occupiedTokens?.toLocaleString()} / {status.windowTokens?.toLocaleString()} token</span>
-          <span>{typeof status.enabled === 'boolean' ? `自动压缩${status.enabled ? '开启' : '关闭'} · 阈值 ${status.thresholdPercent}%` : '占用暂不可测；可查看设置与恢复状态'}</span>
+          <span>{typeof status.enabled === 'boolean' ? `自动压缩${status.automaticPause ? '已暂停' : status.enabled ? '开启' : '关闭'} · 阈值 ${status.thresholdPercent}%` : '占用暂不可测；可查看设置与恢复状态'}</span>
           <span>压缩模型 · {status.summary?.state === 'available' ? `${status.summary.provider}/${status.summary.model}` : '暂不可用'}</span>
         </div>}
         {value.loading && <p role="status">正在读取当前会话…</p>}
         {value.busy && <p role="status">{value.operation === 'resume' ? '正在恢复原步骤…' : '正在压缩当前会话，关闭此窗口不影响执行…'}</p>}
         {value.error && <p role="alert">{value.error}</p>}
         {value.result && <p role="status">{compactionOutcome(value.result)}</p>}
+        {status?.automaticPause && <p role="status">{status.automaticPause.recovery}</p>}
         {status?.maintenance?.state !== undefined && status.maintenance.state !== 'available'
           && <p role="status">{status.maintenance.recovery}</p>}
         {['resume-required', 'checking', 'interrupted'].includes(status?.recovery?.state) && <p role="status">{status?.recovery.message}</p>}

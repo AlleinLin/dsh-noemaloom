@@ -13,6 +13,8 @@ const api = {
     calls.push({ domain, action, params, scope: options.scope, requestId: options.requestId });
     if (action === 'maintenance/status') return {
       occupancyPercent: null, windowTokens: null, occupiedTokens: null,
+      enabled: true, thresholdPercent: 80,
+      automaticPause: { code: 'CTX_RANGE_INVALID', recovery: '上次摘要校验失败，自动付费维护已暂停；修正压缩设置或显式发起一次压缩后再试' },
       recovery: complete ? { state: 'available' } : {
         state: checking ? 'checking' : 'resume-required', available: !checking,
         message: checking ? '正在检查原步骤的上下文' : '原步骤已暂停，输入与工具结果仍保留。',
