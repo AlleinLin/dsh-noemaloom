@@ -36,7 +36,7 @@ Desktop GUI, external-model requests and optional Python/service behavior are no
 covered by a successful JavaScript CI job.
 
 The separate cognition check compiles every vendored Python source and executes
-the retained regression modules and the new/changed regressions through Cognition 0.9.18. Each module runs in a separate Python process with isolated memory
+the retained regression modules and the new/changed regressions through Cognition 0.9.22. Each module runs in a separate Python process with isolated memory
 roots and an isolated copy of the complete public source. Its report records individual exit codes and optional upstream baseline
 skips. Windows desktop control is checked separately with
 `node tools/acceptance/computer-use-windows.mjs --fixture-input --output evidence/computer-use`;

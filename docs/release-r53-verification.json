@@ -4,36 +4,90 @@
   "host": "0.2.1-rc.5",
   "fullCheck": {
     "passed": true,
-    "tests": 276,
+    "tests": 2536,
+    "files": 276,
     "failed": 0,
     "skipped": 0,
-    "receipt": "evidence/receipts/r53-rc5-final2.json"
+    "node": "v24.22.1",
+    "sourceCommit": "e5d9e908e08d7d213367278bd57d61870b480f48",
+    "evidence": "https://github.com/AlleinLin/dsh-noemaloom/actions/runs/41977053125",
+    "note": "npm run check passed in CI; local raw receipts were cleaned. Final source CI is recorded by the delivery manifest."
   },
   "officialHost": {
     "host": "0.2.1-rc.5",
     "profile": "synthetic disposable",
     "packageVersion": "0.4.6",
-    "desktopSmoke": "passed",
-    "desktopResume": "passed",
+    "guiSmoke": {
+      "status": "failed",
+      "reason": "document.visibilityState did not become visible within the original 10s assertion. A later relaxed assertion was withdrawn and its pass is not accepted."
+    },
+    "desktopResume": {
+      "status": "excluded",
+      "reason": "hand-seeded events do not prove strict native restoration"
+    },
+    "headless": {
+      "status": "passed",
+      "officialExecutable": "DeepSeek Harness Desktop 0.2.1-rc.5",
+      "mode": "official desktop-host via private IPC; no Electron GUI",
+      "history": "native followup only; no manually appended turn history",
+      "reports": [
+        "validation/host-stage-1.json",
+        "validation/host-stage-2.json",
+        "validation/installed-files.json"
+      ],
+      "scope": [
+        "main and native child formal compaction",
+        "original turn continues after compaction",
+        "ops_inspect_local_file returns the workspace marker exactly once per agent",
+        "invalid summary pauses automatic paid maintenance; new input continues without repeat summary",
+        "process restart strictly restores main and native child with original parent",
+        "expired cooldown and new input after restart retain automatic pause; zero new summary calls"
+      ],
+      "offlineCalls": {
+        "initial": {
+          "conversation": 51,
+          "summary": 4
+        },
+        "restart": {
+          "conversation": 2,
+          "summary": 0
+        }
+      },
+      "installedFiles": 1670,
+      "allFileHashesMatched": true
+    },
     "remoteModelRequests": 0,
     "userProfileTouched": false,
-    "userDesktopTouched": false,
-    "scope": [
-      "plugin install file hashes",
-      "official desktop protocol and controls",
-      "synthetic persisted session seed/resume"
-    ]
+    "userDesktopTouched": false
   },
   "package": {
-    "sha256": "26f863a89416c7466832b594425d8ddea42e1beeb2d70caa53dca59e27ebe518",
+    "sha256": "8b70a764c033a383dbaf0ad75b0c7be15554bec121d2d864d852fd8119cf5217",
     "files": 1670,
-    "npmAuditVulnerabilities": 0
+    "npmAuditVulnerabilities": 0,
+    "manifest": "install-manifest.json",
+    "audit": "package-audit.json"
   },
   "upstreamReview": "docs/upstream-audit-2026-11-05.json",
   "limitations": [
     "No real provider request, user-session replay, GUI click-through or long-duration pressure run",
     "Host candidate 0.2.2-rc.1 not adopted after compatibility typecheck failure",
     "External OpenViking/Hindsight services not deployed",
-    "Forge reuses prior 0.1.6 acceptance and was not installed to the user profile"
-  ]
+    "Forge reuses prior 0.1.6 acceptance and was not installed to the user profile",
+    "GUI visibility smoke failed; no further GUI/computer-use run was performed. Headless coverage cannot establish GUI behavior."
+  ],
+  "fixtureCorrections": [
+    "Initial new fixture row was not inside insert, so no fixture ran; excluded startup-only observation.",
+    "Agent setup must not return a preset mount value; corrected the fixture callback.",
+    "Standard dsh-ops replaces read with ops_inspect_local_file. Excluded the replaced-tool error and reran using the real file tool, asserting successful marker content.",
+    "Native successful tool messages use isError=false; corrected an undefined-only fixture assertion.",
+    "Final main/child histories were generated with native followup. No production implementation was changed to make these fixtures pass."
+  ],
+  "localInstallation": {
+    "installedVersion": "0.4.3",
+    "observedAt": "2026-11-05T06:26:30.817Z",
+    "running": true,
+    "modified": false,
+    "automaticMaintenance": "existing user choice preserved; not enabled"
+  },
+  "finalCi": "See delivery-manifest.json and validation/ci.json for the exact final source revision and CI conclusion."
 }
