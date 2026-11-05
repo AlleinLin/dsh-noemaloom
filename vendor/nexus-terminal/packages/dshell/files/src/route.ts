@@ -122,8 +122,14 @@ async function openDirectory(
   if ('error' in resolved) throw new Error(`会话不可用：${resolved.error.code}`)
   const agent = resolved.agent
   const home = sessionDirectory(routing, sessionId, agent.session.header.cwd)
-  const start = path === undefined || path.trim().length === 0 ? home : path.trim()
-  if (start === undefined) throw new Error('这个会话没有工作目录，且请求没有给出路径')
+  const typed = path === undefined || path.trim().length === 0 ? home : path.trim()
+  if (typed === undefined) throw new Error('这个会话没有工作目录，且请求没有给出路径')
+  // The seam joins lexically (see `expandHome`): a `~` the reader typed — and
+  // a world home still spelled `~` — would answer `<home>/~`. The same
+  // expansion the completion lane states, applied to the door every listing
+  // and every `cd` walks through; when the world's home is itself still
+  // `~`-spelled the expansion is the identity, no worse than the input.
+  const start = expandHome(typed, worldHome(routing, sessionId))
   const options = home === undefined ? {} : { cwd: home }
 
   // Every call is made as the session, synchronously entering the seam so the

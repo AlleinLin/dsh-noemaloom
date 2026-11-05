@@ -102,11 +102,24 @@ export function mappingFor(
  *   directory itself.
  * @returns absolute local directory.
  */
+/**
+ * The device id as a directory segment.
+ *
+ * A provider's id may carry a colon — a namespace prefix of the kind's own
+ * naming — and a colon is illegal in a Windows directory name: the mount
+ * `mkdir` would fail with EINVAL before a shell ever ran. Every reserved
+ * character is folded to a dash; the mapping is derived from the same call in
+ * both directions, so the spelling only has to be stable, not pretty.
+ */
+function deviceSegment(deviceId: string): string {
+  return deviceId.replace(/[*?"<>|:]/gu, '-')
+}
+
 export function mountFor(deviceId: string, remoteRoot: string): string {
   const trimmed = remoteRoot.trim().replace(/^\/+/, '').replace(/\/+$/, '')
   // The remote root is spelled in the device's grammar, so its segments are
   // split on the device's separator before they are joined onto a host path.
-  return join(mountBase(), deviceId, ...(trimmed === '' ? ['root'] : trimmed.split('/')))
+  return join(mountBase(), deviceSegment(deviceId), ...(trimmed === '' ? ['root'] : trimmed.split('/')))
 }
 
 /** Whether `child` is `parent` or lies inside it; lexical, like the sandbox's own check. */

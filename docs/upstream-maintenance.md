@@ -96,3 +96,13 @@ ACP kernel 0.0.176与dshell 0.1.16。完整决定及不可达来源见
 [上游审查](upstream-audit-2026-11-02.md)，实际验证范围见
 [验收记录](release-r49-verification.md)。不要把npm归档未含源码目录等同于内嵌实现未更新；
 先读取包内build-info，再获取对应完整源码并三方合并本地适配。
+
+## 2026-11-05 / R53 审查（进行中）
+
+本轮以增量方式检查 154 个来源，比较 2026-11-02 锁定的版本、摘要和提交；未变化来源没有重新下载。采用 11 个仍兼容 Desktop 0.2.1-rc.5 的 npm 更新（包括 task-board/usage 0.4.14），并完成 Context 0.81.2、Synapse 0.5.7 等本地适配。dsh-better-sidebar 0.30.0/0.30.1 及 task-board/usage 0.4.15 要求 rc.1，未用版本豁免。
+
+本轮实际更新的可复用来源包括 Cognition 0.9.22（保留受信 bridge，不接入新的会话日志读取器）、billion-context 0.1.212 内的 acp-kernel 0.0.178（按包内 build-info 的 commit `daa082ead8a8ead60311e29ad4627bff0f569fc1` 三方合并）、Veyra 0.1.69 的 redact 模块、Aegis 2.15.0 的选定技能文件和 Nexus-Terminal 0.1.16 的 373 个 Git blob。Veyra 新的 `dsh-codebase-memory-mcp` 0.1.6 只记入来源清单，未安装第二个 bridge 或 daemon。
+
+官方 DSH 0.2.2-rc.1 已发布但没有采用：统一 SDK 试验在 API 类型检查中失败（批量 ToolRuntime、模型选择和异步投影接口变化），而且官方 nightly 仍处于 30% staging；本交付继续以 rc.5 为唯一宿主目标。
+
+本轮限制：未接触真实用户 profile、会话、凭据或运行中的 DSH；没有真实供应商请求、真实 GUI 点击或长时压力验收。完整测试、独立官方 rc.5 合成 profile、安装文件逐项摘要和 CI 结果在 R53 验收记录中填写。

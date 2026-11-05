@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "specificationDate": "2026-10-21",
-  "sourceCount": 48,
+  "specificationDate": "2026-11-05",
+  "sourceCount": 154,
   "editorRuntime": {
     "monaco": {
       "version": "0.57.0",
@@ -34,9 +34,11 @@
       "license": "MIT",
       "version": "0.1.16",
       "registration": "dsh-noemaloom/native/dshell-*",
-      "revision": "82e1bf5a0859ea866f88505cff36c8c76b74bb38",
-      "sourceReview": "docs/upstream-audit-2026-11-02.json",
-      "snapshotSha256": "79435d47536e4e50a4d27f69a1a5e4264cadcbfada18c4707e711267445c97e9"
+      "revision": "89ef983e47e204dbee54398e5c65d677638dcec3",
+      "sourceReview": "docs/upstream-audit-2026-11-05.json",
+      "snapshotSha256": "352fa8921fc208ee0482628f71281e32032ac46b57783c5be76436621273eb0a",
+      "snapshotHashKind": "sha256-json-sorted-upstream-file-sha256-manifest",
+      "gitTree": "89ef983e47e204dbee54398e5c65d677638dcec3"
     }
   ],
   "dshWebSubpackageCount": 19,
@@ -65,7 +67,7 @@
       "id": "SRC-38",
       "identity": "Witherwithwinter__DSH-Codinput",
       "requirements": "Original code-editor composer takeover, floating and sidebar input, native draft/attachment/model controls, settings and slash-command integration",
-      "decision": "Complete verbatim 0.3.8 source, upstream user Markdown and stats portal retained; all nine local source patches rebased without modifying vendor bytes.",
+      "decision": "No newly observed change to the previously reviewed reference source; retain acquired identity and independent local adaptation. Previously observed moving HEAD differences remain reference-only; no duplicate global entry is activated. Acquire complete verbatim Codinput 0.3.8 Git source and exact npm identity. Preserve upstream Markdown and token stats dialog; rebase all nine exact local patches, including per-editor hooks, compact seats, command ownership and dock gestures.",
       "coverage": "native composer input enhancement",
       "source": {
         "package": "dsh-codinput",
@@ -127,13 +129,13 @@
         "license": "MIT",
         "sourceReview": "docs/upstream-audit-2026-10-31.json"
       },
-      "validationEvidence": "docs/upstream-audit-2026-10-31.json"
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-37",
       "identity": "cxv117793-blip__dsh-step-pause",
       "requirements": "Periodic current-step progress reporting, main-agent isolation, report budgets and configurable prompt visibility",
-      "decision": "Adapt the MIT host behavior into the existing Nexus lifecycle and three-tier scope settings; retain verbatim upstream evidence without activating a duplicate plugin",
+      "decision": "Observe step-pause 0.5.0 empty-response auto-continuation extension; preserve the independent scoped progress-report implementation and do not silently add repeated paid model requests.",
       "coverage": "native step progress",
       "source": {
         "package": "dsh-step-pause",
@@ -154,13 +156,14 @@
         "src/shared/step-pause.ts",
         "src/client/StepPauseSettings.tsx"
       ],
-      "implementationStatus": "adapted_requires_runtime_evidence"
+      "implementationStatus": "adapted_requires_runtime_evidence",
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-01",
       "identity": "annkun__dsh-memory",
       "requirements": "用户/项目/目录触碰激活、关键词检索、纯文件索引、证据写入/去重/密钥拒绝",
-      "decision": "LOCAL memory轻量基底、原子文件与范围约束；统一注入器替代独立system贡献",
+      "decision": "No newly observed change to the previously reviewed reference source; retain acquired identity and independent local adaptation. Previously observed moving HEAD differences remain reference-only; no duplicate global entry is activated. Reference source reviewed separately; retain independently adapted implementation and acquired identity. New upstream files are not a runtime dependency and must not activate duplicate global hooks. Reference only: upstream index formatting changed; Nexus owns its transactional memory implementation.",
       "coverage": "02 / MEM",
       "source": {
         "directory": "annkun__dsh-memory",
@@ -185,18 +188,19 @@
         "src/domain/memory/local.ts",
         "src/domain/memory/file-memory.ts"
       ],
-      "implementationStatus": "candidate_requires_runtime_evidence"
+      "implementationStatus": "candidate_requires_runtime_evidence",
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-02",
       "identity": "FuRongJun-1999__dsh-memory",
       "requirements": "CCG卡、五层与负记忆、规则裁决、条件路由/阶梯回退、38个高级op、时间线、token权限、进程换代检查",
-      "decision": "Adopt MIT published Cognition 0.9.21 Python runtime and seven public operator documents. Carry exact upstream PR729 aliases forwarding fixes in three files, recorded in UPSTREAM-FIXES.json. Keep the separate trusted scoped bridge; do not import newer Git-only session-log discovery or install global hooks.",
+      "decision": "Adopt published MIT Cognition 0.9.22. Prior PR729 aliases fixes are now included in the release; retain the separate trusted scope bridge. The newly published session5 resolver is retained as source but no production caller is wired to it; synthetic regression uses a private home and never reads user logs. Later Git-only changes are not imported.",
       "coverage": "02 / MEM",
       "source": {
         "directory": "FuRongJun-1999__dsh-memory",
         "package": "@furongjun1999/dsh-memory",
-        "version": "0.9.21",
+        "version": "0.9.22",
         "declaredLicense": "MIT",
         "revision": null,
         "licenseFiles": [
@@ -207,13 +211,13 @@
         "identity": "FuRongJun-1999__dsh-memory",
         "snapshot": "vendor/memory-cognition",
         "revisionKind": "npm-integrity",
-        "contentIdentity": "sha512-/Xl6bsSbHj6tcid6X6dTJvghan7KGz0rrw7WAkFN9KVMA31mstkQ/c+d2YoZOge4DH013pXZT0fisC2EN09Jag==",
+        "contentIdentity": "sha512-ShxIh3N8AP15qh05rhSmXaO3S5ddc1ndam6GlGC/L+hXw4jN83xTQJUEEZJrZ5LMTKjsepU/c9aAo4BE1UYtsg==",
         "previousRevision": "d2b01c75257f0261588fb3a6b01b42c88b100cee",
-        "integrity": "sha512-/Xl6bsSbHj6tcid6X6dTJvghan7KGz0rrw7WAkFN9KVMA31mstkQ/c+d2YoZOge4DH013pXZT0fisC2EN09Jag==",
-        "previousVersion": "0.9.18",
-        "sourceReview": "docs/upstream-audit-2026-11-02.json",
-        "npmIntegrity": "sha512-/Xl6bsSbHj6tcid6X6dTJvghan7KGz0rrw7WAkFN9KVMA31mstkQ/c+d2YoZOge4DH013pXZT0fisC2EN09Jag==",
-        "registryCheckedAt": "2026-11-02T02:01:50.834Z",
+        "integrity": "sha512-ShxIh3N8AP15qh05rhSmXaO3S5ddc1ndam6GlGC/L+hXw4jN83xTQJUEEZJrZ5LMTKjsepU/c9aAo4BE1UYtsg==",
+        "previousVersion": "0.9.21",
+        "sourceReview": "docs/upstream-audit-2026-11-05.json",
+        "npmIntegrity": "sha512-ShxIh3N8AP15qh05rhSmXaO3S5ddc1ndam6GlGC/L+hXw4jN83xTQJUEEZJrZ5LMTKjsepU/c9aAo4BE1UYtsg==",
+        "registryCheckedAt": "2026-11-05T02:06:06.120Z",
         "provenance": "vendor/memory-cognition/NEXUS-PROVENANCE.md",
         "runtimeFixes": "vendor/memory-cognition/UPSTREAM-FIXES.json"
       },
@@ -248,18 +252,18 @@
       },
       "runtimePackage": {
         "package": "@furongjun1999/dsh-memory",
-        "version": "0.9.21",
-        "integrity": "sha512-/Xl6bsSbHj6tcid6X6dTJvghan7KGz0rrw7WAkFN9KVMA31mstkQ/c+d2YoZOge4DH013pXZT0fisC2EN09Jag==",
+        "version": "0.9.22",
+        "integrity": "sha512-ShxIh3N8AP15qh05rhSmXaO3S5ddc1ndam6GlGC/L+hXw4jN83xTQJUEEZJrZ5LMTKjsepU/c9aAo4BE1UYtsg==",
         "license": "MIT",
-        "sourceReview": "docs/upstream-audit-2026-11-02.json"
+        "sourceReview": "docs/upstream-audit-2026-11-05.json"
       },
-      "validationEvidence": "docs/upstream-audit-2026-11-02.json"
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-03",
       "identity": "csyangwen__dsh-memory-evolve",
       "requirements": "五轨/分支记忆、经验建议/审核、git同步；todo/技能/提示词/画布/会话/房间/CLI/旁观/通知",
-      "decision": "存储与迁移适配、复用可用工作台领域模块；维护状态不是剔除理由",
+      "decision": "No newly observed change to the previously reviewed reference source; retain acquired identity and independent local adaptation. Previously observed moving HEAD differences remain reference-only; no duplicate global entry is activated. Reference source reviewed separately; retain independently adapted implementation and acquired identity. New upstream files are not a runtime dependency and must not activate duplicate global hooks. Reference tracked separately from actual runtime; acquired source identity is preserved.",
       "coverage": "02+04 / MEM,WF",
       "source": {
         "directory": "csyangwen__dsh-memory-evolve",
@@ -289,18 +293,19 @@
         "src/domain/workflow/collaboration.ts",
         "src/domain/integrations/cli/index.ts"
       ],
-      "implementationStatus": "candidate_requires_runtime_evidence"
+      "implementationStatus": "candidate_requires_runtime_evidence",
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-04",
       "identity": "omdsh-dev__dsh-mnemon",
       "requirements": "Source×Strategy×Provider、分层、9后端、SDK、turn bar、brain mark、guided recall/writeback、备份与和解",
-      "decision": "统一Memory编排主要参考；SDK/Provider/生命周期优先复用并适配Desktop",
+      "decision": "Adopt published dsh-mnemon@0.5.40; MIT license, exact npm integrity and compatible rc.5 peers reviewed. Preserve shared host React, scope lifecycle, native navigation and managed updater suppression.",
       "coverage": "01+02 / HOST,MEM",
       "source": {
         "directory": "omdsh-dev__dsh-mnemon",
         "package": "dsh-mnemon",
-        "version": "0.5.38",
+        "version": "0.5.40",
         "declaredLicense": "MIT",
         "revision": null,
         "licenseFiles": [
@@ -311,13 +316,13 @@
         "identity": "omdsh-dev__dsh-mnemon",
         "snapshot": "plugin-sources/omdsh-dev__dsh-mnemon",
         "revisionKind": "npm-integrity",
-        "contentIdentity": "sha512-zSygTHRFO+WQr0JhLRht9TXqlVloWdM1Z3AO50LbTYp1UMe7hUDI/lBGvzuT0h7yWN80c5NjO7vT7KDhBptisg==",
-        "previousVersion": "0.5.37",
-        "npmIntegrity": "sha512-zSygTHRFO+WQr0JhLRht9TXqlVloWdM1Z3AO50LbTYp1UMe7hUDI/lBGvzuT0h7yWN80c5NjO7vT7KDhBptisg==",
+        "contentIdentity": "sha512-c1771TsoOnb2gEMBbQOaB7k0Rrn73OvtpakJwyUdxv0k/ais5D3EuEIZlhecZkpe1lbox4cP0yzCa9gblQrC7g==",
+        "previousVersion": "0.5.38",
+        "npmIntegrity": "sha512-c1771TsoOnb2gEMBbQOaB7k0Rrn73OvtpakJwyUdxv0k/ais5D3EuEIZlhecZkpe1lbox4cP0yzCa9gblQrC7g==",
         "repository": "https://github.com/omdsh-dev/dsh-mnemon",
-        "integrity": "sha512-zSygTHRFO+WQr0JhLRht9TXqlVloWdM1Z3AO50LbTYp1UMe7hUDI/lBGvzuT0h7yWN80c5NjO7vT7KDhBptisg==",
-        "sourceReview": "docs/upstream-audit-2026-11-02.json",
-        "registryCheckedAt": "2026-11-02T02:01:50.834Z"
+        "integrity": "sha512-c1771TsoOnb2gEMBbQOaB7k0Rrn73OvtpakJwyUdxv0k/ais5D3EuEIZlhecZkpe1lbox4cP0yzCa9gblQrC7g==",
+        "sourceReview": "docs/upstream-audit-2026-11-05.json",
+        "registryCheckedAt": "2026-11-05T02:06:06.120Z"
       },
       "executionPackages": [
         "A02"
@@ -330,10 +335,10 @@
       "implementationStatus": "candidate_requires_runtime_evidence",
       "runtimePackage": {
         "package": "dsh-mnemon",
-        "version": "0.5.38",
-        "integrity": "sha512-zSygTHRFO+WQr0JhLRht9TXqlVloWdM1Z3AO50LbTYp1UMe7hUDI/lBGvzuT0h7yWN80c5NjO7vT7KDhBptisg==",
+        "version": "0.5.40",
+        "integrity": "sha512-c1771TsoOnb2gEMBbQOaB7k0Rrn73OvtpakJwyUdxv0k/ais5D3EuEIZlhecZkpe1lbox4cP0yzCa9gblQrC7g==",
         "license": "MIT",
-        "sourceReview": "docs/upstream-audit-2026-11-02.json"
+        "sourceReview": "docs/upstream-audit-2026-11-05.json"
       },
       "runtimeNpm": {
         "package": "dsh-mnemon",
@@ -361,13 +366,13 @@
         "npmIntegrity": "sha512-g70C2MdVJATtukOfcVdN8uLJfB7hCa70Qz24wDUGZu2y8rTvH30E48W4J9LukXgHb03mNcP3VjaZxJQoK2qOVA==",
         "repository": "https://github.com/omdsh-dev/dsh-mnemon"
       },
-      "validationEvidence": "docs/upstream-audit-2026-11-02.json"
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-05",
       "identity": "volcengine__OpenViking",
       "requirements": "VFS、L0/L1/L2、子树检索、资源/技能/记忆、会话capture、MCP保护、编译知识",
-      "decision": "examples中的Apache适配层可复用；AGPL主服务作为可选部署，分别处理",
+      "decision": "Observe changed external service source independently; do not deploy, configure or migrate external servers. Selected native adapter package is unchanged. Compare endpoint capped at 300 files; not a full source audit.",
       "coverage": "02 / MEM",
       "source": {
         "directory": "volcengine__OpenViking",
@@ -392,13 +397,14 @@
         "src/domain/memory/providers.ts",
         "src/domain/memory/external-engines.ts"
       ],
-      "implementationStatus": "candidate_requires_runtime_evidence"
+      "implementationStatus": "candidate_requires_runtime_evidence",
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-06",
       "identity": "zilliztech__memsearch",
       "requirements": "Markdown真源+Milvus影子、dense/sparse/RRF、search/expand/transcript、逐轮capture、跨agent共享、embed多后端",
-      "decision": "索引/检索/capture可选backend，保留去重与无结果零注入",
+      "decision": "Published runtime/available source is unchanged from the preceding review. Preserve the exact installed identity, host compatibility and local adaptation; include it in coordinated regression and dependency audit.",
       "coverage": "02 / MEM",
       "source": {
         "directory": "zilliztech__memsearch",
@@ -427,13 +433,14 @@
         "src/domain/memory/external-engines.ts",
         "vendor/memsearch"
       ],
-      "implementationStatus": "candidate_requires_runtime_evidence"
+      "implementationStatus": "candidate_requires_runtime_evidence",
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-07",
       "identity": "vectorize-io__hindsight",
       "requirements": "retain/recall/reflect、pages与兜底、观察/时序/心智模型、可配置自动反思",
-      "decision": "可选Provider；保留reflect档与预算，不能按旧报告误认为仅pages/recall",
+      "decision": "Observe changed external service source independently; do not deploy, configure or migrate external servers. Selected native adapter package is unchanged. Compare endpoint capped at 300 files; not a full source audit.",
       "coverage": "02 / MEM",
       "source": {
         "directory": "vectorize-io__hindsight",
@@ -457,13 +464,14 @@
       "implementationCandidates": [
         "src/domain/memory/providers.ts"
       ],
-      "implementationStatus": "candidate_requires_runtime_evidence"
+      "implementationStatus": "candidate_requires_runtime_evidence",
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-08",
       "identity": "LoveDoLove__Veyra",
       "requirements": "工程/信任记忆、反馈与复发、scope、代码脑cbm、冲突/健康",
-      "decision": "信任和反馈归公共memory，代码智能作为具名可选adapter",
+      "decision": "Adopt only published Veyra 0.1.69 redact.mjs with MIT and mnemon Apache-2.0 attribution. Upstream moved discovery/types to @lovedolove/dsh-codebase-memory-mcp; preserve the working 0.1.54 code subset, track the new true source independently, and do not install a second daemon or memory runtime.",
       "coverage": "02 / MEM",
       "source": {
         "directory": "LoveDoLove__Veyra",
@@ -488,13 +496,29 @@
         "src/domain/memory/local.ts",
         "src/domain/memory/external-engines.ts"
       ],
-      "implementationStatus": "candidate_requires_runtime_evidence"
+      "implementationStatus": "candidate_requires_runtime_evidence",
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json",
+      "reusedComponents": {
+        "legacyCode": {
+          "version": "0.1.54",
+          "files": [
+            "discovery.mjs",
+            "types.mjs"
+          ]
+        },
+        "redaction": {
+          "version": "0.1.69",
+          "integrity": "sha512-5ybMuzTjp2t/FO9qZR9WDf43qUHMejMiQO0ZzxzKl4RbTuFBHmCFy/Rw/p4LJX6HyWSk2wgqOwEqk5if8ZC5BA==",
+          "file": "vendor/veyra-code/redact.mjs",
+          "license": "MIT AND Apache-2.0"
+        }
+      }
     },
     {
       "id": "SRC-09",
       "identity": "omdsh-dev__DSH-better-sidebar",
       "requirements": "文件树/编辑/搜索/预览、Git写操作和只读提交图、底部tabs、Side Chat、agent/workflow观察、扩展注册",
-      "decision": "工作台布局和文件/Git服务主基底；UI迁移React slots，PTY由宿主",
+      "decision": "Keep rc.5-compatible 0.28.2: both newly published 0.30.0 and 0.30.1 require rc.1 SDK peers. No version waiver, no mixed SDK upgrade. Revisit only on a newly observed publication or complete host migration.",
       "coverage": "03 / UI",
       "source": {
         "directory": "omdsh-dev__DSH-better-sidebar",
@@ -538,18 +562,19 @@
         "integrity": "sha512-JxtRoCoNA/02VexkInZ1K4+c/1Tvk+DVS01dRfjbGKxWfXGZ6NEyemsdERGOhQ3DsLxOWc4Mj0ol+5s+6V0Egg==",
         "gitRevision": null,
         "sourceReview": "docs/upstream-audit-2026-10-29.json"
-      }
+      },
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-10",
       "identity": "dsh-better-display-main",
       "requirements": "阅读投影、成功轮自动折叠、内容保真、滚动/选择、MCP App",
-      "decision": "**复活**renderer与阅读行为，适配当前投影/slots，不只改peer",
+      "decision": "Adopt published dsh-better-display@0.3.12; MIT license, exact npm integrity and compatible rc.5 peers reviewed. Preserve shared host React, scope lifecycle, native navigation and managed updater suppression.",
       "coverage": "03 / UI",
       "source": {
         "directory": "dsh-better-display-main",
         "package": "dsh-better-display",
-        "version": "0.3.8",
+        "version": "0.3.12",
         "declaredLicense": "MIT",
         "revision": "82d6aa862ad055a487f18435b543d7283adea560",
         "licenseFiles": [
@@ -559,7 +584,7 @@
         "indexed": false,
         "identity": "dsh-better-display-main",
         "snapshot": "plugin-sources/dsh-better-display-main",
-        "revisionKind": "git-commit",
+        "revisionKind": "npm-integrity",
         "revisionUnavailableReason": "supplied_snapshot_has_no_recorded_git_revision",
         "snapshotIdentity": {
           "algorithm": "sha256",
@@ -3136,11 +3161,14 @@
             }
           ]
         },
-        "contentIdentity": "git:82d6aa862ad055a487f18435b543d7283adea560",
+        "contentIdentity": "sha512-N3d4xZ4/BCYTG1Bu5VwP9z7jsQDDNWtq228irf5u/kejfU4tXam8wf9E9l0M+JvLsqmRNffVG4nf0XoLeFJuoA==",
         "previousVersion": "0.3.8",
-        "npmIntegrity": "sha512-ASvF2mCCWy4d99A2Ey2CqXUItDlUKKL+b80t39fmH+uxbiC0wlwBOHIRZZZvEpwrOeXif+ytjydVAPAB9u5zDg==",
+        "npmIntegrity": "sha512-N3d4xZ4/BCYTG1Bu5VwP9z7jsQDDNWtq228irf5u/kejfU4tXam8wf9E9l0M+JvLsqmRNffVG4nf0XoLeFJuoA==",
         "repository": "https://github.com/aa2246740/dsh-better-display",
-        "previousRevision": null
+        "previousRevision": null,
+        "integrity": "sha512-N3d4xZ4/BCYTG1Bu5VwP9z7jsQDDNWtq228irf5u/kejfU4tXam8wf9E9l0M+JvLsqmRNffVG4nf0XoLeFJuoA==",
+        "sourceReview": "docs/upstream-audit-2026-11-05.json",
+        "registryCheckedAt": "2026-11-05T02:06:06.120Z"
       },
       "executionPackages": [
         "A07"
@@ -3152,10 +3180,10 @@
       "implementationStatus": "candidate_requires_runtime_evidence",
       "runtimePackage": {
         "package": "dsh-better-display",
-        "version": "0.3.8",
-        "integrity": "sha512-ASvF2mCCWy4d99A2Ey2CqXUItDlUKKL+b80t39fmH+uxbiC0wlwBOHIRZZZvEpwrOeXif+ytjydVAPAB9u5zDg==",
+        "version": "0.3.12",
+        "integrity": "sha512-N3d4xZ4/BCYTG1Bu5VwP9z7jsQDDNWtq228irf5u/kejfU4tXam8wf9E9l0M+JvLsqmRNffVG4nf0XoLeFJuoA==",
         "license": "MIT",
-        "sourceReview": "docs/upstream-audit-2026-10-26.json"
+        "sourceReview": "docs/upstream-audit-2026-11-05.json"
       },
       "runtimeNpm": {
         "package": "dsh-better-display",
@@ -3163,13 +3191,14 @@
         "integrity": "sha512-wxEVWmHxqbmNHgEO38QkPv5AwCj5h9U71etgwji6O94q0tPAlzX3x610ypjLCiffEdgMZpB1e4NdNHQqCLpT8w==",
         "gitRevision": "dfd9c8496e244362e8466301efde1f6e33aa1a0d",
         "sourceReview": "docs/upstream-audit-2026-10-29.json"
-      }
+      },
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-11",
       "identity": "AnonyJcy__dsh-j-space",
       "requirements": "认知方法、分阶段推理/问题构造、persona预设",
-      "decision": "方法资产/预设模块；旧宿主接缝迁移，第三方引文许可单列",
+      "decision": "Published j-space 1.2.5 changes only composition, package and README; reused visual/preset assets have no changed implementation bytes. Retain independent local presets and acquired source identity; do not activate the upstream standalone plugin. Initial Git connection reset recovered on retry at the same previously observed HEAD.",
       "coverage": "04+06 / WF,RUN",
       "source": {
         "directory": "AnonyJcy__dsh-j-space",
@@ -3198,13 +3227,14 @@
         "src/domain/resources/index.ts",
         "src/domain/quality/lifecycle.ts"
       ],
-      "implementationStatus": "candidate_requires_runtime_evidence"
+      "implementationStatus": "candidate_requires_runtime_evidence",
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-12",
       "identity": "kingOfSoySauce__dsh-skin-market",
       "requirements": "在线/缓存/内置目录、搜索/预览/安装、版本锁、主题切换",
-      "decision": "与资源市场合并目录层，保留来源区别；资产版权独立",
+      "decision": "Published skin-market 0.1.72 unchanged; Git catalog previews do not trigger a runtime rebuild or auto-install a skin.",
       "coverage": "03 / UI",
       "source": {
         "package": "dsh-skin-market",
@@ -3266,13 +3296,13 @@
         "gitRevision": "19f7705bc6828cf092c5cd0c92ea867a6c33c674",
         "sourceReview": "docs/upstream-audit-2026-10-29.json"
       },
-      "validationEvidence": "docs/upstream-audit-2026-10-31.json"
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-13",
       "identity": "zhu1090093659__dsh-web",
       "requirements": "19本地包全部功能；目录、任务、Git、远程、SSH、设置、更新、使用量等",
-      "decision": "逐子包复用，不启动多套聚合壳；统一模型与配置写入权威",
+      "decision": "dsh-web Git source reviewed (compare endpoint capped at 300 files). Adopt published git-graph and compatible task-board/usage 0.4.14; task-board/usage 0.4.15 require DSH >=0.2.2-rc.1. Do not deploy web/remote bridge services.",
       "coverage": "03+04+06 / UI,WF,RUN",
       "source": {
         "directory": "zhu1090093659__dsh-web",
@@ -3301,13 +3331,14 @@
         "src/domain/runtime",
         "src/domain/integrations"
       ],
-      "implementationStatus": "candidate_requires_runtime_evidence"
+      "implementationStatus": "candidate_requires_runtime_evidence",
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-14",
       "identity": "zhu1090093659__dsh-web-ui",
       "requirements": "镜像身份，以及清单记录的live-stats能力",
-      "decision": "镜像不重复导入；本次已从registry取回并校验0.1.20原包，复用liveTokenUsage投影，不能称镜像本来含源码",
+      "decision": "Repository redirects to the same dsh-web tree; independently record its identity and apply the same per-subpackage decisions as SRC-13, without a duplicate runtime.",
       "coverage": "03+05 / UI,CTX",
       "source": {
         "directory": "zhu1090093659__dsh-web-ui",
@@ -3333,13 +3364,14 @@
         "src/host/hooks.ts",
         "src/client/domain-views.tsx"
       ],
-      "implementationStatus": "candidate_requires_runtime_evidence"
+      "implementationStatus": "candidate_requires_runtime_evidence",
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-15",
       "identity": "feng0531__dsh-code-review",
       "requirements": "Git/SVN、只读capture、二阶段协议、上下文身份、覆盖、证据回执、后台审查",
-      "decision": "在许可允许范围直接复用审查核心；统一任务/模型/授权；商业定位另决策",
+      "decision": "Restricted code-review source is observed only; no source copied and no second review engine installed.",
       "coverage": "04 / WF",
       "source": {
         "directory": "feng0531__dsh-code-review",
@@ -3364,32 +3396,33 @@
         "src/domain/review/index.ts",
         "src/adapters/vcs/index.ts"
       ],
-      "implementationStatus": "candidate_requires_runtime_evidence"
+      "implementationStatus": "candidate_requires_runtime_evidence",
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-16",
       "identity": "GanyuanRan__Aegis",
       "requirements": "风险分流、工程纪律、基线/ADR/反熵/续接、跨宿主方法与诊断",
-      "decision": "方法包模块，与Superpowers和追加流程有角色分工，不多份常驻prompt",
+      "decision": "Adopt MIT Aegis 2.15.0 selected skill materials at 952b150a16b9cf9c702022ea779bcc6750b0d48d; update brainstorming/grilling, complexity guidance, review and verification references. No host hooks or updater installed.",
       "coverage": "04+08 / WF,QLT",
       "source": {
         "directory": "GanyuanRan__Aegis",
         "package": "aegis",
-        "version": "2.14.2",
+        "version": "2.15.0",
         "declaredLicense": "MIT",
-        "revision": "0461c211e4d812f0b215fab240a68a25c1e22424",
+        "revision": "952b150a16b9cf9c702022ea779bcc6750b0d48d",
         "licenseFiles": [
           "LICENSE"
         ],
         "packageManifest": "GanyuanRan__Aegis/package.json",
         "indexed": false,
         "identity": "GanyuanRan__Aegis",
-        "snapshot": "plugin-sources/GanyuanRan__Aegis",
+        "snapshot": "assets/methods/aegis",
         "revisionKind": "git-commit",
-        "contentIdentity": "git:0461c211e4d812f0b215fab240a68a25c1e22424",
-        "previousRevision": "a95fa4bf00281e617a7a042c8a419af963dd3800",
-        "previousVersion": "2.14.1",
-        "sourceReview": "docs/upstream-audit-2026-10-26.json"
+        "contentIdentity": "git:952b150a16b9cf9c702022ea779bcc6750b0d48d",
+        "previousRevision": "0461c211e4d812f0b215fab240a68a25c1e22424",
+        "previousVersion": "2.14.2",
+        "sourceReview": "docs/upstream-audit-2026-11-05.json"
       },
       "executionPackages": [
         "A05"
@@ -3398,32 +3431,33 @@
         "assets",
         "src/domain/quality/lifecycle.ts"
       ],
-      "implementationStatus": "candidate_requires_runtime_evidence"
+      "implementationStatus": "candidate_requires_runtime_evidence",
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-17",
       "identity": "MichengAI__dsh-agency-agents",
       "requirements": "专家目录/路由、persona、专家团、草稿、编辑、自定义、引擎选择",
-      "decision": "资产与schema可复用，统一Run；全部角色可发现，按需加载内容",
+      "decision": "Adopt published @michengai/dsh-agency-agents@1.2.26; Apache-2.0 license, exact npm integrity and compatible rc.5 peers reviewed. Preserve shared host React, scope lifecycle, native navigation and managed updater suppression.",
       "coverage": "04 / WF",
       "source": {
         "package": "@michengai/dsh-agency-agents",
-        "version": "1.2.21",
+        "version": "1.2.26",
         "declaredLicense": "Apache-2.0",
         "repository": "https://github.com/MichengAI/dsh-agency-agents",
         "revision": "cd852c5d16c30e96f3bb56d16052b34c0fa40e66",
-        "revisionKind": "git-commit",
-        "contentIdentity": "git:cd852c5d16c30e96f3bb56d16052b34c0fa40e66",
-        "npmIntegrity": "sha512-NV1gD6tZQFGnDI9/fBG7uAxroBEPjchxlFcj8HB0NdB7wieK+T3CPQZeO2c7+1bXzQhqkvC0z7PxoH4jVU+TNQ==",
+        "revisionKind": "npm-integrity",
+        "contentIdentity": "sha512-sCgwYoAmGMtk+OpBu6yJ6K9tFOYXiRgTo4XA/YARcA8fdOovC+GOpjFgZRilLvjhHlHvU4hC8Hy+FFiopblSsg==",
+        "npmIntegrity": "sha512-sCgwYoAmGMtk+OpBu6yJ6K9tFOYXiRgTo4XA/YARcA8fdOovC+GOpjFgZRilLvjhHlHvU4hC8Hy+FFiopblSsg==",
         "npmGitHead": "294daac981bad9b7e32dc0816b458ff820a7940a",
-        "registryCheckedAt": "2026-11-02T02:01:50.834Z",
+        "registryCheckedAt": "2026-11-05T02:06:06.120Z",
         "licenseFiles": [
           "LICENSE",
           "NOTICE"
         ],
-        "previousVersion": "1.2.20",
-        "integrity": "sha512-NV1gD6tZQFGnDI9/fBG7uAxroBEPjchxlFcj8HB0NdB7wieK+T3CPQZeO2c7+1bXzQhqkvC0z7PxoH4jVU+TNQ==",
-        "sourceReview": "docs/upstream-audit-2026-11-02.json"
+        "previousVersion": "1.2.21",
+        "integrity": "sha512-sCgwYoAmGMtk+OpBu6yJ6K9tFOYXiRgTo4XA/YARcA8fdOovC+GOpjFgZRilLvjhHlHvU4hC8Hy+FFiopblSsg==",
+        "sourceReview": "docs/upstream-audit-2026-11-05.json"
       },
       "executionPackages": [
         "A04"
@@ -3456,10 +3490,10 @@
       },
       "runtimePackage": {
         "package": "@michengai/dsh-agency-agents",
-        "version": "1.2.21",
-        "integrity": "sha512-NV1gD6tZQFGnDI9/fBG7uAxroBEPjchxlFcj8HB0NdB7wieK+T3CPQZeO2c7+1bXzQhqkvC0z7PxoH4jVU+TNQ==",
+        "version": "1.2.26",
+        "integrity": "sha512-sCgwYoAmGMtk+OpBu6yJ6K9tFOYXiRgTo4XA/YARcA8fdOovC+GOpjFgZRilLvjhHlHvU4hC8Hy+FFiopblSsg==",
         "license": "Apache-2.0",
-        "sourceReview": "docs/upstream-audit-2026-11-02.json"
+        "sourceReview": "docs/upstream-audit-2026-11-05.json"
       },
       "runtimeNpm": {
         "package": "@michengai/dsh-agency-agents",
@@ -3468,13 +3502,13 @@
         "gitRevision": "34c76da1e8bb041faf02d3ab32116757be5c7232",
         "sourceReview": "docs/upstream-audit-2026-10-29.json"
       },
-      "validationEvidence": "docs/upstream-audit-2026-11-02.json"
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-18",
       "identity": "T-Auto__dsh-ops",
       "requirements": "16类文件/文档工具、批处理、结果引用、原生/PTC、平台搜索、Rust执行核",
-      "decision": "成熟内核与双投影优先复用；与权限/输出token预算整合",
+      "decision": "Published dsh-ops 0.4.4 is unchanged. Git-only WSL/integration changes are reviewed but not passed off as a new npm release or transplanted into the selected runtime.",
       "coverage": "04 / WF",
       "source": {
         "directory": "T-Auto__dsh-ops",
@@ -3517,13 +3551,14 @@
         "integrity": "sha512-HY8SCzrvVBInw5qdsapOz25wdrL/bzZyWUlQR9r+3ImiC+vBbj4/JdmeohmG/nxKU/3M4k83UhxCi15byiAslg==",
         "gitRevision": null,
         "sourceReview": "docs/upstream-audit-2026-10-29.json"
-      }
+      },
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-19",
       "identity": "LayneChai__superpowers-dsh",
       "requirements": "技能库、发现/按需加载、需求/计划/测试/调试/评审流程",
-      "decision": "skill provider及资产复用，与Aegis/工程流程去重路由",
+      "decision": "No newly observed change to the previously reviewed reference source; retain acquired identity and independent local adaptation. Previously observed moving HEAD differences remain reference-only; no duplicate global entry is activated. Reference source reviewed separately; retain independently adapted implementation and acquired identity. New upstream files are not a runtime dependency and must not activate duplicate global hooks. Historical LayneChai adapter retained as reference; selected runtime is Wenaixi SRC-39, not two competing providers.",
       "coverage": "04+08 / WF,QLT",
       "source": {
         "directory": "LayneChai__superpowers-dsh",
@@ -3548,13 +3583,14 @@
         "src/domain/resources/skills.ts",
         "src/domain/quality/lifecycle.ts"
       ],
-      "implementationStatus": "candidate_requires_runtime_evidence"
+      "implementationStatus": "candidate_requires_runtime_evidence",
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-20",
       "identity": "tt-a1i__archify",
       "requirements": "十类图表、交互视图、explainer、HTML/导出、可配置参数",
-      "decision": "图表生成素材与流程，统一artifact与安全预览；恢复个人技能可见性",
+      "decision": "Keep the acquired identity and record the unavailable channel verbatim. Successful independent channels are recorded separately; inaccessible sources are not interpreted as unchanged. Reference source reviewed separately; retain independently adapted implementation and acquired identity. New upstream files are not a runtime dependency and must not activate duplicate global hooks. Track the new Apache-2.0 upstream and preserved historical MIT grant; retain the previously acquired MIT diagram implementation and its license. npm remains unavailable. Current source has an unavailable channel; do not classify its failure as no update. Preserve acquired licensed source and any independently observed available channel.",
       "coverage": "04 / WF",
       "source": {
         "directory": "tt-a1i__archify",
@@ -3580,31 +3616,32 @@
         "src/domain/artifacts/diagrams.ts",
         "assets/diagrams/archify"
       ],
-      "implementationStatus": "candidate_requires_runtime_evidence"
+      "implementationStatus": "candidate_requires_runtime_evidence",
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-21",
       "identity": "dsh-synapse-main",
       "requirements": "会话任务地图、节点布局/状态、上下文关系、分支与导航",
-      "decision": "**复活**地图UI/领域结构，适配新session投影；不改日志",
+      "decision": "Adopt published dsh-synapse@0.5.7; MIT license, exact npm integrity and compatible rc.5 peers reviewed. Preserve shared host React, scope lifecycle, native navigation and managed updater suppression.",
       "coverage": "05 / CTX",
       "source": {
         "package": "dsh-synapse",
-        "version": "0.5.6",
+        "version": "0.5.7",
         "declaredLicense": "MIT",
         "repository": null,
         "revision": null,
         "revisionKind": "npm-integrity",
-        "contentIdentity": "sha512-erJUHq6+qQB7ChHaPqNuDAfikZS86O14cWkaQdY2n7Y8NErZspEgm4nLCJ2GBL3Wuq87m/qIefGMFmLfqIdGJw==",
-        "npmIntegrity": "sha512-erJUHq6+qQB7ChHaPqNuDAfikZS86O14cWkaQdY2n7Y8NErZspEgm4nLCJ2GBL3Wuq87m/qIefGMFmLfqIdGJw==",
+        "contentIdentity": "sha512-eXOyP9G5YiXLfBWQBkTAfzpAFi6MpbUeWxMxgw5XnNXKe4YvKRH05fwTVLMAhKLrgAdJQQ1TOOJhkxPBJaDSzw==",
+        "npmIntegrity": "sha512-eXOyP9G5YiXLfBWQBkTAfzpAFi6MpbUeWxMxgw5XnNXKe4YvKRH05fwTVLMAhKLrgAdJQQ1TOOJhkxPBJaDSzw==",
         "npmGitHead": null,
-        "registryCheckedAt": "2026-10-31T06:35:12.270Z",
+        "registryCheckedAt": "2026-11-05T02:06:06.120Z",
         "licenseFiles": [
           "LICENSE"
         ],
-        "previousVersion": "0.5.0",
-        "integrity": "sha512-erJUHq6+qQB7ChHaPqNuDAfikZS86O14cWkaQdY2n7Y8NErZspEgm4nLCJ2GBL3Wuq87m/qIefGMFmLfqIdGJw==",
-        "sourceReview": "docs/upstream-audit-2026-10-31.json"
+        "previousVersion": "0.5.6",
+        "integrity": "sha512-eXOyP9G5YiXLfBWQBkTAfzpAFi6MpbUeWxMxgw5XnNXKe4YvKRH05fwTVLMAhKLrgAdJQQ1TOOJhkxPBJaDSzw==",
+        "sourceReview": "docs/upstream-audit-2026-11-05.json"
       },
       "executionPackages": [
         "A06",
@@ -3811,10 +3848,10 @@
       },
       "runtimePackage": {
         "package": "dsh-synapse",
-        "version": "0.5.6",
-        "integrity": "sha512-erJUHq6+qQB7ChHaPqNuDAfikZS86O14cWkaQdY2n7Y8NErZspEgm4nLCJ2GBL3Wuq87m/qIefGMFmLfqIdGJw==",
+        "version": "0.5.7",
+        "integrity": "sha512-eXOyP9G5YiXLfBWQBkTAfzpAFi6MpbUeWxMxgw5XnNXKe4YvKRH05fwTVLMAhKLrgAdJQQ1TOOJhkxPBJaDSzw==",
         "license": "MIT",
-        "sourceReview": "docs/upstream-audit-2026-10-31.json"
+        "sourceReview": "docs/upstream-audit-2026-11-05.json"
       },
       "runtimeNpm": {
         "package": "dsh-synapse",
@@ -3823,13 +3860,13 @@
         "gitRevision": null,
         "sourceReview": "docs/upstream-audit-2026-10-29.json"
       },
-      "validationEvidence": "docs/upstream-audit-2026-10-31.json"
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-22",
       "identity": "chaggle__dsh-powershell-check",
       "requirements": "全部17条诊断、deny/warn、zh/en、可选PSScriptAnalyzer",
-      "decision": "tools preexecute gate与规则资产可复用；零常驻提示",
+      "decision": "No newly observed change to the previously reviewed reference source; retain acquired identity and independent local adaptation. Previously observed moving HEAD differences remain reference-only; no duplicate global entry is activated. Reference source reviewed separately; retain independently adapted implementation and acquired identity. New upstream files are not a runtime dependency and must not activate duplicate global hooks. Independent Windows command guard; upstream new checker rules are reference material, not falsely represented as loaded code.",
       "coverage": "06 / RUN",
       "source": {
         "directory": "chaggle__dsh-powershell-check",
@@ -3855,13 +3892,14 @@
         "src/domain/runtime/presets/index.ts",
         "src/domain/runtime/presets/host.ts"
       ],
-      "implementationStatus": "candidate_requires_runtime_evidence"
+      "implementationStatus": "candidate_requires_runtime_evidence",
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-23",
       "identity": "hongweifei__dsh-pwsh-encoding-fix",
       "requirements": "混合原生字节编码/Unicode文本、前后台一致、exit语义",
-      "decision": "复用字节识别思路，集中Codec适配；修复Write-Host/exit/大输出边界",
+      "decision": "No newly observed change to the previously reviewed reference source; retain acquired identity and independent local adaptation. Previously observed moving HEAD differences remain reference-only; no duplicate global entry is activated. Reference tracked separately from actual runtime; acquired source identity is preserved.",
       "coverage": "06 / RUN",
       "source": {
         "directory": "hongweifei__dsh-pwsh-encoding-fix",
@@ -3886,13 +3924,14 @@
         "src/domain/files/text-encoding.ts",
         "src/domain/runtime/execution/index.ts"
       ],
-      "implementationStatus": "candidate_requires_runtime_evidence"
+      "implementationStatus": "candidate_requires_runtime_evidence",
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-24",
       "identity": "liceses__dsh-gitbash-preset",
       "requirements": "Git Bash极简、正确发现MSYS、环境/路径/权限、无WSL误认",
-      "decision": "**复活**为当前bundle预设；执行器适配保留，不再写废弃目录",
+      "decision": "No newly observed change to the previously reviewed reference source; retain acquired identity and independent local adaptation. Previously observed moving HEAD differences remain reference-only; no duplicate global entry is activated. Observed latest npm tag is older than the acquired source. Preserve the acquired identity; do not downgrade. Git source remains separately reviewed.",
       "coverage": "06 / RUN",
       "source": {
         "directory": "liceses__dsh-gitbash-preset",
@@ -3917,13 +3956,14 @@
         "src/domain/runtime/presets/index.ts",
         "src/domain/runtime/presets/host.ts"
       ],
-      "implementationStatus": "candidate_requires_runtime_evidence"
+      "implementationStatus": "candidate_requires_runtime_evidence",
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-25",
       "identity": "gamegeek-saikel__dsh-coding-agent-preset",
       "requirements": "持久PowerShell7、PTY、cwd/变量/函数/alias/env、受限one-shot",
-      "decision": "**复活**当前正式预设与持久runtime；下架原件锁hash与许可证据",
+      "decision": "No newly observed change to the previously reviewed reference source; retain acquired identity and independent local adaptation. Previously observed moving HEAD differences remain reference-only; no duplicate global entry is activated. Independent preset implementation; reference reviewed separately from pinned host declarations.",
       "coverage": "06 / RUN",
       "source": {
         "directory": "gamegeek-saikel__dsh-coding-agent-preset",
@@ -4113,13 +4153,14 @@
         "src/domain/runtime/execution/index.ts",
         "src/domain/runtime/presets/host.ts"
       ],
-      "implementationStatus": "candidate_requires_runtime_evidence"
+      "implementationStatus": "candidate_requires_runtime_evidence",
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-26",
       "identity": "yjh051108__dsh-super-injector",
       "requirements": "外部插件同进程试运行、安装/热换/失败保旧、watch、自重载、staging/转正、修复、脚手架/构建/发布",
-      "decision": "**复活**完整开发工作台；正式manager+可信runtime桥+隔离桥，资源owner治理",
+      "decision": "No newly observed change to the previously reviewed reference source; retain acquired identity and independent local adaptation. Previously observed moving HEAD differences remain reference-only; no duplicate global entry is activated. Reference source reviewed separately; retain independently adapted implementation and acquired identity. New upstream files are not a runtime dependency and must not activate duplicate global hooks. Independent extension manager; upstream loader/profile fixes reviewed without importing unsafe runtime injection.",
       "coverage": "06 / EXT",
       "source": {
         "directory": "yjh051108__dsh-super-injector",
@@ -4144,13 +4185,14 @@
         "src/domain/extensions/isolated.ts",
         "src/workers/isolated-extension.ts"
       ],
-      "implementationStatus": "candidate_requires_runtime_evidence"
+      "implementationStatus": "candidate_requires_runtime_evidence",
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-27",
       "identity": "zhongjie10086__dsh-adaptive-native-standard",
       "requirements": "首轮窄面、发现/解锁、任务路由/手动锁、熔断、Git Bash、所有权/备份",
-      "decision": "**复活**能力与正式preset；固定dispatcher默认，明确epoch才改变wire工具表",
+      "decision": "No newly observed change to the previously reviewed reference source; retain acquired identity and independent local adaptation. Previously observed moving HEAD differences remain reference-only; no duplicate global entry is activated. Independent adaptive preset; official rc.2 host contracts remain authoritative.",
       "coverage": "06+07 / RUN,CCH",
       "source": {
         "directory": "zhongjie10086__dsh-adaptive-native-standard",
@@ -4177,13 +4219,14 @@
         "src/domain/runtime/presets/index.ts",
         "src/domain/operations/index.ts"
       ],
-      "implementationStatus": "candidate_requires_runtime_evidence"
+      "implementationStatus": "candidate_requires_runtime_evidence",
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-28",
       "identity": "Anionex__dsh-turn-rewind",
       "requirements": "三模式回退、宿主fork、文件账本、救援/验证/补偿、崩溃恢复、管理/GC/大仓",
-      "decision": "成熟changeLedger/recovery引擎优先复用；当前Desktop入口适配",
+      "decision": "Published runtime/available source is unchanged from the preceding review. Preserve the exact installed identity, host compatibility and local adaptation; include it in coordinated regression and dependency audit.",
       "coverage": "06 / REC",
       "source": {
         "directory": "Anionex__dsh-turn-rewind",
@@ -4235,31 +4278,32 @@
         "gitRevision": "737d716c5f693f96eb2adc3e9a79f4e55cda8735",
         "sourceReview": "docs/upstream-audit-2026-10-31.json (observations and explicit batch verification; local snapshot provenance in vendor/turn-rewind/SOURCE.json)",
         "localSnapshot": "vendor/turn-rewind"
-      }
+      },
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-29",
       "identity": "bowenliang123__dsh-context",
       "requirements": "Steps/Summary/Insights/Fleet、构成/事件/活动、/context、前后缀偏好、metering parity",
-      "decision": "观测投影和估算可复用；reported/估计分层，偏好变更新epoch",
+      "decision": "Adopt published dsh-context@0.81.2; Apache-2.0 license, exact npm integrity and compatible rc.5 peers reviewed. Preserve shared host React, scope lifecycle, native navigation and managed updater suppression.",
       "coverage": "05+07 / CTX,CCH",
       "source": {
         "package": "dsh-context",
-        "version": "0.79.0",
+        "version": "0.81.2",
         "declaredLicense": "Apache-2.0",
         "repository": "https://github.com/bowenliang123/dsh-context",
         "revision": "12ebb8696ffc5276d312ebb06f784af1638f6737",
-        "revisionKind": "git-commit",
-        "contentIdentity": "git:12ebb8696ffc5276d312ebb06f784af1638f6737",
-        "npmIntegrity": "sha512-5zmmng1bHjrAsvW6oFWvP8lLHZdjF6C0mt7UHKLEkkIRV0NM/eU8TA2QfZv7H3f5VcGHrGq9x2+RuWgG9iwgsA==",
+        "revisionKind": "npm-integrity",
+        "contentIdentity": "sha512-5euNXZCHO3RzMFMTgDrx8ccPL4nsHSjOvvVFi7cvJnq2Lc2DqQ/TzwSc8Ir01BPsm9XdgjuQGonlG8Fz8zfz2Q==",
+        "npmIntegrity": "sha512-5euNXZCHO3RzMFMTgDrx8ccPL4nsHSjOvvVFi7cvJnq2Lc2DqQ/TzwSc8Ir01BPsm9XdgjuQGonlG8Fz8zfz2Q==",
         "npmGitHead": "7f96208db61589d1a6efe22edfc1e0dece777be9",
-        "registryCheckedAt": "2026-11-02T02:01:50.834Z",
+        "registryCheckedAt": "2026-11-05T02:06:06.120Z",
         "licenseFiles": [
           "LICENSE"
         ],
-        "previousVersion": "0.78.2",
-        "integrity": "sha512-5zmmng1bHjrAsvW6oFWvP8lLHZdjF6C0mt7UHKLEkkIRV0NM/eU8TA2QfZv7H3f5VcGHrGq9x2+RuWgG9iwgsA==",
-        "sourceReview": "docs/upstream-audit-2026-11-02.json"
+        "previousVersion": "0.79.0",
+        "integrity": "sha512-5euNXZCHO3RzMFMTgDrx8ccPL4nsHSjOvvVFi7cvJnq2Lc2DqQ/TzwSc8Ir01BPsm9XdgjuQGonlG8Fz8zfz2Q==",
+        "sourceReview": "docs/upstream-audit-2026-11-05.json"
       },
       "executionPackages": [
         "A01",
@@ -4293,10 +4337,10 @@
       },
       "runtimePackage": {
         "package": "dsh-context",
-        "version": "0.79.0",
-        "integrity": "sha512-5zmmng1bHjrAsvW6oFWvP8lLHZdjF6C0mt7UHKLEkkIRV0NM/eU8TA2QfZv7H3f5VcGHrGq9x2+RuWgG9iwgsA==",
+        "version": "0.81.2",
+        "integrity": "sha512-5euNXZCHO3RzMFMTgDrx8ccPL4nsHSjOvvVFi7cvJnq2Lc2DqQ/TzwSc8Ir01BPsm9XdgjuQGonlG8Fz8zfz2Q==",
         "license": "Apache-2.0",
-        "sourceReview": "docs/upstream-audit-2026-11-02.json"
+        "sourceReview": "docs/upstream-audit-2026-11-05.json"
       },
       "runtimeNpm": {
         "package": "dsh-context",
@@ -4305,20 +4349,20 @@
         "gitRevision": "08fe7cb553bed83036b6e909e530f49b9091c2fc",
         "sourceReview": "docs/upstream-audit-2026-10-29.json"
       },
-      "validationEvidence": "docs/upstream-audit-2026-11-02.json"
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-30",
       "identity": "ranxianglei__billion-context",
       "requirements": "论文模型自治fold、T1-T3、逐块解压/历史检索/cache、原文保护、双模式/诊断、跨客户端",
-      "decision": "Adopt acp-kernel 0.0.176 from the exact billion-context 0.1.211 dist/build-info commit e226544f556712e33f3ef1d9fe5b4dc2b7715e15. The npm tarball bundles the kernel, so the absence of kernel/ source in its file list is not proof of no kernel update. Three-way rebase all local indexed persistence changes; resolve three conflicts and preserve candidate-bounded archive coverage in new shared projections. Do not mount the global proxy or use unrelated moving Git HEAD.",
+      "decision": "Adopt acp-kernel 0.0.178 from billion-context 0.1.212 exact package build commit daa082ead8a8ead60311e29ad4627bff0f569fc1. Rebase 14 changed/new files with zero conflicts, retain local indexed archive and transactional persistence. New carrier relocation remains opt-in/default-off; no user settings or history rewritten. Later moving HEAD is observed separately.",
       "coverage": "05+07 / CTX,CCH",
       "source": {
         "directory": "ranxianglei__billion-context",
         "package": "billion-context",
-        "version": "0.0.176",
+        "version": "0.0.178",
         "declaredLicense": "MIT",
-        "revision": "e226544f556712e33f3ef1d9fe5b4dc2b7715e15",
+        "revision": "daa082ead8a8ead60311e29ad4627bff0f569fc1",
         "licenseFiles": [
           "LICENSE"
         ],
@@ -4327,13 +4371,13 @@
         "identity": "ranxianglei__billion-context",
         "snapshot": "vendor/acp-kernel",
         "revisionKind": "git-commit",
-        "contentIdentity": "git:e226544f556712e33f3ef1d9fe5b4dc2b7715e15",
-        "previousRevision": "39a0ada58f396ec6e5ee29fdbaa01c01b74f14d9",
+        "contentIdentity": "git:daa082ead8a8ead60311e29ad4627bff0f569fc1",
+        "previousRevision": "e226544f556712e33f3ef1d9fe5b4dc2b7715e15",
         "versionKind": "vendored acp-kernel subpackage, not billion-context npm root",
-        "integrity": "sha512-Wup1pOPTCQm2t1RKJwGfL6neO83MU8jOEzEVkXXIS9Xf+xl8c09CyquzOL++TxY8UBGUJ/e1plIZpHr2CA50DA==",
-        "publishedPackageVersion": "0.1.211",
-        "previousVersion": "0.0.169",
-        "sourceReview": "docs/upstream-audit-2026-11-02.json"
+        "integrity": "sha512-Bwjl4StlMNcE3JWe15iKLATwk5q8rgiNgR/isk5fCnOYfhtE8vsrtJPCqA5WGvsT2yJ9p/j3k4NUAkQER5qjjg==",
+        "publishedPackageVersion": "0.1.212",
+        "previousVersion": "0.0.176",
+        "sourceReview": "docs/upstream-audit-2026-11-05.json"
       },
       "executionPackages": [
         "A03"
@@ -4344,13 +4388,13 @@
         "src/adapters/upstream/billion/native.ts"
       ],
       "implementationStatus": "candidate_requires_runtime_evidence",
-      "validationEvidence": "docs/upstream-audit-2026-11-02.json"
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-31",
       "identity": "tianmingwan__dsh-balanced-search",
       "requirements": "三源轮换/失败切换、search/fetch、时间范围、MCP+native",
-      "decision": "provider统一网关，轮转状态不改system；结果有来源/上限",
+      "decision": "No newly observed change to the previously reviewed reference source; retain acquired identity and independent local adaptation. Previously observed moving HEAD differences remain reference-only; no duplicate global entry is activated. Reference source reviewed separately; retain independently adapted implementation and acquired identity. New upstream files are not a runtime dependency and must not activate duplicate global hooks. Independent provider router; no second web takeover or duplicated provider pool.",
       "coverage": "05 / CTX",
       "source": {
         "directory": "tianmingwan__dsh-balanced-search",
@@ -4375,13 +4419,14 @@
         "src/adapters/search/index.ts",
         "src/adapters/search/network.ts"
       ],
-      "implementationStatus": "candidate_requires_runtime_evidence"
+      "implementationStatus": "candidate_requires_runtime_evidence",
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-32",
       "identity": "chenxiachan__thoughtdag",
       "requirements": "画布连线即上下文、多版/陈旧依赖、Condense/Weave、Atlas/why/recall、主题dossier、分享/导出/CLI/MCP",
-      "decision": "画布与context-builder/历史解析可复用；当前宿主服务桥与认证统一",
+      "decision": "Adopt published dsh-thoughtdag@0.5.27, unchanged MIT license; review exact public artifact and declared host bounds against rc.5, retain shared React and local scope/update-UI adaptations. Coordinated verification is recorded separately.",
       "coverage": "05 / CTX",
       "runtimePackage": {
         "package": "dsh-thoughtdag",
@@ -4438,13 +4483,13 @@
         "npmIntegrity": "sha512-R5sw7kF4bpzvIvp0v8prLLYyaYxlL8OuYz/p5u47yuuZnekuewxIcCNJDVbD7MqMJLMsEUIKiV3udt31J4SudQ==",
         "repository": "https://github.com/chenxiachan/thoughtdag"
       },
-      "validationEvidence": "docs/upstream-audit-2026-11-02.json"
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-33",
       "identity": "Ychris12138__dsh-usage-stats",
       "requirements": "13账户adapter、余额/tokenplan、热图/下钻、增量fold、缓存/原子持久、安全GET",
-      "decision": "usage纯fold和账户adapter优先复用，和dsh-usage/live-stats统一账本",
+      "decision": "Initial Git TLS failure recovered on retry at the same previously observed HEAD. Preserve acquired reference implementation and local native usage projections; no downgrade to the older npm tag.",
       "coverage": "05+07 / CTX,CCH",
       "source": {
         "directory": "Ychris12138__dsh-usage-stats",
@@ -4470,13 +4515,14 @@
         "src/domain/usage/index.ts",
         "src/adapters/models/accounts"
       ],
-      "implementationStatus": "candidate_requires_runtime_evidence"
+      "implementationStatus": "candidate_requires_runtime_evidence",
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-34",
       "identity": "qiudeng7/how-to-lint",
       "requirements": "配置渐进、类型/语义规则、规则单测、错误分层、多语言指南、增量采用",
-      "decision": "原方法作为版本化skill，新增确定性quality runner/计划/门禁/修复UI",
+      "decision": "No newly observed change to the previously reviewed reference source; retain acquired identity and independent local adaptation. Previously observed moving HEAD differences remain reference-only; no duplicate global entry is activated. Reference tracked separately from actual runtime; acquired source identity is preserved.",
       "coverage": "08 / QLT",
       "source": {
         "identity": "qiudeng7/how-to-lint",
@@ -4513,13 +4559,14 @@
         "src/domain/quality/rules.ts",
         "assets"
       ],
-      "implementationStatus": "candidate_requires_runtime_evidence"
+      "implementationStatus": "candidate_requires_runtime_evidence",
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-35",
       "identity": "qiudeng7/software-engineering-workflow",
       "requirements": "Issue/PR/需求/设计/技术写作/终端输出/SVG、示例与分工",
-      "decision": "skill与模板可复用；编译到统一workflow runtime，非第二调度器",
+      "decision": "No newly observed change to the previously reviewed reference source; retain acquired identity and independent local adaptation. Previously observed moving HEAD differences remain reference-only; no duplicate global entry is activated. Reference tracked separately from actual runtime; acquired source identity is preserved.",
       "coverage": "08 / QLT",
       "source": {
         "identity": "qiudeng7/software-engineering-workflow",
@@ -4585,13 +4632,14 @@
         "src/domain/artifacts/diagrams.ts",
         "assets"
       ],
-      "implementationStatus": "candidate_requires_runtime_evidence"
+      "implementationStatus": "candidate_requires_runtime_evidence",
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-36",
       "identity": "Wholiver/metis",
       "requirements": "多模型角色路由、T0–T3与高级有限层级、16框架/26角色、harness图编辑、独立门禁、适应性提案与追踪",
-      "decision": "复用contracts/纯policy/资产并接同一TaskPlan/Run、正式Host child AgentOptions；排除DeepSeek controller写死PASS路径，补真正执行与验证；sticky角色通道与全部attempt入账",
+      "decision": "No newly observed change to the previously reviewed reference source; retain acquired identity and independent local adaptation. Previously observed moving HEAD differences remain reference-only; no duplicate global entry is activated. Reference source reviewed separately; retain independently adapted implementation and acquired identity. New upstream files are not a runtime dependency and must not activate duplicate global hooks. Reference tracked separately from actual runtime; acquired source identity is preserved.",
       "coverage": "12+07+13 / MMR,CCH,DEV",
       "source": {
         "identity": "Wholiver/metis",
@@ -4617,13 +4665,14 @@
         "src/domain/workflow/orchestration-service.ts",
         "src/domain/workflow/scheduler.ts"
       ],
-      "implementationStatus": "candidate_requires_runtime_evidence"
+      "implementationStatus": "candidate_requires_runtime_evidence",
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-39",
       "identity": "@wenaixi/dsh-superpower",
       "requirements": "Native workflow and skill integration",
-      "decision": "Original provider and native entry; bounded compatibility adaptations only",
+      "decision": "Published runtime/available source is unchanged from the preceding review. Preserve the exact installed identity, host compatibility and local adaptation; include it in coordinated regression and dependency audit.",
       "coverage": "skills/workflows",
       "source": {
         "package": "@wenaixi/dsh-superpower",
@@ -4651,13 +4700,14 @@
         "integrity": "sha512-hoG7SDKQxrNZR294HT11whzPiA2GhIwh7Wk8pm1vueFfyxVwMcW3L7qY0pN3CQmIgqhWNUio9P94R1I/p/H4sQ==",
         "license": "MIT",
         "sourceReview": "docs/upstream-audit-2026-10-26.json"
-      }
+      },
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-40",
       "identity": "@wenaixi/dsh-ponytail",
       "requirements": "Native workflow and skill integration",
-      "decision": "Original provider and native entry; bounded compatibility adaptations only",
+      "decision": "Published runtime/available source is unchanged from the preceding review. Preserve the exact installed identity, host compatibility and local adaptation; include it in coordinated regression and dependency audit.",
       "coverage": "skills/workflows",
       "source": {
         "package": "@wenaixi/dsh-ponytail",
@@ -4685,13 +4735,14 @@
         "integrity": "sha512-SlV3hwDtvT3+6bOXIGk5EMK7KOeBmiowhdD+yZ3nmXr2S1pBHQZST+kdHlml6/MkLpXnu0WGsd63qEAsVO5Emg==",
         "license": "MIT",
         "sourceReview": "docs/upstream-audit-2026-10-26.json"
-      }
+      },
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-41",
       "identity": "@dragon-talon/dsh-openspec",
       "requirements": "Native workflow and skill integration",
-      "decision": "Original provider and native entry; bounded compatibility adaptations only",
+      "decision": "Published runtime/available source is unchanged from the preceding review. Preserve the exact installed identity, host compatibility and local adaptation; include it in coordinated regression and dependency audit.",
       "coverage": "skills/workflows",
       "source": {
         "package": "@dragon-talon/dsh-openspec",
@@ -4719,13 +4770,14 @@
         "integrity": "sha512-tHKYD9uUi/fKS7xiN0E3SuIedgYEy8qn3Joqaoh08WrAkfEqKBoy5++IU9Iy9YNAc0Ujmq0/YehvrNFY1RIYXg==",
         "license": "MIT",
         "sourceReview": "docs/upstream-audit-2026-10-26.json"
-      }
+      },
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-42",
       "identity": "@fission-ai/openspec",
       "requirements": "Native workflow and skill integration",
-      "decision": "Original provider and native entry; bounded compatibility adaptations only",
+      "decision": "OpenSpec CLI 1.16.0 unchanged; Git dependency metadata changed only. Keep exact packaged CLI, audit its actual dependency graph; no Git-only release claimed.",
       "coverage": "skills/workflows",
       "source": {
         "package": "@fission-ai/openspec",
@@ -4772,13 +4824,13 @@
         "license": "MIT",
         "sourceReview": "docs/upstream-audit-2026-10-31.json"
       },
-      "validationEvidence": "docs/upstream-audit-2026-10-31.json"
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-43",
       "identity": "dsh-karpathy-methodology",
       "requirements": "Native workflow and skill integration",
-      "decision": "Original provider and native entry; bounded compatibility adaptations only",
+      "decision": "Keep the acquired identity and record the unavailable channel verbatim. Successful independent channels are recorded separately; inaccessible sources are not interpreted as unchanged. Retain the current published runtime; no newer published artifact was adopted from development HEAD. Current source has an unavailable channel; do not classify its failure as no update. Preserve acquired licensed source and any independently observed available channel.",
       "coverage": "skills/workflows",
       "source": {
         "package": "dsh-karpathy-methodology",
@@ -4806,13 +4858,14 @@
         "integrity": "sha512-hhsP5MPO0gBweMrAW6Yra9Whya+oxVmBNotH4gvz0f8oSF4uZ7hHj5I0kfXXUwvZKTMWcY9XWXzySHlwBKGbeQ==",
         "license": "MIT",
         "sourceReview": "docs/upstream-audit-2026-10-26.json"
-      }
+      },
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-44",
       "identity": "multica-ai/andrej-karpathy-skills",
       "requirements": "Canonical Karpathy-inspired guidelines",
-      "decision": "Original canonical skill text, parsed by original DSH provider; upstream metadata declares MIT without standalone LICENSE",
+      "decision": "No newly observed change to the previously reviewed reference source; retain acquired identity and independent local adaptation. Previously observed moving HEAD differences remain reference-only; no duplicate global entry is activated. Pinned source updated or unchanged; coordinated validation recorded separately.",
       "coverage": "skill body",
       "source": {
         "repository": "https://github.com/multica-ai/andrej-karpathy-skills",
@@ -4828,13 +4881,14 @@
       "implementationCandidates": [
         "assets/methods/karpathy/skills/karpathy-guidelines/SKILL.md"
       ],
-      "implementationStatus": "original_requires_coordinated_validation"
+      "implementationStatus": "original_requires_coordinated_validation",
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-45",
       "identity": "Scorp1o117/dsh-motion-ui",
       "requirements": "Native motion/media UI",
-      "decision": "Original Motion tools, panels, settings, rendering and media preserved. Bounded client-only Claude appearance/reduced-motion adaptation; Compatibility evidence is recorded separately in the release audit.",
+      "decision": "Published runtime/available source is unchanged from the preceding review. Preserve the exact installed identity, host compatibility and local adaptation; include it in coordinated regression and dependency audit.",
       "coverage": "original native runtime with reviewed bounded adapters",
       "source": {
         "package": "dsh-motion-ui",
@@ -4858,7 +4912,7 @@
         "cordis.patch.yml"
       ],
       "implementationStatus": "original_requires_coordinated_validation",
-      "validationEvidence": "docs/upstream-audit-2026-10-24.json",
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json",
       "sourceArchive": {
         "package": "dsh-motion-ui",
         "version": "0.8.7",
@@ -4885,7 +4939,7 @@
       "id": "SRC-46",
       "identity": "zsjs110110-cpu/dsh-cross-session-approval",
       "requirements": "Cross-session delegation and approval",
-      "decision": "All ten original native tools, original approval audit and native permission caps retained. Agent traffic uses existing unified mailbox with separately authorized cross-session directory, durable receipts, user-stop guards and no fabricated native ancestry. Published npm gitHead differs from current checkout, but all installed JS byte comparisons are recorded.",
+      "decision": "npm remains 0.3.10. Observe Git-only 0.3.11 cold preset failure fix without claiming a published upgrade; keep local delayed-message strict restoration/reconciliation protections.",
       "coverage": "original native runtime with reviewed bounded adapters",
       "source": {
         "package": "dsh-cross-session-approval",
@@ -4907,7 +4961,7 @@
         "cordis.patch.yml"
       ],
       "implementationStatus": "original_native_runtime_with_separate_adapter",
-      "validationEvidence": "docs/upstream-audit-2026-10-24.json",
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json",
       "runtimePackage": {
         "package": "dsh-cross-session-approval",
         "version": "0.3.10",
@@ -4920,7 +4974,7 @@
       "id": "SRC-47",
       "identity": "LJL454/dsh-computer-use",
       "requirements": "Windows desktop automation",
-      "decision": "Selected complete native Windows and CDP production closure, immutable commit and file SHA256s. Native session opt-in chip remains default off; four HTTP endpoints moved to owner-only rc3 Connection. No second desktop control stack is mounted.",
+      "decision": "Published runtime/available source is unchanged from the preceding review. Preserve the exact installed identity, host compatibility and local adaptation; include it in coordinated regression and dependency audit.",
       "coverage": "original native runtime with reviewed bounded adapters",
       "source": {
         "package": "@local/dsh-computer-use",
@@ -4947,13 +5001,13 @@
         "cordis.patch.yml"
       ],
       "implementationStatus": "original_native_runtime_with_separate_adapter",
-      "validationEvidence": "docs/upstream-audit-2026-10-24.json"
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     },
     {
       "id": "SRC-48",
       "identity": "Yu-tao-Li/dsh-computer-use-win",
       "requirements": "Windows desktop automation",
-      "decision": "Reference tracked only. Rich OCR, takeover/Escape indicators and MCP integration; not mounted alongside the native per-session Windows control. Advertised npm 0.5.1 unavailable during acquisition.",
+      "decision": "Observe Windows computer-use 0.5.4 as reference only. The independently selected @local/dsh-computer-use 1.40.3 source is unchanged and is not replaced.",
       "coverage": "comparison/reference only",
       "source": {
         "package": "dsh-computer-use-win",
@@ -4968,7 +5022,8 @@
         "licenseFiles": []
       },
       "implementationCandidates": [],
-      "implementationStatus": "reference_only"
+      "implementationStatus": "reference_only",
+      "validationEvidence": "docs/upstream-audit-2026-11-05.json"
     }
   ],
   "dshWebSubpackages": [
@@ -5451,11 +5506,12 @@
     "assets/market/skins.json": "4127dcaa71e50f7ac72ac7d8aa8f2d83392ae78ec597331870202bbfcfccf020",
     "assets/methods/A05-SOURCES.md": "56807047fbd6976ba4181ebef421165484cede75919bafc70431a3dad9403337",
     "assets/methods/aegis/LICENSE": "4009afe36cda49b0d1e9d0860344c0dd8f97b8ba79ea71f4b1e15bde09a981f7",
-    "assets/methods/aegis/UPSTREAM-PLUGIN.json": "5c0811d58b6b54b5aaee13618ab28a740ccbc66607c1dd8d46ddf8cb5f682e6d",
-    "assets/methods/aegis/UPSTREAM.json": "2566b45deb0619ac203e7b748d96d77386d77d8e6d0167fa00195c5564c8c348",
+    "assets/methods/aegis/UPSTREAM-PLUGIN.json": "00fa893b76d81811212b020fc2fb58e0bf6337739ea4501d248d0a1da882340c",
+    "assets/methods/aegis/UPSTREAM.json": "d3f5882fff515f538f757fad57e35ec369a85716c3f7db878c3e280bb5b68594",
     "assets/methods/aegis/anti-entropy-governance/SKILL.md": "1d2f4d7c2c0c14b98e775d0986ee60df9009f151bd0969b3d4eb1676f4da166b",
-    "assets/methods/aegis/brainstorming/SKILL.md": "8ebc9a12ec806bb291d7617920e8a113476d7283f54f449d2204e773ace4a47c",
-    "assets/methods/aegis/brainstorming/expanded-design-guidance.md": "949b61283b13e00685347f9a1ed49b53a1fc2261917285002453e45671d03de4",
+    "assets/methods/aegis/brainstorming/SKILL.md": "c00f2f0c243e049776902538d051731c69dcbf82aeef8beec081c7449b9eaef4",
+    "assets/methods/aegis/brainstorming/expanded-design-guidance.md": "6fc01d5ae33fc7f93219581fbe7bca1bd24ce119fcb5ad42b9bf208b2b406617",
+    "assets/methods/aegis/brainstorming/grilling-mode-reference.md": "83030ea45b5be259af0707a5b4fd40295783ac63fbc1f7f8faf6275af849884c",
     "assets/methods/aegis/brainstorming/spec-document-reviewer-prompt.md": "62d38ea2cda36ba13bb84a1724b840567986dd6b2f3196c58493df65385074bc",
     "assets/methods/aegis/communicating-concisely/SKILL.md": "d6ce712599567b58b1ec5dd658f0f54c4b6e8289c875acd37230b7fe16239173",
     "assets/methods/aegis/dispatching-parallel-agents/SKILL.md": "daa68bc5e66cee51e5c723eec6e668d27f6511d14fa874c83691fab16bf0bb69",
@@ -5470,7 +5526,7 @@
     "assets/methods/aegis/receiving-code-review/SKILL.md": "7003bc2c29925aca762a32533d3b518bb1c00633990222c5280363042f91387f",
     "assets/methods/aegis/recording-architecture-decisions/SKILL.md": "188c327973056ff75852c1e24470dea10f6906210923f8ed78415370a108e4ea",
     "assets/methods/aegis/requesting-code-review/SKILL.md": "8d093caaf0cb4108e8ef534edc79d1db9279a7d4d33b1e81c36874a0de0d2da2",
-    "assets/methods/aegis/requesting-code-review/code-reviewer.md": "7343456e7d9d42a641f512b8d48b4d311294b7540e2a908f0c28e0ad36c49fa5",
+    "assets/methods/aegis/requesting-code-review/code-reviewer.md": "732b93c18b838f75ba59916f559a7da79e45605d01c98174c7ffeaa2674f12aa",
     "assets/methods/aegis/subagent-driven-development/SKILL.md": "5bf63f46c826c3bbdf288427750476d86811750393acea3f80fdb28362ca621e",
     "assets/methods/aegis/subagent-driven-development/code-quality-reviewer-prompt.md": "da05923f5e9d389c8bcd7e26db4e6dd25299897ce168afa7375adee15f99dd6a",
     "assets/methods/aegis/subagent-driven-development/implementer-prompt.md": "44dd5de2fd7f32e4cf4a996d70a02a25d68899340b725cf00d5fa7ff337c1872",
@@ -5489,14 +5545,14 @@
     "assets/methods/aegis/ui-ux-governance/references/experience-rules.md": "0cdd01b17777752a36c0aa073ed2e4fc2aaca5f396b46876697c934686aad6fc",
     "assets/methods/aegis/ui-ux-governance/references/verification.md": "3d9f7796ec615fc8d31d487dd0c313f10aedb1a28f980a5745fa139a908e8a8f",
     "assets/methods/aegis/update-aegis/SKILL.md": "543b14fb519d7a0260b30001a3b733375ec170b6e6fc6338cc611bb87f45c91e",
-    "assets/methods/aegis/using-aegis/SKILL.md": "2228c6e7b11e9381360cd31743dae7cc042a91943b0521e5b07057456067d1dc",
+    "assets/methods/aegis/using-aegis/SKILL.md": "8ed6f9624eb13ffd9cdcb0e568309c3ad00053280f48f3eccde1f8444bad8aa5",
     "assets/methods/aegis/using-aegis/references/antigravity-tools.md": "0dc7cb1dc639982e8e7174c67d5a9cb35b222ad5cf24da159c769df3a665fd4c",
     "assets/methods/aegis/using-aegis/references/codex-tools.md": "b532604acb891c6d377b794e8fa54a7160c67b01c7dcbea051728b5ced95a50a",
-    "assets/methods/aegis/using-aegis/references/complexity-governance.md": "a21434d7806488ef755f9a07d227f03dd5a066aba3b8194f66c710436c03eacf",
+    "assets/methods/aegis/using-aegis/references/complexity-governance.md": "71bce5b5ece70d679260535cf7cb2a7a242022d45002ca1bc5e6168267c64511",
     "assets/methods/aegis/using-aegis/references/copilot-tools.md": "9f5d5c6c25448e844e5acd99fc948f30d122cac5454a4a8e5c267b080857240b",
     "assets/methods/aegis/using-aegis/references/skill-discipline.md": "c592ea4159b752043537906d483354c71556afed0a88720078a2fc624a01d2ad",
     "assets/methods/aegis/using-git-worktrees/SKILL.md": "23e832a61b1b5b236e1b499fda4f184e72bce6c133c18d2977649bd3b443367f",
-    "assets/methods/aegis/verification-before-completion/SKILL.md": "68ba0ddbf109ad66a975397eac025b956db426822b3ac06ee0c6cfb49e07e98c",
+    "assets/methods/aegis/verification-before-completion/SKILL.md": "680765ac67abe9b93834137f5e7eca1805d697d9f3d162b29556e949a81ac5cb",
     "assets/methods/aegis/verification-before-completion/expanded-closeout.md": "c48bca22e2bdc5fdbd6e5db288073c83aa482c4941bdc5572ac53553b297ff80",
     "assets/methods/aegis/writing-plans/SKILL.md": "74a0fd6109b6df4951d4ec2a38167fa5ed2683ecd276a931dcd59bac5bc6c752",
     "assets/methods/aegis/writing-plans/expanded-planning-guidance.md": "3ecbd22e982642833d65fbf681faa5c8cf78c356c4dec7ca379e2608ea9d0b99",
@@ -5691,9 +5747,9 @@
     "notices/editor/yallist/SOURCE.json": "a3dca2b2a61eb22a10fff2a284696de53080cdc4bff7b6de3fea5923df7a4210",
     "notices/originals/agency-agents/LICENSE": "50e6751797c50dedd75ef1b8a0d9e42f5f8472e9fbce91f34718e9f97b0c780a",
     "notices/originals/agency-agents/NOTICE": "40b0cd24b2b5b68ca4fa2de592c84a83e603fbdfc896b4784e6d90263a0b1931",
-    "notices/originals/agency-agents/SOURCE.json": "00d5fa82b1a8e8da626e049b59f4bd6fa7185b312b6defdedf60a3c9794b1ba5",
+    "notices/originals/agency-agents/SOURCE.json": "392e412dc7a0109e84a9371595be0c4570e240718a2c5d03f1ff6774d403ba48",
     "notices/originals/better-display/LICENSE": "cc2de00f5772c5112fca28bac3e166e53f4df2b31481cffdb16d1436c70f09fe",
-    "notices/originals/better-display/SOURCE.json": "d1cb223d82ff413ae229d35a9015b1b241e4bc154f2be28bc9b5f3849c2e97dd",
+    "notices/originals/better-display/SOURCE.json": "9c84c3177633f0dd4d284a405c172ff88ec845b929105a876955d672ee152512",
     "notices/originals/better-sidebar/LICENSE": "f4d265194e0824721af0592462a71fe750c04db3565c23c5d6c65fdee25fb4b0",
     "notices/originals/better-sidebar/SOURCE.json": "ab9a82b162f9d2072bf22e0632e46bb6f82bd3d744cedcc894f40c67065cd0c6",
     "notices/originals/codinput/LICENSE": "8a12a1d913654c74e92c2bcbd4ea8fd8fe3fa06888989dbb23999571af57dacf",
@@ -5732,11 +5788,11 @@
     "notices/originals/computer-use/LICENSE": "e7d16fe03f24a8692d73ad678c1987b2280fddc84b98e4d2619a0e733c940ab4",
     "notices/originals/computer-use/SOURCE.json": "7ac5afd58a8571b5f30f0640a8a8829898e3431697fe55bc55ae5c4a5eed8b83",
     "notices/originals/context/LICENSE": "919857728c4e1d0f76be03af00437d9910c943f883d04c8c58a6a0cb1c3225b0",
-    "notices/originals/context/SOURCE.json": "aa06472f7961365dcd8d6f23be6b5a8021f70842d64f401a66643f3d4343284f",
+    "notices/originals/context/SOURCE.json": "ff836de662b7831191c9554ca1c88f5201380d399ba1598e6fc3f479a725650d",
     "notices/originals/cross-session-approval/LICENSE": "599176dcfc83ced5b59f88cf2160ae967f80df0da0fc399b21e1c315466fd3e2",
     "notices/originals/cross-session-approval/SOURCE.json": "d3e60f3f227ac129a57668b3b945a846c6fabe42ff52c1911a0cb887382b4253",
     "notices/originals/git-graph/LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
-    "notices/originals/git-graph/SOURCE.json": "98511345c460b0d73d5c73d979f9bc183d4bf10f4d6ea0674b05f9b990cb6462",
+    "notices/originals/git-graph/SOURCE.json": "852670f755e11602adae84ea68243ffb08c14a5deea8cfd9e5391710c9bfa324",
     "notices/originals/karpathy/LICENSE": "16966c1df5813276d5abdde5a5598768aeafc366937841b5f7f8209938debae8",
     "notices/originals/karpathy/SOURCE.json": "eec0bee8a6832980cb0a7ec33b287bed27b35ddf2da87bf40fd15215544c0123",
     "notices/originals/mnemon-provider-byterover/LICENSE": "0bc72d9f737802b30a7e43d1b59912e81698e75948759ba07c276732aba0c7a2",
@@ -5758,17 +5814,17 @@
     "notices/originals/mnemon-provider-supermemory/LICENSE": "0bc72d9f737802b30a7e43d1b59912e81698e75948759ba07c276732aba0c7a2",
     "notices/originals/mnemon-provider-supermemory/SOURCE.json": "963ef1a88cd1fe975faac32be01149537f68dcd5b8d2ab79b4d03ad317cd0326",
     "notices/originals/mnemon-source-documents/LICENSE": "0bc72d9f737802b30a7e43d1b59912e81698e75948759ba07c276732aba0c7a2",
-    "notices/originals/mnemon-source-documents/SOURCE.json": "7bfdb52954e8228bc576df0cf048a72a622d7db973398ab1c38fddc7cf30ca98",
+    "notices/originals/mnemon-source-documents/SOURCE.json": "ab86970a18037c24d93e6f047037bf1da83b60c5096635187343fe8c5cf404f2",
     "notices/originals/mnemon-source-memory-spaces/LICENSE": "0bc72d9f737802b30a7e43d1b59912e81698e75948759ba07c276732aba0c7a2",
     "notices/originals/mnemon-source-memory-spaces/SOURCE.json": "5f66fd515e642939ee59fa6e5c87076b21d9c0c390b75b764a97016f3b6f5f3e",
     "notices/originals/mnemon-source-runtime/LICENSE": "0bc72d9f737802b30a7e43d1b59912e81698e75948759ba07c276732aba0c7a2",
     "notices/originals/mnemon-source-runtime/SOURCE.json": "570987d1c0b010d345a953df2559ae1449f54fa1b3c5212d931c95cc9bb79cde",
     "notices/originals/mnemon-source-skills/LICENSE": "0bc72d9f737802b30a7e43d1b59912e81698e75948759ba07c276732aba0c7a2",
-    "notices/originals/mnemon-source-skills/SOURCE.json": "af1eb2e44c61e1927f89913ba3289cefc257b1c2ba1365a65fb4402370c03e45",
+    "notices/originals/mnemon-source-skills/SOURCE.json": "33b78b02641e938763fe68a8634631da4606dd45fe6c78f3d97d66c2116be84f",
     "notices/originals/mnemon-strategy-auto-capture/LICENSE": "0bc72d9f737802b30a7e43d1b59912e81698e75948759ba07c276732aba0c7a2",
     "notices/originals/mnemon-strategy-auto-capture/SOURCE.json": "2818d134f363e7c51cc71813a603df7a2995712b1630de36ea1463168ce8224f",
     "notices/originals/mnemon-strategy-default-three-tier/LICENSE": "0bc72d9f737802b30a7e43d1b59912e81698e75948759ba07c276732aba0c7a2",
-    "notices/originals/mnemon-strategy-default-three-tier/SOURCE.json": "639078c0275f98841837e4577975ea5860123fa035dce70c84cbcaecb8e8e273",
+    "notices/originals/mnemon-strategy-default-three-tier/SOURCE.json": "85733af8432f156222a9eebf873a4ab13e695b8f42771fad8c9ad098e81565df",
     "notices/originals/mnemon-strategy-general/LICENSE": "0bc72d9f737802b30a7e43d1b59912e81698e75948759ba07c276732aba0c7a2",
     "notices/originals/mnemon-strategy-general/SOURCE.json": "6aea9d5253fb2c8bc5f1004994b78e4a4da8d76e9194be34090c26ccbb5a9201",
     "notices/originals/mnemon-strategy-light-context/LICENSE": "0bc72d9f737802b30a7e43d1b59912e81698e75948759ba07c276732aba0c7a2",
@@ -5776,7 +5832,7 @@
     "notices/originals/mnemon-strategy-scoped/LICENSE": "0bc72d9f737802b30a7e43d1b59912e81698e75948759ba07c276732aba0c7a2",
     "notices/originals/mnemon-strategy-scoped/SOURCE.json": "745f17827b63b70aa30deb5bef3465953fd65f746f2262686b95489806d53134",
     "notices/originals/mnemon/LICENSE": "0bc72d9f737802b30a7e43d1b59912e81698e75948759ba07c276732aba0c7a2",
-    "notices/originals/mnemon/SOURCE.json": "253d7cf5954e071512a854b9e68e7e8d27ade45ceef1105401b548b8b30944d7",
+    "notices/originals/mnemon/SOURCE.json": "656dc33ce379158decdb7eda441ee3989a77477d6feab5fe3a8b06243870ff8f",
     "notices/originals/motion-ui/LICENSE": "0109b46039beab643748e3eb9e4aa5d3c6bf17145167fe48a257d77490fdcd4f",
     "notices/originals/motion-ui/SOURCE.json": "69e09960b02cdaabd8774a6d85a037b78c10dd6bc61b64eb6958b4d2289be16a",
     "notices/originals/openspec/LICENSE": "255cc90ac9e98fbcbdb914fd71e056344cdbee298b9ceefb4d5fba63a95945cf",
@@ -5789,15 +5845,15 @@
     "notices/originals/superpowers/LICENSE": "7ca5997a1ca61f31e63520439fdedcd49b27a84ffc537cdb9d9ddf32e76adc24",
     "notices/originals/superpowers/SOURCE.json": "634541f5d0829d57da229c4a2afa9ec8e2a2ea71fc5f0fd9051b0bf4a70a872f",
     "notices/originals/synapse/LICENSE": "1126322e2cc8d165adc4c792eeb195717de2bcc7b39be1ce77959d78e87ef685",
-    "notices/originals/synapse/SOURCE.json": "8ae7cd71ca8f3d18a95d87fe528f6d8e5d4398706b24bf42630ea644d60261c2",
+    "notices/originals/synapse/SOURCE.json": "26c277eeb27cd6e96665a8e3a693ccc344240c524e673b32126865c10704efca",
     "notices/originals/task-board/LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
-    "notices/originals/task-board/SOURCE.json": "a4e7e242e20fded8dfe2f58d2812adb8d8408143f0af53d88fd7f518b4e389b5",
+    "notices/originals/task-board/SOURCE.json": "af540c484ade532e3cb2dff4b46e33c73577e470242e16058f8e7c80d6120751",
     "notices/originals/thoughtdag/LICENSE": "c4d3bc3508e6858a33c7cba6e1aa9a48bc9ded95c778e656c76888069738f36e",
     "notices/originals/thoughtdag/SOURCE.json": "788f4a67913aae11dc0d60bd16f1bf69aa9d338adcb964cc160bb60660db1f69",
     "notices/originals/turn-rewind/LICENSE": "9d9a838ebad09d4a986e0cb962c064c4d1ff308eb728169e040a0295917e2cba",
     "notices/originals/turn-rewind/SOURCE.json": "ae4ab5a8da921a810fe367e65cf5f7a3b6500674f044c1aa4897ddac9f441634",
     "notices/originals/usage/LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
-    "notices/originals/usage/SOURCE.json": "a17ad19909a262d6cef26c33f58eea4f8bc4135b09975852aa5c03038157ab97",
+    "notices/originals/usage/SOURCE.json": "993abad6f92624e6999c7bd9a16acdef5581813fadb3f6e48feea6e535f0298b",
     "notices/step-pause/LICENSE": "06a0ed70620305f263c09beb45e6d6288fec60259afd0dcb07865ac6f0b6a525",
     "notices/step-pause/SOURCE.json": "4c1eac45f6b1754513bc066f91e6bacf0cfc2641ff88496802f3875ca2ce2517",
     "notices/step-pause/index.upstream.js": "7823a2578586e004bfd6343cdc0c62be827462bac53e53bc694c3faa966075db",
@@ -5890,7 +5946,7 @@
     "vendor/acp-kernel/SECURITY.md": "4722c59966fd71f152e5c3b1c34f7e61a5b1490edc21ce9421d48d5c1cd5a758",
     "vendor/acp-kernel/bench/search/bench.ts": "b2abc04e6be01f2404f92ca3da6d644a208e9ab8769cb93bb38fbaf2e48ea3f2",
     "vendor/acp-kernel/bench/search/corpus.ts": "db753bb3d163dc9403c20b87e89058b38a665a8e53e81dd90684bb159827b70a",
-    "vendor/acp-kernel/package.json": "c26aeb7809494a9e6ec0c9d59b9709889022ae6e774baff55c288a55216a2934",
+    "vendor/acp-kernel/package.json": "95c9a3219a9fc3fdce64f3144eade237907be3a146a19b80efb8d9a4d9d7d963",
     "vendor/acp-kernel/scripts/ci/check-pr.sh": "af5b887a623045074ffa09966a7913bc5c0dd5a8b6c4da00245e62b2b01fb6aa",
     "vendor/acp-kernel/scripts/format-until-stable.mjs": "a087e559ee1aacb2ee6877f7e85edfc33d364b996c8cd7ae7eb0cdce630d44ed",
     "vendor/acp-kernel/src/absorb.ts": "e2cd0b77c5194f87c300d675b47fdda54a9991d2939f44b513e1ce409e2ba256",
@@ -5899,7 +5955,7 @@
     "vendor/acp-kernel/src/cache-report.ts": "74f04a77a20a1de00a387c66c71c62dbd0b0b9c87bfac786c0057fb28f7883a5",
     "vendor/acp-kernel/src/ccr.ts": "bfd55d8a00f723be1b82a21217231c0273528a869a7348be29fe2393028ecfc4",
     "vendor/acp-kernel/src/compress-tools.ts": "d323e34d1fd9460d0bebe94513ca52fe21cb372fe79b166948710c575b282da5",
-    "vendor/acp-kernel/src/compress.ts": "d575d378b0f1995e15d27a5b71e22b0fd9856bbef6bff15cde8762f9f3d5193c",
+    "vendor/acp-kernel/src/compress.ts": "948ba0d0e6739a31c27fbab04f409d08a9a9aafcbb46e4b36f719ec28181d6f8",
     "vendor/acp-kernel/src/compression-rules.ts": "352ddef1cf5fcac58e8064100e69a78eefd9f5fb58fb1c05ab4272b302e464f6",
     "vendor/acp-kernel/src/config.ts": "ddf211b45e2df5665534949a37108ace9ad90a6612ea777eebf4a70ca2723596",
     "vendor/acp-kernel/src/content-store.ts": "41ebb082b92206be662e54292a839a494f82747e566acb5af4c6b8ccbd532875",
@@ -5911,7 +5967,7 @@
     "vendor/acp-kernel/src/filter/types.ts": "947c11d7937e1bcb897b66b7b03c38d0769726f54b73151ed618b56c0273d926",
     "vendor/acp-kernel/src/handoff.ts": "4caa7b1e515fa53befe36c0e46c534295cd5220f6b0e99cfa87955f7122a56b5",
     "vendor/acp-kernel/src/hide-consumed.ts": "2358b2dadc0443b4222557663908e5d6e9f33a432072c0674ff99ae3b36f4987",
-    "vendor/acp-kernel/src/index.ts": "afc7e578f9de8ec01cccc4813967ccf406db5ef3aece1d999f0e98dda52bf002",
+    "vendor/acp-kernel/src/index.ts": "99f08b86c712d3716b474a9811365e42bc4fc44b1e0ef0b3996e770b337ce4af",
     "vendor/acp-kernel/src/indexed-runtime.ts": "44dd6c8a91df1c37169ed496c70e72e3e1e1d2ab166fb29713d6c96d9001d295",
     "vendor/acp-kernel/src/indexed-types.ts": "c9c618f5f85867720f292aee196353f4dec2e27c02eb0d494afe02f56320824c",
     "vendor/acp-kernel/src/instance-reid.ts": "bfefec6cfe303f8ddd209a1e215a68946f5c978569ae49c1e18b762afac64e3e",
@@ -5934,9 +5990,10 @@
     "vendor/acp-kernel/src/prune.ts": "f745b9ae8ccd5177617542fc88da3b9608a3aa49d8b590ada78792297226eba3",
     "vendor/acp-kernel/src/reasoning-pairs.ts": "61da02ab6fc520a5d1deb8e64b5b02becdb49e71ff937d34fab4c17620fe71ad",
     "vendor/acp-kernel/src/rebuild.ts": "beafe0b9326aaf6e2c7696337243be2b86c4733ec50b3a5fb73098fd6b01786a",
-    "vendor/acp-kernel/src/recommend.ts": "cecdccf1d458b811b41905166ebda60b484d2d081a8c855d9af69cd6c788f4d9",
+    "vendor/acp-kernel/src/recommend.ts": "31cf27ec424514364ef7d9439e9f90a788c2863b8578d90012da3b059ddaf655",
     "vendor/acp-kernel/src/refold.ts": "905a372092789550cacd2d5466ad6cedc6307ee162c8f7c37bdd16b35408828d",
     "vendor/acp-kernel/src/refs.ts": "cd9c2881ad0ab7e588042ec2d0a9689f736b8553a6e8c3b5fc6938d56920e58b",
+    "vendor/acp-kernel/src/relocate-compress.ts": "f23484e8c036c3be5ca35de2de533dc8f7223a86664e27052c0454564d4212b9",
     "vendor/acp-kernel/src/render-refs.ts": "40eb0cec278eb276974c215f86594c1cbd18ffffaeb07b43272be550ad8e4833",
     "vendor/acp-kernel/src/report.ts": "6a7717ca39a80efaeae01a5821b01487ac74bb5913159e94f2b2fdf126b2a8bf",
     "vendor/acp-kernel/src/rules.ts": "f4c5f2ac4eaae18fc2ae4cb65d4de225a85698fea23860332c2dcd533a0468a3",
@@ -5962,12 +6019,12 @@
     "vendor/acp-kernel/src/transform-channel.ts": "fdcda9f120b0d86fa0952699b0663e2c244ebb5c77eebdbbf9a6b446dcc1db9f",
     "vendor/acp-kernel/src/truncate-tools.ts": "0d9a631b815a7385934dac0bc4aafe3bb9a2d07598b83d896eb52339ab094e9d",
     "vendor/acp-kernel/src/truncate.ts": "b7577c6bfdfd71d88139272e4880b430a317088a3a3e68ec0b4f2d5c95e1cbd9",
-    "vendor/acp-kernel/src/turn-integrity.ts": "d4e5b34788d2e3bbd93cd877b1cd9975f86c61659f1245efbe08e1371b333c7c",
-    "vendor/acp-kernel/src/types.ts": "df1d785c8505b6dbf0e4aef59dc142c7d249bbd52536b69761f834f46229800f",
-    "vendor/acp-kernel/src/unit-projection.ts": "2cb44f5bc60becccd60d2309e8dd54480c122dec5e5f89bcdb4734f2e0c970c5",
+    "vendor/acp-kernel/src/turn-integrity.ts": "45917d3a94007f71cf5941c89cb59680953a193633651df711039910e142453b",
+    "vendor/acp-kernel/src/types.ts": "a945fdbff958ae36a69943d20f8227264384b38e95076dab48f89ac4360cfa15",
+    "vendor/acp-kernel/src/unit-projection.ts": "c61d3c0f09d49577431345b4fa48aadae2440024b2624a494ffc57bf138a3d20",
     "vendor/acp-kernel/src/viable.ts": "7c64c9e8f6b14c43b36c302e6e221814a7a3268634e84b455294b32d0c722669",
     "vendor/acp-kernel/src/view-latch.ts": "63e4fa94de37b48f8028c20862bea8ae7651f854e2d7c6695f7106cf8a852f82",
-    "vendor/acp-kernel/src/wire/anthropic.ts": "abe2b9283dfdfa90314352fc4b100f2115d96affb34ce264f3cf78e12d5c062b",
+    "vendor/acp-kernel/src/wire/anthropic.ts": "7257272916ba2dadffaca621a2b6aef37b9d8ca91c62f606d0ecc30ee0fef6c7",
     "vendor/acp-kernel/src/wire/bili-message.ts": "0308438eb08224f4d4f9cfb29026159daf6018e3166e6d0f1374094e1ba2fb6a",
     "vendor/acp-kernel/src/wire/compress-detect.ts": "24be7bb82b1580aea2304c3f18f0f2a7594f752d0a67d7963a7dfbd820b63415",
     "vendor/acp-kernel/src/wire/demoted-thinking.ts": "c294b179162f6f9ef1036459cdf3f684e7ecae42475a7e79d9e16c329a976108",
@@ -6035,13 +6092,15 @@
     "vendor/acp-kernel/tests/issue4311-summary-dedup.test.ts": "f16ff87fa73dcfb4ff70cd43383e789e71ee12b15884cf403f8eba6e98f1f8f4",
     "vendor/acp-kernel/tests/issue4313-message-timestamps.test.ts": "ef54a513e0e667103992a5b1ba46e0c1dea2ddc03b6afabf913ecc5f1274f2f1",
     "vendor/acp-kernel/tests/issue4348-receipt-lace.test.ts": "b35b1761338c163a830507125c54b13bd1648f606a6eb1b93cd41a401e6e0e74",
-    "vendor/acp-kernel/tests/issue4457-sidecar-system-folds.test.ts": "fd72c418f5e44bd3fb5b15b4251f37d8dd111c169d22057a978335cb3afde101",
+    "vendor/acp-kernel/tests/issue4457-sidecar-system-folds.test.ts": "83186d7f4067c67e2142f5a9ea5c8bfbab5d952931a6a044c90d522c23aed2bb",
     "vendor/acp-kernel/tests/issue4484-merge-coverage.test.ts": "a0c4ba6a62531b373f1f32e236900326ec7252933f2e219cd1f04d18af6b49c9",
     "vendor/acp-kernel/tests/issue4521-retry-livelock.test.ts": "2fe86c30189c5f191261d817ded4970c7fe38576924e1f16ce76ba031319d601",
     "vendor/acp-kernel/tests/issue5101-truncate-blocked-latch.test.ts": "6ca3416543f2f514e22ed3afe7afda3d334d3e2c250deed239cab907059dc6f0",
     "vendor/acp-kernel/tests/issue5109-anchor-skip-injections.test.ts": "543e27cd1764a765abd8d16b67aae259beebe34884005ef82df311c3f67c9a75",
     "vendor/acp-kernel/tests/issue5337-shared-screening.test.ts": "f2c40ae393c75adf9c7f70307152ab97d0d66f515c9040edaba3086bd223e835",
     "vendor/acp-kernel/tests/issue5415-absorb-debt-nudge.test.ts": "ee71e239b738e6c04692aa88048f0be12e6a3720e407a36d0cdf29756db87e56",
+    "vendor/acp-kernel/tests/issue5432-follow-side-heal.test.ts": "f1aa8e2bd56b49634a1d1644e115d3dd7bb3d5076299d6edeef438e30b206e2d",
+    "vendor/acp-kernel/tests/issue5531-stranded-reasoning-residue.test.ts": "8944bb35f99732fa713fef40e830d9cbe33a04ebdba20315a5302700292aef4a",
     "vendor/acp-kernel/tests/issue684-turn-integrity.test.ts": "e107ab33b5a1e593d00b16583e4e3cb488689d632622504caaf58ae3ccedaa41",
     "vendor/acp-kernel/tests/media-payload.test.ts": "c5776cc220addae69af3b2699928278926afa28171551e2910c1ec5c04c1ccd1",
     "vendor/acp-kernel/tests/message-protection.test.ts": "0bc0fbb609fe070bc0b0c2ac68726652173cd2dd4c0e493f63aee49cdff11815",
@@ -6058,7 +6117,7 @@
     "vendor/acp-kernel/tests/panel.test.ts": "a9c6330e967942bf4df34d2f2cc2d650125c5d59c4e77331bbc6ba406d6a7126",
     "vendor/acp-kernel/tests/parse-compress-input.test.ts": "211dbb32a00344c68886866e831fc92ad0dd81806247c68317f5914b6ef9cec1",
     "vendor/acp-kernel/tests/persist.test.ts": "a938f16f8326c296797ceb0acdf3cec1672d66fa15de372c2ae1fce153185569",
-    "vendor/acp-kernel/tests/pipeline.test.ts": "12a49ee78c06cce6f82fe4eaf5f5c4f1d3ee107721075cfc7de06e1f88a1bce8",
+    "vendor/acp-kernel/tests/pipeline.test.ts": "55d771036926ce04588824608f220878c20d890b65f757dc06bc9273288f9410",
     "vendor/acp-kernel/tests/prompts.test.ts": "879db0bc82222968a8fa13c466ec06ab41eaff5742acfbaeb4106d95bb4f4c47",
     "vendor/acp-kernel/tests/protect-recent.test.ts": "e85c28df88238ff1933a63778431aa6b749fd03fe1e66c5c60e87bd83406ffa9",
     "vendor/acp-kernel/tests/protected-content.test.ts": "c43bb74914067026d3f6dfa2baec5c467fb3bc16f10d4671b6f789a9b4ce9665",
@@ -6080,6 +6139,7 @@
     "vendor/acp-kernel/tests/regression-empty-rewrap.test.ts": "8d86fe412adcfd57bbd139cd783b6220f37683bb2487e7c6ba5b96bba53ded23",
     "vendor/acp-kernel/tests/regression-features.test.ts": "9d6fb9d0a441edd0ec0c3c715c779b7dd4eb37f6aecb9c62699bcd5a71b99cae",
     "vendor/acp-kernel/tests/regression-promote-after-prune.test.ts": "35673a0f54f900908a6d0c00c4fbc8fd3911aa5f154a2867b8b4800a52ab287b",
+    "vendor/acp-kernel/tests/relocate-compress.test.ts": "49cdfab7bf83b89effc983f212b476525f14e23368d6ecaf586f060eaf4ac58f",
     "vendor/acp-kernel/tests/report-accounting.test.ts": "e347964f5c7378a4c487014758232dbe3ba44b60eae37640fa128ff4b5d08ae9",
     "vendor/acp-kernel/tests/report-tool-accounting.test.ts": "de6ff6265e598c9f125b7f188e1798fc8a310063048ec5e2465c12041a8ebb48",
     "vendor/acp-kernel/tests/report-truncation.test.ts": "b8dd6818d60765cc8c73eb4355f6de4c078774f9012d5bb7cee6fa5032112f2e",
@@ -6248,7 +6308,7 @@
     "vendor/computer-use/presets/package.json": "361889bb9ec09ee85971dce2fe11ec2bb4f0db2f1a1ccfd378984977c83c081a",
     "vendor/memory-cognition/LICENSE": "9a665e6361493b883988ef5b5b306e75138619b808cdd68d449752ed2be1c42c",
     "vendor/memory-cognition/NEXUS-PROVENANCE.md": "0e29439bf47edb10e8b6e9b30dddd66a598715d6eb098a0fcd33719d685a4ec1",
-    "vendor/memory-cognition/UPSTREAM-FIXES.json": "33de4a556345b9db1744b665a8aa109058b866d79e5635c0c668297afcf86502",
+    "vendor/memory-cognition/UPSTREAM-FIXES.json": "12ead0d5fb47a5eeea5d657fb3cd9f419792fca95d27f6aa59fb32a32fb9ad5f",
     "vendor/memory-cognition/VALIDATION-FIXTURES.json": "7c7269eb6c9864bd14baad9a9b378701cddbe7006fdd244625fee03f47be85db",
     "vendor/memory-cognition/data/policy.json": "4f479f9d963a6a29b5a543e0ecc2d4ad3ec29395aaebf194ae783fcdc1ef290a",
     "vendor/memory-cognition/docs/hive/检索路径与认知结构契约_v0.1.md": "192b0dd99314cecca991fe21cd0df376b412562710e9cc82b95d7af0ba5e738c",
@@ -6378,8 +6438,8 @@
     "vendor/memory-cognition/md_cg/logref.py": "4226a5e0cb9d16f9223e4a3cc6f41540f8b13bbdbf7fc5ad4ae58e3095c0fdd9",
     "vendor/memory-cognition/md_cg/mcp_server.py": "43c504330c6ef0c243b7f5e4b540d031fb3e09d91f67fcf4d30cb85c47ea3e79",
     "vendor/memory-cognition/md_cg/md_whitebox.py": "fe8d89a3ae4e9d243e0949b1e88a6e572a8708e2445e8fd426704b9663cd6749",
-    "vendor/memory-cognition/md_cg/mdcg.py": "d8f8cc9fbf4db35d44f212fb9ee9764a66e9818f922d414edd034dc2d1eca01f",
-    "vendor/memory-cognition/md_cg/mdcos.py": "1d36cd90689b87f9ddd9f6a88f4a366e33250a44078cfe008001999bbb65e223",
+    "vendor/memory-cognition/md_cg/mdcg.py": "0f58183f62dfd519ccac9f29b5244060271d9a902404593b36cc43dfba6403e1",
+    "vendor/memory-cognition/md_cg/mdcos.py": "1be5c1473908dd34b01b5ce28626d2d79a2fe0a1fcf413bdf4705f6d44f36cad",
     "vendor/memory-cognition/md_cg/memory_rsi.py": "3a026303e32037908f8f7c8d45b8ffa3c18b62dd05b52d6d7b4e7fb4fb4294df",
     "vendor/memory-cognition/md_cg/metacognition.py": "cbd13bf71ca9ecda929ed4bff7eb6e805a6f7977648863b5856150edf0657b1c",
     "vendor/memory-cognition/md_cg/migrate.py": "f875553561966c69f02cd8b85a99a2358c50378a1d4597c14ffd088a757173c9",
@@ -6448,7 +6508,7 @@
     "vendor/memory-cognition/md_cg/semantic/unify.py": "fb5d9d2597d6050c1ba14b67c876a29082cca756126e52823e4270122f83e57a",
     "vendor/memory-cognition/md_cg/semantic/unify_fixture.json": "0280992ad782bb4aebb39aaa18b8f0d8e07ccd83f23363fac304fb3a46c02614",
     "vendor/memory-cognition/md_cg/semantic/zh_en_atoms.py": "3b3e7e30fbbe33167d7158c8f8c89c3d000455f1549fff5dbfd710fc5a1a9029",
-    "vendor/memory-cognition/md_cg/session5.py": "12a5c5a5e41ee5ff447b64afa7e9a38e1c36db2ddf5353ca1e1f656ecbb987cb",
+    "vendor/memory-cognition/md_cg/session5.py": "3c28963817f72ec3eb2bedd289b1e0305d183221a2ffa1224e439383fc055e33",
     "vendor/memory-cognition/md_cg/signer.py": "e6eae5b7b79c92a9b1cb6269ce6a207183abb8dde4316327195ff29e7d7a6b67",
     "vendor/memory-cognition/md_cg/sleep.py": "df935f8721ef73db663d10393f0af0dda58b619507ebac5d11e48509b92a0f46",
     "vendor/memory-cognition/md_cg/sources.py": "00f18266354f3ac48872f73fe0dc6dde44e8c2db40b39a2cb0a4d7d01c874458",
@@ -6675,7 +6735,7 @@
     "vendor/memory-cognition/md_cg/test_issue363_lexical_idf.py": "b5e657333e8600252d35093d42c7bf95d68e26f04d67c353b2a7a300008c4939",
     "vendor/memory-cognition/md_cg/test_issue370_readcache_assembly.py": "6e629f341fd394165a8e2a4bb7a99e9c8ee83fa85d7e56fa323dbbe21dc51ef7",
     "vendor/memory-cognition/md_cg/test_issue375_state_slot_retire.py": "1f4f318a70d20b5dcc3f2ee5c66685fd5178bf09b4efc6f47dc63c45a7ba010c",
-    "vendor/memory-cognition/md_cg/test_issue376_heartbeat_failed.py": "a895e80313c700b0b8df91d5e095f753bf0d5e2ff058276bd9a579112156b4ca",
+    "vendor/memory-cognition/md_cg/test_issue376_heartbeat_failed.py": "d4749fdaf76d859a9ec5b2129f61a6a94c038b6c9ab6d5e5cafb084f984b69b7",
     "vendor/memory-cognition/md_cg/test_issue377_layer_protect_stamp.py": "4b8ff6fab7076f31f837180009779c60fa9863e92b51ad69f789de3807b39af4",
     "vendor/memory-cognition/md_cg/test_issue378_protected_floor.py": "cddb5214537f4e38d5180f1930af68686a18055e96c1ea285b5d1eff8982e0d9",
     "vendor/memory-cognition/md_cg/test_issue383_state_event_write_gate.py": "7d7ea7bfa4aebe5edd94ce792277f89c1a8d29932a2c6be0713d426dc5d3b85d",
@@ -6985,6 +7045,7 @@
     "vendor/memory-cognition/md_cg/test_sensitivity_predicate_single_point.py": "fc42631e777db814464d7762c8af2b9d04cf07a89bf030b70148d54ee43b8f2a",
     "vendor/memory-cognition/md_cg/test_server_version.py": "601dad7fc45ddef0d099aa0b4f9a900a9f5d18bdee27f5e55a842641dd889154",
     "vendor/memory-cognition/md_cg/test_session5_identity.py": "9166698be96a167e77ad451f266099e4fd2e4254b4b4c42468d06f46bb592c01",
+    "vendor/memory-cognition/md_cg/test_session5_resolve.py": "c0dd1737551e336440712dd6b63c89f3c58c0e44b3a5580a48e8f7eca75ddfa2",
     "vendor/memory-cognition/md_cg/test_session_attribution_consistency.py": "8016db93d407601c8a9a550dbd26c61d1584c7f361574c9f5854c5b0da140374",
     "vendor/memory-cognition/md_cg/test_session_identity_tristate.py": "63398d43662a38bd93b2434422615a36efffc575f740b0902c66b9495666f20e",
     "vendor/memory-cognition/md_cg/test_session_isolation.py": "66494397db76c9a48a995cc8c81144715adfba7cbbfb5c438fd6b85f98cd60fb",
@@ -7279,7 +7340,7 @@
     "vendor/memory-cognition/md_cg/writelimit.py": "f68f01f1f57f0202b9bc2391b96ab0416918eec043dfdaa4c8de31abad6e78dd",
     "vendor/memory-cognition/md_cg/writepipe.py": "f9921090588e45dc9c6d37252cc837c60391cff3e65a35b0dd46bd9e29be3e8b",
     "vendor/memory-cognition/nexus_bridge.py": "7ce554f6962a050a4a40804a7771c64cae7d3fba97b7f03c15cfae8c28d4bbec",
-    "vendor/memory-cognition/package.json": "cb65faaf0dcfcbd81e6e2d75c94013a5a31991022fca85645477a35b39e933ff",
+    "vendor/memory-cognition/package.json": "77549dae63080fb38b266f04e167539af4c05573d674389bf6face91562b0641",
     "vendor/memory-cognition/rust/src/engine.rs": "f9c9fed1a22158773724315f00c9bdde31671df6ef97b972f7ace6bbf5ef51c2",
     "vendor/memory-cognition/rust/src/freshness.rs": "70dd8e672855a644cdfe86fc05648073058c47d7b431d9c31d5421c1547d33f5",
     "vendor/memory-cognition/rust/src/retrieval.rs": "1ce03ee9092f61efa53a4260e63b21b24f1c2506abf8ba80df3e86bf1e126bd1",
@@ -7389,9 +7450,9 @@
     "vendor/nexus-terminal/.github/workflows/ci.yml": "1cbf6c0e5534943f16daac53ef85e53375dc8a86ccd7df87f9668a2a8926c606",
     "vendor/nexus-terminal/.gitignore": "374629d4fb4a7263f6fe4985875093a0a2052988cbe32886ec3fde005425113a",
     "vendor/nexus-terminal/LICENSE": "5f86556aa6d8d41118657808e1e1096781a4507d0c8181f640c4ea23847f12f0",
-    "vendor/nexus-terminal/README.md": "b834c125d9a409b4c607a49e87b63a26876a50c8e031746e5c6f91f4e67cd2a9",
-    "vendor/nexus-terminal/README.zh-CN.md": "5c6733891538ce037b0d12da7b1567796368a543125f49603d11ac0a0ed7cef1",
-    "vendor/nexus-terminal/SOURCE.json": "8a91b83cadebe4bec49ddff8f7424c9ff260e9fbf444092d1e948d63f92b27c4",
+    "vendor/nexus-terminal/README.md": "bf39b24c3f2bff56cd74bb3e15131f23642c567d7af8c316c0dab76b149a108c",
+    "vendor/nexus-terminal/README.zh-CN.md": "40db0c160ba32ed7427c01abc11c7510d384ef617a0e2bf77040af83dea7a102",
+    "vendor/nexus-terminal/SOURCE.json": "27b9b175e4860f391108eee4d60619165bc9480c9b62d53334980e03233ad844",
     "vendor/nexus-terminal/assets/icons/icon-16.svg": "14d15995040af94f6b547e145465bfb2ebcc9858ee451dab236b7819d467d9dd",
     "vendor/nexus-terminal/assets/icons/icon-small.svg": "c02a6b03bdf95d256a4b80109172c2674ee65bf5e7e1936be9ec4607a82cf030",
     "vendor/nexus-terminal/assets/icons/icon.svg": "aebc6897faada9725810e39b1ae6b73ced4baa8870e169796a12db50d6b517d9",
@@ -7402,12 +7463,12 @@
     "vendor/nexus-terminal/assets/icons/linux/48x48.png": "74383d3a24cf76c5537cc9628f95ccad78856afa939f73e7d57d4f2290b48ee8",
     "vendor/nexus-terminal/assets/icons/linux/512x512.png": "4a668406a449495e5e9f0826bff09cf5bbce10a14ed6ebacc463bd935c898946",
     "vendor/nexus-terminal/assets/icons/linux/64x64.png": "8eff74317f47ba30e727d890af7a4258d319f25b80b26558bb33b45c38619bb3",
-    "vendor/nexus-terminal/docs/README.md": "869825c080e2b243f139828e1bcc9235ef0b6d98664263ff3c895cca69c96dbc",
-    "vendor/nexus-terminal/docs/dshell-architecture.md": "21418f5646f7acdfa934f0f050d5d16826619afa7280c753f525cf8cf9ea95ad",
-    "vendor/nexus-terminal/docs/dshell-design.md": "531e73c7899beb1a359db4793ca9f13476f34a1327343b0f236f105f84a74c7b",
-    "vendor/nexus-terminal/docs/dshell-handoff-2026-10.md": "3cd46971cf8f9aff06ab954baa00c948f5916849fac387e7e4a3252a6767db66",
-    "vendor/nexus-terminal/docs/dshell-packages.md": "dfad846d76bd7b13bd99b042ce365d6edc2c60fb9f1795a5bb30ee828b34fdfd",
-    "vendor/nexus-terminal/docs/dshell-roadmap.md": "2fd9aad7741c1ca9fca649a850fd861b9e39386999fa1b13f0baf1662574e36e",
+    "vendor/nexus-terminal/docs/README.md": "fe790dd55ff8a3b3264fb70cade59fc9c243441619ffdfa832b5191670e3be82",
+    "vendor/nexus-terminal/docs/dshell-architecture.md": "5c1c65e400e86df8d2bf8956f1f617da3a53f01f09ab153a1166c99067b6f87a",
+    "vendor/nexus-terminal/docs/dshell-design.md": "378246ef43d3cfc8c3a660900cd2ac1e02ffa66360fc02d4caffa51a1e8b8c6d",
+    "vendor/nexus-terminal/docs/dshell-handoff-2026-10.md": "ab2f0bab540322e26421fab09d1dfe60d656f92ec01feb603f122fee2f7f5989",
+    "vendor/nexus-terminal/docs/dshell-packages.md": "ce1a0d3738fbb5336b18d073abb6ceca183965010794a7dde883f1bfd536b203",
+    "vendor/nexus-terminal/docs/dshell-roadmap.md": "4a9f2ff11841b1afc22011a57a9e6418347b024f4d9bf8473d31c965f744b387",
     "vendor/nexus-terminal/docs/dshell-setup.md": "ccc30dd5e3ecfa23e95dd44506f49c3d3e7902602e26dabc5b3e1dbb8532c078",
     "vendor/nexus-terminal/docs/dshell-upgrade-0.1.6.md": "bf0d90df5a616d5371a5eaf451f94285f34e67fda4fbebb999e5baa4e7ed1083",
     "vendor/nexus-terminal/docs/images/device-file-pane.png": "8bf150107632b614f3416a7564347dbcf8f0c484018785093744822ad26e54c5",
@@ -7418,15 +7479,15 @@
     "vendor/nexus-terminal/docs/images/pipe-graph.png": "13126a4642cf9956799127a581b32989704e7bdfb867e86f6f22490ea9198b48",
     "vendor/nexus-terminal/docs/images/task-block.png": "fae89f2b71edd36f9090485136a72787e9b6f8a3209b5a7d7edc73e470945fb9",
     "vendor/nexus-terminal/docs/images/usage.png": "bdf16d0f7400950159e3d4f098d409e5d93209058554b8d89ab713846b5c9999",
-    "vendor/nexus-terminal/dsh-upstream.json": "622821e26a3497f90397c90a82db7e16b6dbbd3a2943959a66c40dfd175bf877",
+    "vendor/nexus-terminal/dsh-upstream.json": "e034339d52a8c8a10c1590a872ea698dec4904ae2166ab81b170f188cc946526",
     "vendor/nexus-terminal/nexus-adapter/adapt-source.d.mts": "f383ab25d49b42c652aefb00c82b5e874927347f10a3bf24ff752f1840c1036b",
     "vendor/nexus-terminal/nexus-adapter/adapt-source.mjs": "c7eb938816ceec329017f87854541ee25c34cd6698985d9e29db41b9910f8ac3",
     "vendor/nexus-terminal/nexus-adapter/platform.ts": "6b9edf953ef3b15ff9802713246be014ca433e242fac72a8818fea57757a6a9b",
     "vendor/nexus-terminal/nexus-adapter/pty-console.d.mts": "3dcfeefe54302e524c351966b2d1ff40a22f38488d72a13bf486ba4163083864",
     "vendor/nexus-terminal/nexus-adapter/pty-console.mjs": "301d68071bfadaada4c9d8f6d2d6c0d51a53d6a5aea91fc826ab180454514b08",
     "vendor/nexus-terminal/nexus-adapter/terminal-workspace.ts": "5361e699381d908de1aa342cc09b0dd974606a3c9e924e9ab52753500f9d6c31",
-    "vendor/nexus-terminal/package.json": "c4530bd81fd0a22af68b759f47fc924b6c66ce7fa30c251baf99df3ea238167b",
-    "vendor/nexus-terminal/packages/dshell/buffer/package.json": "8fa50890c5fb5044198710173503094f5114aebc891963e4dc21edaf0dd05d48",
+    "vendor/nexus-terminal/package.json": "c4bf458e7b9dddfbd89b26d233f26d378844d847b7dd295167d4072d7513c4b2",
+    "vendor/nexus-terminal/packages/dshell/buffer/package.json": "363afc9009a0cc0cd0660f40aa3daf059f96ba599bb24528f258ea5fa33841ab",
     "vendor/nexus-terminal/packages/dshell/buffer/src/client/flow-css.ts": "2d0d7217a808db30f152138ef563930a15cc61eeea0ff0129768a62953638ce3",
     "vendor/nexus-terminal/packages/dshell/buffer/src/client/index.ts": "1cc4edeb51c709a18d1cea98ec8c6a60f16a962d07d48fb3643fc57f5e76f5d5",
     "vendor/nexus-terminal/packages/dshell/buffer/src/client/locales.ts": "d5b1c9a1f65b3eb67318e527d8537cf9e11211e4c115fd81540126cfbcfbdcde",
@@ -7451,22 +7512,22 @@
     "vendor/nexus-terminal/packages/dshell/buffer/tests/write-lanes.spec.ts": "5f72a97a06b8899396e44cd8b5d1c3cb418a58c2ae1ec4bd712bb530329566d1",
     "vendor/nexus-terminal/packages/dshell/buffer/tsconfig.json": "1f331c8afb180ab214702fe479016e0a5104aac42c4b96d055726fc11de5c253",
     "vendor/nexus-terminal/packages/dshell/buffer/tsdown.config.ts": "33f2cc608ce41e596ad4ba2f07c1024ea4ffb9e83a8c4bde189f54bc83873315",
-    "vendor/nexus-terminal/packages/dshell/bundle/cordis.patch.yml": "e380c1edb24743756c57674f3366e84001800dece79204caefddc8ca0bcf1ee1",
+    "vendor/nexus-terminal/packages/dshell/bundle/cordis.patch.yml": "a59baff613d6bae67e9094bd745d517c9b5aa3611b83aad86001b5ae06f88387",
     "vendor/nexus-terminal/packages/dshell/bundle/icon.png": "83a3bc02f7294e28eef1ddc335964ca454575e528e3d207133a51abe07213144",
-    "vendor/nexus-terminal/packages/dshell/bundle/package.json": "2de971563a91e1d7f4e59890d93d7ab0769f5fc0d389a114c0dd11530f36aa60",
+    "vendor/nexus-terminal/packages/dshell/bundle/package.json": "b22099317bf7ec1d51d7c19dc83751c476b4f07184dfc7691e2bd693b2d9683a",
     "vendor/nexus-terminal/packages/dshell/bundle/src/index.ts": "02aef8ae52c02ef57a06a9734193791524861878f94b5e8cd89db36139ff5adf",
     "vendor/nexus-terminal/packages/dshell/bundle/tests/host-rows.spec.ts": "a1a83871151c1e11f25485e0f17170cd8f3028c356d15a4cff83e72dc702e7b9",
     "vendor/nexus-terminal/packages/dshell/bundle/tsconfig.json": "892a5de3c52c51f7fd0b2cb0ae85da88bff2e3e3b14e684d22a7bb9dce24ca3e",
-    "vendor/nexus-terminal/packages/dshell/commands/package.json": "efe69f4e53386bd137b0b258424eec07b4323fc850f66a643c76bf7dd6775b16",
+    "vendor/nexus-terminal/packages/dshell/commands/package.json": "5f15e775caf3c39e0bbefe8da5e5f452692e67119d2bcb093f73df265393916f",
     "vendor/nexus-terminal/packages/dshell/commands/src/host-locales.ts": "34cb2a1da8f3b025e6cfe2d54179aa8199869b5eb47811afae96f404d31c7123",
     "vendor/nexus-terminal/packages/dshell/commands/src/index.ts": "5ab8edd905035b18204a1b6b3c8557696240ec283a4c4ae2c3efb46f88577a51",
     "vendor/nexus-terminal/packages/dshell/commands/tsconfig.json": "83857525127cc44d06fd75bc383c7d5ea7f07a23f0b2c82012b5c69d676986f6",
-    "vendor/nexus-terminal/packages/dshell/conversation/package.json": "15f5149d77050f61ddc73d85fac3289f10e40fa10a56b349b7de574bfd7270f5",
+    "vendor/nexus-terminal/packages/dshell/conversation/package.json": "904019656848cd3bc7e2d66c7b3ed3b714200467f3d1f1084e855dbaaccf09e8",
     "vendor/nexus-terminal/packages/dshell/conversation/src/client/index.ts": "dcf38377aaa7502b485cf4315a8983430daabf49dab2b929457b258661c26ea8",
     "vendor/nexus-terminal/packages/dshell/conversation/src/index.ts": "ff8d59bbf0a28b258c672deb48f57c0b66df6bae0b32fd6dded55ea18dbed94b",
     "vendor/nexus-terminal/packages/dshell/conversation/tsconfig.json": "8fccd0493643090239c802ada8a4bca9a5dd49abdee93c2b68216bb72c8e17d0",
     "vendor/nexus-terminal/packages/dshell/conversation/tsdown.config.ts": "1b22625726278998386fbac965e72cf8a0394aa49cf40ddada2f609faf871c0f",
-    "vendor/nexus-terminal/packages/dshell/files/package.json": "408dda36134462f9dbb912aef80ef5b0c5a533c3f400ed8222c7f174f6d88ead",
+    "vendor/nexus-terminal/packages/dshell/files/package.json": "936a1232c20f35baa169f1efa6c2056583f59e8683c92425d4d3dd079c99f435",
     "vendor/nexus-terminal/packages/dshell/files/src/client/address.ts": "b7872d42850eb5d6e64bdab187367972c2faf5da67dbf8afe6ab28d5be2157b6",
     "vendor/nexus-terminal/packages/dshell/files/src/client/body.ts": "332a69d8a872c2d1303690fc5639bf2d6a3603d9d97cf91123a21b33f944759d",
     "vendor/nexus-terminal/packages/dshell/files/src/client/client.ts": "f6a14b41f6a27569b14f960faed09372ce990edb0800f3b74f0a79340c0a6abf",
@@ -7489,7 +7550,7 @@
     "vendor/nexus-terminal/packages/dshell/files/src/index.ts": "6345fe7ddbc8e8095e848a06c0f3bec70e43d5e7c5de64344cf89c98384d273f",
     "vendor/nexus-terminal/packages/dshell/files/src/protocol.ts": "93f6291a8ec9ab193f591084e49f44ae6eaf3f7d25977bfa899cd0bb47c31aff",
     "vendor/nexus-terminal/packages/dshell/files/src/readings.ts": "11afb37b14b348e130f8bac3d39c8d5f4b8323e9cc510d130ae08c25e6cc70d6",
-    "vendor/nexus-terminal/packages/dshell/files/src/route.ts": "ee2875e843272796e34b62e575fb48057a4befa2b3e251449e434a95c68bc762",
+    "vendor/nexus-terminal/packages/dshell/files/src/route.ts": "522a003b3828431474ae3179aa70c539f712b64afbb7c6bcc80e14e1967b4027",
     "vendor/nexus-terminal/packages/dshell/files/src/shell-completion.ts": "675af0917327a8cb62d2da2132bd88b817d5127db8d958433f8e238c2354b9ba",
     "vendor/nexus-terminal/packages/dshell/files/src/shell-quote.ts": "805263aa3ad00ce34603f4a0a3682fc78dd7758cafea396f6804a7f8d1058b7d",
     "vendor/nexus-terminal/packages/dshell/files/src/transfer-protocol.ts": "89d5b52afc2560f9c602278a697ef82452fbf8ca82fdad159d9b9a06ceeace2f",
@@ -7501,10 +7562,11 @@
     "vendor/nexus-terminal/packages/dshell/files/tests/shell-completion.spec.ts": "146e7c0da295112016cd3116898514cbd66b5276224effd3b6229609ea0ddb80",
     "vendor/nexus-terminal/packages/dshell/files/tsconfig.json": "bc3ed07d38316235c3598d25ab06742d736ce7b55f30c6861b6539f419401ae1",
     "vendor/nexus-terminal/packages/dshell/files/tsdown.config.ts": "d8e92cf23db3240b90ab57b6daa69a895d1fcc06415c8995627c14c3b8d4efbf",
-    "vendor/nexus-terminal/packages/dshell/mode/package.json": "0a2beea1efe4ba55458d0f3fe6cc373424650ed788a713ab7bbb6ea247a2a895",
+    "vendor/nexus-terminal/packages/dshell/mode/package.json": "1caa3588e49e3e523c21b30e50dca49b5152c2afb24f11f3b53b082499f7c368",
+    "vendor/nexus-terminal/packages/dshell/mode/src/client/admin-seat.ts": "9576de47f0988201ae3088c868283fa833a17314d330eb43a761afb9808431b5",
     "vendor/nexus-terminal/packages/dshell/mode/src/client/agent-block.ts": "3706497b04e9454de62f31aa4b33d8b40d1622ae2c097e38653abae4ad67ba8e",
     "vendor/nexus-terminal/packages/dshell/mode/src/client/block-model.ts": "38da9c21dbdacb88448e6b80fd79d98fa3bc1cf4eed901f6046741069b16d7f2",
-    "vendor/nexus-terminal/packages/dshell/mode/src/client/block-terminal.ts": "cd442bdc10118379aa679728312e50dfb418755eeb3084d7a84910c81f664ef6",
+    "vendor/nexus-terminal/packages/dshell/mode/src/client/block-terminal.ts": "b0fcd4fd758595a024468110b5d2af6d133e9c0a91a445e7f7564b5e274364d3",
     "vendor/nexus-terminal/packages/dshell/mode/src/client/block-view.ts": "c498f47f30c322b7ea834f539f92d2c87f4b8de5e33e3ff74263541e858d9b78",
     "vendor/nexus-terminal/packages/dshell/mode/src/client/blocks.ts": "6cb5f06e202b891cc55b33c018d66c7ba33cf034cce81de825e233fbe5d34e81",
     "vendor/nexus-terminal/packages/dshell/mode/src/client/bookmark-rail.ts": "416188bff98f67a8960f196a9883b24bfe3a0fb717d5854e00ac96d7e1e925a1",
@@ -7528,8 +7590,8 @@
     "vendor/nexus-terminal/packages/dshell/mode/src/client/device-title.ts": "dcff8838c9426b6682402c03c3df4c91fa9d2264c134e2fd3e2ef91940229071",
     "vendor/nexus-terminal/packages/dshell/mode/src/client/dsh-icons.ts": "f1be167da498e16f1ce1af6fff09b6073ce181973e3bd73cd4709c1939e4729d",
     "vendor/nexus-terminal/packages/dshell/mode/src/client/images.d.ts": "c80f0f2e0f74cd85d8086054b71e15c3f4d01de11f360f34a4f5bb46f75e8427",
-    "vendor/nexus-terminal/packages/dshell/mode/src/client/index.ts": "b616665381fe21c46dcc0f46afe146573b8e3f732689d22393d2a6beffb12f75",
-    "vendor/nexus-terminal/packages/dshell/mode/src/client/locales.ts": "1b454a05e624263a3c7989feb2e67a00cdbf15b70ede6d0206149d0d72ccb9bf",
+    "vendor/nexus-terminal/packages/dshell/mode/src/client/index.ts": "37e7bcd89d0c42d10714dae7e222a2265d103fd905386b8452cc06df5156645e",
+    "vendor/nexus-terminal/packages/dshell/mode/src/client/locales.ts": "c70c8ba09ec4a27507f784fbba7f0f98ff86f803fa0020728a9fd222e3e06d16",
     "vendor/nexus-terminal/packages/dshell/mode/src/client/markdown.ts": "9ca67647e19e6e8931062d2001dbc52f61d5de94a9f94b8de064b0fbd8ca79e1",
     "vendor/nexus-terminal/packages/dshell/mode/src/client/palettes.ts": "e70226aa52d598e032d7cdf1c535053774ed00284579a4bc8068fb8964e639f7",
     "vendor/nexus-terminal/packages/dshell/mode/src/client/rename-dialog.ts": "b29c4b19e5accfb0ddfc63ea73270ae3184702d699c5d89b3f2252e5d3454562",
@@ -7574,18 +7636,21 @@
     "vendor/nexus-terminal/packages/dshell/mode/tests/device-panel-render.spec.ts": "ed3508361bde175b7ddff39ea923a1cfa2905d18bfed8bf573c1064002338cc5",
     "vendor/nexus-terminal/packages/dshell/mode/tests/device-panel-view.spec.ts": "9f7b3e668e0d81f37d40c9b4b7d58b2e9e951ab666fb1cb2b471624e8510528b",
     "vendor/nexus-terminal/packages/dshell/mode/tests/palettes.spec.ts": "72553b2aedb139ab6d0d546d9c70fb3873c590dfe9239e9e00cdf526cfb8f91b",
-    "vendor/nexus-terminal/packages/dshell/mode/tests/region-rows.spec.ts": "9393621d341f5f70376df0cb4574c4ffe8e74c654ca446172ef146b7a634ff74",
+    "vendor/nexus-terminal/packages/dshell/mode/tests/region-rows.spec.ts": "4d84686cb5223115589c98956555569cb8793aa3463b94fe5174d6bb11649004",
     "vendor/nexus-terminal/packages/dshell/mode/tests/shell-report.spec.ts": "a9bb230ff78affd6ec9045c23a3eb33fa5512b1d353865fa59613e929e1f7c11",
     "vendor/nexus-terminal/packages/dshell/mode/tests/status-card.spec.ts": "12876c70db6d9445af72b6292a29da19cce6e804a4da370893308cb7fb7838d8",
     "vendor/nexus-terminal/packages/dshell/mode/tests/terminal-mode.spec.ts": "499357b996d61a24a40adaca700fd75e6b21085d0277a3746e713ddb38f644f8",
     "vendor/nexus-terminal/packages/dshell/mode/tsconfig.json": "82f32671579242b35c2dfd7846320b79f8420e59344337c41947cc18d60aa71b",
     "vendor/nexus-terminal/packages/dshell/mode/tsdown.config.ts": "1700c2d4b2e0f1b566b1ced14fbc147bc4d0338b21c56a5adf079fcef5befa05",
-    "vendor/nexus-terminal/packages/dshell/ssh/package.json": "abff14b36b68b5a373386f95b5664dcd0ce16ad66824461400dec53a486ea21a",
+    "vendor/nexus-terminal/packages/dshell/ssh/package.json": "aae4bf5ca8f566884f3410c36e712383d1faea4b70298e9e24aec5b788983894",
     "vendor/nexus-terminal/packages/dshell/ssh/scripts/drop-intermediates.mjs": "3edbed4cd21320f6fbc28ad2c33f0a72608d8e5b0a4d3e86f5f4d866f6e1abe8",
     "vendor/nexus-terminal/packages/dshell/ssh/src/channel-process.ts": "d509926f0a46e10a9227d42d0da0bb144b460a0f1ff0669b21740df8c2d4623c",
-    "vendor/nexus-terminal/packages/dshell/ssh/src/client/card.ts": "bfb9a1f41c4633d6b0309b366e0f83b886bded0ed724d4a03e992c5329b76104",
-    "vendor/nexus-terminal/packages/dshell/ssh/src/client/index.ts": "90c118aa99f21ba613db342d865543abbe7817daf444976fc4b9191f78736639",
-    "vendor/nexus-terminal/packages/dshell/ssh/src/client/locales.ts": "899612c4194b2e41fcaa017439b01914b631e751d10935850f7dc85d33c86e3e",
+    "vendor/nexus-terminal/packages/dshell/ssh/src/client/admin.ts": "0b5c43893bdd576a009a61de39864673204547e86ed9793dbd2166ca95345fce",
+    "vendor/nexus-terminal/packages/dshell/ssh/src/client/card-styles.ts": "a5a404ea61a538828985c262a3767a1b34daa68cff0c853354020864033b99fb",
+    "vendor/nexus-terminal/packages/dshell/ssh/src/client/card.ts": "f9265a8c252159e04168cecf3e1e6a05a45b702e314cc9805f4af507719b560a",
+    "vendor/nexus-terminal/packages/dshell/ssh/src/client/index.ts": "2d60224084b0c554efd6ad8229a7157535d9b4f5749e5e191c890e9668a7d4ea",
+    "vendor/nexus-terminal/packages/dshell/ssh/src/client/locales.ts": "df8931591264f4b8666d2444b09f0fa4c57908514b5d1d4faf34f8df02ef87fd",
+    "vendor/nexus-terminal/packages/dshell/ssh/src/client/nav-icon.ts": "71ad39eb8f69e27f88671eb39f2d79c7adb591f040a4fd24b8105b183b678cf2",
     "vendor/nexus-terminal/packages/dshell/ssh/src/client/service.ts": "03d2b7bbeff688a7e3c27993f330c2bd6fbfacc2a40f3e43eafc8e10972482b9",
     "vendor/nexus-terminal/packages/dshell/ssh/src/client/session-bind.ts": "cbd108f3781411f3977c70fe588b1e5a9da77f6fcefd3128195d79cfe5afe9b5",
     "vendor/nexus-terminal/packages/dshell/ssh/src/client/vault-card.ts": "6343eff4e356a81e2efbf5f1d845fd835d74902f933ce5929df82e4836e1f7e9",
@@ -7593,10 +7658,10 @@
     "vendor/nexus-terminal/packages/dshell/ssh/src/credentials.ts": "23b9f8e3bc8ea139b7e1668e00d0e671231871a4ba42269130e7bf7caa770b9a",
     "vendor/nexus-terminal/packages/dshell/ssh/src/device-dialect.ts": "a257c58c4400bb748142318c06d7e0390d4251676691fc45ded3bdee68b55a21",
     "vendor/nexus-terminal/packages/dshell/ssh/src/device-fs-provider.ts": "8a72c5bb310e53e58f53bf28901688e79aaffc92089ad0b0482ff24d1e3a71ad",
-    "vendor/nexus-terminal/packages/dshell/ssh/src/devices.ts": "f1428a868070d69d39aede1b2a48491aceab04fd7896ab075c47438efd668435",
+    "vendor/nexus-terminal/packages/dshell/ssh/src/devices.ts": "1198116cd7d33e66136d6850679241d29ebff2577cda08473e0fe4248cd75335",
     "vendor/nexus-terminal/packages/dshell/ssh/src/forward/forwarder.ts": "81c811fe0a4675b5b784d1605f30f2d3bbf62c0629dc6dc98225bf931637fdcd",
-    "vendor/nexus-terminal/packages/dshell/ssh/src/forward/route.ts": "802a48a1f8344ace92faf99254c8f3341279aa2f46441677ce8584e5e8a5051a",
-    "vendor/nexus-terminal/packages/dshell/ssh/src/forward/tool.ts": "6c009600c7b65146b5169e5cd5fb2128e68b099755573692e7caf54d22f067c4",
+    "vendor/nexus-terminal/packages/dshell/ssh/src/forward/route.ts": "3e1ea9ee74bc1fcde56f599b60497602a40f47ce8cac79c37b0e8d95075b34ad",
+    "vendor/nexus-terminal/packages/dshell/ssh/src/forward/tool.ts": "828b52583dde875bafe3ccf5cdb2f346a17f0e1c772e3a56d63587924fd47960",
     "vendor/nexus-terminal/packages/dshell/ssh/src/fs-routing.ts": "7216b5473cddb3679a78f95066be17c56ba0b2bee0e2d748f9b4c4236dbc87f6",
     "vendor/nexus-terminal/packages/dshell/ssh/src/helper-entry.ts": "aca3d39713539da7a1c69e3c28d0b4bb7a38dc110429f7139dabfe586bbe00a6",
     "vendor/nexus-terminal/packages/dshell/ssh/src/helper/fs.ts": "2a7592756332575fff3d2b374bc5b63110deda4f0f9566f6b19e78abd1a02904",
@@ -7604,29 +7669,30 @@
     "vendor/nexus-terminal/packages/dshell/ssh/src/helper/processes.ts": "6cd59ea7ba7e61e8f65d66f7f1d7ec6b1b76889e3762fe0dd622d30daea08f2a",
     "vendor/nexus-terminal/packages/dshell/ssh/src/helper/protocol.ts": "e2d8108ef3d2fd49650265459ae0ffd44115117bb11eea77771adbdee1ca66cb",
     "vendor/nexus-terminal/packages/dshell/ssh/src/helper/run.ts": "903356e41cb50854a6e9d20e8930f02e0e5893ba358b366f860d5011dbe282cd",
-    "vendor/nexus-terminal/packages/dshell/ssh/src/helper/target.ts": "f5169dbe5ada5e481a59bd27058b253eb4147e06633b67fa8583d30f28578e62",
+    "vendor/nexus-terminal/packages/dshell/ssh/src/helper/target.ts": "589c67b888973667b12e0fcbd226918cb19cb9399af6d31a719e3fa7ac03bd7c",
     "vendor/nexus-terminal/packages/dshell/ssh/src/host-key.ts": "d992954ff900851f6482527166c05806fec6b2d80e40b96bec2eaacbc6f6414c",
-    "vendor/nexus-terminal/packages/dshell/ssh/src/host-locales.ts": "7ec30f8aa95af255746c27e99b0cd389b6feaf9cbc1433c4b90e0b90594d52e0",
-    "vendor/nexus-terminal/packages/dshell/ssh/src/index.ts": "0e1c745538914bc49a3e3885dd82219a9ed832ff87bc14f21dfcd4e60f57e30e",
+    "vendor/nexus-terminal/packages/dshell/ssh/src/host-locales.ts": "6b027297cb01c70d7b6f7e1edcb41489e15d500cdaaf9e34adcbb2897fcbc61f",
+    "vendor/nexus-terminal/packages/dshell/ssh/src/index.ts": "7822284eef0fe11bdff9176eaf8005a3ec1a4df539d15ae80f0139ace01000c7",
     "vendor/nexus-terminal/packages/dshell/ssh/src/literal-edit.ts": "bd9517c893ca70676291f1bf5539f02ee0a0bb5715ab8f7b0d2363d3f3fbc3a4",
     "vendor/nexus-terminal/packages/dshell/ssh/src/local-keys.ts": "ea0865d77ea7041b462f851cbaf94e2212d676a46cc121264863a469f4eb5c9e",
-    "vendor/nexus-terminal/packages/dshell/ssh/src/mount.ts": "0f6fac9badc6aed6739ba00d16aad617a4186e4adf7be9083101f570e3cfbeea",
+    "vendor/nexus-terminal/packages/dshell/ssh/src/mount.ts": "9d29cf417a59c1bcbf420698bf64c55d245c4ef862dcbccfd2b41819066c8471",
     "vendor/nexus-terminal/packages/dshell/ssh/src/paths.ts": "f72191c28c1ec5919a6b509cf61e3249c840be10d6d9c7d4f36c4a6bfdb504a2",
     "vendor/nexus-terminal/packages/dshell/ssh/src/protocol.ts": "6d09f51f435adca8721b34465ba2ebaa592937b98417327fb5a99a3d7318c28e",
+    "vendor/nexus-terminal/packages/dshell/ssh/src/registry.ts": "a0baa08914e597d43223f895ad00c752780dbf0eb5f52d9870c05bbf0a1dc94b",
     "vendor/nexus-terminal/packages/dshell/ssh/src/remote-fs-helper.ts": "e1147ec3f70a8f146b1150db6e39305a78b3ecfa8c0ad2e1931c81f690ca633d",
-    "vendor/nexus-terminal/packages/dshell/ssh/src/remote-fs-shell.ts": "3961f48b9c9aa0e3fedfea4b1088752f6ff08a94c9b1e34b802e9306694153b5",
+    "vendor/nexus-terminal/packages/dshell/ssh/src/remote-fs-shell.ts": "f621404ddf20e72f2e8bd9a73c58364d0294a0a2a6a2b3f306968900145d6d87",
     "vendor/nexus-terminal/packages/dshell/ssh/src/remote-fs-transport.ts": "2258ffc17606f7549a9d175c76419fea07eeec5b192f17e2d87f7071f8c691fd",
     "vendor/nexus-terminal/packages/dshell/ssh/src/remote-fs.ts": "933899331ea6f102c9c3697a2af79ce48837a5fe560d989d367d2b85a259cb18",
     "vendor/nexus-terminal/packages/dshell/ssh/src/remote-process.ts": "0642ea48b17d89b57c967559b99132886f5b8116e28adbc8365165ee37f1f733",
     "vendor/nexus-terminal/packages/dshell/ssh/src/route.ts": "a9bf195851f859543187f054aaa9b19c56b7f6eda8c599deca8bb728d52c942a",
-    "vendor/nexus-terminal/packages/dshell/ssh/src/router.ts": "dc89804e2e2ef69934f947f1fad5795ead32ab3ef3d5b899b2994abe278c5735",
+    "vendor/nexus-terminal/packages/dshell/ssh/src/router.ts": "f812fbc5305cc3bc17c310d213e5fe5a59eada8d6bda059f5ef8e13f62e743d8",
     "vendor/nexus-terminal/packages/dshell/ssh/src/shell-quote.ts": "c164ee2d3f327b988cf4e477fdc3d0b9c4ebf49b1552a71f6df87cd0a4fbec72",
-    "vendor/nexus-terminal/packages/dshell/ssh/src/spawn-routing.ts": "396f79ec55cd58431794df0c51009ed02e6c71c94307f29c97f8d66b976d5ec7",
+    "vendor/nexus-terminal/packages/dshell/ssh/src/spawn-routing.ts": "32d688c9a2f3563b2ca2c9456ba8e4218cf3d05a2463642f737063732a4ea64b",
     "vendor/nexus-terminal/packages/dshell/ssh/src/ssh-settings.ts": "8213d066bedc102e5ce7bbda3ece9b60a04b39bf9b9d120c66e8115cf3d5e060",
     "vendor/nexus-terminal/packages/dshell/ssh/src/transport/auth.ts": "717c0e9e1ea615ca134ae5a23b363dec02d4dc07d9727734a4d4b5698ca45460",
     "vendor/nexus-terminal/packages/dshell/ssh/src/transport/errors.ts": "382e5a1da462676ab938d1c61c83459fd665e998753c421145f9523ff4673e3d",
     "vendor/nexus-terminal/packages/dshell/ssh/src/transport/known-hosts.ts": "a56a53d0c296ff03cd4f214d6a6bb91d95207255a51890a615d5c0a92180a9c1",
-    "vendor/nexus-terminal/packages/dshell/ssh/src/transport/transport.ts": "f3d484e4a21710a6950d42e1b048bd9a6ea1023b22fb40e541caa892c2035ceb",
+    "vendor/nexus-terminal/packages/dshell/ssh/src/transport/transport.ts": "f636ae1abe603fa07d37c6aa44d744e7e150cacf7ddad6ebc0d03cbcba7d4005",
     "vendor/nexus-terminal/packages/dshell/ssh/src/vault.ts": "0e6a5c97c2c0d816290ab4be4c0dfefdf19ed2423d6024958545242ea4a5bbb2",
     "vendor/nexus-terminal/packages/dshell/ssh/tests/ambient-scope-routing.spec.ts": "29eb7a6841ccc0190f65c43c42482bea003598a8812912a0d25137c9e2053e34",
     "vendor/nexus-terminal/packages/dshell/ssh/tests/bind-respawn.spec.ts": "bcbbab07bf355ca452f5b606ff92422ba811c8ef7195368b6ac39df06e1df554",
@@ -7638,10 +7704,10 @@
     "vendor/nexus-terminal/packages/dshell/ssh/tests/device-namespace.spec.ts": "dd63b9011668441c533ee5764f7637b29c9ee1c0b2f4acb6e991be18c8125410",
     "vendor/nexus-terminal/packages/dshell/ssh/tests/device-path.spec.ts": "595095d2c24606812e9ed1489180a2adb410b403250fc0d1471d3762bee94c38",
     "vendor/nexus-terminal/packages/dshell/ssh/tests/device-paths.spec.ts": "28560eb5110314f064252fcd1e620369d5a0f863c6d93354fbd5ad718cabe27c",
-    "vendor/nexus-terminal/packages/dshell/ssh/tests/device-store.spec.ts": "6836f91416904c16495fa6868441148a082d38d598b6d424c5e3ad168a476dc7",
+    "vendor/nexus-terminal/packages/dshell/ssh/tests/device-store.spec.ts": "e334c57b84d6bc43ab4e611c17a7bee40e54369b785e26407405515e7e25f8e5",
     "vendor/nexus-terminal/packages/dshell/ssh/tests/forward-end-to-end.spec.ts": "86a669836218a9618bd4b6bd54c50935fdeb9c1099615095e7b2bc18945f6b6e",
-    "vendor/nexus-terminal/packages/dshell/ssh/tests/forward-route.spec.ts": "e6a90855f99b24bdf870302367a60f599fa2419dfd8dc4bbac7a267aed6ec8b0",
-    "vendor/nexus-terminal/packages/dshell/ssh/tests/forward-tool.spec.ts": "8b3be9417bac457ba87d41c98627e9e3441c7cf3f09ebd1b3380ca1b458042b1",
+    "vendor/nexus-terminal/packages/dshell/ssh/tests/forward-route.spec.ts": "05b9a98a2aaff342b00095bf44a9ea550af5862bd90a3aecbaddea7c09adfd41",
+    "vendor/nexus-terminal/packages/dshell/ssh/tests/forward-tool.spec.ts": "9879be747c4034c3365bbd1960bf8c76abe4ae7bc2579dc8825aa17497274de6",
     "vendor/nexus-terminal/packages/dshell/ssh/tests/forwarder.spec.ts": "305c43f10ddff6266ebbb72a3c08a2129f090e79e2a01028f849f854644365ab",
     "vendor/nexus-terminal/packages/dshell/ssh/tests/harness-home.spec.ts": "0f53597fce54cc9acd10e9cfc814b06f609c35f5a08cf2e8702e2bbc8675b3b7",
     "vendor/nexus-terminal/packages/dshell/ssh/tests/helper-artifact.spec.ts": "5ac5d2cdb39fed8263663485f239d8211293c397ce1dbd94cdc21a8f77bbd681",
@@ -7651,6 +7717,7 @@
     "vendor/nexus-terminal/packages/dshell/ssh/tests/locked-credential.spec.ts": "9c4489f880278e37cc5b19ad1bfaf0afbfd3e099e1b78eb67c0b5c8cd0a73cd8",
     "vendor/nexus-terminal/packages/dshell/ssh/tests/mount-alias.spec.ts": "1ce03b55e8325bb27b8dca352f707d141728f17fefc1c2d73efbd13960c0baa1",
     "vendor/nexus-terminal/packages/dshell/ssh/tests/passphrase.spec.ts": "7913bafa24aaf5a1e6a16d712757b4a16f6f3cdeee8ec131767dc77115305dfa",
+    "vendor/nexus-terminal/packages/dshell/ssh/tests/registry.spec.ts": "27241c6e001db3ebef4e1f1ee853ca50431c8756cabeca456e037579e21d0a57",
     "vendor/nexus-terminal/packages/dshell/ssh/tests/remote-fs-helper.spec.ts": "7fcbb37c12560012dde42590b6e541b2651175b7e659c6f2a8a03915c60c8a3e",
     "vendor/nexus-terminal/packages/dshell/ssh/tests/remote-fs-paths.spec.ts": "c42de454391721cf963b11cd6924260a5db31734688a9b2bab9a2f2e900514d6",
     "vendor/nexus-terminal/packages/dshell/ssh/tests/remote-fs.spec.ts": "b9b74237c3e512ff2b50efe959368d83e5506d795fd7a69cc40e153f7c6de728",
@@ -7663,7 +7730,7 @@
     "vendor/nexus-terminal/packages/dshell/ssh/tsconfig.json": "bc3ed07d38316235c3598d25ab06742d736ce7b55f30c6861b6539f419401ae1",
     "vendor/nexus-terminal/packages/dshell/ssh/tsdown.config.ts": "cfb7efce0e4e70f0052e8a9b013cdfd2f84cbd8f15d8119709259301e82833a6",
     "vendor/nexus-terminal/packages/dshell/std/package.json": "856509870b5b8af2ca23f8b848c2d278243af264fc4f90e06c66e19339b58559",
-    "vendor/nexus-terminal/packages/dshell/std/src/contracts.ts": "39f4c618b573684c7eef1f64ead87bd47eb8a2ce1dab67d4e08fc5c2b2a854b8",
+    "vendor/nexus-terminal/packages/dshell/std/src/contracts.ts": "758e2e21f1ae6317137af17247bd698ec211daa4abf465c552f29068a87950db",
     "vendor/nexus-terminal/packages/dshell/std/src/data-root.ts": "c58f143b825fe1870cf76aacd8c3d326ab17fda08bc110931bba2908f8ef2275",
     "vendor/nexus-terminal/packages/dshell/std/src/host-copy.ts": "f9331100266b544ceba884312e2747820d981d76d6f34e8dca303744927faadf",
     "vendor/nexus-terminal/packages/dshell/std/src/index.ts": "702fdc403b799b87a37ce24da033ea56ae11c185d34b0e7916f8e1878af37db8",
@@ -7677,11 +7744,11 @@
     "vendor/nexus-terminal/packages/dshell/storage/src/history.ts": "30d0a3e303ec11ba654cc7a9f1ee93423c7eebf12ee9a5d418e6c10c2efc7d97",
     "vendor/nexus-terminal/packages/dshell/storage/src/index.ts": "c64e1686cd01a364fdcd50f301585154f76bd199688284ee80caebdd895e88ad",
     "vendor/nexus-terminal/packages/dshell/storage/tsconfig.json": "3690081550b7d3c046f231597d53aa1fec218e958a9f123c0bb6ab06e4746e2f",
-    "vendor/nexus-terminal/packages/dshell/terminal-bridge/package.json": "4660e61b1b2d97dc4c916a371aaab8d12bad2ea008698f28db7697569e0341f4",
+    "vendor/nexus-terminal/packages/dshell/terminal-bridge/package.json": "21eb5e4a2a64745bdf7d1d7d3921279f2a05e6a20b7648932f3629a6e2511820",
     "vendor/nexus-terminal/packages/dshell/terminal-bridge/src/blocks.ts": "7a2ed6ac0971486dc832b5aac0bb2bbdbdee370451d97db6681f6c743797fb50",
     "vendor/nexus-terminal/packages/dshell/terminal-bridge/src/buffer.ts": "8f5d3cc050ed12fbad00bac7bca2fc108d4bd6b599b36f6393def944f554b61e",
     "vendor/nexus-terminal/packages/dshell/terminal-bridge/src/client/channel.ts": "1090a0bdca104b011c818783c32da3c95459992431bbab0d48c01d0460aec67f",
-    "vendor/nexus-terminal/packages/dshell/terminal-bridge/src/client/index.ts": "d2934fd575594dc0957c456803fb895b44ce289c32b5dfeed82a80e2007b7688",
+    "vendor/nexus-terminal/packages/dshell/terminal-bridge/src/client/index.ts": "be5f27d0bc819afc1f8ab406749b61bcfdfd4b21b3b6da4fe77e760a014b3600",
     "vendor/nexus-terminal/packages/dshell/terminal-bridge/src/client/locale-report.ts": "1f5d4115c82fe2784c70f848754f7df60e14b3cb3edb27241b24da1542ec2089",
     "vendor/nexus-terminal/packages/dshell/terminal-bridge/src/client/locales.ts": "cdbc6fd4338710647adf415762c8cd84b077d2f0995a6636afd95462f5a35ac6",
     "vendor/nexus-terminal/packages/dshell/terminal-bridge/src/client/timeline.ts": "2ba3e651e67ca2cde75f8b80067f074805d654cfa4f9028e30350984bef768a8",
@@ -7708,7 +7775,7 @@
     "vendor/nexus-terminal/packages/dshell/terminal-bridge/tests/ssh-failure.spec.ts": "b3e5e7d1eddce7f93fc29a91288a9ded5d541645449a40ee438a283b63f95941",
     "vendor/nexus-terminal/packages/dshell/terminal-bridge/tsconfig.json": "8fccd0493643090239c802ada8a4bca9a5dd49abdee93c2b68216bb72c8e17d0",
     "vendor/nexus-terminal/packages/dshell/terminal-bridge/tsdown.config.ts": "d36affb0d9215cd883c19a0e5fbea22bec8109fddda95766a5f206abae77863c",
-    "vendor/nexus-terminal/packages/dshell/usage/package.json": "b54b32eba811898be69f753a97add2301870d48d90dc7b30530bf2f5db5c615b",
+    "vendor/nexus-terminal/packages/dshell/usage/package.json": "e2af4c37789c1edb0ff9f16d5256ce0a0146fa04ea72fb7f2d7ea5944613f9d3",
     "vendor/nexus-terminal/packages/dshell/usage/src/client/heatmap.ts": "73dc9243db42c2d5cd8883f4cecb1aa1909e9cbb071f51bd6fcdc61229f31d90",
     "vendor/nexus-terminal/packages/dshell/usage/src/client/index.ts": "84028f91999160cb81752f83211be50a417de1df67316bc2590e921e28ab0da6",
     "vendor/nexus-terminal/packages/dshell/usage/src/client/locales.ts": "919268883cbdce0a894e064f7afaf1acac8ea42ebb3362b0cad9908393eda996",
@@ -7724,34 +7791,48 @@
     "vendor/nexus-terminal/packages/dshell/usage/tests/usage-index.spec.ts": "81d5c4345c9136927f7957166eeab563b41de149e866e3f7a943a52eb9750309",
     "vendor/nexus-terminal/packages/dshell/usage/tsconfig.json": "6dc41c4c30a82dcdeb7fdf57582969c71e0ec415a267aa2da27334cbfc451313",
     "vendor/nexus-terminal/packages/dshell/usage/tsdown.config.ts": "e5140aea41f1cdd4f216ed278148e9b04ec5aef4ef95e221a55e97f38679cb1f",
-    "vendor/nexus-terminal/pnpm-lock.yaml": "2eece16067e8260e1c72970c05293c76487dda1e439647911a2a771f23c8eb58",
+    "vendor/nexus-terminal/packages/dshell/wsl/package.json": "a0b806ba9e20cf291322f4e2a2d4116acb4f0d98b40154669c05a4978e3f65d5",
+    "vendor/nexus-terminal/packages/dshell/wsl/src/client/admin-seat.ts": "4ca9ce502aa4fcbebf173a85c064e0d0508ffcce6a091fb2d7d9586e298121e2",
+    "vendor/nexus-terminal/packages/dshell/wsl/src/client/card-styles.ts": "fc96e9b669545c3c9a7ed37f46a03f440aaf7d1295deb144f2b5701cc49d40f2",
+    "vendor/nexus-terminal/packages/dshell/wsl/src/client/index.ts": "2c90f107216168561f87c405fd113ef34b7f4ee10e4ab5fddec5059603bff41c",
+    "vendor/nexus-terminal/packages/dshell/wsl/src/client/locales.ts": "99985b6a541a8a9758a35b6c0758de6c60ced7ddb28cc3ee70fd00325c6ff207",
+    "vendor/nexus-terminal/packages/dshell/wsl/src/client/wsl-card.ts": "547bbe52394efd5791e130dad85676dfea8c977af5d5081d35ee7ca097d184e8",
+    "vendor/nexus-terminal/packages/dshell/wsl/src/index.ts": "af7c50198d825a909574d21efbdf19f2f98aaeb6cb6233d475df3f300afe41d8",
+    "vendor/nexus-terminal/packages/dshell/wsl/src/provider.ts": "0a6f5d4d64e4102c0de663279c705e681c87f6404450f1d2c6efe8d0bdd16a7c",
+    "vendor/nexus-terminal/packages/dshell/wsl/src/transport.ts": "6addcf104899a2744468da19cf585457fe6dae5928dfac860eab52cba2c70bb8",
+    "vendor/nexus-terminal/packages/dshell/wsl/tests/wsl.spec.ts": "10d4548b0b66dc0c37501aede745204bdaee8e7649091fb82ca7e2dbaa809434",
+    "vendor/nexus-terminal/packages/dshell/wsl/tsconfig.json": "6dc41c4c30a82dcdeb7fdf57582969c71e0ec415a267aa2da27334cbfc451313",
+    "vendor/nexus-terminal/packages/dshell/wsl/tsdown.config.ts": "1ce707b2f22d8ac825adf53ccde89ddfc99b564919d7e56b21ec1168a9aad40a",
+    "vendor/nexus-terminal/pnpm-lock.yaml": "ef3c0625808bf243277f83e3101905516360e6076a7615215fa17fed4eff3b44",
     "vendor/nexus-terminal/pnpm-workspace.yaml": "35caf297c0015c67cf475b7cf9acb88c5a49708ecd3ef37c286b7427a9ecb112",
     "vendor/nexus-terminal/scripts/bootstrap-profile-client.sh": "14af3ea066927ad22c737ae5ae4c0ef10f0120037dadf4e0d45d3a75f86940f4",
     "vendor/nexus-terminal/scripts/dshell-ui-order-acceptance.mjs": "1c14f75a675abb0fc5b6ee732d7c5b095697bdf6e3b3d4d7c9ffe81ae031d64c",
     "vendor/nexus-terminal/scripts/electron-builder.linux.config.mjs": "f2e5b150e3826991b159bfcfefd87ec779eab54f94693b2b7802598d6589f913",
     "vendor/nexus-terminal/scripts/fetch-upstream.mjs": "a8beb29e166324f2072d75af810f8142b3624aeb0607260be32c0728c0faa415",
-    "vendor/nexus-terminal/scripts/install-into-dsh-profile.sh": "ae649661d3bc8f857144b4d28649639bb162bc75e9b1453aa879b51584273eed",
+    "vendor/nexus-terminal/scripts/install-into-dsh-profile.sh": "dab262305d761c1a2e5bfdcb8d4b25d8029e045d005f4c8da3a30c3c0e9c0533",
     "vendor/nexus-terminal/scripts/linux-desktop.mjs": "1da89e7f526a8952ce40ca515b7c27785ed1ce9dd9ebb73b43accf09853a36e4",
     "vendor/nexus-terminal/scripts/linux-target-hooks.mjs": "b313c9c5748198f8dd7aa8165784aaa36eb43945d1803657037b1461842d9fd9",
     "vendor/nexus-terminal/scripts/linux-target-patch.mjs": "a37f24cf96fe7ce54b80dddc82b5db3cac1b607f539b0985f62708329860d919",
     "vendor/nexus-terminal/scripts/local-registry.mjs": "8efc6307746d7c70aa1d4f7b36eb6728bf2e454ac0dd45a0f64693dd504b9ca6",
     "vendor/nexus-terminal/scripts/package-linux.mjs": "30527c797966abc71f730998d6718c5991ab704d11a68ff666d0d766368bb04e",
-    "vendor/nexus-terminal/scripts/sync-host-range.mjs": "64b2eddffdf22b3c1ce4efd52e138113de56cb9e206297d932120a96e6e51d75",
+    "vendor/nexus-terminal/scripts/sync-host-range.mjs": "911cf6e91c3274c9cc86c4a509aa5fb2753bc4b8890b2df944936aab28b6bb39",
     "vendor/nexus-terminal/scripts/tests/linux-desktop.spec.ts": "83e85a05594f1babc66fcc54b38d48c0353cfd4882e53011bb01df2b1d17f6fc",
     "vendor/nexus-terminal/scripts/tests/manifest-contract.spec.ts": "4b59afa97909fd0d630c1b4671c3570888d24dcf54a05f01c93d6f798681d737",
     "vendor/nexus-terminal/scripts/tests/repo-hygiene.spec.ts": "d77c7be1cb379946d519ad22287349b6f93b3b6e450b2faf7b4ccf7420ca3670",
+    "vendor/nexus-terminal/scripts/tests/upstream-surface-any.spec.ts": "3778ad5b628cd0d1596cf71bcaf2b51b9af08c0f45c538e7027b7da0ebfd24c2",
     "vendor/nexus-terminal/scripts/tests/upstream-surface-bites.spec.ts": "81619374fb7852f17818f088ae590f98e9614189ed7df3ef6f26d752746d6dc2",
     "vendor/nexus-terminal/scripts/tests/upstream-surface.spec.ts": "5885f0f3c51e6048357b1e949ca1eef805f634e21e9a4ecde5ca13eba0980dd1",
-    "vendor/nexus-terminal/scripts/upstream-surface.ts": "a2124e82ffbaa1cca119da4ca167e4c122558b8c374a3691e695c4845fa09fd5",
+    "vendor/nexus-terminal/scripts/upstream-surface.ts": "ae23d2cefe401fb873f5b4e9220b1d568f21c42c6d28e5f5b39b9561d61a91ce",
     "vendor/nexus-terminal/tsconfig.base.json": "297974cb330e99c1aca434cd7df7c3c7b9c6afe69b1cb26a3d425f5523c86c23",
-    "vendor/nexus-terminal/tsconfig.client.json": "5f75f916d4c05ec5c80aa550447d3668765a9a7b7fc6843b659a683c64e65b98",
-    "vendor/nexus-terminal/tsconfig.host.json": "9730f5239acd821c20e9a32dad68e2e9a9cdb6103493eb7e87452be399d26056",
+    "vendor/nexus-terminal/tsconfig.client.json": "38b7bab7856d000a6798476edb7986ba9e50e4dff57e166f909a174657bd5887",
+    "vendor/nexus-terminal/tsconfig.host.json": "17a23d91ec4b438683de86fbd28faa9d341bb9eeb848e2846fca94b249a0582e",
     "vendor/nexus-terminal/tsdown.dshell.preset.ts": "c6568b9193110d7658b327c4f232748cddb3257cf9078388240c15c25ce1d39d",
     "vendor/nexus-terminal/vitest.config.ts": "0600be8c44fab819d899ec0852a1580138994e176a0e95a890f15053d7d84cac",
     "vendor/veyra-code/LICENSE": "46934d13f6d4b5382ff877b7746cdd896dc0db606422edfe884f893673455fdb",
+    "vendor/veyra-code/THIRD_PARTY.md": "b04b752686780a60ec6c4b81932f74fa9afb333ec6a6897e83c4d88e0c46f9c9",
     "vendor/veyra-code/discovery.d.mts": "c482ce0d484c8c12f6732e2028568f94f5f8dbb2aa5459a390e9a347a12587c3",
     "vendor/veyra-code/discovery.mjs": "47ccaf5d4379ebbcd25d66bd8ddc1d4d26a80a095762902c92505d464aa70e1e",
-    "vendor/veyra-code/redact.mjs": "0662c4c36c2f130555b98bbf5bc7ae804b0833add70b75ac11a3a83c6fdca2d7",
+    "vendor/veyra-code/redact.mjs": "d6536aaeda7ad3cd95c4a725a2850d1278e04e7d6924866a99a59b55d37c726c",
     "vendor/veyra-code/types.mjs": "217965b74000b649f180529a683c44a5dd139776cd8f22fddd8c22a658b5ae88"
   },
   "codeReview": "Restricted source not copied; independent implementation retains Git/SVN review behavior. Candidate paths and source inclusion do not assert behavior parity or acceptance completion.",
@@ -7762,7 +7843,7 @@
     "deployment recovery snapshots",
     "research binary installer archives"
   ],
-  "maintenance": "2026-11-02 complete 153-source audit; 12 published runtime updates, Cognition 0.9.21 + upstream aliases fix, kernel 0.0.176 and dshell 0.1.16; docs/upstream-audit-2026-11-02.json",
+  "maintenance": "2026-11-05 complete 154-source inventory (including newly identified Veyra code bridge); 11 rc.5-compatible npm updates, Cognition 0.9.22, kernel 0.0.178, Veyra redaction 0.1.69, Aegis 2.15.0 and dshell same-version Git update. Candidate rc.1 is not adopted; docs/upstream-audit-2026-11-05.json",
   "localCompanions": [
     {
       "package": "@local/dsh-forge-tools",

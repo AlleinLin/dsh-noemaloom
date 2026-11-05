@@ -46,6 +46,7 @@ import { DshellLeftControls } from './controls.js'
 import { createShellCompletion, ShellCompletionList } from './completion.js'
 import { createCommandHints, ShellCommandHint } from './command-hint.js'
 import { DshellModeConfigPage } from './config-page.js'
+import type {} from './admin-seat.js'
 import { DSHELL_BUNDLE_NAME, mainSessionId } from '@nexus-aethra/dshell-std'
 import { adoptTheme, connectThemeSettings } from './theme.js'
 import { dshellDeviceDefinition, DSHELL_DEVICE_PANEL_ID } from './device-definition.js'
@@ -738,6 +739,22 @@ export function apply(ctx: Context): void {
     {
       name: 'plugins.row.config',
       key: `${DSHELL_BUNDLE_NAME}#dshell-mode`,
+      locale: NS,
+    },
+    DshellModeConfigPage,
+  ))
+  // The same two cards, into the dshell 管理台's card list: the settings
+  // section dshell-ssh owns renders every contribution in order, so a reader
+  // manages the terminal, the data root and the devices in one page. The
+  // component is the row-config page itself — its cards are self-contained
+  // (module stores, no injected service) — so this is one registration, not
+  // a second implementation.
+  ctx.slots.inject('dshell.admin.card', () => ctx.slots.register(
+    {
+      name: 'dshell.admin.card',
+      id: 'mode',
+      order: 30,
+      label: () => t('config.nav'),
       locale: NS,
     },
     DshellModeConfigPage,

@@ -17,6 +17,9 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
 
 /** Simplified Chinese dictionary and key-set source of truth. */
 export const zh = {
+  'admin.nav': 'dshell',
+  'admin.intro': '这里集中管理 dshell 的一切：SSH 设备与凭据、内建设备（各提供者包注册）、终端偏好与数据目录。',
+  'admin.card.devices': '设备与凭据',
   'card.title': 'SSH 设备',
   'row.summary': '登记远程设备与凭据；绑定到会话后，该会话的工具就在远端机器上执行。',
   'bind.title': '本会话运行在哪台设备',
@@ -99,6 +102,9 @@ export type DshellSshKey = keyof typeof zh
 
 /** English dictionary, checked complete against the Chinese key set. */
 export const en = {
+  'admin.nav': 'dshell',
+  'admin.intro': 'Everything dshell configures, in one place: SSH devices and credentials, the built-in devices each provider package registers, terminal preferences and the data root.',
+  'admin.card.devices': 'Devices & credentials',
   'card.title': 'SSH devices',
   'row.summary': 'Register remote devices and their credentials; a session bound to one runs its tools on that machine.',
   'bind.title': 'Which device this session runs on',

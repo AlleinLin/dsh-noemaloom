@@ -29,6 +29,7 @@ PLUGINS=(
   commands
 
   ssh
+  wsl
   buffer
   files
   usage

@@ -92,3 +92,38 @@ describe('regionMetrics — the display that was erased is not height', () => {
     expect(rowsAt(`done\r\n\r\n\r\n\r\n`)).toBe(1)
   })
 })
+
+describe('regionMetrics — a ConPTY repaint is not content', () => {
+  /** The full-screen repaint a WSL ConPTY emits on resize: home, every row of
+   * its (mostly empty) grid, then the prompt. Real shape, from a WSL session. */
+  const repaint = (prompt: string, blanks: number): string =>
+    `\u001b[?25l\u001b[H${'\u001b[K\r\n'.repeat(blanks)}${prompt}`
+
+  it('does not count the blank screen a bare home-move repaint re-emits', () => {
+    // ESC[H with no parameters — ConPTY's resize signature, no ESC[2J in
+    // sight. The pre-repaint rows are history; the repaint's blanks are dead.
+    const text = `old output\nmore output\n${repaint('gpumem@LAPTOP:~$ ', 26)}`
+    expect(rowsAt(text)).toBe(1)
+  })
+
+  it('trims the region text to its ink span', () => {
+    const text = `old output\n${repaint('gpumem@LAPTOP:~$ ', 4)}`
+    const metrics = regionMetrics(text)
+    // The pre-repaint ink is the region's own scrollback: kept.
+    expect(metrics.trimFrom).toBe(0)
+    expect(text.slice(metrics.trimFrom, metrics.trimTo)).toBe(`old output\n${repaint('gpumem@LAPTOP:~$ ', 4)}`)
+  })
+
+  it('cuts the dead head when the region opens with a repaint', () => {
+    const text = repaint('gpumem@LAPTOP:~$ ', 5)
+    const metrics = regionMetrics(text)
+    expect(text.slice(metrics.trimFrom, metrics.trimTo)).toBe('gpumem@LAPTOP:~$ ')
+  })
+
+  it('keeps blank rows that sit BETWEEN ink — spacing the shell chose', () => {
+    const text = 'head\r\n\r\n\r\ntail'
+    const metrics = regionMetrics(text)
+    expect(text.slice(metrics.trimFrom, metrics.trimTo)).toBe(text)
+    expect(renderedRows(metrics, 123)).toBe(4)
+  })
+})

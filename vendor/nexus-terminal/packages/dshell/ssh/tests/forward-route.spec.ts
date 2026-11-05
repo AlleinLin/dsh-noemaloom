@@ -85,6 +85,7 @@ class FakeSeat implements ForwardSeat {
 /** A router that says one session is on a device and another is not. */
 function routerWith(device: DeviceConnection | undefined) {
   return {
+    registry: { forwardsAllowed: (): boolean => true, refusal: (): string | undefined => undefined },
     targetForSession: (sessionId: string) =>
       device === undefined || sessionId !== 's-device'
         ? undefined

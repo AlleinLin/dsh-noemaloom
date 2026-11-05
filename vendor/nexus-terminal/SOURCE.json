@@ -7,14 +7,17 @@
   "archiveEntries": 375,
   "license": "MIT",
   "dshellPackageVersion": "0.1.16",
-  "preserved": "Pinned upstream Git tree (including device-detail and session-owned file routing); original user archive retained as acquisition history. Local Windows transformations remain in nexus-adapter/.",
+  "preserved": "Complete 373-blob upstream Git tree, independently checked against the pinned Git tree; original archive digest retained only as acquisition history. Existing native registration set and local Windows transformations remain separate.",
   "adaptations": "nexus-adapter/ holds explicit fail-closed build transformations and Windows platform support.",
-  "revision": "82e1bf5a0859ea866f88505cff36c8c76b74bb38",
+  "revision": "89ef983e47e204dbee54398e5c65d677638dcec3",
   "sourceKind": "git-snapshot",
   "snapshot": {
     "repo": "https://github.com/Nexus-Aethra/Nexus-Terminal",
-    "revision": "82e1bf5a0859ea866f88505cff36c8c76b74bb38",
-    "sha256": "79435d47536e4e50a4d27f69a1a5e4264cadcbfada18c4707e711267445c97e9"
+    "revision": "89ef983e47e204dbee54398e5c65d677638dcec3",
+    "sha256": "352fa8921fc208ee0482628f71281e32032ac46b57783c5be76436621273eb0a",
+    "hashKind": "sha256-json-sorted-upstream-file-sha256-manifest",
+    "gitTree": "89ef983e47e204dbee54398e5c65d677638dcec3",
+    "files": 373
   },
-  "sourceReview": "docs/upstream-audit-2026-11-02.json"
+  "sourceReview": "docs/upstream-audit-2026-11-05.json"
 }

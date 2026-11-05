@@ -19,7 +19,9 @@ import type {} from '@deepseek-ai/dsh-client-ui-workspace/client'
 // Type-only: pulls the Plugins-panel SlotMap (`plugins.row.config`).
 import type {} from '@deepseek-ai/dsh-client-ui-plugin-manager/client'
 import { DSHELL_BUNDLE_NAME } from '@nexus-aethra/dshell-std'
+import { DshellAdminPage } from './admin.js'
 import { DshellSshConfigPage } from './card.js'
+import { watchDshellNavIcon } from './nav-icon.js'
 import { en, zh } from './locales.js'
 import { SshClientService } from './service.js'
 import { DshellSessionDeviceButton } from './session-bind.js'
@@ -37,8 +39,46 @@ export type { DshellSshKey } from './locales.js'
 
 export function apply(ctx: Context): void {
   ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'dshell-ssh: dictionaries')
+  const t = ctx.locale.bind(NS)
   const ssh = new SshClientService(ctx)
   void ssh.load()
+  // The 管理台: one settings section whose body is a card list contributed by
+  // whichever dshell packages are composed in (the children declaration is
+  // what authorizes the page's renderSlot). This package owns the frame and
+  // contributes the device surface; dshell-mode contributes the terminal and
+  // data-root cards into the same seat.
+  ctx.slots.inject('settings.section', () => ctx.slots.register(
+    {
+      name: 'settings.section',
+      id: 'dshell',
+      order: 45,
+      label: () => t('admin.nav'),
+      locale: NS,
+      children: { 'dshell.admin.card': { kind: 'list', scope: 'root' } },
+      inject: () => ({ ssh }),
+    },
+    DshellAdminPage,
+  ))
+  // The row's own icon, because this seat carries none: dsh draws a generic
+  // gear for any section id it does not ship (see nav-icon.ts).
+  ctx.effect(() => watchDshellNavIcon(() => t('admin.nav')), 'dshell-ssh: navigation icon')
+  // The device card, into the seat the 管理台 renders: the same surface the
+  // Plugins row's configure control opens, so a reader manages devices either
+  // beside the plugin or in the console — one component, two doors.
+  ctx.slots.inject('dshell.admin.card', () => ctx.slots.register(
+    {
+      name: 'dshell.admin.card',
+      id: 'devices',
+      order: 10,
+      label: () => t('admin.card.devices'),
+      locale: NS,
+      inject: () => ({ ssh }),
+    },
+    DshellSshConfigPage,
+  ))
+  // A device kind with its own transport and no credential brings its own
+  // card, registered into this same seat from its own package: such a kind is
+  // a provider's surface, not this registry's.
   // The page itself is the registered component: its `t` seat comes from the
   // declared namespace, and the device service travels as the inject face, so
   // both reach it as composed props. The panel keys the entry by the row it

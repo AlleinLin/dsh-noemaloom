@@ -142,6 +142,7 @@ function routerWith(bound: readonly string[]) {
     notify(sessionId: string, deviceId: string | null): void {
       for (const listener of [...listeners]) listener(sessionId, deviceId)
     },
+    registry: { forwardsAllowed: (): boolean => true, refusal: (): string | undefined => undefined },
     targetForSession: (sessionId: string) => boundSessions.current.includes(sessionId)
       ? { device: device(), remoteRoot: '/root', mount: undefined }
       : undefined,

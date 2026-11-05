@@ -16,7 +16,7 @@
 
 import type { Context } from '@deepseek-ai/cordis'
 import type { DshellDataRootSeat, HostCopy } from '@nexus-aethra/dshell-std'
-import { DSHELL_DATA_ROOT_SERVICE } from '@nexus-aethra/dshell-std'
+import { DSHELL_DATA_ROOT_SERVICE, DSHELL_DEVICE_REGISTRY } from '@nexus-aethra/dshell-std'
 // Type-only: pulls the host agent service merge (ctx.agents.currentInitiator).
 import type {} from '@deepseek-ai/dsh-agent'
 // Type-only: pulls the host connection merge (ctx.connection.fetch).
@@ -33,7 +33,7 @@ import { createSshRoute } from './route.js'
 import { Forwarder } from './forward/forwarder.js'
 import { createForwardRoute } from './forward/route.js'
 import { installForwardTool } from './forward/tool.js'
-import { deviceTransport } from './transport/transport.js'
+import { deviceTransport, useDeviceRegistry } from './transport/transport.js'
 import { installShellRouting, SSH_ROUTING_SERVICE, SshRouter } from './router.js'
 import { installSpawnRouting } from './spawn-routing.js'
 import { installDeviceDialect } from './device-dialect.js'
@@ -43,6 +43,19 @@ export const name = '@nexus-aethra/dshell-ssh'
 export { DSHELL_SSH_PATH, type DeviceView, type SshResponse } from './protocol.js'
 export { harnessHome, mountBase, sshDeviceRoot } from './paths.js'
 export { SSH_ROUTING_SERVICE } from './router.js'
+// The provider contract and its door vocabulary: what a device-kind package
+// writes its provider against. Type-only — the runtime dependency runs one
+// way, from the provider into this package's registry.
+export type {
+  DeviceCommand,
+  DeviceDoors,
+  DeviceExecOptions,
+  DeviceExecResult,
+  DeviceOutcome,
+  DeviceShell,
+  DshellDeviceProvider,
+  DshellDeviceSeam,
+} from './registry.js'
 export { DEVICE_SHELL_TOOL } from './device-dialect.js'
 export { isUnder, mappingFor, mountFor, toMountPath, toRemotePath, type MountMapping } from './mount.js'
 export type { SshSettings } from './ssh-settings.js'
@@ -77,6 +90,12 @@ export function apply(ctx: Context): void {
     // of the stock backend — can resolve a call's session without this module
     // handing it anything directly.
     ctx.provide(SSH_ROUTING_SERVICE, router)
+    // The built-in device providers register here — each in its own package,
+    // so this one never learns a kind's vocabulary; publishing the service is
+    // what lets them, and pointing the transport dispatcher at it is what
+    // routes their devices.
+    ctx.provide(DSHELL_DEVICE_REGISTRY, router.registry)
+    useDeviceRegistry(router.registry)
     // Bind host copy as soon as its provider is up: this package's host methods
     // compose user-visible refusals, and the translator resolves the language at
     // call time, so a switch needs no re-binding.

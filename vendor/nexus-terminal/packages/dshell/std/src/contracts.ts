@@ -679,8 +679,15 @@ export interface DshellForwardResponse {
 /** Settings namespace owned by this plugin; also the device card's slot key. */
 export const SSH_SETTINGS_NAMESPACE = 'dshell-ssh'
 
-/** How a device authenticates. */
-export type DeviceAuth = 'key' | 'password'
+/**
+ * How a device authenticates.
+ *
+ * `'wsl'` marks a built-in WSL distribution: there is no handshake to
+ * authenticate, the distro is its own credential, and the row exists only
+ * while `wsl.exe` reports the distribution on this machine. It never reaches
+ * the SSH dial path.
+ */
+export type DeviceAuth = 'key' | 'password' | 'wsl'
 
 /**
  * What dshell knows about the helper on a device.
@@ -726,6 +733,14 @@ export interface DeviceView {
   readonly remoteRoot: string
   /** Selected login method. */
   readonly auth: DeviceAuth
+  /**
+   * Whether the row is a provider's built-in rather than a stored device.
+   *
+   * A built-in cannot be edited, deleted, or re-credentialled — its row exists
+   * only while the provider reports it — so every surface that offers those
+   * actions filters on this instead of on any one provider's vocabulary.
+   */
+  readonly builtin?: boolean | undefined
   /**
    * The vault credential this device logs in with.
    *
@@ -787,6 +802,70 @@ export interface DeviceInput {
    */
   readonly credentialId?: string | undefined
 }
+
+// ─── devices — the connection shape and the provider registry key ───
+// moved from packages/dshell/ssh/src/devices.ts
+
+/**
+ * How one device's stored secret is obtained.
+ *
+ * The two parts answer to two different prompts — the key and its passphrase
+ * are read as two separate facts, and one file can only be one of them.
+ *
+ * Both hand back PLAINTEXT rather than a path. The transport used to be given a
+ * path to a key file, and that file was the only reason a sealed secret had to be
+ * written down at all: an external `ssh` can only read a path. The transport is
+ * a library now, so it is given the bytes, and a credential sealed in a group is
+ * opened through that group — never written to disk to be read back.
+ */
+export interface DeviceSecret {
+  /**
+   * The key or the password, as it should be sent.
+   *
+   * @returns the secret, or undefined when the device holds no such secret.
+   */
+  readonly open: () => Promise<string | undefined>
+  /**
+   * The key's passphrase, when the key needs one.
+   *
+   * @returns the passphrase, or undefined when there is none.
+   */
+  readonly passphrase?: () => Promise<string | undefined>
+}
+
+/** Connection parameters resolved for one connection attempt. */
+export interface DeviceConnection {
+  readonly id: string
+  readonly name: string
+  readonly host: string
+  readonly port: number
+  readonly user: string
+  readonly remoteRoot: string
+  readonly auth: DeviceAuth
+  /**
+   * Which transport serves this device, in the serving package's own
+   * vocabulary.
+   *
+   * `undefined` reads as the ssh package's own transport — every device the
+   * registry itself dials. A provider's connections carry whatever kind the
+   * provider named them; readers outside the provider treat it as opaque.
+   */
+  readonly kind?: string
+  /**
+   * The device's stored secret, resolved when a connection is made.
+   *
+   * A resolver rather than a value, because a secret sealed in the vault is
+   * opened through its group: the device list is cached for the life of a
+   * session, and a secret resolved when that list was read would outlive the
+   * unlock that produced it. Resolving at the connection means a group locked in
+   * between refuses the connection, which is the honest outcome — and a refusal
+   * that names the group, rather than a file that is not there any more.
+   */
+  readonly secret: DeviceSecret | undefined
+}
+
+/** The cordis service key the device-provider registry is published under. */
+export const DSHELL_DEVICE_REGISTRY = 'dshellDeviceRegistry'
 
 /** What kind of secret a vault credential holds. */
 export type CredentialKind = 'key' | 'password'

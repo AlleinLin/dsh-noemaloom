@@ -8,6 +8,11 @@ versions, copyright notices, source identities, and modifications.
 - billion-context / acp-kernel — source: https://github.com/ranxianglei/billion-context.
   Preserve its complete license, attribution, and product-surface attribution terms.
 - FuRongJun-1999/dsh-memory `md_cg` — MIT; original source and license retained.
+- Veyra 0.1.69 redaction — MIT, with validated identifier patterns adapted
+  upstream from mnemon (Apache-2.0). The upstream attribution and complete
+  Apache license are retained in `notices/LoveDoLove__Veyra/THIRD_PARTY.md`.
+  Discovery and type modules remain the separately identified 0.1.54 subset;
+  the new external codebase bridge is tracked without installing its daemon.
 - omdsh-dev/dsh-mnemon providers — MIT; drivers are adapted to Nexus-owned transport,
   scope, secret references, cancellation, and lifecycle.
 - Anionex/dsh-turn-rewind — BSD-3-Clause; recovery core and notice retained.
@@ -45,7 +50,7 @@ versions, copyright notices, source identities, and modifications.
   templates and four standalone tools are retained in `vendor/agent-procedures/`.
   The explicit native command adapter preserves lazy file lookup and gives user
   read-only instructions priority over the original inbox-write suggestion.
-- Nexus-Aethra/Nexus-Terminal 0.1.15 — MIT; the complete user-supplied archive source,
+- Nexus-Aethra/Nexus-Terminal 0.1.16 — MIT; the pinned upstream source,
   original dshell UI and Cordis registrations are retained in
   `vendor/nexus-terminal/`. `nexus-adapter/` holds the host process-provider,
   sandbox, PowerShell, path and package-resolution adaptations. Archive hashes

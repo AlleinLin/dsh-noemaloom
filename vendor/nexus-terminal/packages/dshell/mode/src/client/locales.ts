@@ -100,6 +100,7 @@ export const zh = {
   // The settings card.
   'settings.title': '终端与输入辅助',
   'config.summary': '终端配色、输入辅助，以及 dshell 自己文件的存放目录。',
+  'config.nav': '终端与数据',
   'settings.group.theme': '终端配色',
   'settings.group.poll': '资源读数',
   'settings.poll.label': '轮询间隔',
@@ -512,6 +513,7 @@ export const en = {
 
   'settings.title': 'Terminal and input assists',
   'config.summary': 'Terminal palette, input assists, and where dshell keeps its own files.',
+  'config.nav': 'Terminal & data',
   'settings.group.theme': 'Terminal palette',
   'settings.group.poll': 'Machine readout',
   'settings.poll.label': 'Poll interval',

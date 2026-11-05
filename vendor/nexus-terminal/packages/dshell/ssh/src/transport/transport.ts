@@ -28,7 +28,6 @@ import type { Duplex, Readable } from 'node:stream'
 import { createHash } from 'node:crypto'
 import type { ClientChannel, ConnectConfig, ExecOptions } from 'ssh2'
 import { Client } from 'ssh2'
-import type { DeviceConnection } from '../devices.js'
 import { sshKnownHostsPath } from '../paths.js'
 import { connectConfig } from './auth.js'
 import { classifyDeviceError, hostKeyMismatch } from './errors.js'
@@ -41,75 +40,27 @@ import {
   recordHostKey,
 } from './known-hosts.js'
 
-/** How one remote command ended. */
-export interface DeviceOutcome {
-  /** The remote exit status, or null when it ended on a signal. */
-  readonly exitCode: number | null
-  /** The signal that ended it, when it did. */
-  readonly signal: string | null
-  /**
-   * The channel was closed without an exit status: the far side tore it down.
-   *
-   * Not a signal and not a cancellation — the command's fate is unknown, and
-   * the only honest reading is that the connection is gone. A caller that can
-   * repeat its command (see {@link DeviceTransport.exec}) says so; a caller
-   * that cannot reports it as the loss it is.
-   */
-  readonly connectionLost?: boolean
-}
-
-/** One running remote command, before its output has been read. */
-export interface DeviceCommand {
-  /** The command's stdin and stdout, as one duplex channel. */
-  readonly stream: Duplex
-  /** The command's stderr, a stream of its own. */
-  readonly stderr: Readable
-  /** Settles with the remote outcome; never rejects. */
-  readonly done: Promise<DeviceOutcome>
-  /** Ask the device to stop. Fire-and-forget; `done` reports the result. */
-  terminate(signal?: string): void
-}
-
-/** What one collected command produced. */
-export interface DeviceExecResult extends DeviceOutcome {
-  readonly stdout: string
-  readonly stderr: string
-  /** Whether the stdout cap dropped bytes from the front. */
-  readonly truncated: boolean
-}
-
-/** Options one command runs with. */
-export interface DeviceExecOptions {
-  /** Cancellation; the remote side is asked to stop. */
-  readonly signal?: AbortSignal | undefined
-  /** Bound on the run, after which the command is terminated. */
-  readonly graceMs?: number | undefined
-  /** Environment additions for the remote process. */
-  readonly env?: Record<string, string | undefined> | undefined
-  /** Bytes to write to the command's stdin before it is closed. */
-  readonly stdin?: string | Uint8Array | undefined
-  /**
-   * Leave the command's stdin open for the caller to write to.
-   *
-   * The default closes it, which is what `ssh -T` gave a command that asked for
-   * no input: the remote side sees EOF rather than a pipe nobody writes to, and a
-   * program that reads stdin therefore ends instead of waiting for the grace
-   * period. A caller that wants to write later says so here.
-   */
-  readonly openStdin?: boolean | undefined
-}
-
-/** A pty-backed remote shell, which is what a visible terminal is. */
-export interface DeviceShell {
-  /** The shell's stdin and stdout, as one duplex channel. */
-  readonly stream: Duplex
-  /** Settles with the shell's exit status; never rejects. */
-  readonly done: Promise<DeviceOutcome>
-  /** Resize the remote terminal. */
-  setWindow(rows: number, cols: number): void
-  /** End the shell. */
-  close(): void
-}
+// The transport wire vocabulary — outcome, command, exec result, options,
+// shell — is the provider registry's vocabulary too (a provider's transport
+// builds them outside this package), so it is declared in `../registry.ts` and
+// re-exported here under the names every consumer has always imported.
+export type {
+  DeviceCommand,
+  DeviceExecOptions,
+  DeviceExecResult,
+  DeviceOutcome,
+  DeviceShell,
+} from '../registry.js'
+import type {
+  DeviceCommand,
+  DeviceConnection,
+  DeviceDoors,
+  DeviceExecOptions,
+  DeviceExecResult,
+  DeviceOutcome,
+  DeviceShell,
+} from '../registry.js'
+import { type DshellDeviceRegistry } from '../registry.js'
 
 /** What a host key probe found. */
 export interface ProbedHostKey {
@@ -649,4 +600,28 @@ export function deviceTransport(): DeviceTransport {
 /** Bind the process-wide transport; tests replace it with one of their own. */
 export function useDeviceTransport(transport: DeviceTransport | undefined): void {
   shared = transport
+}
+
+// The provider registry, pointed here when the composition installs it (see
+// `../registry.ts`). Module state like the transport singleton above: the
+// dispatcher is consumed from places that have no context of their own.
+let deviceRegistry: DshellDeviceRegistry | undefined
+
+/** Point the dispatcher at a registry; undefined restores the ssh-only dispatch. */
+export function useDeviceRegistry(registry: DshellDeviceRegistry | undefined): void {
+  deviceRegistry = registry
+}
+
+/**
+ * The doors one device is reached through.
+ *
+ * A registered provider's doors answer for its own devices; every other
+ * device — every stored row — goes through this package's pooled ssh2
+ * transport. The dispatcher lives here rather than beside any one transport,
+ * so adding a device kind never means editing the seams that consume it: the
+ * probe, the subprocess lane, the filesystem commands and the shell plan all
+ * call this and consume the three doors (see `DeviceDoors` in dshell-std).
+ */
+export function transportFor(device: DeviceConnection): DeviceDoors {
+  return deviceRegistry?.doorsFor(device) ?? deviceTransport()
 }

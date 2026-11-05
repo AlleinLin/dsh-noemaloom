@@ -486,6 +486,13 @@ export class PtyStreamService extends Service {
    */
   resize(cols: number, rows: number): void {
     if (cols <= 0 || rows <= 0) return
+    // An unchanged grid is not a request. Every resize a ConPTY pty honors
+    // makes it repaint its whole screen into the log, and the ResizeObserver
+    // here fires for cosmetic jitter too — each of those spent a repaint.
+    // The replay on (re)bind goes through flushSize directly, so skipping the
+    // duplicate never starves a shell of the grid it must start at.
+    const known = this.desiredSize
+    if (known !== undefined && known.cols === cols && known.rows === rows) return
     this.desiredSize = { cols, rows }
     this.flushSize()
   }

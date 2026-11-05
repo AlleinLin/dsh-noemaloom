@@ -205,6 +205,14 @@ async function runForward(
       if (target === undefined) {
         return { forwards: deps.forwarder.listSession(sessionId), message: 'this session does not run on a device' }
       }
+      if (!deps.router.registry.forwardsAllowed(target.device.id)) {
+        // A provider's device declines with its own words — the route's refusal
+        // says the same thing to the panel.
+        return {
+          forwards: deps.forwarder.listSession(sessionId),
+          message: deps.router.registry.refusal(target.device.id) ?? 'this device does not forward ports',
+        }
+      }
       const opened = await deps.forwarder.open({
         sessionId,
         device: target.device,

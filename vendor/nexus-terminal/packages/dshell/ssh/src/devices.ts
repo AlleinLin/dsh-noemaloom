@@ -14,9 +14,15 @@ import { chmod, mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import type { DshellSshTranslate } from './host-locales.js'
 import type { DeviceAuth, DeviceInput, DeviceView } from './protocol.js'
-import type { DeviceHelperStatus } from '@nexus-aethra/dshell-std'
+import type { DeviceConnection, DeviceSecret, DeviceHelperStatus } from '@nexus-aethra/dshell-std'
 import type { CredentialStore } from './credentials.js'
 import { DeviceSshError } from './transport/errors.js'
+import { type DshellDeviceRegistry } from './registry.js'
+
+// The connection shapes are the provider registry's vocabulary too (a provider
+// builds them outside this package), so they are declared in dshell-std and
+// re-exported here under the name every ssh module has always imported.
+export type { DeviceConnection, DeviceSecret }
 
 /** A stored device record; the secret path is absent when none is stored. */
 interface DeviceRecord {
@@ -63,55 +69,6 @@ const SAFE_ID = /^[a-z0-9][a-z0-9-]{0,63}$/
  */
 function referenceOf(record: DeviceRecord): string | undefined {
   return record.credentialId === undefined || record.credentialId === '' ? undefined : record.credentialId
-}
-
-/** Connection parameters resolved for one connection attempt. */
-export interface DeviceConnection {
-  readonly id: string
-  readonly name: string
-  readonly host: string
-  readonly port: number
-  readonly user: string
-  readonly remoteRoot: string
-  readonly auth: DeviceAuth
-  /**
-   * The device's stored secret, resolved when a connection is made.
-   *
-   * A resolver rather than a value, because a secret sealed in the vault is
-   * opened through its group: the device list is cached for the life of a
-   * session, and a secret resolved when that list was read would outlive the
-   * unlock that produced it. Resolving at the connection means a group locked in
-   * between refuses the connection, which is the honest outcome — and a refusal
-   * that names the group, rather than a file that is not there any more.
-   */
-  readonly secret: DeviceSecret | undefined
-}
-
-/**
- * How one device's stored secret is obtained.
- *
- * The two parts answer to two different prompts — the key and its passphrase
- * are read as two separate facts, and one file can only be one of them.
- *
- * Both hand back PLAINTEXT rather than a path. The transport used to be given a
- * path to a key file, and that file was the only reason a sealed secret had to be
- * written down at all: an external `ssh` can only read a path. The transport is
- * a library now, so it is given the bytes, and a credential sealed in a group is
- * opened through that group — never written to disk to be read back.
- */
-export interface DeviceSecret {
-  /**
-   * The key or the password, as it should be sent.
-   *
-   * @returns the secret, or undefined when the device holds no such secret.
-   */
-  readonly open: () => Promise<string | undefined>
-  /**
-   * The key's passphrase, when the key needs one.
-   *
-   * @returns the passphrase, or undefined when there is none.
-   */
-  readonly passphrase?: () => Promise<string | undefined>
 }
 
 /** Stored secret path of a parsed record, accepting the legacy field name. */
@@ -214,14 +171,17 @@ export class DeviceStore {
   private records: DeviceRecord[] = []
 
   /**
-   * @param root - device directory (`$DSH_HOME/dshell/ssh`).
-   */
-  /**
    * @param root - resolves the device directory (`<data root>/dshell/ssh`),
    *   read when it is needed rather than captured: the data root is a setting,
    *   settled while the composition is still running (see `std/data-root.ts`).
+   * @param registry - the built-in device providers, whose rows join this
+   *   store's own and whose ids refuse save/remove.
    */
-  constructor(private readonly root: () => string, private readonly credentials: CredentialStore) {}
+  constructor(
+    private readonly root: () => string,
+    private readonly credentials: CredentialStore,
+    private readonly registry: DshellDeviceRegistry,
+  ) {}
 
   /** The device document path. */
   private get documentPath(): string {
@@ -233,14 +193,17 @@ export class DeviceStore {
     return join(this.root(), 'keys')
   }
 
-  /** Every device, in registration order. */
+  /** Every stored device, in registration order, followed by the built-ins. */
   async list(): Promise<readonly DeviceView[]> {
     await this.ensure()
-    return this.records.map(record => this.view(record))
+    const rows = this.records.map(record => this.view(record))
+    return [...rows, ...await this.registry.rows()]
   }
 
   /** Resolve one device for execution, or undefined when unknown. */
   async connection(deviceId: string): Promise<DeviceConnection | undefined> {
+    const builtin = await this.registry.connection(deviceId)
+    if (builtin !== undefined) return builtin
     await this.ensure()
     const record = this.records.find(candidate => candidate.id === deviceId)
     if (record === undefined) return undefined
@@ -279,6 +242,9 @@ export class DeviceStore {
    * @returns the saved view.
    */
   async save(input: DeviceInput, t: DshellSshTranslate): Promise<DeviceView> {
+    if (input.id !== undefined && this.registry.owns(input.id)) {
+      throw new Error(t('error.builtin', { id: input.id }))
+    }
     await this.ensure()
     const id = input.id ?? this.uniqueId(idFor(input.name))
     const existing = this.records.find(record => record.id === id)
@@ -374,10 +340,13 @@ export class DeviceStore {
   }
 
   /**
-   * Remove one device and its key.
+   * Remove one device and its key. A provider's built-in is not stored here,
+   * so removing one is a no-op — the row returns with the provider's next
+   * answer.
    * @param deviceId - device to remove.
    */
   async remove(deviceId: string): Promise<void> {
+    if (this.registry.owns(deviceId)) return
     await this.ensure()
     const record = this.records.find(candidate => candidate.id === deviceId)
     if (record === undefined) return

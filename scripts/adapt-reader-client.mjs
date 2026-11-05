@@ -305,7 +305,7 @@ export function adaptReaderClient(factory) {
   // Reuse only Reader's optional glass styling under the native assistant.
   // Its old page root also owns padding, type size and sticky toolbar offsets;
   // those page-level rules must not become a second layout inside ChatFlow.
-  const glassRoot = '.gNoOdq_root[data-reader-glass]';
+  const glassRoot = '.EXZf2q_root[data-reader-glass]';
   if (!factory.includes(glassRoot)) throw new Error('Reader optional glass style contract changed');
   factory = factory.replaceAll(glassRoot, '[data-nexus-chat-display][data-reader-glass]');
   return factory;

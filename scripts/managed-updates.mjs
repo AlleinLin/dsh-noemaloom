@@ -5,15 +5,15 @@ import ts from 'typescript';
 export function suppressManagedUpdateUi(packageName, source) {
   const rules = {
     'dsh-context': [
-      ['Bl', 'Rl().then', 'function Bl(){return null}'],
-      ['Ll', '/dsh-context/latest', 'function Ll(){return Promise.resolve(null)}'],
+      ['ql', 'Gl().then', 'function ql(){return null}'],
+      ['Wl', '/dsh-context/latest', 'function Wl(){return Promise.resolve(null)}'],
     ],
     'dsh-mnemon': [
       ['VersionDialog', 'versions', 'function VersionDialog(){return null}'],
     ],
     '@michengai/dsh-agency-agents': [
-      ['Vc', 'updateAvailable', 'function Vc(){return null}'],
-      ['Hc', 'zc(e.endpoint', 'function Hc(){return()=>{}}'],
+      ['Hc', 'updateAvailable', 'function Hc(){return null}'],
+      ['Uc', 'Bc(e.endpoint', 'function Uc(){return()=>{}}'],
     ],
   }[packageName];
   if (!rules) return { source, changes: [] };

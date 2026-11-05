@@ -11,6 +11,7 @@ import { describe, expect, it } from 'vitest'
 import { DeviceStore } from '../src/devices.js'
 import { CredentialStore } from '../src/credentials.js'
 import { SecretVault } from '../src/vault.js'
+import { DshellDeviceRegistry } from '../src/registry.js'
 
 const translate = (key: string) => key
 
@@ -23,16 +24,16 @@ describe('DeviceStore helper status', () => {
         { id: 'legacy', host: '10.0.0.1', user: 'root', name: '', port: 22, remoteRoot: '~', auth: 'key' },
       ],
     }, null, 2), 'utf8')
-    const store = new DeviceStore(() => root)
+    const store = new DeviceStore(() => root, new CredentialStore(() => root, new SecretVault(() => root)), new DshellDeviceRegistry())
     const devices = await store.list()
-    expect(devices).toHaveLength(1)
+    expect(devices.filter(device => device.builtin !== true)).toHaveLength(1)
     expect(devices[0].helper).toBeUndefined()
   })
 
   it('round-trips a verified helper status and keeps it across reloads', async () => {
     const root = await mkdtemp(join(tmpdir(), 'dshell-devices-'))
     await mkdir(root, { recursive: true })
-    const store = new DeviceStore(() => root)
+    const store = new DeviceStore(() => root, new CredentialStore(() => root, new SecretVault(() => root)), new DshellDeviceRegistry())
     const saved = await store.save({
       name: 'device-1', host: '10.0.0.2', port: 22, user: 'pi', remoteRoot: '~/app', auth: 'key',
     }, translate)
@@ -52,16 +53,16 @@ describe('DeviceStore helper status', () => {
       ],
     }, null, 2), 'utf8')
 
-    const reloaded = new DeviceStore(() => root)
+    const reloaded = new DeviceStore(() => root, new CredentialStore(() => root, new SecretVault(() => root)), new DshellDeviceRegistry())
     const devices = await reloaded.list()
-    expect(devices).toHaveLength(1)
+    expect(devices.filter(device => device.builtin !== true)).toHaveLength(1)
     expect(devices[0].helper).toEqual(status)
   })
 
   it('retires helper status when the connection string changes', async () => {
     const root = await mkdtemp(join(tmpdir(), 'dshell-devices-'))
     await mkdir(root, { recursive: true })
-    const store = new DeviceStore(() => root)
+    const store = new DeviceStore(() => root, new CredentialStore(() => root, new SecretVault(() => root)), new DshellDeviceRegistry())
     const saved = await store.save({
       name: 'device-1', host: '10.0.0.2', port: 22, user: 'pi', remoteRoot: '~/app', auth: 'key',
     }, translate)
@@ -90,9 +91,9 @@ describe('DeviceStore helper status', () => {
       auth: 'key',
     }, translate)
 
-    const refreshed = new DeviceStore(() => root)
+    const refreshed = new DeviceStore(() => root, new CredentialStore(() => root, new SecretVault(() => root)), new DshellDeviceRegistry())
     const devices = await refreshed.list()
-    expect(devices).toHaveLength(1)
+    expect(devices.filter(device => device.builtin !== true)).toHaveLength(1)
     expect(devices[0].helper).toBeUndefined()
   })
 })
@@ -108,7 +109,7 @@ describe('DeviceStore credential references', () => {
     const credential = await credentials.save({
       group: group.id, name: 'pw', kind: 'password', secret: 'hunter2',
     })
-    return { store: new DeviceStore(() => root, credentials), credentialId: credential.id }
+    return { store: new DeviceStore(() => root, credentials, new DshellDeviceRegistry()), credentialId: credential.id }
   }
 
   const base = { name: 'device-1', host: '10.0.0.9', port: 22, user: 'root', remoteRoot: '~' } as const
@@ -121,7 +122,7 @@ describe('DeviceStore credential references', () => {
         { id: 'cleared', host: '10.0.0.1', user: 'root', name: '', port: 22, remoteRoot: '~', auth: 'key', credentialId: '' },
       ],
     }, null, 2), 'utf8')
-    const store = new DeviceStore(() => root, new CredentialStore(() => root, new SecretVault(() => root)))
+    const store = new DeviceStore(() => root, new CredentialStore(() => root, new SecretVault(() => root)), new DshellDeviceRegistry())
     const devices = await store.list()
     expect(devices[0].credentialId).toBeUndefined()
     expect(devices[0].hasSecret).toBe(false)

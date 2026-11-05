@@ -51,7 +51,7 @@ Everything the user sees in dshell is either an existing dsh event projected
 through a registered target or a PTY byte stream surfaced through a ws
 upgrade route owned by `dshell-terminal-bridge`.
 
-## 4. Eleven decisions
+## 4. Ten decisions
 
 ### 4.1 Session isolation
 

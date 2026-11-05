@@ -77,6 +77,13 @@
     - id: dshell-ssh
       name: '@nexus-aethra/dshell-ssh'
 
+    # WSL2 distributions as built-in devices: one provider registered into
+    # dshell-ssh's device registry (rows, doors, forward refusal), the ConPTY
+    # transport, and the 管理台's WSL card. Omitting this row removes WSL
+    # support without touching any other package.
+    - id: dshell-wsl
+      name: '@nexus-aethra/dshell-wsl'
+
     # Cross-session pipe: user-established links between sessions, deferred
     # requests one agent hands to another, scoped revocable folder grants, and
     # the watchdog that guarantees the requester is always woken.

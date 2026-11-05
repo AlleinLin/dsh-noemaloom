@@ -4,20 +4,29 @@
     "upstreamRevision": "5cf81083a63b80d3383eee0fb3a5a05178f2113a",
     "npmBaseSha256": "23bc59963298d2a379898922e9f7afefdf98d55afa7c8c542eed3a8a51b4cec3",
     "sha256": "43c504330c6ef0c243b7f5e4b540d031fb3e09d91f67fcf4d30cb85c47ea3e79",
-    "reason": "Upstream PR729 fixes aliases dropped between MCP schema, op_table and direct/gated write outlets; no session-log reader or implicit session identity wiring is transplanted."
+    "reason": "Upstream PR729 fixes aliases dropped between MCP schema, op_table and direct/gated write outlets; no session-log reader or implicit session identity wiring is transplanted.",
+    "includedInPublishedVersion": "0.9.22",
+    "currentSha256": "43c504330c6ef0c243b7f5e4b540d031fb3e09d91f67fcf4d30cb85c47ea3e79",
+    "status": "included-upstream-no-extra-local-patch"
   },
   {
     "file": "md_cg/op_table.py",
     "upstreamRevision": "5cf81083a63b80d3383eee0fb3a5a05178f2113a",
     "npmBaseSha256": "bc2d3ef597da4357133a9abf396740b4ccd0a78ce1edce7a7c4f8a3687925855",
     "sha256": "7db079ca8b75002b6c742a514a5bb507c5f414c944a1b07042cdd72524d2a8f8",
-    "reason": "Upstream PR729 fixes aliases dropped between MCP schema, op_table and direct/gated write outlets; no session-log reader or implicit session identity wiring is transplanted."
+    "reason": "Upstream PR729 fixes aliases dropped between MCP schema, op_table and direct/gated write outlets; no session-log reader or implicit session identity wiring is transplanted.",
+    "includedInPublishedVersion": "0.9.22",
+    "currentSha256": "7db079ca8b75002b6c742a514a5bb507c5f414c944a1b07042cdd72524d2a8f8",
+    "status": "included-upstream-no-extra-local-patch"
   },
   {
     "file": "md_cg/writepipe.py",
     "upstreamRevision": "5cf81083a63b80d3383eee0fb3a5a05178f2113a",
     "npmBaseSha256": "a913e7e5548f2bd75dec612a88af7f35726a7ceffe2e6ac09209f5832a530e5b",
     "sha256": "f9921090588e45dc9c6d37252cc837c60391cff3e65a35b0dd46bd9e29be3e8b",
-    "reason": "Upstream PR729 fixes aliases dropped between MCP schema, op_table and direct/gated write outlets; no session-log reader or implicit session identity wiring is transplanted."
+    "reason": "Upstream PR729 fixes aliases dropped between MCP schema, op_table and direct/gated write outlets; no session-log reader or implicit session identity wiring is transplanted.",
+    "includedInPublishedVersion": "0.9.22",
+    "currentSha256": "f9921090588e45dc9c6d37252cc837c60391cff3e65a35b0dd46bd9e29be3e8b",
+    "status": "included-upstream-no-extra-local-patch"
   }
 ]

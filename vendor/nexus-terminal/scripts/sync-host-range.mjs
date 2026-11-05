@@ -4,7 +4,7 @@
  * A dshell package names the dsh versions it runs on through @deepseek-ai/dsh-*
  * peers, and dsh refuses to activate a plugin whose peers reject its own version.
  * The range is therefore a fact about this repository, not about any one package:
- * 213 declaration sites across 11 manifests, and every one has to say the same thing
+ * 219 declaration sites across 10 manifests, and every one has to say the same thing
  * or a profile activates some rows and silently disables the rest.
  *
  * Leaving that fact to hand edits is how a release ends up gated on one prerelease.

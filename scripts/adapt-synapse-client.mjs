@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import ts from 'typescript';
 
-// Reviewed published dsh-synapse@0.5.6 app.js. Refuse an upstream change rather
+// Reviewed published dsh-synapse@0.5.7 app.js (unchanged from 0.5.6). Refuse an upstream change rather
 // than silently applying an incomplete shell adapter to a different client.
 const REVIEWED_SHA256 = 'd78422b047362b4443b7801b2c7997621eb57a4661d8633599708d9a4db6fda4';
 const digest = source => createHash('sha256').update(source).digest('hex');
@@ -27,7 +27,7 @@ function replaceOnce(source, anchor, replacement, label) {
 
 /** Adapt the published canvas in the build output; never mutate node_modules. */
 export function adaptSynapseClient(original) {
-  if (digest(original) !== REVIEWED_SHA256) throw new Error('Synapse client adapter requires the reviewed 0.5.6 client SHA256');
+  if (digest(original) !== REVIEWED_SHA256) throw new Error('Synapse client adapter requires the reviewed 0.5.7 client SHA256');
   const ast = parse(original);
   const edits = [];
   const replaceNode = (node, text) => edits.push({ start: node.getStart(ast), end: node.end, text });

@@ -95,6 +95,18 @@ export function createForwardRoute(deps: ForwardRouteDeps): ConnectionFetchRoute
             error: 'this session does not run on a device',
           }
         }
+        if (!deps.router.registry.forwardsAllowed(target.device.id)) {
+          // A provider's device can decline forwards with its own words — a
+          // kind that shares this machine's loopback has its port 80 already
+          // at 127.0.0.1:80 here, and a tunnel would bind a second socket to
+          // the bytes the first one already carries. The ports page still
+          // lists what such a device listens on; the forward action says why
+          // there is nothing to tunnel.
+          return {
+            forwards: [],
+            error: deps.router.registry.refusal(target.device.id) ?? 'this device does not forward ports',
+          }
+        }
         const opened = await deps.forwarder.open({
           sessionId: input.sessionId,
           device: target.device,

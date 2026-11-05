@@ -1,0 +1,39 @@
+{
+  "release": "R53",
+  "version": "0.4.6",
+  "host": "0.2.1-rc.5",
+  "fullCheck": {
+    "passed": true,
+    "tests": 276,
+    "failed": 0,
+    "skipped": 0,
+    "receipt": "evidence/receipts/r53-rc5-final2.json"
+  },
+  "officialHost": {
+    "host": "0.2.1-rc.5",
+    "profile": "synthetic disposable",
+    "packageVersion": "0.4.6",
+    "desktopSmoke": "passed",
+    "desktopResume": "passed",
+    "remoteModelRequests": 0,
+    "userProfileTouched": false,
+    "userDesktopTouched": false,
+    "scope": [
+      "plugin install file hashes",
+      "official desktop protocol and controls",
+      "synthetic persisted session seed/resume"
+    ]
+  },
+  "package": {
+    "sha256": "26f863a89416c7466832b594425d8ddea42e1beeb2d70caa53dca59e27ebe518",
+    "files": 1670,
+    "npmAuditVulnerabilities": 0
+  },
+  "upstreamReview": "docs/upstream-audit-2026-11-05.json",
+  "limitations": [
+    "No real provider request, user-session replay, GUI click-through or long-duration pressure run",
+    "Host candidate 0.2.2-rc.1 not adopted after compatibility typecheck failure",
+    "External OpenViking/Hindsight services not deployed",
+    "Forge reuses prior 0.1.6 acceptance and was not installed to the user profile"
+  ]
+}

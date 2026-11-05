@@ -18,6 +18,7 @@ import type { HostCopyDictionaries, HostCopyParams } from '@nexus-aethra/dshell-
 export const zh = {
   'error.unknownAction': '未知操作',
   'error.unknownDevice': '未知设备：{id}',
+  'error.builtin': '{id} 是内建设备（由它的提供者包注册），不能编辑或删除。',
   'error.hostUserRequired': 'host 与 user 不能为空',
   'error.passphraseWithoutKey': '口令要配一把私钥才有意义：先存私钥，或者不要口令。',
   'error.unknownKey': '这个路径不是 ~/.ssh 里列出来的私钥。',
@@ -56,6 +57,7 @@ export type DshellSshTranslate = (key: DshellSshHostKey, params?: HostCopyParams
 export const en = {
   'error.unknownAction': 'Unknown action',
   'error.unknownDevice': 'Unknown device: {id}',
+  'error.builtin': '{id} is a built-in device (registered by its provider package) and cannot be edited or deleted.',
   'error.hostUserRequired': 'Host and user are required',
   'error.passphraseWithoutKey': 'A passphrase needs a key to unlock: store the key first, or store no passphrase.',
   'error.unknownKey': 'That path is not one of the private keys listed under ~/.ssh.',

@@ -1,11 +1,14 @@
 # dshell Plugin Inventory
 
-This document lists every package that dshell introduces. Each entry
-states its role, the dsh service it depends on, and the phase in
+This document lists every package that dshell introduces — twelve of
+them, under `packages/dshell/`: `std`, `storage`, `bundle`,
+`conversation`, `terminal-bridge`, `mode`, `commands`, `ssh`,
+`buffer`, `files`, `usage`, `wsl`. Each entry states its role, the dsh
+service it depends on, and the phase in
 [`dshell-roadmap.md`](./dshell-roadmap.md) that brings it in.
 
 All packages follow the dsh monorepo conventions laid out in
-[`docs/cookbook/adding-a-package.md`](../../dsh/docs/cookbook/
+[`docs/cookbook/adding-a-package.md`](../dsh/docs/cookbook/
 adding-a-package.md): each lives under `packages/<group>/<pkg>/`, has a
 `package.json` with `dsh.bundle` (where applicable), exposes a default
 Cordis plugin, and ships a `README.md` with the Model Experience section
@@ -25,7 +28,7 @@ when it contributes to model-visible state.
 
 - Each package name uses one dash-separated role token after `dshell`:
   `std`, `bundle`, `conversation`, `terminal-bridge`, `mode`, `commands`,
-  `ssh`, `buffer`, `files`, `usage`.
+  `ssh`, `buffer`, `files`, `usage`, `wsl`.
 
 ## The packages
 
@@ -52,6 +55,22 @@ when it contributes to model-visible state.
   (the shell line), never feature behaviour — nothing in it talks to a
   service, a filesystem, or the network — and it is the only dshell
   package allowed to care how dsh spells things.
+- The device model lives here too: `DeviceView` (one configured device as
+  the UI sees it — never secret material), `DeviceConnection` (the
+  resolved parameters of one connection attempt) and the
+  `DeviceView.builtin` mark, which says a row is DERIVED by a provider
+  rather than stored, and therefore cannot be edited or deleted.
+  `DSHELL_DEVICE_REGISTRY` (the Cordis service key the device-provider
+  registry is published under, `src/contracts.ts:868`) is also declared
+  here, because a provider's host face must be able to inject the
+  registry it registers into without depending on the package that owns
+  it.
+- What is deliberately NOT here: the device-provider CONTRACTS
+  (`DeviceDoors`, `DshellDeviceProvider`, and the outcome/command/result
+  shapes around them). They speak in node streams, and std must stay
+  browser-compilable — so they live in `dshell-ssh`, the package that
+  owns the registry. See `dshell-ssh` and
+  [`dshell-architecture.md`](./dshell-architecture.md) § 20.
 - dsh services depended on: none. This is deliberate — it is the layer
   that absorbs dsh changes, so it must not be spread across the graph.
 - Introduced in: the standard-layer refactor (contracts extraction,
@@ -300,6 +319,36 @@ when it contributes to model-visible state.
     and no ssh agent anywhere in the stack. See
     [`dshell-architecture.md`](./dshell-architecture.md) § 19 for the shape
     and for what that excludes.
+  - **It owns the device-PROVIDER REGISTRY** (`src/registry.ts`), the
+    extension point a device kind with its own transport and no
+    credential plugs into. dshell-ssh owns the device MODEL — stored
+    rows, bindings, routing, the seams the shell and the agent consume
+    — but not every device KIND, and it must not learn one. The
+    registry is published as the service key `DSHELL_DEVICE_REGISTRY`
+    (`ctx.provide(DSHELL_DEVICE_REGISTRY, router.registry)`), and the
+    transport dispatcher is pointed at it
+    (`useDeviceRegistry(router.registry)`), so `transportFor(device)`
+    asks the registry first and falls back to the pooled `ssh2`
+    transport for every device no provider claims.
+    The contracts (`DeviceOutcome`, `DeviceCommand`, `DeviceExecResult`,
+    `DeviceExecOptions`, `DeviceShell`, `DeviceDoors`,
+    `DshellDeviceProvider`, `DshellDeviceRegistry`) live here rather
+    than in `dshell-std` because they speak in node streams and std must
+    stay browser-compilable. A provider imports them as TYPES from
+    `@nexus-aethra/dshell-ssh`, so the runtime dependency runs one way:
+    **this package never imports a provider.** A composition that omits
+    every provider leaves the registry empty and this package exactly as
+    it was before providers existed.
+  - **The seams ask the registry instead of branching on a kind.** The
+    device store consults the registry first (`src/devices.ts:205`), so
+    a provider's connection wins over a stored row; save and remove
+    are refused for a provider-owned id (`src/devices.ts:246`, locale key
+    `error.builtin`); and the load probes the providers' own targets
+    (`src/router.ts:1062`), because a provider's device has no helper
+    handshake to volunteer its home. The SSH card filters `builtin` rows
+    out (`src/client/card.ts:142`) — a derived row is not a credential
+    to edit, and each provider surfaces its own card beside it in the
+    管理台.
   - An assignment always carries the local **mount** directory that stands
     in for its device tree, because the `ctx.fs` seam refuses to guess one:
     a binding without a mount routes the shell only, and every file
@@ -373,7 +422,11 @@ when it contributes to model-visible state.
     and the new-session dialog read.
 - dsh services depended on: `ctx.settings`, `ctx.shell`,
   `ctx.subprocess`, `ctx.fs`, `ctx.agents`, `ctx.connection.fetch`.
+- Publishes: `DSHELL_DEVICE_REGISTRY` — the device-provider registry a
+  provider package registers into, and `ctx.dshellSshRouting` (the
+  router).
 - Introduced in: Phase 9.6; connection failure handling in Phase 9.7.
+  The device-provider registry landed in Phase 10.50 (commit `fc42e01`).
 
 ### `dshell-buffer`
 
@@ -583,6 +636,61 @@ when it contributes to model-visible state.
   roadmap phase yet — the page exists and is verified by
   `packages/dshell/usage/tests/`, not by a phase entry.
 
+### `dshell-wsl`
+
+- Role: **a device PROVIDER**, not a device model — this machine's WSL2
+  distributions, as built-in rows registered into `dshell-ssh`'s
+  device registry. Two-faced Cordis package:
+  - **Host face** owns the detection, the transport and the provider:
+    `src/transport.ts` (the three doors over `wsl.exe`, the UTF-16LE
+    decoder for the management output, the localized `--list` parser)
+    and `src/provider.ts` (`WslDeviceProvider`). Its `apply` registers
+    the provider into the registry the ssh package publishes and
+    unregisters it when the plugin unloads, so unloading the plugin
+    takes its rows, its doors and its refusals with it.
+  - **Browser face** provides the 管理台's WSL card — its own styles, its
+    own locales (namespace `dshellWsl`), and its registration into the
+    `dshell.admin.card` seat (id `wsl`, order 15). It reads the device
+    list through the SSH client service, so a composition without
+    `dshell-ssh` renders an empty card rather than failing to load.
+- A provider answers the registry's six questions: `rows()` (one
+  built-in row per detected WSL2 distribution — id `wsl:<distro>`, the
+  distro's own name unadorned, host `wsl`, port 0, an empty user,
+  remoteRoot `~`, auth `wsl`, `builtin: true`, `hasSecret: false`),
+  `connection()` (a derived `DeviceConnection`, `kind: 'wsl'`, no
+  secret), `owns()` (by the `wsl:` prefix), `doors()` (the WSL
+  transport), `refusal()` (the forward refusal, in the provider's own
+  words: `WSL 与本机共享回环，端口本来就通，无需转发` — WSL2 shares this
+  machine's loopback, so a tunnel would bind a second socket to bytes
+  the first already carries) and `probeTargets()` (every live distro,
+  because a provider's device has no helper handshake to volunteer its
+  home).
+- The transport's `exec` and `open` doors are plain child processes;
+  the `shell` door is a ConPTY pty (`node-pty`, imported lazily — only a
+  pty owes the native module). Nothing is pooled: a WSL distribution is
+  reached by spawning `wsl.exe`, not by dialling ssh2.
+- Detection: `wsl.exe --list --verbose`, cached 30 s, Windows only, an
+  8 s timeout, WSL1 filtered out. A machine without WSL answers an
+  empty list and the built-in rows simply never appear.
+- A built-in row is DERIVED, not stored: a distro that vanishes takes its
+  rows with it and reads as an unknown device through the ordinary
+  unservable path. Nothing here is persisted, and a built-in row cannot
+  be edited or deleted — the ssh package refuses both.
+- dsh services depended on: `DSHELL_DEVICE_REGISTRY` (the service the
+  provider registers into); the browser face uses `ctx.slots` and
+  `ctx.locale`, and reads the SSH client service structurally.
+- Dependencies: `@nexus-aethra/dshell-ssh` (the provider contract, as
+  types only), `@nexus-aethra/dshell-std` (the device model, as types
+  only) and `node-pty`. The runtime dependency runs one way — **ssh
+  never imports wsl**.
+- Registered in the bundle: the `dshell-wsl` row in
+  `packages/dshell/bundle/cordis.patch.yml` and `wsl` in
+  `scripts/install-into-dsh-profile.sh`. Omitting the row removes WSL
+  support without touching any other package.
+- Introduced in: Phase 10.50 (commits `d64bc9b` → `fc42e01`,
+  2026-11-01 → 2026-11-02). UNRELEASED — the packages still say
+  `0.1.16`, which is npm's `latest`.
+
 
 ### The publishing environment (this deployment)
 
@@ -683,6 +791,9 @@ so the inventory is complete; do not introduce wrappers for them.
   `/compact` and by session naming. dshell does not override them.
 - `xterm.js` — third-party browser dependency. Imported from
   `dshell-conversation`'s browser face; not a Cordis package.
+- `node-pty` — third-party dependency, imported lazily by `dshell-wsl`
+  and only for the ConPTY pty behind a WSL shell door. Not a Cordis
+  package, and not dsh's `ctx.terminals`.
 
 ## Dependency graph
 
@@ -714,6 +825,12 @@ dshell-bundle
   └── dshell-usage            (the Settings → 用量 page: its own SQLite index
         │                       over every session's reported usage)
         └── dsh-session-query       (optional: reading history's events)
+  └── dshell-wsl              (a device PROVIDER: the WSL2 distributions of
+        │                       this machine, registered into dshell-ssh's
+        │                       device registry — contracts as types only)
+        ├── dshell-ssh             (the provider contract, type-only)
+        ├── dshell-std             (the device model, type-only)
+        └── node-pty               (the ConPTY pty behind the shell door)
 ```
 
 There are no cycles. `dshell-std` has no dependency at all: it is the
@@ -723,6 +840,13 @@ There are no cycles. `dshell-std` has no dependency at all: it is the
   when both rows are composed — each side reads the other through a
   structural seat, never an import. Every edge to `dshell-ssh` is
   a runtime seat: no package depends on it at build time any more.
+
+The one build-time edge to `dshell-ssh` is `dshell-wsl`'s, and it is
+  type-only on purpose: the provider contracts speak in node streams,
+  so a provider imports them as TYPES and the runtime dependency runs
+  one way. **ssh never imports wsl**, and `dshell-ssh` contains no
+  reference to the `wsl` vocabulary at all — a provider's own refusals
+  and own rows are the only source of its words.
 
 ## Cordis `ctx` keys dshell publishes or subscribes to
 
@@ -742,6 +866,8 @@ There are no cycles. `dshell-std` has no dependency at all: it is the
 - `ctx.agents` — `inject` (in `dshell-mode`) and session id lookup
   (in `dshell-terminal-bridge`).
 - `ctx.commands` — registers commands (in `dshell-commands`).
+- `ctx.dshellDeviceRegistry` (`DSHELL_DEVICE_REGISTRY`) — the
+  device-provider registry (in `dshell-ssh`; injected by `dshell-wsl`).
 ### Publishes
 
 - `ctx.dshellMainPty` — `Map<Agent, TerminalSessionId>`. Read by
@@ -757,6 +883,9 @@ There are no cycles. `dshell-std` has no dependency at all: it is the
   the terminal view's status card, and by the terminal section's header
   entry (the link glyph, leftmost), which is where the `管道` button lives
   now that dshell-workspace is gone.
+- `ctx.dshellDeviceRegistry` (`DSHELL_DEVICE_REGISTRY`) — the
+  device-provider registry (published by `dshell-ssh`; registered into
+  by `dshell-wsl`).
 
 ### Replaces
 

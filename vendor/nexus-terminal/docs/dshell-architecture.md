@@ -27,7 +27,12 @@ Nexus-Shell/
 │   ├── dshell-conversation/  # dual-face: host registers target; browser renders
 │   ├── dshell-terminal-bridge/ # dual-face: host upgrade route + agent/PTY glue
 │   ├── dshell-mode/          # dual-face: composer patch on browser, agent-side helpers on host
-│   └── dshell-commands/      # host-only: ctx.commands + ctx.tools registrations
+│   ├── dshell-commands/      # host-only: ctx.commands + ctx.tools registrations
+│   ├── dshell-ssh/           # dual-face: device model + the device-provider registry
+│   ├── dshell-files/         # dual-face: the files sidebar tab + the transfer view
+│   ├── dshell-buffer/        # dual-face: the cross-session pipe
+│   ├── dshell-usage/         # dual-face: the Settings → 用量 page
+│   └── dshell-wsl/           # dual-face: a device PROVIDER (WSL2 distributions)
 └── dsh/                      # local reference checkout (NEVER TRACKED, see .gitignore)
 ```
 
@@ -41,8 +46,8 @@ under a sibling workspace link so the build resolves.
 
 Every dshell package that contributes to the browser follows the
 `dsh` dual-face discipline described in
-[`dsh/packages/client/AGENTS.md`](../../dsh/packages/client/AGENTS.md)
-and the [`dsh-tsdown preset`](../../dsh/packages/client/tsdown.client.ts):
+[`dsh/packages/client/AGENTS.md`](../dsh/packages/client/AGENTS.md)
+and the [`dsh-tsdown preset`](../dsh/packages/client/tsdown.client.ts):
 
 - `src/index.ts` — Node half (host side). Default export is a Cordis
   plugin: `{ name, inject, apply? }`.
@@ -104,6 +109,7 @@ form so implementers can match identifiers exactly.
 | `ctx.tools` | `dshell-commands` host | register `dshell_get_agent_terminal`, `dshell_terminal_read`, `dshell_terminal_output` |
 | `ctx.dshellMainPty` | `dshell-mode`, `dshell-commands` | consume the `Map<Agent, TerminalSessionId>` |
 | `ctx.dshellPtyBuffer` | `dshell-mode` host | consume the per-session rolling buffer |
+| `ctx.dshellDeviceRegistry` | `dshell-wsl` host | register a device provider (see § 20) |
 
 ### Published services (contribute)
 
@@ -111,10 +117,11 @@ form so implementers can match identifiers exactly.
 |---|---|---|---|
 | `ctx.dshellMainPty` | `dshell-terminal-bridge` | `Map<Agent, TerminalSessionId>` | `dshell-mode`, `dshell-commands` |
 | `ctx.dshellPtyBuffer` | `dshell-terminal-bridge` | `Map<Agent, PtyBuffer>` | `dshell-mode` (Phase 7+) |
+| `ctx.dshellDeviceRegistry` | `dshell-ssh` | `DshellDeviceRegistry` — the device-provider registry (§ 20) | `dshell-wsl` |
 
 Neither service is exposed outside the dshell composition; no dsh
 package reads them. The names follow dsh's "namespace-prefixed
-plural" rule (see [`adding-a-package.md`](../../dsh/docs/cookbook/adding-a-package.md#3-decide-the-package-topology)).
+plural" rule (see [`adding-a-package.md`](../dsh/docs/cookbook/adding-a-package.md#3-decide-the-package-topology)).
 
 ## 4. Browser↔host wire protocol
 
@@ -298,7 +305,7 @@ subscribes and refreshes its mode-toggle badge.
 
 `dsh-client-connection` exposes Remote streams without opening a ws
 (["provide equivalent Remote streams through `connection.rpc.open`
-without opening a WebSocket"](../../dsh/packages/client/connection/README.md)).
+without opening a WebSocket"](../dsh/packages/client/connection/README.md)).
 The ws upgrade route is added on top for byte transfer because:
 
 1. PTY chunks are high-frequency and unbounded; Remote RPC frames
@@ -307,7 +314,7 @@ The ws upgrade route is added on top for byte transfer because:
    Remote adds a serialization round-trip per chunk.
 3. The ws upgrade is the only host-supported stream primitive for
    browser-originated persistent bidirectional channels
-   ([`webserver/README.md` § Registering routes](../../dsh/packages/host/webserver/README.md#registering-routes)).
+   ([`webserver/README.md` § Registering routes](../dsh/packages/host/webserver/README.md#registering-routes)).
 
 ## 6. PtyBuffer shape (host)
 
@@ -365,7 +372,7 @@ interface SessionModeStore {
 Default is `shell`. The store is implemented as a `createSessionModeStore()`
 factory in `dshell-mode/src/client/`, exported by the `/client` entry and
 consumed type-only by sibling client packages (per dsh
-[`AGENTS.md` § Export discipline](../../dsh/packages/client/AGENTS.md#export-discipline-client-plugin-packages)
+[`AGENTS.md` § Export discipline](../dsh/packages/client/AGENTS.md#export-discipline-client-plugin-packages)
 rule 1: only `apply`, `inject`, store factories, and shared types are
 exported).
 
@@ -1027,6 +1034,10 @@ parent's listing, since the directory they want is already in front of them.
 - No dependency on a host `ssh` binary, on `~/.ssh/config`, or on the user's
   `~/.ssh/known_hosts` — the transport is a library (§ 19) with its own host-key
   file. What that excludes is listed there too.
+- No device kind inside `dshell-ssh`. The SSH package owns the device MODEL
+  and the provider registry (§ 20), not the kinds; a kind with its own
+  transport and no credential is a provider's business, and the SSH package
+  never names one.
 
 These mirror `dshell-design.md` § 2 and are normative.
 
@@ -1185,13 +1196,19 @@ what lets a device session's terminal be a session rather than a wrapper around
 someone else's.
 
 **What it is.** One `DeviceTransport` holding a pool of `ssh2.Client` per device,
-rebuilt whenever the credential fingerprint changes. Three doors:
+rebuilt whenever the credential fingerprint changes. Three doors — the same
+three every transport answers, which is what `DeviceDoors` states (§ 20):
 
 | door | shape | used by |
 | --- | --- | --- |
 | `exec` | one channel, bounded collect, closed when the command ends | test, helper deploy, `remote-fs-shell` |
 | `open` | one channel kept alive, fed through dsh's `SubprocessHandle` seam | the legacy command lane for a bound session |
 | `shell` | a pty channel | the device terminal (§ 4) |
+
+These three are the `DeviceDoors` contract, and they are what a provider's own
+transport answers too. The dispatcher (§ 20.3) asks the registry first and falls
+back to this transport, so a seam consumes three doors and never learns which
+transport answered.
 
 `open` is the seam that matters: dsh hands a plugin a `SubprocessHandle`, and
 `ssh/src/channel-process.ts` is one — a `PassThrough` for each of stdin, stdout
@@ -1223,3 +1240,165 @@ authenticating, which is what the device card's key-change flow reads.
 - **Security cadence follows `ssh2`.** The CVE surface of the SSH implementation
   is now a dependency's release schedule rather than the operating system's. It
   is pinned exactly, and a rebuild is how it is updated.
+
+## 20. The device-provider extension point
+
+§ 19 fixes ONE transport: the pooled `ssh2` client. A device kind with
+its own transport and no credential is not that transport's business —
+and the first such kind, a WSL2 distribution on this machine, proved it:
+every arm the SSH package grew for it (a transport file, WSL branches in
+the device store, a probe loop in the router, hardcoded refusals in the
+forward seams) made the SSH package carry vocabulary it does not own.
+
+So dshell-ssh owns a **device-provider registry** instead. The shape is
+normative: a package that contributes a device kind writes against these
+contracts, and the seams that used to branch on a kind now ask the
+registry.
+
+### 20.1 The service key and the contracts
+
+The registry is published as a Cordis service, `DSHELL_DEVICE_REGISTRY`:
+
+| what | where |
+|---|---|
+| the service key | `std/src/contracts.ts:868` — `export const DSHELL_DEVICE_REGISTRY = 'dshellDeviceRegistry'` |
+| the contracts and the registry class | `ssh/src/registry.ts` |
+| the registration and the wiring | `ssh/src/index.ts:96-97` |
+| the dispatch | `ssh/src/transport/transport.ts:625` |
+
+The key lives in `dshell-std` because a provider's host face must be
+able to inject the registry it registers into without depending on the
+package that owns it. The CONTRACTS live in `dshell-ssh`, not in std:
+they speak in node streams (`DeviceCommand` carries a `Duplex`,
+`DeviceShell` carries a `Duplex`), and std must stay
+browser-compilable. A provider imports them as TYPES from
+`@nexus-aethra/dshell-ssh`.
+
+The contracts are:
+
+| contract | shape |
+|---|---|
+| `DeviceOutcome` | `exitCode`, `signal`, and `connectionLost` — the far side tore the channel down, so the command's fate is unknown |
+| `DeviceCommand` | one running command: `stream` (a `Duplex`), `stderr` (a `Readable`), `done`, `terminate(signal?)` |
+| `DeviceExecResult` | `DeviceOutcome` plus `stdout`, `stderr`, `truncated` |
+| `DeviceExecOptions` | `signal`, `graceMs`, `env`, `stdin`, `openStdin` |
+| `DeviceShell` | a pty-backed shell: `stream`, `done`, `setWindow(rows, cols)`, `close()` |
+| `DeviceDoors` | **the three doors**: `exec(device, command, options?)`, `open(device, command, options?)`, `shell(device, command, window)` |
+| `DshellDeviceProvider` | the six questions below |
+| `DshellDeviceRegistry` | the registry: `register`, `unregister`, `providers`, `rows`, `connection`, `owns`, `doorsFor`, `forwardsAllowed`, `refusal`, `probeTargets` |
+
+### 20.2 What a provider answers
+
+`DshellDeviceProvider` is six questions plus two optional refusals:
+
+| member | answers |
+|---|---|
+| `rows()` | the built-in rows this provider contributes, appended to the stored ones. Derived on every call, and each row must carry `DeviceView.builtin`. |
+| `connection(id)` | the connection for one provider-owned id, or `undefined` when it is gone |
+| `owns(id)` | whether this id is the provider's own — such rows cannot be saved or removed |
+| `doors(device)` | the doors for one of this provider's connections, or `undefined` |
+| `refusal(id)` | the provider's OWN wording for a seam it does not serve, in the active locale where the provider has one |
+| `probeTargets()` | the connections whose home directory should be probed when the host loads |
+| `forwards?` | whether port forwards may be opened to this provider's devices |
+
+A provider that says no names its reason: the refusal comes from the
+provider, not from a generic message in the SSH package. A WSL
+distribution refuses a forward with `WSL 与本机共享回环，端口本来就通，无需转发` —
+WSL2 shares this machine's loopback, so a tunnel would bind a second
+socket to bytes the first already carries.
+
+### 20.3 The dispatch and its fallback
+
+Every seam that used to know about a device kind now calls one
+function:
+
+```ts
+export function transportFor(device: DeviceConnection): DeviceDoors {
+  return deviceRegistry?.doorsFor(device) ?? deviceTransport()
+}
+```
+
+`transportFor` lives in `ssh/src/transport/transport.ts:625`, not beside
+any one transport, so adding a device kind never means editing the
+seams that consume it: the probe, the subprocess lane, the filesystem
+commands and the shell plan all call it and consume the three doors.
+The fallback is the pooled `ssh2` transport — a device no provider
+claims is an SSH device, and it is served exactly as before.
+
+The registry reaches the dispatcher through
+`useDeviceRegistry(router.registry)`, and the router publishes it as the
+service (`ssh/src/index.ts:96-97`):
+
+```ts
+ctx.provide(DSHELL_DEVICE_REGISTRY, router.registry)
+useDeviceRegistry(router.registry)
+```
+
+A composition that omits every provider leaves the registry empty and
+the dispatcher on its ssh-only path — the extension point costs
+nothing when it is unused.
+
+### 20.4 The builtin row mark
+
+`DeviceView.builtin` (declared in `dshell-std`) says a row is DERIVED
+by a provider rather than STORED. Three consequences, all of them in
+`dshell-ssh`:
+
+- the device store consults the registry FIRST (`ssh/src/devices.ts:205`),
+  so a provider's connection wins over a stored row;
+- save and remove are refused for a provider-owned id
+  (`ssh/src/devices.ts:246`, locale key `error.builtin` in
+  `ssh/src/host-locales.ts`) — a derived row is not a credential to
+  edit;
+- the SSH card filters `builtin` rows OUT (`ssh/src/client/card.ts:142`),
+  because a provider surfaces its own card beside it in the 管理台.
+
+A row that vanishes with its provider (a distro that was removed)
+reads as an unknown device: the assignment survives, every seam refuses
+through the ordinary unservable path, and the rows return when the
+provider sees it again.
+
+The load also probes the providers' own targets
+(`ssh/src/router.ts:1062`) — a provider's device has no helper handshake
+to volunteer its home, so the ones that need a root ask for it, and the
+answers fill the same cache a bind fills.
+
+### 20.5 The admin slot model
+
+The 管理台 is ONE settings page for everything the suite configures. Its
+cards are a child seat, `dshell.admin.card` (kind `list`, scope
+`root`), declared by the OWNING page's `settings.section` registration
+(`children: { 'dshell.admin.card': { kind: 'list', scope: 'root' } }`)
+and rendered by `DshellAdminPage`.
+
+That seat is the mechanism that lets each package contribute a card
+without importing another's components — the same reason every edge to
+`dshell-ssh` is a runtime seat. `dshell-ssh` contributes the `devices`
+card (order 10), `dshell-mode` contributes the terminal and data-root
+cards, and `dshell-wsl` contributes the `wsl` card (order 15) from its
+own package.
+
+The seat's type is declared TWICE on purpose — in `dshell-ssh`'s client
+and in `dshell-wsl`'s own `admin-seat.ts` — because registering into the
+seat must not make the contributor depend on the owner's client.
+Interface merging accepts identical members, so if the copies ever
+drift the compiler names the file that moved.
+
+### 20.6 The dependency rule
+
+**The runtime dependency runs one way.**
+
+- `dshell-ssh` never imports a provider package. It does not name the
+  `wsl` vocabulary at all — no branch on `kind === 'wsl'`, no string,
+  no hardcoded refusal. A provider's rows, its doors and its own
+  wording are the only source of its behaviour.
+- A provider imports the contracts from `@nexus-aethra/dshell-ssh` as
+  TYPES only. The import is erased at compile time, so the package
+  graph has no runtime edge from ssh to wsl.
+- `dshell-std` stays browser-compilable. That is WHY the door
+  vocabulary lives in `dshell-ssh` and not in std: `DeviceCommand` and
+  `DeviceShell` carry node streams, and std is inlined into the browser
+  bundle.
+
+The rule in one line: **the model owns the doors, the provider owns the
+device.**

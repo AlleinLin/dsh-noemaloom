@@ -13,6 +13,7 @@
     { "path": "./packages/dshell/mode" },
     { "path": "./packages/dshell/commands" },
     { "path": "./packages/dshell/ssh" },
+    { "path": "./packages/dshell/wsl" },
     { "path": "./packages/dshell/buffer" },
     { "path": "./packages/dshell/files" },
   ]

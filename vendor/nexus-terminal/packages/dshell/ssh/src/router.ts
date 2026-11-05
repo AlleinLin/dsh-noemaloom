@@ -21,6 +21,8 @@ import type { ShellExecRequest, ShellExecSpec } from '@deepseek-ai/dsh-shell'
 import type {} from '@deepseek-ai/dsh-subprocess'
 import type { DshellSshConnection } from './connection.js'
 import { DeviceStore, type DeviceConnection } from './devices.js'
+import { DshellDeviceRegistry } from './registry.js'
+import { transportFor } from './transport/transport.js'
 import { CredentialStore } from './credentials.js'
 import { SecretVault, VaultLockedError } from './vault.js'
 import type { DshellSshTranslate } from './host-locales.js'
@@ -32,7 +34,7 @@ import type { DeviceHelperStatus } from '@nexus-aethra/dshell-std'
 import { absoluteRemoteRoot, isUnder, mountFor } from './mount.js'
 import { mountBase } from './paths.js'
 import { quote, quoteDevicePath } from './shell-quote.js'
-import { deviceTransport, type DeviceShell } from './transport/transport.js'
+import type { DeviceShell } from './transport/transport.js'
 
 /**
  * Service name under which the router is published.
@@ -227,6 +229,13 @@ class BindingStore {
 /** Devices, their assignments, and the per-call decision they drive. */
 export class SshRouter {
   private readonly devices: DeviceStore
+  /**
+   * The built-in device providers (see `registry.ts`). Created here, published
+   * as the `DSHELL_DEVICE_REGISTRY` service by `apply`, and pointed at by the
+   * transport dispatcher — a provider registers from its own package and its
+   * rows and doors answer everywhere this package consults devices.
+   */
+  readonly registry: DshellDeviceRegistry
   /** The group registry and the unlock state, shared with every reader. */
   readonly vault: SecretVault
   /** The credential library devices point at. */
@@ -341,7 +350,11 @@ export class SshRouter {
     // the device store, the credential store and the card all see the same one.
     this.vault = new SecretVault(root)
     this.credentials = new CredentialStore(root, this.vault)
-    this.devices = new DeviceStore(root, this.credentials)
+    // The built-in device providers register here from their own packages; the
+    // router is the composition's root for it, `apply` publishes it as the
+    // DSHELL_DEVICE_REGISTRY service and points the transport dispatcher at it.
+    this.registry = new DshellDeviceRegistry()
+    this.devices = new DeviceStore(root, this.credentials, this.registry)
     this.bindings = new BindingStore(() => join(root(), 'bindings.json'))
     // Eagerly, and deliberately: `targetForSession` below is synchronous
     // because `spawn`/`resolve` cannot await, so this cache has to be filled
@@ -401,10 +414,18 @@ export class SshRouter {
    * One device's host and port, for a question about its trust rather than
    * about its configuration.
    *
+   * A device of a kind that is not dialled has no destination to name: the
+   * trusted-keys store is this package's record of the hosts it connects to,
+   * and a kind it never connects to has no entry there. Answering undefined
+   * for such a device keeps the trust questions — list, revoke, probe — from
+   * touching the store about a host that was never contacted.
+   *
    * @param deviceId - device to look up.
-   * @returns the destination, or undefined when the device is unknown.
+   * @returns the destination, or undefined when the device is unknown or is
+   *   not reached over the dial path.
    */
   async destinationOf(deviceId: string): Promise<{ host: string; port: number } | undefined> {
+    if (!this.registry.isReachable(deviceId)) return undefined
     const views = await this.list()
     const view = views.find(candidate => candidate.id === deviceId)
     return view === undefined ? undefined : { host: view.host, port: view.port }
@@ -462,6 +483,12 @@ export class SshRouter {
     let assigned = mount
     if (deviceId !== null) {
       await this.connectionFor(deviceId)
+      // The root a `~`-spelled binding resolves against. An SSH device's
+      // helper handshake volunteers its home as a side effect of connecting,
+      // but a device of a kind that has no handshake has none to offer — so
+      // the root is asked here, once, or the files seam keeps seeing the
+      // literal `~` the reader typed, which no seam can open.
+      await this.ensureDeviceRoot(deviceId)
       if (createRemoteRoot) await this.ensureRemoteRoot(deviceId, remoteRoot)
       const tree = assigned === null || assigned.trim().length === 0
         ? await this.mountPath(deviceId, remoteRoot)
@@ -548,6 +575,12 @@ export class SshRouter {
    * @param deviceId - device to deploy to.
    */
   async installHelper(deviceId: string): Promise<DeviceHelperStatus> {
+    // A kind that carries no helper is refused before anything is deployed:
+    // the words are the provider's, because only the provider knows what its
+    // kind is and why it needs no helper. A device no provider claims is an
+    // SSH device, and an SSH device has a helper.
+    const refusal = this.registry.refusalFor(deviceId, 'helper')
+    if (refusal !== undefined) throw new Error(refusal)
     const device = await this.connectionFor(deviceId)
     const artifact = localHelperArtifact()
     const probe = await this.probeDevice(device)
@@ -599,7 +632,7 @@ export class SshRouter {
    * might have changed since the cache was populated.
    */
   private async probeDevice(device: DeviceConnection): Promise<{ home: string; node: string | undefined }> {
-    const result = await deviceTransport().exec(device, PROBE, { graceMs: 10_000 })
+    const result = await transportFor(device).exec(device, PROBE, { graceMs: 10_000 })
     if (result.exitCode !== 0) {
       throw new Error(result.stderr.trim() === ''
         ? this.t('install.probeFailed', { code: String(result.exitCode ?? 'on a signal') })
@@ -838,9 +871,15 @@ export class SshRouter {
     // "unknown device" for a machine the reader can see in the panel.
     await this.refreshDevices()
     const device = await this.connectionFor(deviceId)
-    const trustedBefore = trustedHostKey(device.host, device.port)
+    // The host key is this package's own trust decision, and it belongs to a
+    // device this package dials. A device of a kind that is not dialled has
+    // no host key — asking for one would record an entry in the trusted-keys
+    // store about a host that was never contacted, and then report that
+    // nonsense as this device's identity.
+    const dialled = this.registry.isReachable(deviceId)
+    const trustedBefore = dialled ? trustedHostKey(device.host, device.port) : undefined
     const started = Date.now()
-    const result = await deviceTransport().exec(
+    const result = await transportFor(device).exec(
       device,
       'printf "%s|%s|%s" "$(hostname)" "$(id -un)" "$(uname -sr)"',
       { graceMs: 5_000 },
@@ -857,7 +896,7 @@ export class SshRouter {
       system: system ?? this.t('test.unknownSystem'),
       ms: Date.now() - started,
     })
-    const trusted = trustedHostKey(device.host, device.port)
+    const trustedKey = dialled ? trustedHostKey(device.host, device.port) : undefined
     // Same order the session's own start uses: connect, then make the
     // directory. A refusal here throws with the device's own words.
     if (remoteRoot !== null) await this.ensureRemoteRoot(deviceId, remoteRoot)
@@ -865,9 +904,9 @@ export class SshRouter {
     // action, so this only reports — and records the answer, which is what
     // puts the state on the card without a deployment having been run.
     await this.surveyHelper(deviceId, device)
-    return trusted === undefined
+    return trustedKey === undefined
       ? line
-      : `${line}\n${this.t(trustedBefore === undefined ? 'test.hostKeyFirst' : 'test.hostKeyTrusted', { fingerprint: trusted })}`
+      : `${line}\n${this.t(trustedBefore === undefined ? 'test.hostKeyFirst' : 'test.hostKeyTrusted', { fingerprint: trustedKey })}`
   }
 
   /**
@@ -885,8 +924,14 @@ export class SshRouter {
    * @param device - the resolved connection.
    */
   private async surveyHelper(deviceId: string, device: DeviceConnection): Promise<void> {
+    // A kind that carries no helper is not asked about one. The probe asks
+    // the device for its Node and for the digest of a file this build would
+    // deploy there — a question only an SSH kind can answer — and the answer
+    // would be recorded as this package's helper state for a device that has
+    // no such concept.
+    if (!this.registry.usesHelper(deviceId)) return
     const artifact = localHelperArtifact()
-    const result = await deviceTransport().exec(device, installProbe(artifact.hash), { graceMs: 10_000 })
+    const result = await transportFor(device).exec(device, installProbe(artifact.hash), { graceMs: 10_000 })
     if (result.exitCode !== 0) return
     const [home = '', node = '', onDevice = ''] = result.stdout.trimEnd().split('\n')
     const homeDir = home.trim()
@@ -949,7 +994,7 @@ export class SshRouter {
     if (device === undefined) throw new Error(this.t('error.unknownDevice', { id: deviceId }))
     const root = remoteRoot === null || remoteRoot.trim() === '' ? device.remoteRoot : remoteRoot.trim()
     if (root.trim() === '' || root.trim() === '~') return
-    const result = await deviceTransport().exec(device, `mkdir -p -- ${quote(root)}`, { graceMs: 5_000 })
+    const result = await transportFor(device).exec(device, `mkdir -p -- ${quote(root)}`, { graceMs: 5_000 })
     if (result.exitCode !== 0) {
       throw new Error(result.stderr.trim() === '' ? this.t('mount.createFailed', { root }) : result.stderr.trim())
     }
@@ -1026,6 +1071,25 @@ export class SshRouter {
     await this.bindings.load()
     await this.refreshDevices()
     await this.adoptMounts()
+    this.probeProviderRoots()
+  }
+
+  /**
+   * Ask every provider device where its home is, once, in the background.
+   *
+   * A provider's device has no helper handshake to volunteer its root (see
+   * {@link ensureDeviceRoot}), and a binding that survived a host restart
+   * meets the files seam before any test or rebind has asked — with the root
+   * still the literal `~` the reader typed, which no seam can open. The
+   * probes are the provider's own to keep cheap, and the answers only fill
+   * the same cache bind fills.
+   */
+  private probeProviderRoots(): void {
+    void this.registry.probeTargets().then((targets) => {
+      for (const device of targets) {
+        if (!this.deviceRoots.has(device.id)) void this.ensureDeviceRoot(device.id)
+      }
+    }).catch(() => { /* a provider that cannot answer has no root to give */ })
   }
 
   /**
@@ -1122,7 +1186,7 @@ function deviceShellPlan(device: DeviceConnection, remoteCwd: string, t: DshellS
   const cd = deviceShellCd(root, t('shell.missingRemoteDir', { root }))
   return {
     kind: 'device',
-    open: async window => await deviceTransport().shell(
+    open: async window => await transportFor(device).shell(
       device,
       `${cd}exec bash -l`,
       { rows: window.rows, cols: window.cols, term: window.terminalType },

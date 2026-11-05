@@ -62,12 +62,32 @@ export interface RegionMetrics {
    * start) is left to wrap, which is exactly what a terminal does with it.
    */
   readonly redrawCols: number
+  /**
+   * The span of the text that carries ink, as code-unit offsets into `text`.
+   *
+   * A ConPTY pty answers a resize (and `clear` answers with its own) by
+   * repainting its WHOLE grid: the log tail becomes a run of dead blank rows
+   * around the one row that carries the prompt. A region that renders those
+   * bytes is one dead screen taller than anything it shows — the blank wall
+   * above the prompt — and one that merely stops COUNTING them scrolls its
+   * real content out of a too-short grid. So the renderer trims the text to
+   * the ink span itself: blank rows between ink stay (they are spacing the
+   * shell chose), the dead frame around them is not rendered at all.
+   */
+  readonly trimFrom: number
+  readonly trimTo: number
 }
 
 /** One pass over the text, tracking the cursor column line by line. */
 export function regionMetrics(text: string): RegionMetrics {
   const body = text.endsWith('\n') ? text.slice(0, -1) : text
   const widths: number[] = []
+  // Every row the text holds, as byte spans with an ink flag. Deliberately NOT
+  // reset by the erases below: the pre-wipe rows are the region's own
+  // scrollback (see `wipe`), and the trim needs them to tell dead blank rows
+  // from history.
+  const rows: { start: number; end: number; ink: boolean }[] = []
+  let rowStart = 0
   let x = 0
   let saved = 0
   let widest = 0
@@ -81,13 +101,15 @@ export function regionMetrics(text: string): RegionMetrics {
     if (stretch >= first) { second = first; first = stretch } else if (stretch > second) second = stretch
     stretch = 0
   }
-  const endLine = (): void => {
+  const endLine = (end: number): void => {
     closeStretch()
     // Two stretches of comparable width mean the line draws the same thing (or
     // nearly the same width) more than once — a redraw, not a single wide
     // line. Only then does the grid have to cover it.
     if (second > 0 && second * 2 >= first && first > redraw) redraw = first
     widths.push(widest)
+    rows.push({ start: rowStart, end, ink: widest > 0 })
+    rowStart = end
     x = 0
     saved = 0
     widest = 0
@@ -152,6 +174,16 @@ export function regionMetrics(text: string): RegionMetrics {
         }
         if (final === 'H' || final === 'f' || final === 'G') {
           const raw = Number.parseInt(final === 'G' ? params[0] ?? '' : params[1] ?? '', 10)
+          // A HOME move (row 1, by omission or explicitly) is a ConPTY pty's
+          // full-screen repaint signature: a resize makes it hide the cursor,
+          // jump to 1;1 and re-emit every row in place — the display that was
+          // measured before it is replaced, not appended to, so the pre-home
+          // measurement is history exactly as an erase's (see `wipe`; without
+          // it every resize doubles the region: one dead copy of the screen
+          // under the live one). A mid-screen move is an overlay's business —
+          // the rewind above is all it gets.
+          const row = final === 'G' ? Number.NaN : Number.parseInt(params[0] ?? '', 10)
+          if (final !== 'G' && (!Number.isFinite(row) || row <= 1)) wipe()
           rewind()
           x = Number.isFinite(raw) ? Math.max(0, raw - 1) : 0
         }
@@ -174,7 +206,7 @@ export function regionMetrics(text: string): RegionMetrics {
     if (code === 0x0d || code === 0x0a) {
       if (code === 0x0d) rewind()
       index += 1
-      if (code === 0x0a) endLine()
+      if (code === 0x0a) endLine(index)
       else x = 0
       continue
     }
@@ -184,8 +216,26 @@ export function regionMetrics(text: string): RegionMetrics {
     reach(x)
     index += String.fromCodePoint(code).length
   }
-  endLine()
-  return { widths, redrawCols: redraw }
+  endLine(text.length)
+  // The ink span: from the first row that reached a cell to the END OF THE
+  // LAST INK ROW'S CONTENT — its trailing CRLF excluded, because a body that
+  // ends in a newline parks the cursor on an empty line below the ink, and a
+  // one-row grid then shows exactly that empty line instead of the prompt.
+  // A region of pure blanks trims to nothing — it renders as the one empty
+  // row `renderedRows` guarantees.
+  let trimFrom = 0
+  let trimTo = 0
+  for (const row of rows) {
+    if (row.ink) { trimFrom = row.start; break }
+  }
+  for (let i = rows.length - 1; i >= 0; i -= 1) {
+    if (rows[i].ink) {
+      trimTo = rows[i].end
+      while (trimTo > trimFrom && (text[trimTo - 1] === '\n' || text[trimTo - 1] === '\r')) trimTo -= 1
+      break
+    }
+  }
+  return { widths, redrawCols: redraw, trimFrom, trimTo }
 }
 
 /**
@@ -205,15 +255,23 @@ export function regionMetrics(text: string): RegionMetrics {
  */
 export function renderedRows(metrics: RegionMetrics, cols: number): number {
   const width = Math.max(1, cols)
-  let lastNonEmpty = -1
-  for (let index = 0; index < metrics.widths.length; index += 1) {
+  // Leading zero-width rows are dropped as well. A ConPTY pty's full-screen
+  // repaint re-emits every row of its grid after the home move — rows that
+  // are almost all empty, and all of them precede the first ink of the new
+  // screen — so counting them renders the region one dead screen taller than
+  // anything it shows: the blank wall above the prompt. Blanks BETWEEN ink
+  // stay: there they are spacing the shell chose.
+  let first = 0
+  while (first < metrics.widths.length && (metrics.widths[first] ?? 0) <= 0) first += 1
+  let lastNonEmpty = first - 1
+  for (let index = first; index < metrics.widths.length; index += 1) {
     if ((metrics.widths[index] ?? 0) > 0) lastNonEmpty = index
   }
   // Keep one trailing empty row so a region whose last line was empty still
   // shows the cursor where the shell left it, but no more.
   const end = lastNonEmpty + 1
   let rows = 0
-  for (let index = 0; index < end; index += 1) {
+  for (let index = first; index < end; index += 1) {
     rows += Math.max(1, Math.ceil((metrics.widths[index] ?? 0) / width))
   }
   return Math.max(1, rows)
@@ -280,6 +338,9 @@ export function createSpanTerminal(host: HTMLElement, theme: Theme, text: string
   const cell = measureCell(host)
   const containerCols = containerColsOf(host, cell)
   const metrics = regionMetrics(text)
+  // The region renders its ink span, not its bytes: the dead blank frame a
+  // ConPTY repaint leaves around the prompt is measured away above AND cut
+  // away here, so the grid's row count and the text it holds agree.
   const cols = regionCols(metrics, containerCols)
   const term = new XtermTerminal({
     fontFamily: SPAN_FONT,
@@ -318,6 +379,9 @@ export function createSpanTerminal(host: HTMLElement, theme: Theme, text: string
     }
     return true
   })
+  // What the grid currently holds, so the next update can tell a grow from a
+  // re-measure. Empty until the first write, which is what makes that write a
+  // rebuild rather than an append of nothing.
   let last = ''
   // Geometry follows the text and the column: the grid spans the column, and
   // widens only as far as a redraw needs. Growing it cannot move a redraw's
@@ -327,18 +391,33 @@ export function createSpanTerminal(host: HTMLElement, theme: Theme, text: string
   const update = (next: string): void => {
     const available = containerColsOf(host, cell)
     const nextMetrics = regionMetrics(next)
+    const nextBody = next.slice(nextMetrics.trimFrom, nextMetrics.trimTo)
     const nextCols = regionCols(nextMetrics, available)
     const nextRows = Math.min(SPAN_MAX_ROWS, renderedRows(nextMetrics, nextCols))
-    if (nextCols !== term.cols || nextRows !== term.rows) term.resize(nextCols, nextRows)
-    if (last.length > 0 && next.startsWith(last)) {
+    // The COLUMN is what a re-flow can invalidate. A row-count change on its own
+    // is not one: the grid grows downward as the text does, which is what a
+    // printing command looks like, and rebuilding on that would throw away the
+    // reader's scroll position on every chunk (xterm's reset clears the
+    // scrollback) and re-emit the whole region per chunk.
+    const recolumned = nextCols !== term.cols
+    if (recolumned || nextRows !== term.rows) term.resize(nextCols, nextRows)
+    if (!recolumned && last.length > 0 && nextBody.startsWith(last)) {
       // The region only grew (a command is still printing): append, so the
-      // terminal keeps its scroll position and the redraw stays cheap.
-      term.write(next.slice(last.length))
+      // terminal keeps its scroll position and the redraw stays cheap. The
+      // trim's start is the region's first ink row and never moves, so a
+      // growing output stays a prefix and this path holds.
+      term.write(nextBody.slice(last.length))
     } else {
+      // A first write, a re-column, or a body that is not a prefix of what the
+      // grid holds (a redraw, or a trim that moved). The rebuild is also what
+      // recovers the black-screen-on-first-command: the region can mount before
+      // layout settles, measure a grid off a zero-width host, and then be
+      // re-measured by the observer's fit() — where the text is unchanged and an
+      // append would write nothing at all. Rebuilding puts the head back.
       term.reset()
-      term.write(next)
+      term.write(nextBody)
     }
-    last = next
+    last = nextBody
   }
   update(text)
   // Debug handle: `window.__DSHELL_TERMS__` lists the live xterm instances

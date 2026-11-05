@@ -17,7 +17,8 @@
  * rather than a rollback waiting to be deleted.
  */
 import type { DeviceConnection } from '../devices.js'
-import { deviceTransport } from '../transport/transport.js'
+
+import { transportFor } from '../transport/transport.js'
 
 /**
  * The probe: the device's home directory, then a Node executable if it has one.
@@ -169,7 +170,7 @@ export class HelperTargets {
 
   /** Ask the device where its home is and whether it has Node. */
   private async probe(device: DeviceConnection): Promise<ProbeAnswer> {
-    const result = await deviceTransport().exec(device, PROBE, { graceMs: 10_000 })
+    const result = await transportFor(device).exec(device, PROBE, { graceMs: 10_000 })
     if (result.exitCode !== 0) {
       throw new Error(result.stderr.trim() === ''
         ? `the device probe exited ${String(result.exitCode ?? 'on a signal')}`

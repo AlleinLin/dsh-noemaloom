@@ -25,7 +25,8 @@ import type {
   RemoteFsDeps, RemoteFsTransport, RemoteKind, RemoteListEntry, RemoteStat,
 } from './remote-fs-transport.js'
 import { quote, quoteDevicePath } from './shell-quote.js'
-import { deviceTransport, type DeviceOutcome } from './transport/transport.js'
+import type { DeviceOutcome } from './transport/transport.js'
+import { transportFor } from './transport/transport.js'
 
 /** The error text this file's classifier reads; see the note in the module header. */
 const MISSING_PATH = /No such file or directory|cannot statx? .*No such/i
@@ -70,7 +71,7 @@ export class ShellFsTransport implements RemoteFsTransport {
     command: string,
     options: { signal?: AbortSignal | undefined; stdin?: string | undefined } = {},
   ): Promise<RemoteRun> {
-    const result = await deviceTransport().exec(this.deps.device, command, {
+    const result = await transportFor(this.deps.device).exec(this.deps.device, command, {
       graceMs: COMMAND_GRACE_MS,
       ...options.signal === undefined ? {} : { signal: options.signal },
       ...options.stdin === undefined ? {} : { stdin: options.stdin },
@@ -94,7 +95,7 @@ export class ShellFsTransport implements RemoteFsTransport {
    */
   private async runBinary(command: string, signal?: AbortSignal): Promise<Buffer> {
     const attempt = async (): Promise<{ outcome: DeviceOutcome; bytes: Buffer; stderr: string }> => {
-      const run = await deviceTransport().open(this.deps.device, command, {
+      const run = await transportFor(this.deps.device).open(this.deps.device, command, {
         graceMs: COMMAND_GRACE_MS,
         ...signal === undefined ? {} : { signal },
       })
@@ -217,7 +218,7 @@ export class ShellFsTransport implements RemoteFsTransport {
     return Promise.resolve((async function* stream(): AsyncIterable<Uint8Array> {
       // Opened inside the generator, so a caller that never iterates never dials:
       // nothing is left running on the device, because nothing was started.
-      const run = await deviceTransport().open(deps.device, `cat -- ${quoteDevicePath(path)}`, {
+      const run = await transportFor(deps.device).open(deps.device, `cat -- ${quoteDevicePath(path)}`, {
         graceMs: COMMAND_GRACE_MS,
         ...signal === undefined ? {} : { signal },
       })

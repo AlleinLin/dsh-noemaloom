@@ -331,3 +331,39 @@ export function missingSurface(claim: SurfaceClaim, declared: UpstreamSurface): 
   }
   return gaps.sort((left, right) => (left.kind + left.name).localeCompare(right.kind + right.name))
 }
+
+/**
+ * Read one dsh checkout's declared surface, from a root of the caller's choosing.
+ *
+ * `upstream-surface.spec.ts` names the pinned mirror inline; this is the same
+ * reader with the root as a parameter, so a second spec can measure a different
+ * checkout without keeping its own copy of the walk in step with this one.
+ *
+ * @param root - absolute path to a dsh checkout.
+ * @returns what that checkout declares.
+ */
+export async function readSurfaceAt(root: string): Promise<UpstreamSurface> {
+  // Imported here rather than at the top: this module is otherwise pure, and the
+  // specs that call it inject their own readers. Keeping the only IO behind a
+  // dynamic import means the pure half stays importable anywhere.
+  const { readFileSync, readdirSync, statSync } = await import('node:fs')
+  const { join, relative } = await import('node:path')
+  const readFile = (path: string): string => readFileSync(join(root, path), 'utf8')
+  const listFiles = (): readonly string[] => {
+    const found: string[] = []
+    const skip = new Set(['node_modules', 'lib', 'dist'])
+    const walk = (dir: string): void => {
+      for (const name of readdirSync(dir)) {
+        if (skip.has(name)) continue
+        const entry = join(dir, name)
+        if (statSync(entry).isDirectory()) walk(entry)
+        else if (name.endsWith('.ts') && !name.endsWith('.spec.ts')) {
+          found.push(relative(root, entry).replaceAll('\\', '/'))
+        }
+      }
+    }
+    walk(join(root, UPSTREAM_PACKAGES_ROOT))
+    return found
+  }
+  return readUpstreamSurface(readFile, listFiles)
+}
