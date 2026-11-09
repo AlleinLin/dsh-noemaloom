@@ -1,15 +1,20 @@
 {
   "package": "@deepseek-ai/dsh-agent-instructions",
-  "version": "0.2.1-rc.3",
-  "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-agent-instructions/-/dsh-agent-instructions-0.2.1-rc.3.tgz",
-  "integrity": "sha512-w0eRfEp+7oN92ai2GNJpZTom+IZrh20A6PvZ+2nLKkL4Sz+2EaQIH3jNL7gMmVw1OmT/xnF0rq+xAcxsduB1xQ==",
+  "version": "0.2.2-rc.1",
+  "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-agent-instructions/-/dsh-agent-instructions-0.2.2-rc.1.tgz",
+  "integrity": "sha512-Ne/yOw5ba8ONbVnHjqMmXxTxyOxmFehFj/+OicMbDyFmnva9qpF3kfL+BXfLMFnS+dE5/b5/W0VUdG2e0DnjFg==",
   "originalEntry": "package/lib/index.js",
-  "originalEntrySha256": "4011f6e4c08228601bd4348ac78e322913142264f6e491ffdf9dcfda97393988",
+  "originalEntrySha256": "afbd526d1e3126a368774f24105140adc3ef532ca4aa93cfa0fb1318d5b9b75d",
   "license": "MIT",
   "changes": [
     "Default project candidates: DEEPSEEK.md, AGENT.md, AGENTS.md, CLAUDE.md; no local overlay.",
     "Discovery stops after the first present candidate in each directory.",
     "Reconciliation suppresses lower candidates before content reads; unavailable higher probes fail closed.",
     "Official rendering, budgets, root discovery, session projection and touch-driven updates retained; user-global scope unchanged."
-  ]
+  ],
+  "sourceReview": "docs/upstream-audit-2026-11-09.json",
+  "upstreamEntrySha256": "afbd526d1e3126a368774f24105140adc3ef532ca4aa93cfa0fb1318d5b9b75d",
+  "localEntries": {
+    "index.mjs": "74b0779de82149fd1d88e451658310e3e36850021d8abc53d001ca53602746dd"
+  }
 }

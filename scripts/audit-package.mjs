@@ -119,6 +119,12 @@ const reviewedSourceLines = [
     text: '    (re.compile(r"/Users/|/home/"), "本机绝对路径（unix 家目录）"),',
     reason: 'Upstream security expression rejects user-home paths; it is policy syntax, not a user path.',
   },
+  {
+    id: 'mdcg-datapath-tilde-example',
+    file: 'vendor/memory-cognition/src/lib/datapath.ts', rule: 'absolute-user-path',
+    text: ' * 收敛代价（如实）：POSIX 上 `MDCG_ROOT=~ybyz/mem` 从「展开成 /home/ybyz/mem」变成',
+    reason: 'Upstream path normalization documentation uses a generic named-user example; it is not a local profile path.',
+  },
   ...['vendor/nexus-terminal/packages/dshell/buffer/src/service.ts', 'lib/native/dshell-buffer.js'].map(file => ({
     id: 'dshell-pipe-world-example', file, rule: 'absolute-user-path',
     text: '   * ends in /home/reader" for a peer that lives elsewhere, so the panel takes',
@@ -713,7 +719,7 @@ export async function auditPackage({ packagePath, outputPath = resolve(root, 'ev
       }
       const rewind = JSON.parse(decoder.decode(files.get('vendor/turn-rewind/package.json')?.data ?? Buffer.alloc(0)));
       const rewindSource = JSON.parse(decoder.decode(files.get('vendor/turn-rewind/SOURCE.json')?.data ?? Buffer.alloc(0)));
-      if (rewind.version !== '0.3.11' || rewind.license !== 'BSD-3-Clause'
+      if (rewind.version !== '0.3.12' || rewind.license !== 'BSD-3-Clause'
         || rewind.dsh?.compatibility?.dsh !== EXPECTED_DSH_VERSION
         || rewindSource.version !== rewind.version || !Object.keys(rewindSource.runtimeFiles ?? {}).length)
         throw new Error('Turn Rewind must retain its upstream identity and exact adapted host contract');
@@ -722,8 +728,8 @@ export async function auditPackage({ packagePath, outputPath = resolve(root, 'ev
           throw new Error(`Turn Rewind runtime changed or missing: ${path}`);
       }
       const codinput = JSON.parse(decoder.decode(files.get('vendor/codinput/SOURCE.json')?.data ?? Buffer.alloc(0)));
-      if (codinput.packageName !== 'dsh-codinput' || codinput.version !== '0.3.8' || codinput.license !== 'MIT'
-        || codinput.revision !== 'e19276e14ee907753d994df5daa904afd8fcdfa5'
+      if (codinput.packageName !== 'dsh-codinput' || codinput.version !== '0.3.9' || codinput.license !== 'MIT'
+        || codinput.revision !== '5eb29c7dba19e8f720a193ea5f0396a2c55b1cec'
         || lock.units.find(unit => unit.id === 'SRC-38')?.source?.revision !== codinput.revision) throw new Error('Original Codinput source identity is incomplete');
       for (const path of [
         'vendor/codinput/SOURCE.json', 'notices/originals/codinput/SOURCE.json',
@@ -745,7 +751,7 @@ export async function auditPackage({ packagePath, outputPath = resolve(root, 'ev
       }
       const originalClient = decoder.decode(files.get('vendor/codinput/lib/client.js').data);
       parseFactory(originalClient, 'dsh-codinput');
-      const expectedClient = '// Original published client: dsh-codinput@0.3.8\n'
+      const expectedClient = '// Original published client: dsh-codinput@0.3.9\n'
         + '// Original license is included under notices/originals.\n'
         + `const factory = ${rebuiltCodinput.factory};\nexport default factory;\n`;
       if (decoder.decode(files.get('lib/original-client/codinput.js')?.data ?? Buffer.alloc(0)) !== expectedClient

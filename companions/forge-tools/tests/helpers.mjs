@@ -3,6 +3,7 @@ import { LocalFileSystem } from '@deepseek-ai/dsh-fs-local';
 import { SandboxedFileSystem } from '@deepseek-ai/dsh-fs-sandbox';
 import { LocalSubprocessRuntime } from '@deepseek-ai/dsh-subprocess-local';
 import { PwshLocalExecutor } from '@deepseek-ai/dsh-pwsh-local';
+import * as nativeToolExecutor from '@deepseek-ai/dsh-tool-executor-native';
 import { ToolRuntime } from '@deepseek-ai/dsh-tools';
 import { mkdtemp, rm } from 'node:fs/promises';
 import os from 'node:os';
@@ -24,6 +25,7 @@ export async function environment(t, options = {}) {
   await ctx.plugin(LocalSubprocessRuntime).await();
   await ctx.plugin(PwshLocalExecutor, {}).await();
   await ctx.plugin(ToolRuntime, {}).await();
+  await ctx.plugin(nativeToolExecutor).await();
   ctx.on('fs/observed', (target, observation) => observations.set(target.targetKey, observation));
   if (options.guarded) {
     ctx.on('fs/edit-intent', async target => {
@@ -45,9 +47,16 @@ export async function environment(t, options = {}) {
     // Real defineTool validates args; execute body is used to preserve the canonical value for assertions.
     return tool.execute(args, { agent, signal, callId: 'call-test', rootCallId: 'call-test' });
   };
-  const nativeExecute = (name, args, extras = {}) => ctx.tools.execute({
+  const nativeExecute = (name, args, extras = {}) => executeSingle(ctx, {
     name, arguments: args, agent, callId: 'native-test', signal: new AbortController().signal, ...extras,
   });
   t.after(async () => { await ctx.fiber.dispose(); await rm(root, { recursive: true, force: true }); });
   return { root, ctx, execute, nativeExecute, agent, observations };
+}
+
+// Test adapter for the official rc.1 batch result, with identity validation.
+export async function executeSingle(ctx, input) {
+  const batch = await ctx.tools.execute({ calls: [{ type: 'tool-call', id: input.callId, name: input.name, arguments: JSON.stringify(input.arguments) }], signal: input.signal, ...(input.agent ? { agent: input.agent } : {}) });
+  if (batch.results.length !== 1 || batch.results[0].callId !== input.callId) throw new Error('Unexpected official tool result identity');
+  return batch.results[0].result;
 }

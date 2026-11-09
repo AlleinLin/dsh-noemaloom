@@ -10,8 +10,9 @@ export function registerUnifiedCompaction(ctx: HostContext) {
   const fiber = (ctx as unknown as Context).isolate('compaction').plugin({
     name: 'noemaloom-unified-compaction',
     inject: [...NexusCompactionEngine.inject, 'agents'],
-    apply(owner: Context) {
+    async apply(owner: Context) {
       const engine = new NexusCompactionEngine(owner, {}, { fallback: true });
+      await engine.ready;
       owner.provide('nexusCompactionMaintenance', engine);
     },
   });

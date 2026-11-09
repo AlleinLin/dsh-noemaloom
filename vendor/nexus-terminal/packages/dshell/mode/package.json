@@ -1,6 +1,6 @@
 {
   "name": "@nexus-aethra/dshell-mode",
-  "version": "0.1.16",
+  "version": "0.1.17",
   "description": "dshell mode toggle: per-session shell/agent mode state, composer Enter dispatch, /agent and /shell prefix parsing, and agent-mode terminal-context injection.",
   "license": "MIT",
   "repository": {

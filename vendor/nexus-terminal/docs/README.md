@@ -8,8 +8,9 @@ making a targeted change.
 | [`dshell-design.md`](./dshell-design.md) | Starting from the goal, the non-goals, and the ten design decisions |
 | [`dshell-architecture.md`](./dshell-architecture.md) | Writing or reviewing code: wire protocol, Cordis surface, package layout, the device-provider extension point (§ 20) |
 | [`dshell-roadmap.md`](./dshell-roadmap.md) | Picking the next phase to implement |
-| [`dshell-packages.md`](./dshell-packages.md) | Looking up which plugin owns a feature — the twelve packages under `packages/dshell/` |
+| [`dshell-packages.md`](./dshell-packages.md) | Looking up which plugin owns a feature — the eleven packages under `packages/dshell/` |
 | [`dshell-handoff-2026-10.md`](./dshell-handoff-2026-10.md) | Taking the work over from someone: live state, what is unreleased, what is owed, what is broken |
+| [`releasing.md`](./releasing.md) | Cutting a dshell release: the five steps, the release-note sections, and how to find a version that shipped to npm but never got a page |
 
 ## Document roles
 
@@ -21,9 +22,12 @@ making a targeted change.
   an acceptance check.
 - `dshell-packages.md` is the plugin inventory, keyed by the dsh
   service each plugin depends on and the phase that introduces it. It
-  names all twelve packages: `std`, `storage`, `bundle`, `conversation`,
-  `terminal-bridge`, `mode`, `commands`, `ssh`, `buffer`, `files`,
-  `usage`, `wsl`.
+  names all eleven packages: `std`, `storage`, `bundle`, `conversation`,
+  `terminal-bridge`, `mode`, `commands`, `ssh`, `buffer`, `files`, `wsl`.
+- `releasing.md` is the release procedure: the five steps that must all happen, the
+  six sections a release note carries, and the dsh window that has to be checked
+  before publishing. It exists because ten tags shipped to npm with no GitHub
+  Release, and nothing in the repo said a Release was owed.
 - `dshell-handoff-2026-10.md` is *one handover*, not a standing document: it
   records the live state (what is released, what sits unreleased, what is
   owed and what is still broken) with the readings that were true on

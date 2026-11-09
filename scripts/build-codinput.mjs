@@ -19,7 +19,7 @@ export const CODINPUT_ADAPTATIONS = [
   'rebuild-with-pinned-safe-dependencies',
   'preserve-native-tab-pointer-gestures',
   'restored-context-surface-estimate',
-  'native-left-right-input-slots-from-reviewed-upstream-0.3.8',
+  'native-left-right-input-slots-from-reviewed-upstream-0.3.9',
   'subagent-model-selection-via-authenticated-host-rpc',
   'codinput-connection-injection-for-model-selection',
 ];

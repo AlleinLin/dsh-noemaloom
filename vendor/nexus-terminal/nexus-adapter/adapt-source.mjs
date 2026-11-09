@@ -88,8 +88,11 @@ export function adaptTerminalSource(filename, source, root) {
   if (name === 'packages/dshell/terminal-bridge/src/index.ts') {
     inject('windowsHost, windowsPromptInit, windowsCwd, quotePowerShell');
     replace("  static inject = ['terminals', 'agents'] as const", "  static inject = ['terminals', 'agents', 'subprocess', 'sandboxPolicy', 'sessionProjections', 'workingDirectory'] as const");
-    replace('    void this.claimForeignAgent(owner, sessionId)\n  })',
-      '    void this.claimForeignAgent(owner, sessionId)\n  }, this.ctx)');
+    const foreignClaim = `    void this.claimForeignAgent(owner, sessionId).catch((error: unknown) => {
+      console.warn('dshell-bridge: a foreign shell was not claimed:', error)
+    })
+  })`;
+    replace(foreignClaim, foreignClaim.slice(0, -1) + ', this.ctx)');
     replace("    const init = [", '    const init = windowsHost && !record.session.redirected ? windowsPromptInit(options.cdTo) : [');
     replace("    try {\n      return readlinkSync(`/proc/${String(session.pid)}/cwd`)", "    if (windowsHost) return windowsCwd(session.pid)\n    try {\n      return readlinkSync(`/proc/${String(session.pid)}/cwd`)");
     replace('function forkDirWord(record: MainRecord | undefined): string | undefined {',

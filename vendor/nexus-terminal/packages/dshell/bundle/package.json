@@ -1,6 +1,6 @@
 {
   "name": "@nexus-aethra/dshell-bundle",
-  "version": "0.1.16",
+  "version": "0.1.17",
   "description": "dshell bundle: composition patch layer that wires dshell-* packages into the dsh web profile.",
   "license": "MIT",
   "repository": {
@@ -48,7 +48,6 @@
     "@nexus-aethra/dshell-std": "workspace:^",
     "@nexus-aethra/dshell-storage": "workspace:^",
     "@nexus-aethra/dshell-terminal-bridge": "workspace:^",
-    "@nexus-aethra/dshell-usage": "workspace:^",
     "@nexus-aethra/dshell-wsl": "workspace:^"
   },
   "peerDependencies": {

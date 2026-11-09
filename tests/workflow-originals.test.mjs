@@ -60,7 +60,7 @@ test('packaged OpenSpec CLI runs inside a Windows-style workspace without global
   const cli = fileURLToPath(new URL('../bin/openspec.js', import.meta.resolve('@fission-ai/openspec')));
   const exec = promisify(execFile), env = { ...process.env, OPENSPEC_TELEMETRY: '0', DO_NOT_TRACK: '1', CI: 'true' };
   const version = await exec(process.execPath, [cli, '--version'], { cwd: directory, env, windowsHide: true, timeout: 30_000 });
-  assert.match(version.stdout, /1\.16\.0/);
+  assert.match(version.stdout, /1\.16\.1/);
   await exec(process.execPath, [cli, 'init', '--tools', 'none'], { cwd: directory, env, windowsHide: true, timeout: 30_000 });
   assert.match(await readFile(join(directory, 'openspec/config.yaml'), 'utf8'), /schema:/);
   const definitions = [];
@@ -113,7 +113,7 @@ test('managed update adapters remove independent update entry points and reject 
       assert.doesNotMatch(result.source, /action:.*t\("versions.checkAction"\)/);
       assert.match(result.source, /providers/, 'memory functionality remains');
     }
-    if (name === 'dsh-context') assert.match(result.source, /function Wl\(\)\{return Promise.resolve\(null\)\}/);
+    if (name === 'dsh-context') assert.match(result.source, /function hu\(\)\{return Promise.resolve\(null\)\}/);
     if (name.includes('agency')) {
       assert.match(result.source, /function Hc\(\)\{return null\}/);
       let bootstrap;
@@ -129,7 +129,7 @@ test('managed update adapters remove independent update entry points and reject 
       assert.equal(typeof dispose, 'function');
       assert.doesNotThrow(dispose);
     }
-    const symbols = { 'dsh-context': ['ql', 'Wl'], 'dsh-mnemon': ['VersionDialog'], '@michengai/dsh-agency-agents': ['Hc', 'Uc'] }[name];
+    const symbols = { 'dsh-context': ['_u', 'hu'], 'dsh-mnemon': ['VersionDialog'], '@michengai/dsh-agency-agents': ['Hc', 'Uc'] }[name];
     for (const symbol of symbols) {
       const drifted = original.replace(`function ${symbol}(`, `function renamed_${symbol}(`);
       assert.notEqual(drifted, original, 'the mutation must rename this package’s actual managed updater');

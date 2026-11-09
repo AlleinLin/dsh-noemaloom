@@ -1,4 +1,5 @@
 import { spawn } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { copyFile, mkdtemp, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join, relative, resolve } from 'node:path';
@@ -19,6 +20,19 @@ for (const path of copied) {
   await mkdir(dirname(destination), { recursive: true });
   await copyFile(path, destination);
 }
+// The published npm subset omits the Hive MCP entry required by upstream's
+// Windows UTF-8 regression. Keep exact Git-blob-verified public fixtures out of
+// the runtime package, and materialize them only inside this synthetic copy.
+const fixtures = join(repository, 'tools/acceptance/fixtures/cognition');
+const fixtureSource = JSON.parse(await readFile(join(fixtures, 'SOURCE.json'), 'utf8'));
+for (const file of fixtureSource.files) {
+  const bytes = await readFile(join(fixtures, file.path));
+  if (createHash('sha256').update(bytes).digest('hex') !== file.sha256)
+    throw new Error(`Cognition supplemental fixture changed: ${file.path}`);
+  const destination = join(vendor, file.path);
+  await mkdir(dirname(destination), { recursive: true });
+  await writeFile(destination, bytes);
+}
 const modules = [
   'test_auto_defaults', 'test_c3_transient_read_negative', 'test_c8_search_rrf_gates',
   'test_exact_text_cache', 'test_issue274_read_node_id_none', 'test_issue561_pending_review',
@@ -38,6 +52,7 @@ for (const name of ["test_b4_shard_dir_selfheal","test_b4_shard_dir_selfheal_gua
 for (const name of ["test_generation_guard", "test_i50c_meta_passthrough", "test_issue708_writegate_observable", "test_issue709_review_chain_enforce", "test_issue712_session_window_attribution", "test_p45_session_identity"]) if (!modules.includes(name)) modules.push(name);
 for (const name of ['test_issue414_write_args_parity', 'test_logref', 'test_p27_docindex', 'test_722_aliases_thin', 'test_722_condition_quality', 'test_723_permission_wildcard', 'test_aliases_r2r3', 'test_repeat_guard_charter15']) if (!modules.includes(name)) modules.push(name);
 for (const name of ['test_session5_resolve', 'test_issue376_heartbeat_failed']) if (!modules.includes(name)) modules.push(name);
+for (const name of ["test_cond_term_fold", "test_cond_terms_colon", "test_generation_guard", "test_issue362_neg_condition", "test_issue39_utf8_stdio", "test_issue444_scrub_evidence_plaintext", "test_issue677_flush_batch_io", "test_issue677_info_fast", "test_issue677_remember_dedupe", "test_issue712_tokens_sessions_read", "test_issue722_strict_conditions", "test_issue730_narrowing_audit", "test_issue733_verify_override", "test_issue733_verify_override_and_overwrite_inherit", "test_issue740_filelock_fd_leak", "test_issue741_content_hash_same_source", "test_issue747_slot_contradiction", "test_issue754_nested_root_guard", "test_issue757_index_hash_compare", "test_issue758_disk_hash_single", "test_issue759_twophase_hash", "test_n204_n205_n226_n227_n228_n229_exit_gates", "test_n209_verify_write_face_gates", "test_neg_condition_hits", "test_scrub_source_line_false_positive", "test_twophase"]) if (!modules.includes(name)) modules.push(name);
 const environment = Object.fromEntries(Object.entries(process.env).filter(([name]) =>
   !/^(?:MDCG_|LINGSU_|LINGSHU_)/iu.test(name)
     && !/(?:TOKEN|SECRET|PASSWORD|API_KEY|AUTHORIZATION|CREDENTIAL)/iu.test(name)));
@@ -74,6 +89,7 @@ await git(['commit', '--quiet', '--no-gpg-sign', '-m', 'Public release validatio
 const isolatedBaseline = await git(['rev-parse', 'HEAD']);
 const report = { startedAt: new Date().toISOString(), sourceHash: source.sha256,
   copiedPublicSourceFiles: copied.length, usesIsolatedSourceCopy: true,
+  supplementalPublicFixtures: fixtureSource,
   isolatedSyntheticGitBaseline: isolatedBaseline, results: [], ok: false };
 async function run(name, commandArgs) {
   const startedAt = new Date().toISOString();

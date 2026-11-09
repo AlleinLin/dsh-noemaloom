@@ -15,10 +15,12 @@ dshbox 容器里**量的（模板 `dsh-v0.2.2-rc.1`，宿主 runtime），容器
 
 ## 0. 三句话状态
 
-1. **WSL 这条线已经全部合进 main 了**（PR #70 与 #71，均 squash-merge）。12 个包的
-   `package.json` **仍是 `0.1.16`**，npm `latest` 也是 `0.1.16`，最新 tag `dshell-v0.1.16`
-   指向 `b3d72f9`（2026-10-31）。**`0.1.17` 的版本号提升、发布、打 tag 全都还没做。**
-2. **门禁全绿**：`vitest` 77 files passed + 1 skipped，**786 tests passed / 44 skipped**；
+1. **WSL 这条线已经全部合进 main 了**（PR #70 与 #71，均 squash-merge）。
+   12 个包的 `package.json` 在 `feature/device-visibility` 分支上**已提升到 `0.1.17`**
+   （含按发行版控制设备列表可见度这一项），随该分支的 PR 一起走；npm `latest` 仍是
+   `0.1.16`，最新 tag `dshell-v0.1.16` 指向 `b3d72f9`（2026-10-31）。
+   **`0.1.17` 的发布与打 tag 还没做**——等 PR 合入后再执行。
+2. **门禁全绿**：`vitest` 78 files passed + 1 skipped，**793 tests passed / 44 skipped**；
    `tsc -b tsconfig.host.json` 与 `tsc -b tsconfig.client.json` 均 exit 0。
 3. **WSL 这条线现在整条通了，而且已经提交**：exec 门丢 stdout 的洞已修并复量
    （`ProcessCommand` 改成真 duplex，读写两侧分开），`env` 经 `WSLENV` 桥接进 distro，
@@ -30,10 +32,10 @@ dshbox 容器里**量的（模板 `dsh-v0.2.2-rc.1`，宿主 runtime），容器
 
 | 事项 | 读数 | 怎么复核 |
 |---|---|---|
-| 当前分支 | 本文写作时在 `docs/022-review-polish` 上；`main` 已含 PR #70 与 #71 | `git status -sb`、`git log --oneline -3 main` |
-| main | `36f3082`（#71 的合并提交）；本地 `main` 与 `origin/main` 均在此 | `git log --oneline -1 main`、`git log --oneline -1 origin/main` |
+| 当前分支 | 本文写作时在 `feature/device-visibility` 上（设备可见度 + 0.1.17 bump）；`main` 已含 PR #70 与 #71 | `git status -sb`、`git log --oneline -3 main` |
+| main | `89ef983`（#72 的合并提交）；本地 `main` 与 `origin/main` 均在此 | `git log --oneline -1 main`、`git log --oneline -1 origin/main` |
 | 工作区 | **干净**（本文写作时；修复已全部提交） | `git status --short` |
-| 包 | **12 个**，全部 `0.1.16` | `for d in packages/dshell/*/; do node -e "console.log(require('./$d/package.json').version)"; done` |
+| 包 | **12 个**，`main` 上全部 `0.1.17`；npm `alpha` 已是 `0.1.17-alpha.1`，`latest` 仍是 `0.1.16` | `for d in packages/dshell/*/; do node -e "console.log(require('./$d/package.json').version)"; done` |
 | npm 上 | `latest` = `0.1.16` | `npm view @nexus-aethra/dshell-bundle dist-tags --registry=https://registry.npmjs.org/` |
 | tag | 最新 `dshell-v0.1.16` → `b3d72f9`（2026-10-31）；**0.1.17 线还没有 tag** | `git ls-remote --tags origin 'refs/tags/dshell-v*'` |
 | dsh pin | `dsh-v0.2.1-rc.3`（`dsh-upstream.json`） | `cat dsh-upstream.json` |
@@ -133,9 +135,18 @@ router.ensureDeviceRoot 的探针        -> /home/gpumem
 
 ### ② 还没做的（这些是欠着的，不是可以顺手带过的）
 
-- **`0.1.17` 版本号提升**：12 个包的 `package.json` 全是 `0.1.16`。
-- **发布**：`pnpm publish`（**不要用 `npm publish`**，见 § 4），按依赖序，`dshell-bundle` 最后。
+- **`0.1.17` 版本号提升**：已在 `feature/device-visibility` 分支上完成（12 个包全部 `0.1.17`），
+  随该分支的 PR 合入 main。
+- **alpha 已发**：`0.1.17-alpha.1` 已发布到 npm 的 `alpha` dist-tag（12 个包全部，
+  2026-11-06）。按发布策略，alpha **不打 git tag、不发 GitHub release**。
+  `latest` 仍是 `0.1.16`。发布用的是 `corepack pnpm publish --registry=… --tag alpha`
+  （本机 `pnpm` 不在 PATH 上，必须走 corepack；`~/.npmrc.publish` 不存在，
+  但 `~/.npmrc` 里的 npmjs token 与 scope 映射是可用的）。
+- **稳定版还没发**：`pnpm publish`（**不要用 `npm publish`**，见 § 4），按依赖序，
+  `dshell-bundle` 最后，显式带 `--registry=https://registry.npmjs.org/`。
+  稳定版才打 git tag `dshell-v0.1.17` 和 GitHub release。
 - **打 tag**：`dshell-v0.1.17` 还不存在；`dshell-v0.1.16` 指向 `b3d72f9`（2026-10-31）。
+  按发布策略，alpha/rc 只发 npm dist-tag、**不打 git tag、不发 GitHub release**。
 - **0.2.2 的 surface 读数有了，但 pin 还没移**：`scripts/tests/upstream-surface-any.spec.ts`
   可以指向任意 checkout（`DSH_SURFACE_ROOT=<路径>`），已对 `dsh-v0.2.2-rc.1` 镜像量过：
   services 156 / slots 109 / events 62，dshell 用到的名字一个没少（0.2.1 是 146/103/62）。
@@ -169,7 +180,7 @@ router.ensureDeviceRoot 的探针        -> /home/gpumem
 cd <repo-root>
 git status -sb                 # 应显示与 origin 同步、工作区干净
 pnpm i
-pnpm run test && pnpm run typecheck     # 期望 786 passed / 44 skipped + 干净
+pnpm run test && pnpm run typecheck     # 期望 793 passed / 44 skipped + 干净
 pnpm --filter "@nexus-aethra/dshell-*" run build
 ```
 

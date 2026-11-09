@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { environment } from './helpers.mjs';
+import { environment, executeSingle } from './helpers.mjs';
 
 const input = (name, args, controller) => ({ name, arguments: args, callId: `resilience-${name}`,
   signal: controller.signal });
@@ -28,7 +28,7 @@ test('SDK cancellation preserves the fact that an atomic write already committed
     controller.abort(new Error('cancel after publication'));
     return result;
   };
-  const result = await ctx.tools.execute(input('write', { file_path: 'committed.txt', content: 'COMMITTED' }, controller));
+  const result = await executeSingle(ctx, input('write', { file_path: 'committed.txt', content: 'COMMITTED' }, controller));
   assert.equal(result.isError, true);
   assert.equal(result.error.info.code, 'ABORTED');
   assert.equal(await readFile(path.join(root, 'committed.txt'), 'utf8'), 'COMMITTED');
@@ -50,7 +50,7 @@ test('SDK cancelled batch preserves committed progress and never dispatches late
     controller.abort(new Error('stop after first commit'));
     return result;
   };
-  const result = await ctx.tools.execute(input('batch_edit', { edits: [
+  const result = await executeSingle(ctx, input('batch_edit', { edits: [
     { file_path: 'a', old_string: 'one', new_string: 'ONE' },
     { file_path: 'b', old_string: 'two', new_string: 'TWO' },
   ] }, controller));
@@ -71,7 +71,7 @@ test('post-publication provider failure is marked unconfirmed and is never silen
     await original(...args);
     throw Object.assign(new Error('post-publication metadata probe failed'), { code: 'EIO' });
   };
-  const result = await ctx.tools.execute(input('write', { file_path: 'uncertain.txt', content: 'landed' }, new AbortController()));
+  const result = await executeSingle(ctx, input('write', { file_path: 'uncertain.txt', content: 'landed' }, new AbortController()));
   assert.equal(result.isError, true);
   assert.equal(calls, 1);
   assert.equal(await readFile(path.join(root, 'uncertain.txt'), 'utf8'), 'landed');
@@ -83,7 +83,7 @@ test('large edit results omit full bodies and batch results never retain complet
   const { root, ctx, execute } = await environment(t);
   const body = 'a'.repeat(128 * 1024) + 'needle';
   await writeFile(path.join(root, 'large'), body);
-  const result = await ctx.tools.execute(input('edit', {
+  const result = await executeSingle(ctx, input('edit', {
     file_path: 'large', old_string: 'needle', new_string: 'new value',
   }, new AbortController()));
   assert.equal(result.isError, false);

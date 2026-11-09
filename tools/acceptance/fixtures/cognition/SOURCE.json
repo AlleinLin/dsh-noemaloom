@@ -1,0 +1,23 @@
+{
+  "repository": "https://github.com/FuRongJun-1999/dsh-memory",
+  "revision": "2f89485b394669ad70e7617f4e12de008e1291e6",
+  "license": "MIT",
+  "purpose": "Public supplemental fixtures absent from the published npm subset, used only by the isolated upstream Windows UTF-8 stdio regression. Never loaded by the runtime package; no Hive binary or daemon is installed or executed.",
+  "files": [
+    {
+      "path": "hive/__init__.py",
+      "gitBlob": "3af795d60f2981eb5976460589aed34521b99910",
+      "sha256": "c304c3523917ba604bd3081d1aca7f33d8da58c3bd672a52b1ce8711d3da2ab9"
+    },
+    {
+      "path": "hive/hive_mcp/__init__.py",
+      "gitBlob": "5b9a9b9716260e58615af3f6b77ab5582cc4d94a",
+      "sha256": "a85855681cef480af69ef41dbdd4b398950a18c84fc526abfee66acb00bd6040"
+    },
+    {
+      "path": "hive/hive_mcp/mcp_server.py",
+      "gitBlob": "ffeb51f46203fde8af64d9ef25d275c6c220eed7",
+      "sha256": "f2e5016ee0b69680cb12d0dfea54bc814708e63468b13f10324869d0d24b8f73"
+    }
+  ]
+}

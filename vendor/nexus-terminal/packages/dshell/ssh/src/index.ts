@@ -109,7 +109,12 @@ export function apply(ctx: Context): void {
       // deployment says nothing (dshell-mode reports the choice).
       console.info(`dshell-ssh: devices are read from ${plan.root}`)
     }
-  })()
+  })().catch((error: unknown) => {
+    // The host treats an unhandled rejection as fatal: the desktop app
+    // restarts it. A composition that cannot settle its data root has no
+    // device registry, and saying so is better than taking the app down.
+    console.warn('dshell-ssh: the device registry could not be composed:', error)
+  })
 }
 
 /**

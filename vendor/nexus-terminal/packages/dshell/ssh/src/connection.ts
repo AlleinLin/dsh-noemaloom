@@ -166,11 +166,14 @@ export class DshellSshConnection {
     // helper's own stderr, appended below), not an unknown outcome. Only after
     // the handshake is "unknown" the honest word, because the device may have
     // been running something when the link dropped.
+    // The helper's death is reported through `fail`, which every caller
+    // awaits. This chain exists only to turn the death into that report, and
+    // a rejection nobody handles is fatal to the host.
     void this.command.done.then(() => {
       this.fail(new Error(this.verified
         ? 'the dshell SSH helper exited; the outcome of any operation in flight is unknown'
         : 'the dshell SSH helper did not start on the device'), 'self')
-    })
+    }).catch(() => {})
     // The transport's own reason, which is weaker than anything diagnosed here:
     // when the helper never started, the peer can only report that its channel
     // closed, while the channel's exit and the helper's stderr say why.
@@ -250,7 +253,7 @@ export class DshellSshConnection {
       await new Promise<void>((resolve) => {
         const timer = setTimeout(resolve, 2_000)
         timer.unref()
-        void this.command.done.then(() => { clearTimeout(timer); resolve() })
+        void this.command.done.then(() => { clearTimeout(timer); resolve() }).catch(() => { clearTimeout(timer); resolve() })
       })
       throw this.failure ?? (error instanceof Error ? error : new Error(String(error)))
     })

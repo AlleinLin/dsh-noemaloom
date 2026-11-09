@@ -103,6 +103,20 @@ async function seedTimeline(logPath: string, seedChars: number): Promise<PtyTime
   return [{ t: seededAt, n: seedChars }]
 }
 
+/** The line count of a text: a newline count plus one. */
+function countLines(text: string): number {
+  let lines = 1
+  for (let at = text.indexOf('\n'); at !== -1; at = text.indexOf('\n', at + 1)) lines += 1
+  return lines
+}
+
+/** The newlines a delta adds to a line count. */
+function countNewlines(text: string): number {
+  let lines = 0
+  for (let at = text.indexOf('\n'); at !== -1; at = text.indexOf('\n', at + 1)) lines += 1
+  return lines
+}
+
 /** Decode the tail of a UTF-8 file without splitting a multibyte sequence. */
 function decodeTail(buffer: Buffer): string {
   let start = 0
@@ -120,12 +134,25 @@ export class PtyBuffer {
   /** Arrival time of each append still inside the window, oldest first. */
   private timeline: PtyTimelineEntry[] = []
   private timelineTimer: NodeJS.Timeout | undefined
+  /**
+   * The window's size, counted as it grows.
+   *
+   * Both numbers are kept INCREMENTALLY rather than recomputed by splitting
+   * the window: the split cost O(window) on every append, and the window is
+   * capped at a quarter of a megabyte, so a busy shell paid a quarter-megabyte
+   * copy per chunk of output — quadratic in the session's own output.
+   */
+  private windowBytes = 0
+  private windowLines = 1
 
   private constructor(
     readonly logPath: string,
     private readonly options: PtyBufferOptions,
     private window = '',
-  ) {}
+  ) {
+    this.windowBytes = Buffer.byteLength(window)
+    this.windowLines = countLines(window)
+  }
 
   /**
    * Open (or create) the log and seed the window from its tail.
@@ -167,6 +194,8 @@ export class PtyBuffer {
   append(delta: string): void {
     if (delta.length === 0) return
     this.window += delta
+    this.windowBytes += Buffer.byteLength(delta)
+    this.windowLines += countNewlines(delta)
     this.timeline.push({ t: Date.now(), n: delta.length })
     this.scheduleTimelineSave()
     this.trim()
@@ -184,6 +213,8 @@ export class PtyBuffer {
   /** Replace the window wholesale after the backend dropped retained lines. */
   resync(text: string): void {
     this.window = text
+    this.windowBytes = Buffer.byteLength(text)
+    this.windowLines = countLines(text)
     this.timeline = text.length === 0 ? [] : [{ t: Date.now(), n: text.length }]
     this.scheduleTimelineSave()
     this.trim()
@@ -325,21 +356,41 @@ export class PtyBuffer {
       .catch(() => { /* best effort: a missing sidecar only costs placement */ })
   }
 
-  /** Enforce the window caps by dropping the oldest lines. */
+  /**
+   * Enforce the window caps by dropping the oldest lines.
+   *
+   * The cut goes to a LOW-WATER MARK — half of each cap — in ONE pass.
+   * Trimming to exactly the cap would make every following append trim again,
+   * which is the same quadratic copying with a smaller constant; and trimming a
+   * line at a time re-split and re-joined the whole window on every line
+   * dropped.
+   */
   private trim(): void {
-    for (;;) {
-      if (this.window.length === 0) return
-      const overBytes = Buffer.byteLength(this.window) > this.options.windowMaxBytes
-      const lines = this.window.split('\n')
-      const overLines = lines.length > this.options.windowMaxLines
-      if (!overBytes && !overLines) return
-      const drop = overLines ? lines.length - this.options.windowMaxLines : 1
-      const before = this.window.length
-      this.window = lines.slice(drop).join('\n')
-      // The timeline must consume exactly what the window dropped, or every
-      // later offset would be timed by the wrong frame.
-      this.consumeTimeline(before - this.window.length)
+    if (this.window.length === 0) return
+    const overBytes = this.windowBytes > this.options.windowMaxBytes
+    const overLines = this.windowLines > this.options.windowMaxLines
+    if (!overBytes && !overLines) return
+    const targetLines = Math.max(1, Math.floor(this.options.windowMaxLines / 2))
+    const targetBytes = Math.max(1, Math.floor(this.options.windowMaxBytes / 2))
+    const lines = this.window.split('\n')
+    // The largest tail that is within both low-water marks: a longer tail
+    // would need another pass, a shorter one would drop history the caps
+    // still allow.
+    let start = 0
+    let bytes = 0
+    for (let index = lines.length - 1; index >= 0; index -= 1) {
+      const line = lines[index] ?? ''
+      bytes += Buffer.byteLength(line) + (index === lines.length - 1 ? 0 : 1)
+      if (lines.length - index > targetLines || bytes > targetBytes) break
+      start = index
     }
+    const before = this.window.length
+    this.window = lines.slice(start).join('\n')
+    this.windowBytes = Buffer.byteLength(this.window)
+    this.windowLines = countLines(this.window)
+    // The timeline must consume exactly what the window dropped, or every
+    // later offset would be timed by the wrong frame.
+    this.consumeTimeline(before - this.window.length)
   }
 
   /** Drop `count` characters from the timeline's oldest end. */

@@ -1,9 +1,11 @@
+import { executeSingleTool } from '../src/host/single-tool.js';
+import { NativeToolExecutor } from '@deepseek-ai/dsh-tool-executor-native';
 import assert from 'node:assert/strict';
 import test, { type TestContext } from 'node:test';
 import { appendFile, mkdtemp, readFile, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { Context } from '@deepseek-ai/cordis';
+import { Context, Service } from '@deepseek-ai/cordis';
 import { AgentRegistry, type Agent, type AgentHandle } from '@deepseek-ai/dsh-agent';
 import { AgentLoop } from '@deepseek-ai/dsh-agent-loop';
 import { LlmAdapter, LlmError, LlmRuntime, ToolCallId, createUserMessage, type GenerateOptions, type StreamChunk } from '@deepseek-ai/dsh-llm';
@@ -11,7 +13,7 @@ import { SessionId, SessionStore, appendPluginRecord, pluginRecordOf } from '@de
 import { SessionProjectionRegistry } from '@deepseek-ai/dsh-session-projection';
 import { SystemPrompt } from '@deepseek-ai/dsh-system-prompt';
 import { TokenMeter } from '@deepseek-ai/dsh-token-meter';
-import { ToolRuntime, defineContentToolFixture } from '@deepseek-ai/dsh-tools';
+import { ToolRuntime, defineTool } from '@deepseek-ai/dsh-tools';
 import { bindScopeParent, createScope, scopeOf } from '@deepseek-ai/dsh-scope';
 import NexusCompactionEngine from '../src/host/compaction.js';
 import { registerRequestRecovery, type RequestRecoveryDiagnostic } from '../src/host/request-recovery.js';
@@ -129,7 +131,7 @@ async function fixture(t: TestContext, options: { window?: number; overflow?: bo
       }
     }
   }
-  const base = root.plugin({ name: 'native-context-base', apply(ctx: Context) {
+  const base = root.plugin({ name: 'native-context-base', async apply(ctx: Context) {
     agents = new AgentRegistry(ctx); new SessionStore(ctx); new SessionProjectionRegistry(ctx);
     new SystemPrompt(ctx, { includeHarnessIdentity: false }); new TokenMeter(ctx);
     new LlmRuntime(ctx).registerAdapter([provider], new Adapter());
@@ -141,24 +143,25 @@ async function fixture(t: TestContext, options: { window?: number; overflow?: bo
     ctx.on('session/flush', () => {});
   } });
   fibers.push(base); await base.await(); assert.equal(base.state, 2);
-  const tools = root.plugin({ name: 'native-context-tools', inject: ['systemPrompt'], apply(ctx: Context) {
-    new ToolRuntime(ctx);
+  const tools = root.plugin({ name: 'native-context-tools', inject: ['systemPrompt'], async apply(ctx: Context) {
+    const nativeTools = new ToolRuntime(ctx); nativeTools.setExecutor(new NativeToolExecutor(ctx));
   } }); fibers.push(tools); await tools.await(); assert.equal(tools.state, 2);
-  const toolFixtures = root.plugin({ name: 'native-context-tool-fixtures', inject: ['tools'], apply(ctx: Context) {
+  const toolFixtures = root.plugin({ name: 'native-context-tool-fixtures', inject: ['tools'], async apply(ctx: Context) {
     const unregister = registerSelfCompactionTool(ctx as any); ctx.effect(() => unregister);
-    ctx.tools.register(defineContentToolFixture({ name: 'fixture_work', description: 'Local work once', parameters: {},
+    ctx.tools.register(defineTool({ name: 'fixture_work', description: 'Local work once', parameters: {},
+      output: { schema: { type: 'string' }, render: (_args, value) => [{ type: 'text', text: value }] },
       async execute(_args, exec) {
         const id = String(exec.agent!.id); toolRuns.set(id, (toolRuns.get(id) ?? 0) + 1);
         if (options.fileEffect) await appendFile(path.join(dir, `${id}.txt`), 'executed\n');
         if (options.toolFailure) throw toHarnessError(new NexusError('FILE_READ_FAILED', 'Local tool read unavailable'),
           { phase: 'tool:fixture.read' });
-        return [{ type: 'text', text: 'Completed local operation once. ' + 'verified tool detail '.repeat(100) }];
+        return 'Completed local operation once. ' + 'verified tool detail '.repeat(100);
       } }));
   } }); fibers.push(toolFixtures); await toolFixtures.await(); assert.equal(toolFixtures.state, 2);
   const driver = root.plugin({ name: 'native-context-driver', inject: ['agents', 'sessions', 'sessionProjections', 'llm', 'tools', 'systemPrompt', 'nexus', 'tokenMeter', 'sessionQuery'],
-    apply(ctx: Context) {
-      driverCtx = ctx; new AgentLoop(ctx, AgentLoop.Config({ agents: [], maxParallelToolCalls: 1 }));
-      if (!options.scoped) engine = new NexusCompactionEngine(ctx);
+    async apply(ctx: Context) {
+      driverCtx = ctx; await ctx.agents[Service.init](); await new AgentLoop(ctx, AgentLoop.Config({ agents: [], maxParallelToolCalls: 1 }))[Service.init]();
+      if (!options.scoped) { engine = new NexusCompactionEngine(ctx); await engine.ready; }
       registerRequestRecovery(ctx as any);
     } }); fibers.push(driver); await driver.await(); assert.equal(driver.state, 2);
   const presetKey = {};
@@ -168,12 +171,12 @@ async function fixture(t: TestContext, options: { window?: number; overflow?: bo
     t.after(() => preset.dispose());
     const presetFiber = preset.ctx.isolate('compaction').plugin({
       name: 'fixture-standing-compaction', inject: NexusCompactionEngine.inject,
-      apply(ctx: Context) { engine = new NexusCompactionEngine(ctx); },
+      async apply(ctx: Context) { engine = new NexusCompactionEngine(ctx); await engine.ready; },
     });
     await presetFiber.await(); assert.equal(presetFiber.state, 2);
     const global = driverCtx.isolate('compaction').plugin({
       name: 'fixture-unified-fallback', inject: [...NexusCompactionEngine.inject, 'agents'],
-      apply(ctx: Context) { fallback = new NexusCompactionEngine(ctx, {}, { fallback: true }); },
+      async apply(ctx: Context) { fallback = new NexusCompactionEngine(ctx, {}, { fallback: true }); await fallback.ready; },
     });
     fibers.push(global); await global.await(); assert.equal(global.state, 2);
   }
@@ -345,12 +348,12 @@ test('real read-only child compacts only itself and repeat requestId reuses the 
   const tools = child.ctx.get('tools');
   assert.ok(tools);
   assert.ok(tools.schemas(scopeOf(child.ctx)).some(item => item.name === 'compact_context'));
-  const result = await tools.execute({ agent: child, callId: ToolCallId('child:status'), name: 'compact_context',
+  const result = await executeSingleTool(tools, { agent: child, callId: ToolCallId('child:status'), name: 'compact_context',
     arguments: { action: 'status' }, signal: new AbortController().signal });
   assert.equal(result.isError, false);
   assert.ok(JSON.stringify(result).includes(child.id)); assert.equal(f.summaries.length, 0);
   const generation = child.session.surface.replaceGeneration;
-  const compact = await tools.execute({ agent: child, callId: ToolCallId('child:compact'), name: 'compact_context',
+  const compact = await executeSingleTool(tools, { agent: child, callId: ToolCallId('child:compact'), name: 'compact_context',
     arguments: { action: 'compact', requestId: 'child:own-intent' }, signal: new AbortController().signal });
   assert.equal(compact.isError, false, JSON.stringify(compact));
   assert.equal((compact.value as any).committed, true);
@@ -358,18 +361,18 @@ test('real read-only child compacts only itself and repeat requestId reuses the 
   assert.ok(child.session.surface.replaceGeneration > generation);
   assert.equal(f.summaries.length, 1);
   assert.equal(f.summaries[0].model, 'summary-large');
-  const repeated = await tools.execute({ agent: child, callId: ToolCallId('child:repeat'), name: 'compact_context',
+  const repeated = await executeSingleTool(tools, { agent: child, callId: ToolCallId('child:repeat'), name: 'compact_context',
     arguments: { action: 'compact', requestId: 'child:own-intent' }, signal: new AbortController().signal });
   assert.equal(repeated.isError, false);
   assert.equal((repeated.value as any).idempotent, true); assert.equal(f.summaries.length, 1);
   assert.deepEqual(main.session.snapshotEvents(), parentBefore);
   assert.deepEqual(sibling.session.snapshotEvents(), siblingBefore);
-  const forbidden = await tools.execute({ agent: child, callId: ToolCallId('child:target-parent'), name: 'compact_context',
+  const forbidden = await executeSingleTool(tools, { agent: child, callId: ToolCallId('child:target-parent'), name: 'compact_context',
     arguments: { action: 'compact', requestId: 'forged-target', sessionId: main.id }, signal: new AbortController().signal });
   assert.equal(forbidden.isError, true);
   const mask = tools.restrict({ deny: ['compact_context'] }); t.after(mask);
   assert.equal(tools.schemas(scopeOf(child.ctx)).some(item => item.name === 'compact_context'), false);
-  const denied = await tools.execute({ agent: child, callId: ToolCallId('child:denied'), name: 'compact_context',
+  const denied = await executeSingleTool(tools, { agent: child, callId: ToolCallId('child:denied'), name: 'compact_context',
     arguments: { action: 'status' }, signal: new AbortController().signal });
   assert.equal(denied.isError, true);
 });
@@ -379,7 +382,7 @@ test('a manual self request with an uncertain receipt reconciles the original re
   await f.seed(agent, 14);
   const tools = agent.ctx.get('tools'), signal = new AbortController().signal;
   assert.ok(tools);
-  const run = (call: string) => tools.execute({ agent, callId: ToolCallId(call), name: 'compact_context',
+  const run = (call: string) => executeSingleTool(tools, { agent, callId: ToolCallId(call), name: 'compact_context',
     arguments: { action: 'compact', requestId: 'same-original-intent' }, signal });
   const first = await run('self:first');
   assert.equal(first.isError, false);

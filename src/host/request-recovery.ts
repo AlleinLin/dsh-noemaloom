@@ -332,10 +332,12 @@ export function registerRequestRecovery(ctx: HostContext): () => void {
   const removers: Array<() => void> = [];
   let projections: any;
   let stateReady = false;
+  let recoveryProjection: { stateOf(session: Session): any; dispose(): Promise<void> } | undefined;
+  let projectionReady: Promise<void> = Promise.resolve();
   try {
     projections = ctx.get('sessionProjections');
     if (typeof projections?.register === 'function') {
-      const remove = projections.register({
+      const registration = projections.register({
         key: STATE, stateVersion: 2,
         stateSchema: z.record(z.string(), z.object({
           retry: z.number().int().min(0).max(10_000), retryId: z.string().max(160),
@@ -343,8 +345,10 @@ export function registerRequestRecovery(ctx: HostContext): () => void {
         })),
         init: () => ({}), apply: foldRecovery,
       });
-      if (typeof remove === 'function') removers.push(remove);
-      stateReady = true;
+      projectionReady = Promise.resolve(registration).then(handle => {
+        recoveryProjection = handle;
+        stateReady = typeof handle?.stateOf === 'function';
+      }).catch(() => { stateReady = false; });
     }
   } catch { /* A missing durable counter disables only the fallback executor. */ }
 
@@ -359,7 +363,7 @@ export function registerRequestRecovery(ctx: HostContext): () => void {
     });
   };
   const stateOf = (session: Session, key: string): any => {
-    try { return projections?.stateOf?.(session, key); } catch { return undefined; }
+    try { return key === STATE ? recoveryProjection?.stateOf(session) : projections?.stateOf?.(session, key); } catch { return undefined; }
   };
   const currentRetry = (payload: RecoveryPayload): number => stateOf(payload.agent.session, STATE)?.[stateKey(payload)]?.retry ?? 0;
 
@@ -424,6 +428,7 @@ export function registerRequestRecovery(ctx: HostContext): () => void {
   };
 
   async function recover(payload: RecoveryPayload): Promise<Decision> {
+    await projectionReady;
     const { agent, signal } = payload;
     const local = { agent, controller: new AbortController() };
     waits.add(local);
@@ -646,6 +651,7 @@ export function registerRequestRecovery(ctx: HostContext): () => void {
     for (const remove of removers.reverse()) {
       try { remove(); } catch { /* Every listener and projection gets a cleanup attempt. */ }
     }
+    void projectionReady.then(() => recoveryProjection?.dispose()).catch(() => {});
   };
   ctx.effect(() => async () => { dispose(); await Promise.allSettled([...active]); }, 'nexus: request recovery');
   return dispose;

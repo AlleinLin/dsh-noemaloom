@@ -13,10 +13,10 @@ await unlink('lib/index.js.map').catch(error => { if (error.code !== 'ENOENT') t
 await copyFile('node_modules/@vscode/ripgrep-win32-x64/bin/rg.exe', 'bin/rg.exe');
 await copyFile('node_modules/@vscode/ripgrep-win32-x64/LICENSE', 'bin/RIPGREP-LICENSE.txt');
 await copyFile('research/licenses/UPSTREAM-LICENSES.txt', 'bin/UPSTREAM-LICENSES.txt');
-const standard = await readFile('research/host-installed/dsh-web-app/presets/standard.patch.yml', 'utf8');
+const standard = await readFile('assets/upstream/standard.patch.yml', 'utf8');
 for (const anchor of [
   "          - id: tool-pwsh\n            name: '@deepseek-ai/dsh-tool-pwsh'\n            disabled: !!js process.platform !== 'win32'",
-  "          - id: tool-fs\n            name: '@deepseek-ai/dsh-tool-fs'",
+  "          - id: tool-fs\n            name: '@deepseek-ai/dsh-tool-fs'\n            config:\n              # Set false to drop the apply_patch tool beside edit.\n              applyPatch: false",
   "          - id: tool-fs-search\n            name: '@deepseek-ai/dsh-tool-fs-search'\n            config:\n              sampleOverCapGlobResults: false\n",
 ]) {
   if (standard.split(anchor).length !== 2)
@@ -25,8 +25,8 @@ for (const anchor of [
 const preset = standard
   .replace("          - id: tool-pwsh\n            name: '@deepseek-ai/dsh-tool-pwsh'\n            disabled: !!js process.platform !== 'win32'",
     "          - id: forge-tools\n            name: '@local/dsh-forge-tools'\n            config:\n              cacheTtlMs: 1000\n              searchThreads: 2\n              persistentPwsh: true")
-  .replace("          - id: tool-fs\n            name: '@deepseek-ai/dsh-tool-fs'",
-    "          - id: tool-fs\n            name: '@deepseek-ai/dsh-tool-fs'\n            config:\n              read: false\n              write: false\n              edit: false\n              readImage: true")
+  .replace("          - id: tool-fs\n            name: '@deepseek-ai/dsh-tool-fs'\n            config:\n              # Set false to drop the apply_patch tool beside edit.\n              applyPatch: false",
+    "          - id: tool-fs\n            name: '@deepseek-ai/dsh-tool-fs'\n            config:\n              applyPatch: false\n              read: false\n              write: false\n              edit: false\n              readImage: true")
   .replace("          - id: tool-fs-search\n            name: '@deepseek-ai/dsh-tool-fs-search'\n            config:\n              sampleOverCapGlobResults: false\n", '');
 const marker = '        plugins:\n';
 const start = preset.indexOf(marker);
@@ -49,7 +49,7 @@ const sha256 = async file => createHash('sha256').update(await readFile(file)).d
 await writeFile('lib/build-info.json', JSON.stringify({
   package: manifest.name, version: manifest.version, host: manifest.engines.dsh,
   platform: 'win32-x64', node: process.version, builtAt: new Date().toISOString(),
-  upstream: 'b830ec950faba0a46dda564be3e2d854afed94f1',
+  upstream: '66491b05e3f05ad35bcdd4f6cd7ed26041d9e3db',
   sha256: { host: await sha256('lib/index.js'), ripgrep: await sha256('bin/rg.exe') },
 }, null, 2) + '\n');
 console.log('Built Desktop standard-preset replacement and portable Windows x64 ripgrep.');

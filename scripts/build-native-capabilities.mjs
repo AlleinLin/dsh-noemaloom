@@ -7,21 +7,21 @@ import { adaptTerminalSource } from '../vendor/nexus-terminal/nexus-adapter/adap
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const terminalRoot = join(root, 'vendor/nexus-terminal');
-export const NATIVE_PACKAGES = ['std', 'storage', 'bundle', 'conversation', 'terminal-bridge', 'mode', 'commands', 'ssh', 'buffer', 'files', 'usage'];
-export const NATIVE_CLIENTS = ['conversation', 'terminal-bridge', 'mode', 'ssh', 'buffer', 'files', 'usage'];
+export const NATIVE_PACKAGES = ['std', 'storage', 'bundle', 'conversation', 'terminal-bridge', 'mode', 'commands', 'ssh', 'buffer', 'files'];
+export const NATIVE_CLIENTS = ['conversation', 'terminal-bridge', 'mode', 'ssh', 'buffer', 'files'];
 const reviewedSources = {
-  'packages/dshell/terminal-bridge/src/pty.ts': '374634d08386ec4ef450a28ab5d0bd23911b11beb3d954d610c93852402af165',
-  'packages/dshell/terminal-bridge/src/index.ts': '187eda2700cfb934d30d7b78143e70db5b59c9fd200bd305755f05d6b845a87f',
+  'packages/dshell/terminal-bridge/src/pty.ts': '80d4fa1f8d61e24c7885d080fa378ffdb78f5424dd0ae0ec093849ebf14854c5',
+  'packages/dshell/terminal-bridge/src/index.ts': 'd142d36ae4ac5e3c6df6bbe4940ab856014975db349bd018b6451ba72ba487ff',
   'packages/dshell/files/src/route.ts': '522a003b3828431474ae3179aa70c539f712b64afbb7c6bcc80e14e1967b4027',
   'packages/dshell/mode/src/client/completion.ts': '7379d042c7ac18ee1d04b619c0c8d640bf2c76b4deeb74dc066ccf1a92f27d98',
-  'packages/dshell/std/src/contracts.ts': '758e2e21f1ae6317137af17247bd698ec211daa4abf465c552f29068a87950db',
-  'packages/dshell/ssh/src/connection.ts': 'cd883c9c9ad2ba278eef90dd2e33522c90cdc3df1bcb7c66b8b5419a7f42a8b2',
+  'packages/dshell/std/src/contracts.ts': '0595216ad860d7b4b7f012cb2c43cfba0932b45a0df225506ca26508732356ce',
+  'packages/dshell/ssh/src/connection.ts': '5365cbfc87a6fd4b0d0a2a1471b388b625511ce47e08105aa4683ae2be5b2f35',
   'packages/dshell/commands/src/index.ts': '5ab8edd905035b18204a1b6b3c8557696240ec283a4c4ae2c3efb46f88577a51',
   'packages/dshell/mode/src/index.ts': '1f66307134431742d5bedfe6763c02eeec01ff2c63904c020e7f7c214e8306dd',
   'packages/dshell/mode/src/terminal-mode.ts': 'c14b7a680127d40d86eff29d26ad32548b8915040557ed41de06ab8056a86f96',
   'packages/dshell/mode/src/terminal-mode-protocol.ts': '32d4d471cb628e3cb31794a7b70aefac863421fe44877d0970320071200c28ab',
   'packages/dshell/mode/src/client/terminal-mode.ts': '0e7a2a8e765597f2a8d3c1735550d02ae768e7802e5a6bea21f33f0ef69722d4',
-  'packages/dshell/mode/src/client/terminal-section.ts': 'ea3ce756f70cfd369b644dc25a8d472a3f7c7ad327c63bbc946e24a34fabeab5',
+  'packages/dshell/mode/src/client/terminal-section.ts': 'ee001c9ab92490a8925bb8e28fd246f94c9a51f54a1876d77043ea6adc1b857b',
 };
 const sha256 = value => createHash('sha256').update(value).digest('hex');
 const clientShared = ['react', 'react/*', 'react-dom', 'react-dom/*', '@deepseek-ai/*'];

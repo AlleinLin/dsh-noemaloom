@@ -345,18 +345,24 @@ export class WslTransport implements DeviceDoors {
     // so the far side sees EOF rather than a pipe nobody writes to. Without
     // this the `open` door would drop a batch payload entirely — the one path
     // the exec door used to lose stdout on, in the other direction.
-    if (options.stdin !== undefined) void this.feed(run, options.stdin)
+    // Fire-and-forget: a payload the child refuses is reported through the
+    // command's own exit, and an unhandled rejection here would take the host
+    // down instead.
+    if (options.stdin !== undefined) void this.feed(run, options.stdin).catch(() => {})
     else if (options.openStdin !== true) run.stream.end()
     if (options.signal !== undefined) {
       const abort = (): void => { run.terminate() }
       if (options.signal.aborted) abort()
       else options.signal.addEventListener('abort', abort, { once: true })
-      void run.done.then(() => { options.signal?.removeEventListener('abort', abort) })
+      // A `done` that rejects is the child's own death, reported to the
+      // caller that awaits it. This chain only removes a listener, and a
+      // rejection nobody handles is fatal to the host.
+      void run.done.then(() => { options.signal?.removeEventListener('abort', abort) }).catch(() => {})
     }
     if (options.graceMs !== undefined) {
       const timer = setTimeout(() => { run.terminate() }, options.graceMs)
       timer.unref()
-      void run.done.then(() => { clearTimeout(timer) })
+      void run.done.then(() => { clearTimeout(timer) }).catch(() => {})
     }
     return run
   }
@@ -419,7 +425,7 @@ export class WslTransport implements DeviceDoors {
           resolve(TERMINATED)
         }, options.graceMs)
         timer.unref()
-        void run.done.then(() => { clearTimeout(timer) })
+        void run.done.then(() => { clearTimeout(timer) }).catch(() => {})
       }))
     }
     if (options.signal !== undefined) {

@@ -1,10 +1,11 @@
 # 预设来源
 
-完整预设基于 MIT 许可的 DeepSeek Harness 公开 commit `b830ec950faba0a46dda564be3e2d854afed94f1`。
+完整预设基于 MIT 许可的 DeepSeek Harness 公开 commit `66491b05e3f05ad35bcdd4f6cd7ed26041d9e3db`。
 原始声明在 `upstream/*.patch.yml`，宿主配置合同与 provider 源文件亦保留用于继续开发。
 独立 persona 描述替代官方 persona 文案；全部 compaction provider 绑定 Nexus。
-项目规则适配官方 agent-instructions 0.2.1-rc.5，源码与 MIT 许可在 `vendor/agent-instructions/`。
+项目规则适配官方 agent-instructions 0.2.2-rc.1，源码与 MIT 许可在 `vendor/agent-instructions/`。
 每目录依次查找 `DEEPSEEK.md → AGENT.md → AGENTS.md → CLAUDE.md`，首个命中即停止，禁用本地 overlay；保留官方预算、嵌套作用域和刷新。
-子智能体工具适配官方 tool-subagent 0.2.1-rc.5，源码与许可在 `vendor/tool-subagent/`；按会话授权自动提供可用模型代号，空白 effort 默认所选模型最高支持强度，保留授权与生命周期合同。
+子智能体工具适配官方 tool-subagent 0.2.2-rc.1，源码与许可在 `vendor/tool-subagent/`；按会话授权自动提供可用模型代号，空白 effort 默认所选模型最高支持强度，保留授权与生命周期合同。
 生成脚本只读公开源码，不读取本机 profile，也不生成部署恢复备份。
+目录内其余 TypeScript 文件为历史参考快照，不参与上述四个 rc.1 YAML 生成。
 

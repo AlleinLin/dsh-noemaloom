@@ -11,6 +11,7 @@
 
 import { createElement, useState, useSyncExternalStore, type CSSProperties, type ReactElement } from 'react'
 import type { PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
+import { isHiddenDevice } from '@nexus-aethra/dshell-std'
 import type { SshClientService } from './service.js'
 
 /** What the row-action registration injects. */
@@ -88,6 +89,10 @@ export function DshellSessionDeviceButton({ ssh, sessionId, t }: Props): ReactEl
   const device = binding === undefined
     ? undefined
     : snapshot.devices.find(row => row.id === binding.deviceId)
+  // What the dropdown offers: every device the reader did not hide. The bound
+  // one is resolved ABOVE the filter, so a session already running on a
+  // hidden device keeps naming it on the button instead of reading as local.
+  const offered = snapshot.devices.filter(row => !isHiddenDevice(row, snapshot.hiddenDevices))
   const locked = device === undefined ? undefined : lockedGroupOfDevice(ssh, device.id)
   const choose = (deviceId: string | null): void => {
     setOpen(false)
@@ -134,7 +139,7 @@ export function DshellSessionDeviceButton({ ssh, sessionId, t }: Props): ReactEl
             style: rowStyle,
             onClick: () => { choose(null) },
           }, t('bind.local')),
-          ...snapshot.devices.map(row => {
+          ...offered.map(row => {
             const rowLocked = lockedGroupOfDevice(ssh, row.id)
             return createElement('button', {
               type: 'button',

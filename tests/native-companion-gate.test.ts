@@ -1,10 +1,11 @@
+import { NativeToolExecutor } from '@deepseek-ai/dsh-tool-executor-native';
 import test, { type TestContext } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
-import { Context } from '@deepseek-ai/cordis';
+import { Context, Service } from '@deepseek-ai/cordis';
 import { AgentRegistry, type AgentHandle } from '@deepseek-ai/dsh-agent';
 import { AgentLoop } from '@deepseek-ai/dsh-agent-loop';
 import { LlmAdapter, LlmRuntime, createUserMessage, type GenerateOptions, type StreamChunk } from '@deepseek-ai/dsh-llm';
@@ -64,15 +65,15 @@ async function nativeFixture(t: TestContext) {
   } };
   const fibers: any[] = [], controller = new OperationController();
   let ctx!: Context, handle: AgentHandle | undefined, remove: (() => void) | undefined;
-  const services = root.plugin({ name: 'native-companion-services', apply(owner: Context) {
+  const services = root.plugin({ name: 'native-companion-services', async apply(owner: Context) {
     new AgentRegistry(owner); new SessionStore(owner); new SessionProjectionRegistry(owner); new SystemPrompt(owner, { includeHarnessIdentity: false });
     const llm = new LlmRuntime(owner); llm.registerAdapter([route.provider], adapter);
   } });
   fibers.push(services); await services.await(); assert.equal(services.state, 2);
-  const tools = root.plugin({ name: 'native-companion-tools', inject: ['systemPrompt'], apply(owner: Context) { new ToolRuntime(owner); } });
+  const tools = root.plugin({ name: 'native-companion-tools', inject: ['systemPrompt'], async apply(owner: Context) { const nativeTools = new ToolRuntime(owner); nativeTools.setExecutor(new NativeToolExecutor(owner)); } });
   fibers.push(tools); await tools.await(); assert.equal(tools.state, 2);
-  const driver = root.plugin({ name: 'native-companion-driver', inject: ['agents', 'sessions', 'sessionProjections', 'llm', 'tools', 'systemPrompt'], apply(owner: Context) {
-    ctx = owner; new AgentLoop(owner, AgentLoop.Config({ agents: [], maxParallelToolCalls: 1 }));
+  const driver = root.plugin({ name: 'native-companion-driver', inject: ['agents', 'sessions', 'sessionProjections', 'llm', 'tools', 'systemPrompt'], async apply(owner: Context) {
+    ctx = owner; await owner.agents[Service.init](); await new AgentLoop(owner, AgentLoop.Config({ agents: [], maxParallelToolCalls: 1 }))[Service.init]();
     remove = registerCompanionHook(owner as unknown as HostContext, dispatcher.services, controller);
     owner.on('agent/inbox/claimed', ({ message }) => { claimed.push(message.id); });
     owner.on('agent/inbox/discarded', ({ message }) => { discarded.push(message.id); });

@@ -14,6 +14,7 @@ import { describe, expect, it } from 'vitest'
 import { spawn } from 'node:child_process'
 import type { SpawnOptions } from 'node:child_process'
 import { decodeWslOutput, distroOf, isWslDevice, parseWslList, wslExecArgs, WSL_EXE, WslTransport, type WslSpawn } from '../src/transport.js'
+import { isHiddenDevice } from '@nexus-aethra/dshell-std'
 import { WslDeviceProvider } from '../src/provider.js'
 
 function utf16le(text: string, bom = true): Buffer {
@@ -294,6 +295,39 @@ describe('the exec door', () => {
   })
 })
 
+describe('isHiddenDevice', () => {
+  // The rule is shared by every picker, so it is asserted here rather than
+  // re-derived in each surface that filters on it.
+  const distro = { id: 'wsl:Ubuntu-24.04', name: 'Ubuntu-24.04', auth: 'wsl', builtin: true }
+  const stored = { id: 'web', name: 'web', auth: 'key', builtin: undefined }
+
+  it('hides a built-in WSL row the reader hid', () => {
+    expect(isHiddenDevice(distro, ['wsl:Ubuntu-24.04'])).toBe(true)
+  })
+
+  it('leaves a built-in row the reader did not hide visible', () => {
+    expect(isHiddenDevice(distro, [])).toBe(false)
+    expect(isHiddenDevice(distro, ['wsl:Debian-12'])).toBe(false)
+  })
+
+  it('stays false when a forged row carries only half the rule', () => {
+    // The two ways a stored row could be smuggled past the rule if either half
+    // were relaxed: a document that gives a stored row auth 'wsl', and one that
+    // gives it builtin true. Neither is reachable today -- asRecord() forces
+    // stored auth to key/password and DeviceStore.view() never sets builtin --
+    // and these pin that so a future change to either cannot open the door.
+    expect(isHiddenDevice({ id: 'web', name: 'web', auth: 'wsl', builtin: undefined }, ['web'])).toBe(false)
+    expect(isHiddenDevice({ id: 'web', name: 'web', auth: 'key', builtin: true }, ['web'])).toBe(false)
+    // The strict === is what rejects a string spelling of the flag.
+    expect(isHiddenDevice({ id: 'wsl:X', name: 'X', auth: 'wsl', builtin: 'true' as unknown as boolean }, ['wsl:X'])).toBe(false)
+  })
+  it('never hides a stored device, whatever the document says', () => {
+    // A hand-edited document must not be able to make a stored device vanish
+    // with no surface left to bring it back: the registry card lists stored
+    // rows only, and the provider's card lists its own.
+    expect(isHiddenDevice(stored, ['web'])).toBe(false)
+  })
+})
 describe('the provider declares what a distribution can do', () => {
   const provider = new WslDeviceProvider()
 

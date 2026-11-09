@@ -1,11 +1,10 @@
 /**
  * The dshell 管理台's own icon in the settings navigation.
  *
- * The same one DOM patch dshell-usage carries (see its nav-icon.ts for the
- * full why): dsh's settings shell picks an icon from the section ids it
- * ships and draws a generic gear for anything else, and the
- * `settings.section` seat carries no icon of its own — so the console's row
- * reads as "some settings" instead of dshell's.
+ * dsh's settings shell picks an icon from the section ids it ships and draws
+ * a generic gear for anything else, and the `settings.section` seat carries no
+ * icon of its own — so the console's row would read as "some settings" instead
+ * of dshell's.
  *
  * The artwork is the terminal, drawn like the icons beside it (16 viewBox,
  * 1.3px stroke): a prompt chevron and the underscore after it. Idempotent

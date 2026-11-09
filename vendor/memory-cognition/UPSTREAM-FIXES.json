@@ -6,8 +6,9 @@
     "sha256": "43c504330c6ef0c243b7f5e4b540d031fb3e09d91f67fcf4d30cb85c47ea3e79",
     "reason": "Upstream PR729 fixes aliases dropped between MCP schema, op_table and direct/gated write outlets; no session-log reader or implicit session identity wiring is transplanted.",
     "includedInPublishedVersion": "0.9.22",
-    "currentSha256": "43c504330c6ef0c243b7f5e4b540d031fb3e09d91f67fcf4d30cb85c47ea3e79",
-    "status": "included-upstream-no-extra-local-patch"
+    "currentSha256": "5265e35a65203152ba6cc1ef6658a81d53661b8b028ded9796f6cc194bfc4087",
+    "status": "included-in-published-0.9.23-no-extra-local-patch",
+    "currentPublishedVersion": "0.9.23"
   },
   {
     "file": "md_cg/op_table.py",
@@ -16,8 +17,9 @@
     "sha256": "7db079ca8b75002b6c742a514a5bb507c5f414c944a1b07042cdd72524d2a8f8",
     "reason": "Upstream PR729 fixes aliases dropped between MCP schema, op_table and direct/gated write outlets; no session-log reader or implicit session identity wiring is transplanted.",
     "includedInPublishedVersion": "0.9.22",
-    "currentSha256": "7db079ca8b75002b6c742a514a5bb507c5f414c944a1b07042cdd72524d2a8f8",
-    "status": "included-upstream-no-extra-local-patch"
+    "currentSha256": "76769da5cbfa61b1adbfb3c6155f1318d75be8012a23dd7fc236f27ff09481a8",
+    "status": "included-in-published-0.9.23-no-extra-local-patch",
+    "currentPublishedVersion": "0.9.23"
   },
   {
     "file": "md_cg/writepipe.py",
@@ -26,7 +28,8 @@
     "sha256": "f9921090588e45dc9c6d37252cc837c60391cff3e65a35b0dd46bd9e29be3e8b",
     "reason": "Upstream PR729 fixes aliases dropped between MCP schema, op_table and direct/gated write outlets; no session-log reader or implicit session identity wiring is transplanted.",
     "includedInPublishedVersion": "0.9.22",
-    "currentSha256": "f9921090588e45dc9c6d37252cc837c60391cff3e65a35b0dd46bd9e29be3e8b",
-    "status": "included-upstream-no-extra-local-patch"
+    "currentSha256": "c6a6b8bca1cf375b8e5e6dd06ace6d95b25334ec06d520b958234d57743088c9",
+    "status": "included-in-published-0.9.23-no-extra-local-patch",
+    "currentPublishedVersion": "0.9.23"
   }
 ]

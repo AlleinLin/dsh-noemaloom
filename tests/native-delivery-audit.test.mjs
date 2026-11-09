@@ -26,6 +26,17 @@ test('canonical source identities with conflicting embedded text fail the build'
   }), /Conflicting source map contents/);
 });
 
+test('Cognition upstream tilde-path example review is exact to its source line', async () => {
+  const file = 'vendor/memory-cognition/src/lib/datapath.ts';
+  const bytes = await readFile(file);
+  const reviewed = inspectArtifactSafety(file, bytes);
+  assert.deepEqual(reviewed.findings, []);
+  assert.ok(reviewed.reviewedMatches.some(item => item.reviewId === 'mdcg-datapath-tilde-example'));
+  const changed = inspectArtifactSafety(file, Buffer.from(bytes.toString().replace('/home/ybyz/mem', '/home/private-person/work')));
+  assert.ok(changed.findings.some(item => item.rule === 'absolute-user-path'));
+  assert.ok(inspectArtifactSafety('other.ts', bytes).findings.some(item => item.rule === 'absolute-user-path'));
+});
+
 test('upstream synthetic key fixture review is exact and source-only', async () => {
   const file = 'vendor/nexus-terminal/packages/dshell/ssh/tests/local-keys.spec.ts';
   const bytes = await readFile(file);

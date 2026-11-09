@@ -1,0 +1,205 @@
+{
+  "schemaVersion": 1,
+  "release": "R54",
+  "version": "0.5.0",
+  "host": "0.2.2-rc.1",
+  "hostRevision": "66491b05e3f05ad35bcdd4f6cd7ed26041d9e3db",
+  "status": "validated-with-explicit-scope",
+  "hostChannel": {
+    "publishedPrerelease": true,
+    "nightlyStaging": 100,
+    "independentSignedOfficialDesktopCopy": true
+  },
+  "sourceCount": 48,
+  "inventoryCount": 157,
+  "regression": {
+    "node": "24.22.1",
+    "tests": 2583,
+    "files": 282,
+    "passed": 2583,
+    "failed": 0,
+    "skipped": 0,
+    "sourceUnchangedDuringRun": true,
+    "sourceHash": "12e9496c938f0437fa002b0f8ddce99c48cd6050fb35fc65035b35ee2099edc1"
+  },
+  "build": {
+    "passed": true,
+    "typecheck": true,
+    "artifactVerification": true,
+    "npmAuditVulnerabilities": 0
+  },
+  "cognition": {
+    "commands": 100,
+    "allExitZero": true,
+    "sourceUnchangedDuringRun": true,
+    "compiledPythonFiles": 879,
+    "syntheticHomeOnly": true,
+    "zstandard": "0.25.0",
+    "supplementalFixtureManifest": "tools/acceptance/fixtures/cognition/SOURCE.json",
+    "optionalSkips": [
+      {
+        "name": "test_conformance",
+        "lines": [
+          "  [集成] SKIP 真源库不可用（设 MDCG_CONFORMANCE_ROOT=<库根> 可跑集成）"
+        ]
+      },
+      {
+        "name": "test_mr_m1",
+        "lines": [
+          "  SKIP 真源库不可用（外部 clone 环境）——非失败"
+        ]
+      },
+      {
+        "name": "test_mr_m2",
+        "lines": [
+          "  SKIP hive 二进制不存在（C:\\Users\\Allei\\AppData\\Local\\Temp\\noemaloom-cognition-1vTcQD\\package\\hive\\target\\release\\hive.exe）→ D 组跳过（外部 clone 同此路径）"
+        ]
+      },
+      {
+        "name": "test_session5_resolve",
+        "lines": [
+          "== E 真实目录抽样（不存在则 SKIP）",
+          "  SKIP E 本机无 DSH 会话目录（resolve_sessions_root -> None）"
+        ]
+      },
+      {
+        "name": "test_issue39_utf8_stdio",
+        "lines": [
+          "  [SKIP] 2e–2k 成功路径（ok=true + job_id 四槽中文形态 + 目录落临时池）",
+          "  [ok] 4b 成功趟的取舍与二进制是否在盘一致（在盘 ⇒ 必须真跑过、零 SKIP；不在盘 ⇒ 必须显式 SKIP——不许静默缺趟）",
+          "⚠ 显式 SKIP 1 项（未计入通过数；理由见上方 [SKIP] 行）——本守卫**不因 SKIP 判绿**"
+        ]
+      }
+    ],
+    "skipCounting": "Recorded upstream output lines are not a passed-test count. Headers and explanatory lines can also contain SKIP."
+  },
+  "officialHost": {
+    "syntheticOnly": true,
+    "guiUsed": false,
+    "remoteRequests": 0,
+    "compaction": {
+      "passed": true,
+      "mainAndNativeChild": true,
+      "formalSummariesPerScope": 1,
+      "realSuccessfulFileReadPerScope": 1,
+      "completedToolsNotReplayed": true,
+      "sameTurnContinues": true,
+      "invalidSummaryPauses": true,
+      "newOrdinaryInputDoesNotRepay": true,
+      "localConversationCalls": 51,
+      "localSummaryCalls": 4
+    },
+    "processRestart": {
+      "passed": true,
+      "strictMainAndChildRestore": true,
+      "originalParent": true,
+      "persistentPauseAfterActualCooldownExpiry": true,
+      "conversationCalls": 2,
+      "summaryCalls": 0
+    },
+    "modelSelection": {
+      "passed": true,
+      "liveMainAndChild": true,
+      "nextActualRequestUsesNewModel": true,
+      "sameSelectionAddsNoDuplicateEvent": true,
+      "releasedChildSelectionDurable": true,
+      "coldChildRetainsParent": true
+    },
+    "delayedText": {
+      "passed": true,
+      "exactBodyReceivedOncePerScope": true,
+      "coldRootOfficialOwner": true,
+      "coldNativeChildContinuation": true,
+      "processRestartDuePlanRestoration": true,
+      "modelSelectionPreserved": true,
+      "reconciliationDoesNotResend": true,
+      "delayScope": "short synthetic waits only"
+    },
+    "freeze": {
+      "passed": true,
+      "mainAndChild": true,
+      "freezeHours": 0.00002,
+      "observedDelayMs": 72,
+      "rateLimitFailuresPerScope": 1,
+      "modelAttemptsPerScope": 3,
+      "oneTurnPerScope": true,
+      "realFileReadPerScope": 1,
+      "completedToolNotReplayed": true
+    },
+    "finalPackage": "The final TGZ is installed again in the same synthetic profile. Exact file hashes and final-package strict restore are recorded in the delivery validation/installed-files.json and host-stage-6.json; no claim of user-profile installation."
+  },
+  "forge": {
+    "version": "0.1.7",
+    "host": "0.2.2-rc.1",
+    "tests": 109,
+    "passed": 109,
+    "failed": 0,
+    "skipped": 0,
+    "npmAuditVulnerabilities": 0,
+    "independentOfficialHost": true,
+    "fileWriteRead": true,
+    "persistentPowerShellTwoCalls": true,
+    "actualToolCalls": 4,
+    "remoteModelRequests": 0,
+    "uninstallRestoresOriginalTools": true,
+    "officialToolCount": 34,
+    "forgeToolCount": 39,
+    "runtimePayloadSha256": {
+      "lib/index.js": "ccebff1b5075786bdfb28a0cd836f8ffe143cda8ccd79359c899905099281dc6",
+      "cordis.patch.yml": "a087da7f39fb414cd93efb25dcf88e49898cb6ce306f31323c0b241ad137dc63",
+      "bin/rg.exe": "f9dde63498b3193f098355dbec97af99dc4f6b8fa0df5ed04114a03012c042cb"
+    }
+  },
+  "initialRegression": {
+    "tests": 2581,
+    "passed": 2561,
+    "failed": 20
+  },
+  "intermediateRegression": {
+    "tests": 2581,
+    "passed": 2567,
+    "failed": 14
+  },
+  "failureCorrections": [
+    "Official rc.1 tools use ToolBatchInput and a native executor; the adapter now validates the unique returned call ID rather than using the removed single-call contract.",
+    "Retained asynchronous projection definitions now await initialization/readiness; model selection uses Agent.model.select and flush, while released children receive only the official durable model/selection event.",
+    "The presentation-only rc.1 prompt waterfall no longer reads removed assembly.tools; official tool schema ownership and context isolation remain intact.",
+    "The first full suite had 20 migration/metadata failures. Central fixes restored exact ThoughtDAG/Codinput anchors, SDK lifecycle fixtures and upstream composition.",
+    "The next full suite had 14 failures: 13 installer fixtures still targeted rc.5 and one required a retired Nexus usage client. Fixtures now target rc.1, retain all fail-closed signature/version cases and explicitly verify retirement; two additional valid old-host upgrade cases were added.",
+    "Independent official Host first rejected subagent contexts lacking finite order and a Git Bash preset lacking sampleOverCapGlobResults. The implementation now uses the official subagent context order, distinct per-tool IDs and the official required preset default. Original preset admission assertions were retained.",
+    "Forge first expected the old 31-tool official baseline. The reviewed rc.1 baseline is 34; tests now require preserving those tools plus all five Forge additions, actual file I/O, persistent PowerShell and uninstall restoration.",
+    "The first Cognition run failed its newly selected UTF-8 guard because the npm subset omits Hive MCP source. Three public Git-blob-verified fixtures from commit 2f89485b394669ad70e7617f4e12de008e1291e6 are copied only into the isolated test tree; no Hive runtime/daemon is added. zstandard 0.25.0 was installed in a disposable validation environment.",
+    "The new standalone delayed fixture first omitted the normal request ID/permission/authority evidence. Corrected fixture calls use the same formal capability boundary; production authorization was not relaxed.",
+    "Final archive audit caught stale Turn Rewind/Codinput identity assertions, an unrebased Turn Rewind compatibility range and one public Cognition tilde-path example. Exact pinned identities and rc.1 compatibility were corrected; a path-and-complete-line-only documented exception has positive, mutated-line and other-file negative tests. Four targeted artifact-audit tests passed; all other scan rules remain active."
+  ],
+  "notCovered": [
+    "GUI layouts, menus and clicks / computer use",
+    "real provider requests, subscriptions or provider reset",
+    "real five-hour wait",
+    "long-running stress or intermittent crash root cause",
+    "Cognition external real source libraries, Hive native binary success paths and real DSH session samples",
+    "new Nexus WSL native addon (source tracked, composition remains inactive)",
+    "complete repository review for truncated 300-file Git compare responses (adopted npm subsets and full acquired Git trees were reviewed separately)"
+  ],
+  "localInstallation": {
+    "installed": false,
+    "userDesktopRunning": true,
+    "installedPlugin": "0.4.3",
+    "actualHost": "0.2.2-rc.1",
+    "automaticContextMaintenance": "preserve-disabled-user-choice",
+    "noRestart": true,
+    "noProfileDatabaseChanges": true
+  },
+  "cleanup": {
+    "currentRound": "Remove acquired snapshots, temporary profiles/logs and obsolete delivery after final readback.",
+    "previousR53BlockedTargets": "Not retried or bypassed. Existing source node_modules/lib/build, .r53-final, .obsolete-r53-draft and five old synthetic profiles remain subject to the previous approval block. Actual final size and deletion results are recorded separately; no <1GB claim."
+  },
+  "artifactAuditFollowup": {
+    "targetedTests": 4,
+    "passed": 4,
+    "failed": 0,
+    "extraUniqueTest": 1,
+    "fullLocalRegressionBeforeAuditFollowup": 2583,
+    "finalFullRegression": "Final commit CI executes the complete suite including the new artifact test."
+  }
+}

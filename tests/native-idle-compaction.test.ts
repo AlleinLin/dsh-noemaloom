@@ -1,3 +1,4 @@
+import { NativeToolExecutor } from '@deepseek-ai/dsh-tool-executor-native';
 import test, { type TestContext } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
@@ -5,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
 import { build } from 'esbuild';
-import { Context } from '@deepseek-ai/cordis';
+import { Context, Service } from '@deepseek-ai/cordis';
 import { AgentRegistry, type AgentHandle } from '@deepseek-ai/dsh-agent';
 import { AgentLoop } from '@deepseek-ai/dsh-agent-loop';
 import { LlmAdapter, LlmRuntime, ToolCallId, createToolResultMessage, createUserMessage, type GenerateOptions, type StreamChunk } from '@deepseek-ai/dsh-llm';
@@ -35,7 +36,7 @@ test('idle selection, source replay and transaction helpers are pinned official 
   const result = await build({
     stdin: {
       contents: upstream.replace(exportList, 'export { compactSurfaceRegion, selectCompactableRange, buildSummarizationInput };'),
-      sourcefile: '@deepseek-ai/dsh-compaction-basic@0.2.1-rc.5/lib/index.js', resolveDir: process.cwd(),
+      sourcefile: 'index.upstream.mjs', resolveDir: process.cwd(),
     },
     bundle: true, write: false, platform: 'node', format: 'esm', target: 'node22',
     packages: 'external', treeShaking: true, logLevel: 'silent',
@@ -48,16 +49,16 @@ test('idle selection, source replay and transaction helpers are pinned official 
 async function nativeFixture(t: TestContext) {
   const root = new Context(), fibers: any[] = [];
   let handle: AgentHandle | undefined, driverContext!: Context;
-  const services = root.plugin({ name: 'idle-range-native-services', apply(ctx: Context) {
+  const services = root.plugin({ name: 'idle-range-native-services', async apply(ctx: Context) {
     new AgentRegistry(ctx); new SessionStore(ctx); new SessionProjectionRegistry(ctx);
     new SystemPrompt(ctx, { includeHarnessIdentity: false }); new LlmRuntime(ctx); new TokenMeter(ctx);
   } });
   fibers.push(services); await services.await(); assert.equal(services.state, 2);
-  const tools = root.plugin({ name: 'idle-range-native-tools', inject: ['systemPrompt'], apply(ctx: Context) { new ToolRuntime(ctx); } });
+  const tools = root.plugin({ name: 'idle-range-native-tools', inject: ['systemPrompt'], async apply(ctx: Context) { const nativeTools = new ToolRuntime(ctx); nativeTools.setExecutor(new NativeToolExecutor(ctx)); } });
   fibers.push(tools); await tools.await();
   const driver = root.plugin({
     name: 'idle-range-native-driver', inject: ['agents', 'sessions', 'sessionProjections', 'llm', 'tools', 'systemPrompt'],
-    apply(ctx: Context) { driverContext = ctx; new AgentLoop(ctx, AgentLoop.Config({ agents: [] })); },
+    async apply(ctx: Context) { driverContext = ctx; await ctx.agents[Service.init](); await new AgentLoop(ctx, AgentLoop.Config({ agents: [] }))[Service.init](); },
   });
   fibers.push(driver); await driver.await(); assert.equal(driver.state, 2);
   t.after(async () => { await handle?.dispose(); for (const fiber of fibers.reverse()) await fiber.dispose(); });
@@ -270,7 +271,7 @@ async function actualSummaryHost(t: TestContext, root: Context, windowTokens: nu
       return module.dispatch(request, context);
     },
   };
-  const fiber = root.plugin({ name: 'summary-envelope-real-host', apply(ctx: Context) {
+  const fiber = root.plugin({ name: 'summary-envelope-real-host', async apply(ctx: Context) {
     host = createHostAdapter(ctx as unknown as HostContext, {}, dataDir, new AbortController().signal);
     services.host = host;
     module = createContextModule(services);

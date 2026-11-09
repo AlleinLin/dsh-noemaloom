@@ -40,6 +40,40 @@ function timelineKey(sessionId: string): string {
   return `${TIMELINE_STORAGE_PREFIX}${sessionId}`
 }
 
+const PROMPTED_STORAGE_PREFIX = 'dshell.pty.prompted.'
+
+/**
+ * Whether this browser has already seen this session's shell reach a prompt.
+ *
+ * The wire state describes one session at a time, so a switch (or a reload)
+ * would otherwise present a session as one that never answered — and the
+ * presentation for that shape is the first-dial screen, drawn OVER the
+ * scrollback instead of after it. The host re-asserts the truth in its own
+ * `ready` frame a round trip into the bind, so this memory only has to cover
+ * that round trip; persisting it also covers the reload, where the terminal
+ * would otherwise open on a connection screen over output it already has.
+ *
+ * @param sessionId - the session whose shell was seen at a prompt.
+ * @returns whether this browser has recorded that.
+ */
+export function loadPrompted(sessionId: string): boolean {
+  try {
+    return window.localStorage.getItem(`${PROMPTED_STORAGE_PREFIX}${sessionId}`) === '1'
+  } catch {
+    return false
+  }
+}
+
+/** Record that this browser has seen the session's shell reach a prompt. */
+export function savePrompted(sessionId: string): void {
+  try {
+    window.localStorage.setItem(`${PROMPTED_STORAGE_PREFIX}${sessionId}`, '1')
+  } catch {
+    // A full or disabled storage only costs the switch-flash this exists to
+    // prevent; the host's own frame re-asserts the truth either way.
+  }
+}
+
 /** Read a session's persisted arrival timeline; anything malformed reads empty. */
 export function loadTimeline(sessionId: string): TimelineEntry[] {
   try {

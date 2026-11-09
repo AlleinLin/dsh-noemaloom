@@ -126,11 +126,25 @@ export function emptyBlock(key: string, time: number, title: string): TurnBlock 
   }
 }
 
+/**
+ * Folded blocks kept in memory; the oldest drop from the front.
+ *
+ * The fold is rebuilt from the session's WHOLE event window when a session
+ * opens, and that window is the session's whole log — a long session has tens
+ * of thousands of events. Without a cap the fold grew without bound, and every
+ * frame re-assembled the timeline over all of it.
+ *
+ * The host's own block log keeps 400; this keeps the same number, so the two
+ * halves of the view describe the same stretch of the session.
+ */
+export const MAX_FOLD_BLOCKS = 400
+
 /** Open a new block, appending it to the fold. */
 export function openBlock(fold: BlockFold, time: number, title: string): TurnBlock {
   fold.seq += 1
   const block = emptyBlock(`block:${String(time)}:${String(fold.seq)}`, time, title)
   fold.blocks.push(block)
+  while (fold.blocks.length > MAX_FOLD_BLOCKS) fold.blocks.shift()
   fold.open = block
   return block
 }

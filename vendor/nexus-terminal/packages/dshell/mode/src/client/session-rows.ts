@@ -48,16 +48,28 @@ export interface SessionRow {
 }
 
 /**
+ * How deep a message's content may nest before the walk stops.
+ *
+ * The nesting is data, not structure: a tool result can carry content blocks
+ * that carry content blocks, and a pathological or corrupt one can nest
+ * deeper than the stack. The walk stops at this depth instead, because a
+ * renderer that dies on a stack overflow takes the whole desktop app with it.
+ */
+export const MAX_CONTENT_DEPTH = 32
+
+/**
  * Image attachments inside a message or result, walking the nesting a
  * `tool-result` block uses.
  * @param content - the event's content blocks.
  * @returns the attachment refs, in order.
  */
-export function imagesOf(content: readonly unknown[] | undefined): readonly unknown[] {
+export function imagesOf(content: readonly unknown[] | undefined, depth = 0): readonly unknown[] {
   const found: unknown[] = []
   for (const block of contentBlocks(content)) {
     if (block.type === 'image' && block.attachment !== undefined) found.push(block.attachment)
-    else if (Array.isArray(block.content)) found.push(...imagesOf(block.content as unknown[]))
+    else if (Array.isArray(block.content) && depth < MAX_CONTENT_DEPTH) {
+      found.push(...imagesOf(block.content as unknown[], depth + 1))
+    }
   }
   return found
 }
@@ -129,15 +141,15 @@ export function toolCallsOfBlocks(content: readonly unknown[] | undefined, t: Mo
  * `content`, so a flat scan would render tool output as an empty row — walk
  * the nesting and fall back to a marker for non-text payloads.
  */
-export function resultText(content: readonly unknown[] | undefined): string {
+export function resultText(content: readonly unknown[] | undefined, depth = 0): string {
   const parts: string[] = []
   for (const block of contentBlocks(content)) {
     if (block.type === 'text') {
       parts.push(String(block.text ?? ''))
       continue
     }
-    if (Array.isArray(block.content)) {
-      const nested = resultText(block.content as unknown[])
+    if (Array.isArray(block.content) && depth < MAX_CONTENT_DEPTH) {
+      const nested = resultText(block.content as unknown[], depth + 1)
       if (nested.length > 0) parts.push(nested)
       continue
     }

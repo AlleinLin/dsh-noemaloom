@@ -25,8 +25,8 @@ assert(manifest.engines.dsh === EXPECTED_DSH_VERSION, 'DSH version must match th
 assert.deepEqual(manifest.dsh.bundle.patch, ['./cordis.patch.yml', './cordis.presets.patch.yml'], 'Both official composition patches must be installed');
 assert.equal(manifest.exports['./native/*'], './lib/native/*.js', 'Native capabilities must have formal package exports');
 const native = JSON.parse(await readFile('lib/native-capabilities-manifest.json', 'utf8'));
-assert.equal(native.clients.length, 7, 'All original dshell client faces must be retained');
-assert.equal(native.hosts.length, 11, 'All original dshell host packages must be retained');
+assert.equal(native.clients.length, 6, 'All selected dshell client faces must be retained');
+assert.equal(native.hosts.length, 10, 'All selected dshell host packages must be retained');
 for (const row of native.hosts) assert((await readFile(`lib/native/${row.id}.js`)).length > 0, `Missing native host: ${row.id}`);
 assert.equal(native.consolePtyBridge.filename, 'lib/native/dshell-pty-console.js');
 const consoleBridge = await readFile(native.consolePtyBridge.filename, 'utf8');

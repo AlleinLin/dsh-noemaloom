@@ -237,7 +237,7 @@ test('same-agent retries keep the request-step identity and settle the final str
   assert.equal(h.ledger[1].attemptId, record.receipts[1].attemptId);
 
   await h.run(agent, 2, 4, collect, 'compaction');
-  await h.run(agent, 2, 4, collect, 'session-title');
+  await h.run(agent, 2, 4, collect, 'compaction');
   const auxiliary = record.admitted.slice(3);
   assert.equal(auxiliary.length, 2);
   assert.ok(auxiliary.every(item => item.logicalCallId !== record.admitted[2].logicalCallId));

@@ -680,6 +680,17 @@ export interface DshellForwardResponse {
 export const SSH_SETTINGS_NAMESPACE = 'dshell-ssh'
 
 /**
+ * Field carrying the device ids the reader hid from the pickers.
+ *
+ * Lives here rather than beside the schema that declares it because the
+ * browser half reads and writes this field too, and a client bundle that
+ * reaches the schema file would drag @deepseek-ai/schemastery into the
+ * browser -- which is not in dsh's PLATFORM_MODULES, so the whole plugin
+ * fails to load. dshell-std is always inlined into every client face.
+ */
+export const HIDDEN_DEVICES_FIELD = 'hiddenDevices'
+
+/**
  * How a device authenticates.
  *
  * `'wsl'` marks a built-in WSL distribution: there is no handshake to
@@ -761,6 +772,38 @@ export interface DeviceView {
   readonly hasPassphrase?: boolean | undefined
   /** Helper deployment state, when known. Absent for compositions that have not checked. */
   readonly helper?: DeviceHelperStatus | undefined
+}
+
+/**
+ * The three fields the visibility rule reads.
+ *
+ * A projection rather than {@link DeviceView} so a picker that carries only
+ * what it draws can still apply the rule: the pickers hold a narrowed row,
+ * and forcing the whole view through them would mean either widening the
+ * projection or restating the rule against a second shape.
+ */
+export interface HiddenDeviceCandidate {
+  readonly id: string
+  readonly auth: string
+  readonly builtin?: boolean | undefined
+}
+
+/**
+ * Whether a device row is one the reader hid from the device pickers.
+ *
+ * Hiding is a picker preference, not a device state: the row still exists,
+ * still answers, and a session already bound to it keeps running there. Only
+ * a provider's built-in row can be hidden, because the toggle lives on the
+ * provider's own card and a stored device is managed by deleting it. The kind
+ * check is what keeps a hand-edited settings document from making a stored
+ * device vanish with no surface left to bring it back.
+ *
+ * @param device - the row a picker is deciding about.
+ * @param hidden - the device ids the reader hid.
+ * @returns whether the picker should leave the row out.
+ */
+export function isHiddenDevice(device: HiddenDeviceCandidate, hidden: readonly string[]): boolean {
+  return device.builtin === true && device.auth === 'wsl' && hidden.includes(device.id)
 }
 
 /** One device as submitted by the UI; `key` is write-only. */
@@ -1333,14 +1376,3 @@ export interface DeviceFsSeat {
 /** The cordis service name `DshellFileSystem` publishes under. */
 export const DEVICE_FS_SERVICE = 'dshellDeviceFs'
 
-// ─── usage — the per-model token index the settings page charts ───
-
-/**
- * The usage index route: one exact `/api` endpoint behind dsh's existing trust
- * and authentication fence, in the shape every other dshell route uses.
- *
- * The page reads aggregates and triggers the scan through the same endpoint:
- * the scan is the expensive half and belongs on the host, where the session
- * events already are, so the browser asks for it rather than doing it.
- */
-export const DSHELL_USAGE_PATH = '/api/dshell/usage'

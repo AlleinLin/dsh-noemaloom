@@ -90,7 +90,10 @@ export function CreationPanel({ sessionId, sessions, device, presets, t }: Props
     : devices.bindings.find(row => row.sessionId === String(sessionId))?.deviceId
   const placeLabel = selectedDevice === undefined
     ? t('creation.local')
-    : (devices.devices.find(row => row.id === selectedDevice)?.name ?? selectedDevice)
+    // The bound device's NAME comes from the unfiltered list: hiding a
+    // distribution must not turn a session already running on it into a raw
+    // `wsl:…` id, which is what the filtered picker list would do.
+    : (devices.allDevices.find(row => row.id === selectedDevice)?.name ?? selectedDevice)
   const presetId = sessionId === undefined
     ? undefined
     : (list.byId[sessionId]?.projectionValues as { agentPreset?: unknown } | undefined)?.agentPreset

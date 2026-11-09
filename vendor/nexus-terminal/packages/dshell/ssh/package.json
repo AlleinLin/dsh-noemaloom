@@ -1,6 +1,6 @@
 {
   "name": "@nexus-aethra/dshell-ssh",
-  "version": "0.1.16",
+  "version": "0.1.17",
   "description": "dshell SSH devices: a durable device/key registry, per-session device binding, and remote execution for a bound session's command tools.",
   "license": "MIT",
   "repository": {

@@ -1,0 +1,90 @@
+{
+  "host": "0.2.2-rc.1",
+  "platform": "win32-x64",
+  "installedRuntime": "D:\\dshplugin\\.maintenance-20261109\\official-desktop",
+  "validation": "Actual installed Desktop Host entry point and IPC lifecycle, using isolated DSH_HOME/profiles/desktop. This check does not launch the Electron GUI.",
+  "privacy": "No real user profile, credentials, conversations or model requests are used.",
+  "cases": [
+    {
+      "variant": "Tools",
+      "package": "local-dsh-forge-tools-0.1.7.tgz",
+      "profile": "desktop",
+      "preset": "standard",
+      "offlineInstall": "passed",
+      "defaultPresetActivation": "passed",
+      "noPresetSwitchRequired": true,
+      "originalToolsPreserved": true,
+      "actualTools": {
+        "calls": 4,
+        "fileWriteRead": true,
+        "persistentPowerShellAcrossTwoCalls": true,
+        "modelRequests": 0
+      },
+      "originalToolCount": 34,
+      "replacementToolCount": 39,
+      "scopedTools": [
+        "ask_user_question",
+        "batch_edit",
+        "create_goal",
+        "edit",
+        "exit_plan_mode",
+        "forge_status",
+        "get_goal",
+        "glob",
+        "grep",
+        "interrupt_agent",
+        "job_kill",
+        "job_list",
+        "job_output",
+        "list_agents",
+        "list_directory",
+        "list_subagent_models",
+        "load_workspace_dependencies",
+        "plugin_manager",
+        "present",
+        "pwsh",
+        "pwsh_run",
+        "read",
+        "read_image",
+        "read_many",
+        "schedule_create",
+        "schedule_edit",
+        "schedule_list",
+        "schedule_view",
+        "send_message",
+        "skill",
+        "subagent",
+        "subagent_fork",
+        "todo_write",
+        "update_goal",
+        "web_fetch",
+        "web_search",
+        "workflow",
+        "working_directory",
+        "write"
+      ],
+      "lifecycle": {
+        "ready": true,
+        "shutdownAcknowledged": true,
+        "exitCode": 0
+      },
+      "uninstallRollback": "passed"
+    }
+  ],
+  "result": "passed",
+  "runtimePayloadSha256": {
+    "lib/index.js": "ccebff1b5075786bdfb28a0cd836f8ffe143cda8ccd79359c899905099281dc6",
+    "cordis.patch.yml": "a087da7f39fb414cd93efb25dcf88e49898cb6ce306f31323c0b241ad137dc63",
+    "bin/rg.exe": "f9dde63498b3193f098355dbec97af99dc4f6b8fa0df5ed04114a03012c042cb"
+  },
+  "regressions": {
+    "tests": 109,
+    "failed": 0,
+    "skipped": 0
+  },
+  "notCovered": [
+    "GUI",
+    "real model provider",
+    "current performance/stress"
+  ]
+}

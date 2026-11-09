@@ -1,4 +1,6 @@
 import { BasicCompactionEngine } from '@deepseek-ai/dsh-compaction-basic';
+import { Service } from '@deepseek-ai/cordis';
+import type { ProjectionHandle } from '@deepseek-ai/dsh-session-projection';
 import { appendPluginRecord, isSurfaceEvent, pluginRecordOf, SessionSeq, type SessionEvent } from '@deepseek-ai/dsh-session';
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
@@ -163,16 +165,26 @@ export default class NexusCompactionEngine extends BasicCompactionEngine {
   private laneLeases?: LeaseManager;
   private preparationWaits = new Map<object, PreparationWait>();
   private recoveryLifetime = new AbortController();
+  private surfaceProjection!: ProjectionHandle<NativeSurfaceState>;
+  private recoveryProjection!: ProjectionHandle<ContextRecoveryRecord | null>;
+  readonly ready: Promise<void>;
+
+  async [Service.init]() {
+    await this.ready;
+  }
 
   constructor(ctx: any, config: any = {}, ownership: { fallback?: boolean } = {}) {
     super(ctx, { ...config, auto: false });
     this.nativeContext = ctx;
     const projections = ctx.get('sessionProjections');
-    if (typeof projections?.register !== 'function' || typeof projections.stateOf !== 'function') {
+    if (typeof projections?.register !== 'function') {
       throw new NexusError('HOST_CAPABILITY_UNAVAILABLE', 'DSH 公有 sessionProjections registry 不可用；不能反复扫描完整日志冒充增量同步');
     }
-    projections.register(nativeSurfaceProjection);
-    projections.register(contextRecoveryProjection);
+    // Also exposed to wrappers constructing the service explicitly.
+    this.ready = (async () => {
+      this.surfaceProjection = await projections.register(nativeSurfaceProjection);
+      this.recoveryProjection = await projections.register(contextRecoveryProjection);
+    })();
     ctx.effect(() => () => {
       this.recoveryLifetime.abort();
       for (const agent of this.preparationWaits.keys()) this.finishPreparationWait(agent, 'interrupted');
@@ -341,7 +353,7 @@ export default class NexusCompactionEngine extends BasicCompactionEngine {
 
   private preparationRecoveryStatus(agent: any): any {
     const wait = this.preparationWaits.get(agent);
-    const record = wait?.record ?? this.nativeContext.get('sessionProjections').stateOf(agent.session, CONTEXT_RECOVERY_KEY);
+    const record = wait?.record ?? this.recoveryProjection.stateOf(agent.session);
     if (!record || record.state === 'cleared' || record.state === 'cancelled') return { state: 'available', available: false };
     return { state: wait ? record.state : 'interrupted', available: !!wait?.resume && !wait.signal.aborted,
       turn: record.turn, step: record.step, code: record.code, reason: record.reason,
@@ -551,6 +563,7 @@ export default class NexusCompactionEngine extends BasicCompactionEngine {
   }
 
   private async synchronize(agent: any, signal: AbortSignal): Promise<any> {
+    await this.ready;
     const session = agent.session;
     const pressure = await this.measurePressure(agent, signal);
     const header = pressure.header;
@@ -561,7 +574,7 @@ export default class NexusCompactionEngine extends BasicCompactionEngine {
     const messages = session.deriveMessages();
     const byId = new Map<string, any>(messages.map((message: any) => [message.id, message]));
     if (byId.size !== messages.length) throw new NexusError('CTX_NATIVE_SURFACE_INVALID', '当前派生表层存在重复消息身份，不能猜测 seq 归属');
-    const projected = this.nativeContext.get('sessionProjections').stateOf(session, NATIVE_SURFACE_KEY) as NativeSurfaceState | undefined;
+    const projected = this.surfaceProjection.stateOf(session);
     const current = session.surface.nodes as readonly number[];
     if (!projected || projected.nodes.length !== current.length
         || projected.nodes.some((entry, index) => entry.seq !== current[index])) {

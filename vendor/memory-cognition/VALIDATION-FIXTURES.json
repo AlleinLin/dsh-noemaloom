@@ -9,37 +9,44 @@
     {
       "file": "docs/mdcg/CCG六要素编译.md",
       "sha256": "afa49de1a6e7e4ecbdadc02fb5e571f0b78ea2c6dff48123fc37e3be64aeb04f",
-      "origin": "npm:0.9.21"
+      "origin": "npm:@furongjun1999/dsh-memory@0.9.23",
+      "previousSha256": "afa49de1a6e7e4ecbdadc02fb5e571f0b78ea2c6dff48123fc37e3be64aeb04f"
     },
     {
       "file": "docs/mdcg/MCP工具名口径_v1.0.md",
       "sha256": "5fbfa296c2ff5548857d630ee715ea6f61f58c324567576e4add1205d3ec8d64",
-      "origin": "npm:0.9.21"
+      "origin": "npm:@furongjun1999/dsh-memory@0.9.23",
+      "previousSha256": "5fbfa296c2ff5548857d630ee715ea6f61f58c324567576e4add1205d3ec8d64"
     },
     {
       "file": "docs/mdcg/cogmap_ops.md",
-      "sha256": "210b556b2b69f9215e31f488979bdf15e26b79e49bb59d260b6e50b725d391c2",
-      "origin": "npm:0.9.21"
+      "sha256": "80829d83d643884006f11fbcdc976bd10da136ffa6b5f6d9f02a65eb2ba75a0f",
+      "origin": "npm:@furongjun1999/dsh-memory@0.9.23",
+      "previousSha256": "210b556b2b69f9215e31f488979bdf15e26b79e49bb59d260b6e50b725d391c2"
     },
     {
       "file": "docs/mdcg/guardrail-charter.md",
       "sha256": "6b29aee273653e7d46e1716180e81a9c8ce36c379e9038ef7c3761a5a819184e",
-      "origin": "npm:0.9.21"
+      "origin": "npm:@furongjun1999/dsh-memory@0.9.23",
+      "previousSha256": "6b29aee273653e7d46e1716180e81a9c8ce36c379e9038ef7c3761a5a819184e"
     },
     {
       "file": "docs/mdcg/recall_metadata.md",
       "sha256": "7126f6a9422d9d63dfda4d599d4db352b92b51869b346a210a30e00326cacf9a",
-      "origin": "npm:0.9.21"
+      "origin": "npm:@furongjun1999/dsh-memory@0.9.23",
+      "previousSha256": "7126f6a9422d9d63dfda4d599d4db352b92b51869b346a210a30e00326cacf9a"
     },
     {
       "file": "docs/mdcg/世界模型功能端_使用与运维_v1.0.md",
-      "sha256": "2c430dd3e3e15de341827671f67c3e9c137e6d59687efcfa680a801442211f4d",
-      "origin": "npm:0.9.21"
+      "sha256": "547d249b9d4c83bac395110de06f8a0a1661e917eba8de7c5fb645ed20849591",
+      "origin": "npm:@furongjun1999/dsh-memory@0.9.23",
+      "previousSha256": "2c430dd3e3e15de341827671f67c3e9c137e6d59687efcfa680a801442211f4d"
     },
     {
       "file": "docs/mdcg/写入别名aliases规范_v0.6.md",
       "sha256": "d14eada96e3264cb585a07486dd6e5cb357eb0b11a46a6a7ce605e02ffcb38e3",
-      "origin": "npm:0.9.21"
+      "origin": "npm:@furongjun1999/dsh-memory@0.9.23",
+      "previousSha256": "d14eada96e3264cb585a07486dd6e5cb357eb0b11a46a6a7ce605e02ffcb38e3"
     },
     {
       "file": "docs/plans/真源索引_通用机制_v0.3.md",
@@ -68,68 +75,81 @@
     },
     {
       "file": "scripts/workspace_index.py",
-      "sha256": "55e1b57326f481fb8e37adbc434866f4cfc1acde6b8fdfa8a9a7b0a5232f2bc9",
-      "origin": "npm:0.9.21"
+      "sha256": "9b5abc804d5e8d72955aa5d886fe62b41b4e5742708be7ed98a80babf3037c66",
+      "origin": "npm:@furongjun1999/dsh-memory@0.9.23",
+      "previousSha256": "55e1b57326f481fb8e37adbc434866f4cfc1acde6b8fdfa8a9a7b0a5232f2bc9"
     },
     {
       "file": "src/index.ts",
-      "sha256": "aced8d2a8cc05f07f674a589e0e69ccd9816062c3efb4b981a236a3b9bb4ee4e",
-      "origin": "npm:0.9.21"
+      "sha256": "74194604eed6d76cfa831f6dde678450d99e052faf12a811f2963ed62f1b3832",
+      "origin": "npm:@furongjun1999/dsh-memory@0.9.23",
+      "previousSha256": "aced8d2a8cc05f07f674a589e0e69ccd9816062c3efb4b981a236a3b9bb4ee4e"
     },
     {
       "file": "ui/minimal/install.ps1",
       "sha256": "1caec89c56cae9a6d0d8ef9b2fad38858aa3bf5a9fd7449e29d08b37ee9c67c1",
-      "origin": "npm:0.9.21"
+      "origin": "npm:@furongjun1999/dsh-memory@0.9.23",
+      "previousSha256": "1caec89c56cae9a6d0d8ef9b2fad38858aa3bf5a9fd7449e29d08b37ee9c67c1"
     },
     {
       "file": "ui/minimal/integrity.json",
-      "sha256": "4766274ee25c94bd9d39a4a6436c4f80892d2d70c827fe8bc9b6f7e03df71306",
-      "origin": "npm:0.9.21"
+      "sha256": "93ace57b79638d6d89f16590ea1f9acb8343aa8218fcbc784878e969a092a520",
+      "origin": "npm:@furongjun1999/dsh-memory@0.9.23",
+      "previousSha256": "4766274ee25c94bd9d39a4a6436c4f80892d2d70c827fe8bc9b6f7e03df71306"
     },
     {
       "file": "ui/minimal/payload/build-ui.mjs",
       "sha256": "893e304fbb82810478041f30ac4a7c32cdb42a6c63a238f051a044370a38e103",
-      "origin": "npm:0.9.21"
+      "origin": "npm:@furongjun1999/dsh-memory@0.9.23",
+      "previousSha256": "893e304fbb82810478041f30ac4a7c32cdb42a6c63a238f051a044370a38e103"
     },
     {
       "file": "ui/minimal/payload/lib/client.js",
       "sha256": "89b4fe09b105a378b1404ed13c06f9416e12f234e64db6c2a529b6196675aa20",
-      "origin": "npm:0.9.21"
+      "origin": "npm:@furongjun1999/dsh-memory@0.9.23",
+      "previousSha256": "89b4fe09b105a378b1404ed13c06f9416e12f234e64db6c2a529b6196675aa20"
     },
     {
       "file": "ui/minimal/payload/lib/lib/console_web.mjs",
-      "sha256": "9c8f8450571729688033033f35345b18e9eeb68b871e3a4c53a9b619f28aa61e",
-      "origin": "npm:0.9.21"
+      "sha256": "457944c22dbe21b0abf385d469cfbef14be5cffe9d42b96734e20adf2b439447",
+      "origin": "npm:@furongjun1999/dsh-memory@0.9.23",
+      "previousSha256": "9c8f8450571729688033033f35345b18e9eeb68b871e3a4c53a9b619f28aa61e"
     },
     {
       "file": "ui/minimal/payload/src/lib/console_web.mjs",
-      "sha256": "9c8f8450571729688033033f35345b18e9eeb68b871e3a4c53a9b619f28aa61e",
-      "origin": "npm:0.9.21"
+      "sha256": "457944c22dbe21b0abf385d469cfbef14be5cffe9d42b96734e20adf2b439447",
+      "origin": "npm:@furongjun1999/dsh-memory@0.9.23",
+      "previousSha256": "9c8f8450571729688033033f35345b18e9eeb68b871e3a4c53a9b619f28aa61e"
     },
     {
       "file": "ui/minimal/payload/web/app.js",
       "sha256": "9273439830a14b5ec7802d6f25a47d4a4268f8ee132a735c0e029fe2d843a446",
-      "origin": "npm:0.9.21"
+      "origin": "npm:@furongjun1999/dsh-memory@0.9.23",
+      "previousSha256": "9273439830a14b5ec7802d6f25a47d4a4268f8ee132a735c0e029fe2d843a446"
     },
     {
       "file": "ui/minimal/payload/web/client.js",
       "sha256": "fea2f301980d2cf5cd67a66e2a12f21a69f255e512f56d34a80ec86634de560c",
-      "origin": "npm:0.9.21"
+      "origin": "npm:@furongjun1999/dsh-memory@0.9.23",
+      "previousSha256": "fea2f301980d2cf5cd67a66e2a12f21a69f255e512f56d34a80ec86634de560c"
     },
     {
       "file": "ui/minimal/payload/web/entry.js",
       "sha256": "e5b602282eabcdffe207065b113ac148e96dcf799d09009871c475546a7663a6",
-      "origin": "npm:0.9.21"
+      "origin": "npm:@furongjun1999/dsh-memory@0.9.23",
+      "previousSha256": "e5b602282eabcdffe207065b113ac148e96dcf799d09009871c475546a7663a6"
     },
     {
       "file": "ui/minimal/payload/web/index.html",
       "sha256": "9f056dd4769effd75f98a9121cbefbb3704a430fccf0d656b75fd4bc12114da4",
-      "origin": "npm:0.9.21"
+      "origin": "npm:@furongjun1999/dsh-memory@0.9.23",
+      "previousSha256": "9f056dd4769effd75f98a9121cbefbb3704a430fccf0d656b75fd4bc12114da4"
     },
     {
       "file": "ui/minimal/payload/web/style.css",
       "sha256": "58b2f345b3975eadf66ed030f7e9aa6047f7c225e0fad94f6af3843db934eda4",
-      "origin": "npm:0.9.21"
+      "origin": "npm:@furongjun1999/dsh-memory@0.9.23",
+      "previousSha256": "58b2f345b3975eadf66ed030f7e9aa6047f7c225e0fad94f6af3843db934eda4"
     },
     {
       "file": "docs/mdcg/认知图_MD目录方案_v0.1.md",
@@ -163,5 +183,5 @@
     "test_p45_session_identity"
   ],
   "observedUpstreamRevision": "b2fe4db4dffc1bf1d54e705de55d47a6bd02069c",
-  "identity": "npm:@furongjun1999/dsh-memory@0.9.18"
+  "identity": "mixed-public-validation-fixtures; each file records origin"
 }

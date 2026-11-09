@@ -1,6 +1,6 @@
 {
   "name": "@anionex/dsh-turn-rewind",
-  "version": "0.3.11",
+  "version": "0.3.12",
   "description": "Turn-level conversation and workspace rewind for DeepSeek Harness, powered by a persistent Change Ledger",
   "repository": {
     "type": "git",
@@ -46,8 +46,7 @@
     "README.zh.md",
     "SECURITY.md",
     "LICENSE",
-    "CHANGELOG.md",
-    "SOURCE.json"
+    "CHANGELOG.md"
   ],
   "dsh": {
     "bundle": {
@@ -64,9 +63,24 @@
       ]
     },
     "compatibility": {
-      "dsh": "0.2.1-rc.5",
+      "dsh": "0.2.2-rc.1",
       "dshReleases": {
-        "0.2.1-rc.5": "compatible"
+        "0.1.0-rc.8": "compatible",
+        "0.1.1-rc.1": "compatible",
+        "0.1.1-rc.2": "compatible",
+        "0.1.2-alpha.1": "compatible",
+        "0.1.2-alpha.3": "compatible",
+        "0.1.2-alpha.4": "compatible",
+        "0.1.2-alpha.5": "compatible",
+        "0.1.5-alpha.1": "compatible",
+        "0.1.5-alpha.2": "compatible",
+        "0.1.5-rc.1": "compatible",
+        "0.1.7-rc.2": "compatible",
+        "0.2.0-rc.2": "compatible",
+        "0.2.1-rc.2": "compatible",
+        "0.2.1-rc.3": "compatible",
+        "0.2.1-rc.5": "compatible",
+        "0.2.2-rc.1": "compatible"
       },
       "profiles": [
         "web"
@@ -91,8 +105,8 @@
   ],
   "license": "BSD-3-Clause",
   "peerDependencies": {
-    "@deepseek-ai/cordis": "^4.0.1",
-    "@deepseek-ai/dsh-settings": "0.2.1-rc.5",
+    "@deepseek-ai/cordis": "4.1.0",
+    "@deepseek-ai/dsh-settings": "0.2.2-rc.1",
     "@deepseek-ai/schemastery": "^3.18.1"
   },
   "peerDependenciesMeta": {
@@ -101,8 +115,8 @@
     }
   },
   "devDependencies": {
-    "@deepseek-ai/cordis": "^4.0.1",
-    "@deepseek-ai/dsh-settings": "0.2.1-rc.5",
+    "@deepseek-ai/cordis": "4.1.0",
+    "@deepseek-ai/dsh-settings": "0.2.2-rc.1",
     "@deepseek-ai/schemastery": "^3.18.1",
     "@types/node": "^24.0.0",
     "@types/react": "18.3.28",

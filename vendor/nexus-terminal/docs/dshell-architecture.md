@@ -31,7 +31,6 @@ Nexus-Shell/
 │   ├── dshell-ssh/           # dual-face: device model + the device-provider registry
 │   ├── dshell-files/         # dual-face: the files sidebar tab + the transfer view
 │   ├── dshell-buffer/        # dual-face: the cross-session pipe
-│   ├── dshell-usage/         # dual-face: the Settings → 用量 page
 │   └── dshell-wsl/           # dual-face: a device PROVIDER (WSL2 distributions)
 └── dsh/                      # local reference checkout (NEVER TRACKED, see .gitignore)
 ```
@@ -985,7 +984,7 @@ disappeared, their `devices.json` sitting intact under the old root.
 Declaring a dependency is what makes the order a fact instead of a race. The
 settlement publishes a seat (`std/src/data-root.ts`,
 `DSHELL_DATA_ROOT_SERVICE`) whose value is a promise that settles with the
-decision; `dshell-ssh` and `dshell-usage` declare it in their `inject` lists,
+decision; `dshell-ssh` declares it in its `inject` list,
 so their applies do not even start until the root is known. A package that only
 reads a path LATER — a route call, a shell spawn, a file listing — needs no such
 declaration: those all happen after composition, and reading the path where it is

@@ -1,3 +1,9 @@
+# Forge 0.1.7 / rc.1 验证
+
+全部同源 SDK、engines、standard 预设、构建元数据与安装器整体对齐官方 0.2.2-rc.1。109 项回归通过，0失败0跳过，npm audit 0漏洞。独立官方 rc.1 Headless Host 与合成 profile 通过准入、4次实际工具调用（文件写读、两次常驻 PowerShell）及卸载恢复；原34工具保留，Forge增加到39。工具调用不经过模型，无远程供应商请求。当前兼容摘要见 compatibility-rc1.json；本轮未做GUI、性能或压力验收。
+
+以下是历史证据，不能作为 rc.1 本轮结论：
+
 # Forge 0.1.6 / rc.5 验证
 
 所有同源 SDK、engines、standard 预设及安装器均对齐官方 0.2.1-rc.5。原创本地适配，无独立远程发布。109 项回归和 npm 审计通过（0 漏洞）。独立官方 rc.5 副本与合成 profile 完成安装前、离线安装后、卸载后 Host 检查；原有 31 项工具保留，Forge 为 36 项。原版 Electron 执行 12 次真实文件/搜索/PowerShell 工具调用，13 次本地模型协议请求，落盘 gamma 中文并验证变量保留。没有使用远端订阅凭据。

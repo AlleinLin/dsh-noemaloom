@@ -447,6 +447,11 @@ export function mountTerminalSection(deps: TerminalSectionDeps): () => void {
      * Read from dshell-ssh's own bindings, so the answer is the same one the
      * pill on dsh's native row gives. A session that was never bound — or any
      * session in a composition without the ssh plugin — runs here.
+     *
+     * The name is resolved against `allDevices`, never against the filtered
+     * picker list: a device the reader hid from the pickers is still where this
+     * session runs, and reading the filtered list here would label it 本地 —
+     * the one thing hiding must never do.
      * @param id - the session id.
      * @returns the device's name, or the local label.
      */
@@ -455,7 +460,7 @@ export function mountTerminalSection(deps: TerminalSectionDeps): () => void {
       const binding = snapshot?.bindings.find(row => row.sessionId === id)
       const device = binding === undefined || snapshot === undefined
         ? undefined
-        : snapshot.devices.find(row => row.id === binding.deviceId)
+        : snapshot.allDevices.find(row => row.id === binding.deviceId)
       return device?.name ?? deps.t('block.local')
     }
     const desired = [...flag.sessions]

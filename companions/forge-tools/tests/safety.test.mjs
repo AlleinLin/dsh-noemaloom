@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { writeFile, readFile, mkdtemp, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { environment } from './helpers.mjs';
+import { environment, executeSingle } from './helpers.mjs';
 
 test('real SDK filesystem rejects writes and edits under read-only policy', async t => {
   const { root, execute } = await environment(t, { sandboxFs: true, mode: 'read-only' });
@@ -17,11 +17,11 @@ test('real SDK filesystem rejects writes and edits under read-only policy', asyn
 test('registry native pipeline validates schemas, preserves rendered results and rejects invalid args', async t => {
   const { root, ctx } = await environment(t);
   await writeFile(path.join(root, 'a'), 'pipeline');
-  const result = await ctx.tools.execute({ name: 'read', arguments: { file_path: 'a' },
+  const result = await executeSingle(ctx, { name: 'read', arguments: { file_path: 'a' },
     callId: 'pipeline-read', signal: new AbortController().signal });
   assert.equal(result.isError, false);
   assert.match(result.content[0].text, /1\tpipeline/);
-  const invalid = await ctx.tools.execute({ name: 'read', arguments: {},
+  const invalid = await executeSingle(ctx, { name: 'read', arguments: {},
     callId: 'pipeline-invalid', signal: new AbortController().signal });
   assert.equal(invalid.isError, true);
 });

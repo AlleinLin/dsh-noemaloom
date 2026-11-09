@@ -1,6 +1,7 @@
+import { NativeToolExecutor } from '@deepseek-ai/dsh-tool-executor-native';
 import test, { type TestContext } from 'node:test';
 import assert from 'node:assert/strict';
-import { Context } from '@deepseek-ai/cordis';
+import { Context, Service } from '@deepseek-ai/cordis';
 import { AgentRegistry, type Agent, type AgentHandle } from '@deepseek-ai/dsh-agent';
 import { AgentLoop } from '@deepseek-ai/dsh-agent-loop';
 import {
@@ -11,7 +12,7 @@ import { SessionId, SessionStore, type SessionEvent } from '@deepseek-ai/dsh-ses
 import { sessionFormatCatalog } from '@deepseek-ai/dsh-session-format-catalog';
 import { SessionProjectionRegistry } from '@deepseek-ai/dsh-session-projection';
 import { SystemPrompt } from '@deepseek-ai/dsh-system-prompt';
-import { ToolRuntime, defineContentToolFixture } from '@deepseek-ai/dsh-tools';
+import { ToolRuntime, defineTool } from '@deepseek-ai/dsh-tools';
 import { HostAttemptTracker } from '../src/host/attempt-policy.js';
 import { toNativeLlmError } from '../src/host/native-diagnostics.js';
 import { registerRequestRecovery } from '../src/host/request-recovery.js';
@@ -171,7 +172,7 @@ async function fixture(t: TestContext, options: {
   // provider fiber is active. Each dependent layer therefore mounts afterward.
   const services = root.plugin({
     name: 'native-recovery-services',
-    apply(owner: Context) {
+    async apply(owner: Context) {
       new AgentRegistry(owner);
       new SessionStore(owner);
       new SessionProjectionRegistry(owner);
@@ -188,15 +189,16 @@ async function fixture(t: TestContext, options: {
   const toolFiber = root.plugin({
     name: 'native-recovery-tools',
     inject: ['systemPrompt'],
-    apply(owner: Context) {
-      const tools = new ToolRuntime(owner);
-      tools.register(defineContentToolFixture({
+    async apply(owner: Context) {
+      const tools = new ToolRuntime(owner); tools.setExecutor(new NativeToolExecutor(owner));
+      tools.register(defineTool({
         name: toolName, description: 'Complete this local regression turn.', parameters: {},
+      output: { schema: { type: 'string' }, render: (_args, value) => [{ type: 'text', text: value }] },
         async execute(_args, exec) {
           toolsExecuted++;
           toolEntered.resolve();
           exec.concludeTurn();
-          return [{ type: 'text', text: 'local tool completed' }];
+          return 'local tool completed';
         },
       }));
     },
@@ -208,9 +210,9 @@ async function fixture(t: TestContext, options: {
   const driver = root.plugin({
     name: 'native-recovery-driver',
     inject: ['agents', 'sessions', 'sessionProjections', 'llm', 'tools', 'systemPrompt', ...(options.productionRecovery ? ['nexus'] : [])],
-    apply(owner: Context) {
+    async apply(owner: Context) {
       ctx = owner;
-      new AgentLoop(ctx, AgentLoop.Config({ agents: [], maxParallelToolCalls: 1 }));
+      await ctx.agents[Service.init](); await new AgentLoop(ctx, AgentLoop.Config({ agents: [], maxParallelToolCalls: 1 }))[Service.init]();
       tracker = new HostAttemptTracker(ctx as unknown as HostContext, async (_request, facts) => {
         diagnostics.push(facts);
         options.diagnostic?.(facts);

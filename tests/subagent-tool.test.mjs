@@ -6,7 +6,7 @@ import { childCatalogHarness } from './fixtures/child-model-catalog.ts';
 
 async function toolHarness(t, selectionEnabled = true) {
   const { llm } = await childCatalogHarness(t);
-  const definitions = new Map(), listeners = new Map(), disposers = [], started = [];
+  const definitions = new Map(), listeners = new Map(), contexts = new Map(), disposers = [], started = [];
   const routes = [{ provider: 'fixture', model: 'deep' }, { provider: 'fixture', model: 'compact' }, { provider: 'fixture', model: 'plain' }];
   const provider = { name: 'spawn', capabilities: { agentOptions: true, depthLimit: true }, inheritsParentContext: false };
   const ctx = {
@@ -20,15 +20,15 @@ async function toolHarness(t, selectionEnabled = true) {
       group.push(handler); listeners.set(name, group);
     },
     effect(setup) { const dispose = setup(); disposers.push(dispose); return dispose; },
-    sessionProjections: { register() {}, stateOf: () => routes },
-    systemPrompt: { section() {}, context() {}, getSectionOrder: () => 0, getContextOrder: () => 0 },
+    sessionProjections: { async register() { return { stateOf: () => selectionEnabled ? routes : null }; } },
+    systemPrompt: { section() {}, context(entry) { assert.ok(Number.isFinite(entry.order), 'official prompt contexts require finite order'); assert.ok(!contexts.has(entry.name)); contexts.set(entry.name, entry); }, getSectionOrder: () => 0, getContextOrder: () => 0 },
     subagents: {
       getProvider: () => provider, resolveMaxDepth: () => 1,
       async startActivation(options) { started.push(options); return { childId: `fixture-child-${started.length}` }; },
     },
   };
   const parent = { options: { provider: 'fixture', model: 'deep', reasoningEffort: 'quick' }, session: { requestHeader() {} } };
-  await apply(ctx, { provider: 'spawn', modelSelectionSettings: selectionEnabled }, { firstLiveSeq: 0, eventAt() {}, header: {} });
+  await apply(ctx, { provider: 'spawn', modelSelection: selectionEnabled, modelDiscovery: selectionEnabled }, { firstLiveSeq: 0, eventAt() {}, header: {} });
   t.after(() => { for (const dispose of disposers.reverse()) dispose(); });
   const call = async (name, args) => {
     const tool = definitions.get(name);
@@ -38,7 +38,7 @@ async function toolHarness(t, selectionEnabled = true) {
     validateJsonSchemaValue(tool.output.schema, value);
     return { tool, value };
   };
-  return { call, listeners, started, parent };
+  return { call, listeners, contexts, started, parent };
 }
 
 test('the real delegation tool accepts the screenshot empty effort and returns the actual maximum and available codes', async t => {
@@ -77,10 +77,9 @@ test('model listing treats blank filters as omitted and invalid delegation retur
 
 test('available model codes enter the parent request automatically and inheritance also defaults to maximum', async t => {
   const h = await toolHarness(t);
-  const assemble = h.listeners.get('system-prompt/assemble')[0];
-  const assembled = await assemble({}, { signal: new AbortController().signal }, async () => ({ sections: [], contexts: [], tools: [], variables: {} }));
-  assert.match(assembled.contexts[0].text, /fixture\/deep/);
-  assert.match(assembled.contexts[0].text, /省略或空白时=maximum/);
+  const text = await h.contexts.get('nexus:subagent-models:subagent').text({ agent: h.parent, signal: new AbortController().signal });
+  assert.match(text, /fixture\/deep/);
+  assert.match(text, /省略或空白时=maximum/);
   const fixed = await toolHarness(t, false);
   await fixed.call('subagent', { prompt: 'synthetic task', description: 'inherit route' });
   assert.equal(fixed.started[0].request.agentOptions.reasoningEffort, 'maximum');

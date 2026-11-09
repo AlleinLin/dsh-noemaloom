@@ -38,9 +38,11 @@ export function apply(ctx: Context): void {
       dshellSsh: {
         getSnapshot(): {
           devices: readonly { readonly id: string; readonly name: string; readonly auth: string; readonly builtin?: boolean }[]
+          hiddenDevices: readonly string[]
         }
         subscribe(listener: () => void): () => void
         test(deviceId: string): Promise<string>
+        setDeviceHidden(deviceId: string, hidden: boolean): Promise<boolean>
       }
     }) => void): unknown
   }

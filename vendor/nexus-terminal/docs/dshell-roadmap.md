@@ -1343,7 +1343,7 @@ row, and (now) the WSL built-ins that appear in the registry without a row of
 their own. A reader asking "where do I manage dshell" had to know which plugin
 owned which answer.
 
-The 管理台 is one settings section (id `dshell`, after 用量) whose body is a
+The 管理台 is one settings section (id `dshell`) whose body is a
 card list: a child seat (`dshell.admin.card`) the page renders, into which
 each package contributes its own cards. The seat's declaration is duplicated in
 both clients — the owning page in dshell-ssh, the twin dshell-mode type-checks
@@ -1803,7 +1803,7 @@ The unwritten stretch was, in order:
 
 | what | when | where it is now |
 |---|---|---|
-| the `dshell-usage` package (a per-model token index and the page that charts it) | 2026-09-20 | never had a phase of its own; `dshell-packages.md` says so and points at `packages/dshell/usage/tests/` |
+| the token-usage page (a per-model index and the charts over it) | 2026-09-20 | never had a phase of its own; the package was removed in 0.1.17-alpha.3 — a terminal library has no business owning usage |
 | the 0.1.6 alignment and the 0.1.5 release | 2026-09-20 | Phase 10.33's tail; tag `dshell-v0.1.5` |
 | the 0.1.7 / 0.1.8 / 0.1.9 / 0.1.10 / 0.1.11 / 0.1.12 / 0.1.13 release line | 2026-09-28 → 2026-09-30 | release-only rounds: each is a `chore(dshell): 0.1.x` commit and a tag, with no feature of its own |
 | the device's own shell, the device's credentials in memory, POSIX device paths, the Windows-safe PTY log | 2026-10-20 | Phase 10.46 (`49982c7`) — the in-process `ssh2` transport landed with them, and the credential vault's groups came with it |

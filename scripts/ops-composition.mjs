@@ -1,31 +1,20 @@
-const alwaysLoaded = new Map([
-  ['dsh-ops-mode-ptc', ['grep', 'glob']],
-  ['dsh-ops-discovery', ['grep', 'glob']],
-]);
+import { parseDocument } from 'yaml';
 
+/** The reviewed 0.5.2 bundle owns one row; retain its switches and defaults. */
 export function configureOpsComposition(source) {
-  const lines = source.split(/(?<=\n)/);
-  const found = new Set();
-  let currentRow;
-
-  for (let index = 0; index < lines.length; index++) {
-    const row = lines[index].match(/^[ \t]*- id:\s*(\S+)\s*(?:#.*)?(?:\r?\n)?$/);
-    if (row) {
-      currentRow = alwaysLoaded.has(row[1]) ? row[1] : undefined;
-      continue;
-    }
-
-    if (!currentRow) continue;
-    const setting = lines[index].match(/^([ \t]*alwaysLoaded:\s*)(\[[^\]\r\n]*\])([ \t]*(?:#.*)?)(\r?\n)?$/);
-    if (!setting) continue;
-    if (found.has(currentRow)) throw new Error(`Duplicate dsh-ops alwaysLoaded setting: ${currentRow}`);
-    lines[index] = `${setting[1]}[${alwaysLoaded.get(currentRow).join(', ')}]${setting[3]}${setting[4] ?? ''}`;
-    found.add(currentRow);
+  const document = parseDocument(source);
+  if (document.errors.length) throw new Error('Invalid dsh-ops composition');
+  const data = document.toJS();
+  if (data.length !== 1 || data[0].insert?.length !== 1
+    || data[0].insert[0].id !== 'dsh-ops' || data[0].insert[0].name !== 'dsh-ops')
+    throw new Error('Reviewed dsh-ops merged row changed');
+  for (const feature of ['ptc', 'discovery']) {
+    const path = [0, 'insert', 0, 'config', feature];
+    if (document.getIn([...path, 'enabled']) !== true)
+      throw new Error(`Missing dsh-ops enabled setting: ${feature}`);
+    if (document.hasIn([...path, 'alwaysLoaded']))
+      throw new Error(`Upstream dsh-ops now owns alwaysLoaded: ${feature}; review before replacing`);
+    document.setIn([...path, 'alwaysLoaded'], ['grep', 'glob']);
   }
-
-  for (const id of alwaysLoaded.keys()) {
-    if (!found.has(id)) throw new Error(`Missing dsh-ops alwaysLoaded setting: ${id}`);
-  }
-
-  return lines.join('');
+  return document.toString();
 }

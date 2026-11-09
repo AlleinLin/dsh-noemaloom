@@ -39,9 +39,9 @@
     },
     {
       "name": "@fission-ai/openspec",
-      "version": "1.16.0",
+      "version": "1.16.1",
       "license": "MIT",
-      "integrity": "sha512-WQVhZoIR5PoacH/H0qh84VKMcXFbKCIKuAI96arHS3KiKYhJStlRrjUKGxLqLYKLym0j+2hAAY5MZUrPE5qXIA==",
+      "integrity": "sha512-Qu2kdUP3oiXK6WzOA1OcEYiTlG3GmLJE37whoGjTEy4vbzuW4o3OwAwYwxSQpJnKHJ/XGySvo+icRiulBCxyzw==",
       "licenses": [
         {
           "file": "LICENSE",
@@ -63,9 +63,9 @@
     },
     {
       "name": "dsh-ops",
-      "version": "0.4.4",
+      "version": "0.5.2",
       "license": "MIT",
-      "integrity": "sha512-HY8SCzrvVBInw5qdsapOz25wdrL/bzZyWUlQR9r+3ImiC+vBbj4/JdmeohmG/nxKU/3M4k83UhxCi15byiAslg==",
+      "integrity": "sha512-r05cj6UaB80+0hH12bm5IvV58y5MQdn46Jtqb3pYw+KVwMGC2CrFFEldUHO+khorbWA3PiZDenRHUX2crWJVtw==",
       "licenses": [
         {
           "file": "LICENSE",
@@ -73,15 +73,15 @@
         },
         {
           "file": "NOTICE",
-          "sha256": "b7dc96cf102b461d885554762d5341e46fa95e728ceecd394f83c36ebb785760"
+          "sha256": "bfbf605990521552159a18139d7206b7784243893eace89227faf999b132e88c"
         }
       ]
     },
     {
       "name": "dsh-motion-ui",
-      "version": "0.8.9",
+      "version": "0.8.10",
       "license": "MIT",
-      "integrity": "sha512-uQOI1CJicjfByQgVkMpPoftU2CFqenGZPlBOdMjFpp74DGL3CV1OT/LGN7dBCZSE8UcFoXvm+fO70/d/5STrFg==",
+      "integrity": "sha512-lhglPjdtv8ivThonbvd+4MxhOUb+iJQ44u2e2RGwCMg9SjdDJNHc1J5mcXUZ+xg3aDoTavJeL5QdVVj2RZJNjA==",
       "licenses": [
         {
           "file": "LICENSE",
@@ -91,9 +91,9 @@
     },
     {
       "name": "dsh-cross-session-approval",
-      "version": "0.3.10",
+      "version": "0.3.12",
       "license": "MIT",
-      "integrity": "sha512-37hRKYWvgPkjLH7p7MONIelXNMb8fyYagGAPYHsq/I4ohS1JGP5Nz6ocWciP4ik5bVOYMcKo+uouSaTSUdlJKA==",
+      "integrity": "sha512-UYQxFVWjLod4B0zbkAtQNJpJRONY1GcxJGgJV6sfgjZtMImZdRktqwB+cCg0YKyh/lTdhnHfaY9UKP60xpB4Qg==",
       "licenses": [
         {
           "file": "LICENSE",
@@ -242,18 +242,6 @@
         {
           "file": "LICENSE",
           "sha256": "3f1189b28e3866e0d979968d466b78f813f76827cfdca1fbb124cc0a5c8841f8"
-        }
-      ]
-    },
-    {
-      "name": "@dsh-ops/bash-win32-x64",
-      "version": "0.2.1",
-      "license": "SEE LICENSE IN LICENSE.txt",
-      "integrity": "sha512-qK7Pm8ioRkjf+UBAqPOhogB0iPX/tBUmBhQSMdrBVJKOQjeLDHluRDOx1JdLHfxhW+oUJdu19TG/HXxDa9o7zw==",
-      "licenses": [
-        {
-          "file": "LICENSE.txt",
-          "sha256": "5b2198d1645f767585e8a88ac0499b04472164c0d2da22e75ecf97ef443ab32e"
         }
       ]
     },

@@ -260,10 +260,11 @@ test('long model menus fit the available desktop viewport and keep native wheel 
       useState: () => [menuPosition, update => { menuPosition = update(menuPosition); }],
       useLayoutEffect: effect => effect(), useEffect() {},
     },
+    'react-dom': { createPortal: node => node },
     'react/jsx-runtime': { jsx, jsxs: jsx },
-  }, { window: { innerHeight: 500, innerWidth: 900, addEventListener() {} } });
+  }, { document: { body: {} }, requestAnimationFrame: () => 1, window: { innerHeight: 500, innerWidth: 900, addEventListener() {} } });
   const props = {
-    anchor: { left: 50, right: 330, top: 45, bottom: 75 },
+    anchor: { getBoundingClientRect: () => ({ left: 50, right: 330, top: 45, bottom: 75 }) },
     side: 'top', children: 'long model catalog', onClose() {},
   };
   api.MenuSurface(props); // The layout effect measures, then React renders its state update.

@@ -115,7 +115,15 @@ export const deviceDetailSeat: DeviceDetailSeat = {
     watchers.set(sessionId, { readers: 1, fetchedAt: Date.now() })
     armTimer()
     void fetchOne(sessionId)
+    // The release counts down like every other watcher's does. Deleting the
+    // entry outright would drop a session that a SECOND reader is still
+    // watching: the poll stops, the panel freezes on a stale process list,
+    // and nothing says so.
     return () => {
+      const watch = watchers.get(sessionId)
+      if (watch === undefined) return
+      watch.readers -= 1
+      if (watch.readers > 0) return
       watchers.delete(sessionId)
       stopTimerIfIdle()
     }

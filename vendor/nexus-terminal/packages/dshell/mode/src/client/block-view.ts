@@ -31,7 +31,7 @@ import { AgentBlock, UserBubble } from './agent-block.js'
 import { assembleTimeline, type ViewItem } from './block-model.js'
 import { createSpanTerminal, SPAN_FONT, SPAN_FONT_SIZE, SPAN_LINE_HEIGHT } from './block-terminal.js'
 import {
-  ConnectionNotice, ConnectionPanel, connectionView, type HostKeyFacts,
+  CONNECTING_GRACE_MS, ConnectionNotice, ConnectionPanel, connectionView, type HostKeyFacts,
 } from './connection-notice.js'
 import {
   injectTodoCardCss, setTodoPanelSuppressed,
@@ -342,8 +342,20 @@ export function BlockView(props: {
       }
     }
     if (!tryBind()) {
-      const timer = setInterval(() => { if (tryBind()) clearInterval(timer) }, 500)
-      return () => { clearInterval(timer) }
+      // The binding is not ready yet. The subscription has to be attached by
+      // the SAME path that binds it: binding later and returning would leave
+      // this view with no subscription at all, and the session's fold would
+      // silently stop updating — a transcript that never grows again.
+      let unsubscribeBound: (() => void) | undefined
+      const timer = setInterval(() => {
+        if (!tryBind()) return
+        clearInterval(timer)
+        unsubscribeBound = bound?.subscribe(accept)
+      }, 500)
+      return () => {
+        clearInterval(timer)
+        unsubscribeBound?.()
+      }
     }
     const unsubscribe = bound?.subscribe(accept)
     // The session snapshot's own view of what the reader has sent: the local
@@ -518,9 +530,26 @@ export function BlockView(props: {
   const device = binding === undefined
     ? undefined
     : ssh?.devices().find(candidate => candidate.id === binding.deviceId)?.name ?? binding.deviceId
+  // The grace period is a wall-clock decision, so it needs a render when it
+  // expires: the wire state itself does not change then, and without this the
+  // notice would stay undrawn until something unrelated re-rendered.
+  const [, setGraceElapsed] = useState(0)
+  const waitingOnGrace = current && pty.status === 'connecting' && Date.now() - pty.since < CONNECTING_GRACE_MS
+  useEffect(() => {
+    if (!waitingOnGrace) return
+    const timer = setTimeout(() => { setGraceElapsed(v => v + 1) }, Math.max(0, CONNECTING_GRACE_MS - (Date.now() - pty.since)))
+    return () => { clearTimeout(timer) }
+  }, [waitingOnGrace, pty.since])
   const connection = connectionView({
     status: current ? pty.status : 'idle',
+    // A stale session reads as `idle`, which draws nothing — so its `since` is
+    // never what decides a render. `Date.now()` keeps the grace period expired
+    // for that case instead of letting a stale timestamp suppress a real state.
+    since: current ? pty.since : 0,
     ready: pty.ready,
+    // A stale session reads as `idle` and draws nothing either way, so its
+    // recovery flag is never consulted.
+    recovering: current && pty.recovering,
     attempt: pty.attempt,
     bound: binding !== undefined,
     localUnsupported: current && pty.localUnsupported,

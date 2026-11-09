@@ -358,7 +358,9 @@ test('original filesystem protection and native clients are retained', async () 
   assert.match(fsSource, /remote === undefined[\s\S]*super\.writeText/);
   assert.match(fsSource, /mode === 'read-only'/);
   assert.match(fsSource, /this\.ctx\.sandboxPolicy\.resolve/);
-  for (const id of ['mode', 'files', 'buffer', 'ssh', 'usage', 'conversation', 'terminal-bridge']) {
+  const composition = await readFile(join(root, 'packages/dshell/bundle/cordis.patch.yml'), 'utf8');
+  assert.doesNotMatch(composition, /id: dshell-usage\b/, 'upstream retired its duplicate usage client');
+  for (const id of ['mode', 'files', 'buffer', 'ssh', 'conversation', 'terminal-bridge']) {
     const entries = await readdir(join(root, 'packages/dshell', id, 'src/client'));
     assert.ok(entries.includes('index.ts'));
   }

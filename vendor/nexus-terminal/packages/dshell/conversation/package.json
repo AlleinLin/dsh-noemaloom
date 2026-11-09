@@ -1,6 +1,6 @@
 {
   "name": "@nexus-aethra/dshell-conversation",
-  "version": "0.1.16",
+  "version": "0.1.17",
   "description": "dshell Conversation activity marker: registers an always-active `terminal` view target so the conversation stays in active phase and the docked terminal surface renders instead of the centered hero.",
   "license": "MIT",
   "repository": {

@@ -30,7 +30,7 @@ for (const section of ['peerDependencies', 'devDependencies'])
       assert.equal(version, packageManifest.engines.dsh, `${name}: SDK/engine drift`);
 const temporary = await mkdtemp(path.join(os.tmpdir(), 'forge-desktop-host-'));
 const report = {
-  host: '0.2.1-rc.5',
+  host: '0.2.2-rc.1',
   platform: 'win32-x64',
   installedRuntime: install,
   validation: 'Actual installed Desktop Host entry point and IPC lifecycle, using isolated DSH_HOME/profiles/desktop. This check does not launch the Electron GUI.',
@@ -54,11 +54,12 @@ function launch(env, args) {
 async function audit(env, label) {
   const profile = path.join(env.DSH_HOME, 'profiles/desktop');
   const resultFile = path.join(temporary, `${label}-audit.json`);
-  const pluginFile = path.join(temporary, `${label}-audit.mjs`);
-  // The audit lives only in this temporary profile. It does not create an Agent
-  // or make a model request; public preset revision leases expose scoped tools.
-  await writeFile(pluginFile, `import{writeFile}from'node:fs/promises';
-export const inject=['agentPresets','tools'];
+  const pluginFile = path.join(profile, `${label}-audit.mjs`);
+  // The audit lives only in this temporary profile. It uses prompt-free Agents for tool execution and makes no model request; public preset revision leases expose scoped tools.
+  await writeFile(pluginFile, `import{writeFile,readFile}from'node:fs/promises';
+import{randomUUID}from'node:crypto';
+import{setSandboxMode}from'@deepseek-ai/dsh-sandbox-policy';
+export const inject=['agentPresets','tools','agents'];
 export function apply(ctx){const timer=setTimeout(async()=>{
  const report={profile:ctx.get('profileContext')?.name,presets:[],scopes:[]};
  try{
@@ -74,6 +75,21 @@ export function apply(ctx){const timer=setTimeout(async()=>{
     globDescription:ctx.tools.get('glob',lease.key)?.description,
     grepDescription:ctx.tools.get('grep',lease.key)?.description,
     pwshDescription:ctx.tools.get('pwsh',lease.key)?.description});
+   if (${JSON.stringify(label.endsWith('-installed'))}) {
+    const handle=await ctx.agents.create({sessionId:'session-'+randomUUID(),agentOptions:{},meta:{cwd:${JSON.stringify(temporary)},agentPreset:'standard'},async setup(owner){await ctx.agentPresets.mount(owner,'standard');}});
+    try {
+     setSandboxMode(handle.agent.session,'danger-full-access');
+     const call=async(name,args)=>{const id='forge-'+randomUUID();const batch=await ctx.tools.execute({calls:[{type:'tool-call',id,name,arguments:JSON.stringify(args)}],agent:handle.agent,signal:new AbortController().signal});if(batch.results.length!==1||batch.results[0].callId!==id||batch.results[0].result.isError)throw new Error('Tool '+name+' failed: '+JSON.stringify(batch));return batch.results[0].result;};
+     const file=${JSON.stringify(path.join(temporary,'forge-marker.txt'))};
+     await call('write',{file_path:file,content:'FORGE RC1 MARKER'});
+     const result=await call('read',{file_path:file});if(!JSON.stringify(result).includes('FORGE RC1 MARKER'))throw new Error('File read marker missing');
+     await call('pwsh',{command:"$global:forgeRc1Marker='FORGE POWERSHELL STATE'; Write-Output $global:forgeRc1Marker",session_mode:'persistent'});
+     const shell=await call('pwsh',{command:'Write-Output $global:forgeRc1Marker',session_mode:'persistent'});if(!JSON.stringify(shell).includes('FORGE POWERSHELL STATE'))throw new Error('Persistent PowerShell state missing');
+     if(await readFile(file,'utf8')!=='FORGE RC1 MARKER')throw new Error('Disk marker mismatch');
+     report.actualTools={calls:4,fileWriteRead:true,persistentPowerShellAcrossTwoCalls:true,modelRequests:0};
+    } finally {await handle.dispose();}
+   }
+
   }finally{await lease?.[Symbol.asyncDispose]();}
  }catch(error){report.error=String(error.message);}
  await writeFile(${JSON.stringify(resultFile)},JSON.stringify(report,null,2));
@@ -138,13 +154,13 @@ export function apply(ctx){const timer=setTimeout(async()=>{
 
 try {
   for (const [variant, pkg, packageName] of [
-    ['Tools', 'local-dsh-forge-tools-0.1.6.tgz', '@local/dsh-forge-tools'],
+    ['Tools', 'local-dsh-forge-tools-0.1.7.tgz', '@local/dsh-forge-tools'],
   ]) {
     const home = path.join(temporary, variant);
     const env = {
-      ...process.env, DSH_HOME: home, ELECTRON_RUN_AS_NODE: '1',
+      ...Object.fromEntries(Object.entries(process.env).filter(([key]) => !/(?:TOKEN|SECRET|PASSWORD|API_KEY|AUTHORIZATION|CREDENTIAL)/i.test(key))), DSH_HOME: home, ELECTRON_RUN_AS_NODE: '1',
       DSH_AGENTS_HOME: path.join(home, 'agents'),
-      DSH_CLIENT_VERSION: '0.2.1-rc.5',
+      DSH_CLIENT_VERSION: '0.2.2-rc.1',
     };
     // The CLI deliberately refuses to launch the Electron-owned desktop
     // profile. Reproduce Desktop's exact initProfile files in this isolated
@@ -180,8 +196,8 @@ try {
     for (const field of ['readDescription', 'writeDescription', 'editDescription',
       'globDescription', 'grepDescription', 'pwshDescription'])
       assert.notEqual(own[field], baseline[field], `${variant}: ${field} still uses the original tool`);
-    assert.equal(baseline.names.length, 31, 'The validated rc.5 Desktop baseline has 31 tools');
-    assert.equal(own.names.length, 36, 'The full Tools package must expose all 36 tools');
+    assert.equal(baseline.names.length, 34, 'The reviewed rc.1 Desktop baseline has 34 tools');
+    assert.equal(own.names.length, baseline.names.length + 5, 'Forge adds the reviewed five operations while preserving the complete official tool roster');
 
     launch(env, ['plugin', '--profile', 'desktop', 'remove', packageName]);
     const restored = await audit(env, `${variant}-uninstalled`);
@@ -193,7 +209,7 @@ try {
     report.cases.push({
       variant, package: pkg, profile: 'desktop', preset: 'standard',
       offlineInstall: 'passed', defaultPresetActivation: 'passed',
-      noPresetSwitchRequired: true, originalToolsPreserved: true,
+      noPresetSwitchRequired: true, originalToolsPreserved: true, actualTools: active.actualTools,
       originalToolCount: baseline.names.length, replacementToolCount: own.names.length,
       scopedTools: own.names, lifecycle: active.lifecycle,
       uninstallRollback: 'passed',

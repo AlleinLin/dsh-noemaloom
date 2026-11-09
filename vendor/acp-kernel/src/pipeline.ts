@@ -4,6 +4,11 @@ import { inheritIndexedState } from "./indexed-runtime.js";
 export interface PipelineContext {
   readonly config: import("./types.js").Config;
   readonly tokenCount: number;
+  /** Where tokenCount came from (see ProcessTurnInput.tokenCountSource):
+   *  "usage" = billing-grade sample, "estimate" = local fallback. Drives the
+   *  phantom-pressure guard in the nudge node. Optional — omit for legacy.
+   */
+  readonly tokenCountSource?: "usage" | "estimate";
   readonly countTokens: (text: string) => number;
   /** Per-session CCR content store for this turn (ccr-store node updates it
    *  via effects.ccr; processTurn echoes it back in the result). */

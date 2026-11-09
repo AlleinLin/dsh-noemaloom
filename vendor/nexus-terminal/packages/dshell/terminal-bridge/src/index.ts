@@ -283,8 +283,18 @@ interface ClientFrame {
 export class DshellTerminalBridge extends Service {
   static inject = ['terminals', 'agents'] as const
 
-  private readonly mains = new Map<Agent, MainRecord>()
-  private readonly pendingMain = new Map<Agent, Promise<MainRecord>>()
+  /**
+   * Main shells by dsh session id.
+   *
+   * Keyed by the SESSION, not by its Agent. An Agent is a live object that a
+   * restart, an HMR reload, or a session the host resumed hands back as a
+   * different instance for the same id — so an Agent-keyed map lost every
+   * shell's record across exactly the events a terminal has to survive, and
+   * the terminal rebuilt a shell (and, on a device, redialled) for a shell
+   * that had never stopped running.
+   */
+  private readonly mains = new Map<string, MainRecord>()
+  private readonly pendingMain = new Map<string, Promise<MainRecord>>()
   /**
    * The grid each session's view last asked for, kept per dsh session id.
    *
@@ -299,9 +309,10 @@ export class DshellTerminalBridge extends Service {
   private readonly pendingSizes = new Map<string, { cols: number; rows: number }>()
   private readonly clients = new Map<string, Set<PtySubscriber>>()
   private readonly boundSession = new Map<PtySubscriber, string>()
-  /** The agent-owned shells, keyed by the same Agent as their main shell. */
-  private readonly agents = new Map<Agent, AgentRecord>()
-  private readonly pendingAgents = new Map<Agent, Promise<AgentRecord>>()
+  /** The agent-owned shells, keyed like their main shell (dsh session id). */
+  /** Agent-owned shells, keyed by dsh session id for the same reason as {@link mains}. */
+  private readonly agents = new Map<string, AgentRecord>()
+  private readonly pendingAgents = new Map<string, Promise<AgentRecord>>()
   /**
    * Watchers of one session's agent shell — the task card's terminal panel.
    *
@@ -368,7 +379,14 @@ export class DshellTerminalBridge extends Service {
     // backendType here. Claim it as the agent's shell so every path the model
     // can run commands through (its `bash` tool, terminal_send) lands on the
     // one terminal the user can watch.
-    void this.claimForeignAgent(owner, sessionId)
+    // The host treats an unhandled rejection as FATAL: it exits the process,
+    // and the desktop app restarts it. A claim that cannot complete (the log
+    // is locked, the session vanished, the buffer could not be opened) must
+    // therefore never escape as a floating rejection — the shell simply stays
+    // unclaimed, which is a state the client already knows how to draw.
+    void this.claimForeignAgent(owner, sessionId).catch((error: unknown) => {
+      console.warn('dshell-bridge: a foreign shell was not claimed:', error)
+    })
   })
 
   constructor(ctx: Context) {
@@ -376,7 +394,12 @@ export class DshellTerminalBridge extends Service {
     ctx.effect(() => this.ctx.terminals.registerBackend(this.backend), 'dshell-bridge: raw pty backend')
     ctx.effect(() => () => {
       this.backend.dispose()
-      void this.disposeAll()
+      // Teardown runs while the host is going down, and the host treats an
+      // unhandled rejection as fatal: a failing cleanup must not be the thing
+      // that kills the process on the way out.
+      void this.disposeAll().catch((error: unknown) => {
+        console.warn('dshell-bridge: teardown was not clean:', error)
+      })
     }, 'dshell-bridge: teardown')
     // Turn boundaries come from the session itself, so a block is cut exactly
     // where the agent took over and where it handed the terminal back.
@@ -418,9 +441,9 @@ export class DshellTerminalBridge extends Service {
     ctx.on('session/disposed', (session: Session) => {
       const sessionId = String(session.id)
       if (this.sessionIsLive(sessionId)) return
-      for (const record of this.mains.values()) {
-        if (record.dshSessionId !== sessionId) continue
-        this.markDead(record, 'session closed')
+      const doomed = this.mains.get(sessionId)
+      if (doomed !== undefined) {
+        this.markDead(doomed, 'session closed')
         const set = this.clients.get(sessionId)
         if (set !== undefined) {
           // Through dropSubscriber, not just the set: a stream subscriber is
@@ -514,8 +537,17 @@ export class DshellTerminalBridge extends Service {
    * loop starts streaming backend scrollback into buffer and clients.
    */
   async ensureMainShell(dshSessionId: string): Promise<MainRecord> {
+    // The live answer first, before anything is awaited. A session switch, a
+    // page reload, or a reconnect arrives here for a shell that is already
+    // running, and waiting out an Agent resolution to say so is the "正在连接"
+    // the reader sees over a terminal that never stopped working.
+    const live = this.mains.get(dshSessionId)
+    if (live !== undefined && live.dead === undefined) return live
+    // A spawn already in flight is that same answer, one step behind.
+    const inflight = this.pendingMain.get(dshSessionId)
+    if (inflight !== undefined) return await inflight
     const agent = await this.awaitAgent(dshSessionId)
-    const existing = this.mains.get(agent)
+    const existing = this.mains.get(dshSessionId)
     if (existing !== undefined && existing.dead === undefined) return existing
     if (existing !== undefined) {
       // A dead record blocks the owner's name reservation; force-release
@@ -524,14 +556,14 @@ export class DshellTerminalBridge extends Service {
       await this.disposeRecord(existing)
       void this.ctx.terminals.kill(agent, existing.ptyId, 'dshell: replace dead').catch(() => {})
     }
-    const pending = this.pendingMain.get(agent)
+    const pending = this.pendingMain.get(dshSessionId)
     if (pending !== undefined) return await pending
     const promise = this.spawnMain(agent, dshSessionId)
-    this.pendingMain.set(agent, promise)
+    this.pendingMain.set(dshSessionId, promise)
     try {
       return await promise
     } finally {
-      this.pendingMain.delete(agent)
+      this.pendingMain.delete(dshSessionId)
     }
   }
 
@@ -559,8 +591,7 @@ export class DshellTerminalBridge extends Service {
 
   /** The live main record for a dsh session, if one exists. */
   private recordFor(dshSessionId: string): MainRecord | undefined {
-    for (const record of this.mains.values()) if (record.dshSessionId === dshSessionId) return record
-    return undefined
+    return this.mains.get(dshSessionId)
   }
 
   private async spawnMain(agent: Agent, dshSessionId: string): Promise<MainRecord> {
@@ -625,7 +656,7 @@ export class DshellTerminalBridge extends Service {
     // is already sized when a session is opened or restored.
     const requested = this.pendingSizes.get(dshSessionId)
     if (requested !== undefined) session.resize(requested.cols, requested.rows)
-    this.mains.set(agent, record)
+    this.mains.set(dshSessionId, record)
     // A device session's shell runs on the device, so it has no local process
     // to watch — reading one would call every device session a full-screen
     // program. The bytes still carry the alternate screen, so that signal keeps
@@ -803,6 +834,15 @@ export class DshellTerminalBridge extends Service {
       record.activeSend = undefined
       record.initializing = false
       options.afterRestore?.()
+    }).catch((error: unknown) => {
+      // The handler above can itself throw — `deliver` writes to sockets that
+      // may already be gone, and `restore` appends to a buffer that may have
+      // been torn down. A rejection thrown INSIDE a fulfilment handler does
+      // NOT reach this chain's own onRejected: it becomes a fresh unhandled
+      // rejection, and the host exits the process on those. The desktop app
+      // then restarts, which is exactly the "opening a session restarts dsh"
+      // this guard exists to prevent.
+      console.warn('dshell-bridge: the shell did not come up cleanly:', error)
     })
   }
 
@@ -811,12 +851,22 @@ export class DshellTerminalBridge extends Service {
    *
    * Lazy on purpose: a session that never asks for a terminal pays nothing, and
    * a device session does not open a second ssh connection for a panel nobody
-   * opened. The record is keyed by the same Agent as the main shell — the two
-   * are two named PTYs under one owner, addressable separately.
+   * opened. The record is keyed by the same dsh session id as the main shell —
+   * the two are two named PTYs under one owner, addressable separately.
    */
   async ensureAgentShell(dshSessionId: string): Promise<AgentRecord> {
+    // Live first, for the reason {@link ensureMainShell} states: the panel
+    // opening hours later must not re-resolve an Agent to describe a shell
+    // that is still there.
+    const live = this.agents.get(dshSessionId)
+    // `initSettled` is deliberately NOT awaited here: every caller that needs a
+    // shell ready to send into (`agentTerminalId`) waits for it itself, and a
+    // caller that only wants to describe the shell must not be held by it.
+    if (live !== undefined && live.dead === undefined) return live
+    const inflight = this.pendingAgents.get(dshSessionId)
+    if (inflight !== undefined) return await inflight
     const agent = await this.awaitAgent(dshSessionId)
-    const existing = this.agents.get(agent)
+    const existing = this.agents.get(dshSessionId)
     if (existing !== undefined && existing.dead === undefined) return existing
     if (existing !== undefined) {
       // A dead record still holds the owner's "agent" name reservation, so the
@@ -825,14 +875,14 @@ export class DshellTerminalBridge extends Service {
       await this.disposeAgentRecord(existing)
       void this.ctx.terminals.kill(agent, existing.ptyId, 'dshell: replace dead agent shell').catch(() => {})
     }
-    const pending = this.pendingAgents.get(agent)
+    const pending = this.pendingAgents.get(dshSessionId)
     if (pending !== undefined) return await pending
     const promise = this.spawnAgent(agent, dshSessionId)
-    this.pendingAgents.set(agent, promise)
+    this.pendingAgents.set(dshSessionId, promise)
     try {
       return await promise
     } finally {
-      this.pendingAgents.delete(agent)
+      this.pendingAgents.delete(dshSessionId)
     }
   }
 
@@ -885,7 +935,7 @@ export class DshellTerminalBridge extends Service {
       stopExit: () => {},
       initSettled: settled.promise,
     }
-    this.agents.set(agent, record)
+    this.agents.set(dshSessionId, record)
     record.stopOutput = session.onOutput((chunk) => {
       // The init echo is the bridge's own setup, not the agent's work: the
       // panel opens on the fork's prompt, not on an export line.
@@ -900,7 +950,7 @@ export class DshellTerminalBridge extends Service {
     // own shell is sitting in, so "look at what I am looking at" needs no path
     // in a prompt. Best effort — a shell in the middle of a command reports no
     // directory, and the fork simply stays in the session's own.
-    const fork = forkDirWord(this.mains.get(agent))
+    const fork = forkDirWord(this.mains.get(dshSessionId))
     this.runInit(record, frame => { this.broadcastAgent(record.dshSessionId, frame) }, {
       cdTo: fork,
       afterRestore: () => { settled.resolve() },
@@ -910,8 +960,7 @@ export class DshellTerminalBridge extends Service {
 
   /** The agent shell record for one session — live, dead, or not spawned. */
   private agentRecordFor(dshSessionId: string): AgentRecord | undefined {
-    for (const record of this.agents.values()) if (record.dshSessionId === dshSessionId) return record
-    return undefined
+    return this.agents.get(dshSessionId)
   }
 
   /**
@@ -930,13 +979,13 @@ export class DshellTerminalBridge extends Service {
   private async claimForeignAgent(owner: unknown, sessionId: TerminalSessionId): Promise<void> {
     if (!(owner instanceof Object) || !('id' in owner)) return
     const agent = owner as Agent
-    if (!this.mains.has(agent) || this.agents.has(agent)) return
+    const dshSessionId = String(agent.id)
+    if (!this.mains.has(dshSessionId) || this.agents.has(dshSessionId)) return
     const session = this.backend.session(sessionId)
     if (session === undefined) return
-    const dshSessionId = String(this.mains.get(agent)?.dshSessionId ?? agent.id)
     const logPath = join(ptyLogDir(), `${dshSessionId}.agent.log`)
     const buffer = await PtyBuffer.open(logPath)
-    if (this.agents.has(agent)) return
+    if (this.agents.has(dshSessionId)) return
     const settled = Promise.withResolvers<void>()
     const record: AgentRecord = {
       agent,
@@ -952,7 +1001,7 @@ export class DshellTerminalBridge extends Service {
       stopExit: () => {},
       initSettled: settled.promise,
     }
-    this.agents.set(agent, record)
+    this.agents.set(dshSessionId, record)
     record.stopOutput = session.onOutput((chunk) => {
       record.buffer.append(chunk)
       this.broadcastAgent(record.dshSessionId, { kind: 'output', chunk, time: Date.now() })
@@ -1021,6 +1070,12 @@ export class DshellTerminalBridge extends Service {
       this.pump(record)
     }, (error: unknown) => {
       console.warn('dshell-bridge: input dropped:', error)
+    }).catch((error: unknown) => {
+      // A throw inside the fulfilment handler — `trackInput` on a torn-down
+      // splitter, `pump` on a dead record — becomes a FRESH unhandled
+      // rejection, and the host exits the process on those. The desktop app
+      // then restarts, which is the whole failure this guard exists for.
+      console.warn('dshell-bridge: the input was dropped:', error)
     })
   }
 
@@ -1053,10 +1108,11 @@ export class DshellTerminalBridge extends Service {
 
   /** The live main record for one session, or undefined. Never spawns. */
   private liveRecord(dshSessionId: string): MainRecord | undefined {
-    const agent = this.ctx.get('agents')?.get(dshSessionId as SessionId)
-    if (agent === undefined) return undefined
-    const record = this.mains.get(agent)
+    const record = this.mains.get(dshSessionId)
     if (record === undefined || record.dead !== undefined) return undefined
+    // The shell is only addressable while dsh still knows the session: the PTY
+    // reference means nothing to a store that has released the id.
+    if (this.ctx.get('agents')?.get(dshSessionId as SessionId) === undefined) return undefined
     return record
   }
 
@@ -1226,6 +1282,11 @@ export class DshellTerminalBridge extends Service {
       }, () => {
         record.activeSend = undefined
         this.pump(record)
+      }).catch((error: unknown) => {
+        // A throw inside a fulfilment handler becomes a FRESH unhandled
+        // rejection, and the host exits the process on those. The pump must
+        // never be the thing that takes the desktop app down.
+        console.warn('dshell-bridge: the input pump failed:', error)
       })
     } catch {
       // The slot was taken (e.g. the agent's own terminal_send on main):
@@ -1280,17 +1341,45 @@ export class DshellTerminalBridge extends Service {
     // callback then fires into a stopped context, where demanding the service
     // throws and an exit handler must never take the host down with it.
     try {
-      void this.ctx.terminals.kill(record.agent, record.ptyId, 'dshell: dead').catch(() => {})
+      void this.ctx.terminals.kill(this.ownerFor(record), record.ptyId, 'dshell: dead').catch(() => {})
     } catch {
       // Context already gone; the reservation dies with it.
     }
-    record.disposeTimer = setTimeout(() => { void this.disposeRecord(record) }, 200)
+    record.disposeTimer = setTimeout(() => {
+      // The host treats an unhandled rejection as fatal: it exits the process
+      // and the desktop app restarts it. A disposal that trips over a closed
+      // handle must not be the thing that takes the app down.
+      void this.disposeRecord(record).catch((error: unknown) => {
+        console.warn('dshell-bridge: a dead shell was not disposed cleanly:', error)
+      })
+    }, 200)
+  }
+
+  /**
+   * The live Agent that owns one record's PTY, for a call the terminals service
+   * checks by object identity.
+   *
+   * `record.agent` is captured at spawn. dsh refuses a second Agent for a live
+   * id, so a record whose Agent was replaced is a record whose PTY the service
+   * already dropped — but the call that says so would throw `FOREIGN_SESSION`
+   * on the stale object and be swallowed by its own `.catch`. Asking for the
+   * current owner first keeps that refusal from being invented.
+   *
+   * @param record - the shell whose PTY is being addressed.
+   * @returns the live agent for the record's session, or the captured one.
+   */
+  private ownerFor(record: ShellRecord): Agent {
+    return this.ctx.get('agents')?.get(record.dshSessionId as SessionId) ?? record.agent
   }
 
   /** Drop a dead record from `mains` and release its PtyBuffer. */
   private async disposeRecord(record: MainRecord): Promise<void> {
     delete record.disposeTimer
-    this.mains.delete(record.agent)
+    // By IDENTITY, not by key: the map is keyed by session id, so a dispose that
+    // somehow outlived its record would otherwise delete a LIVE successor. It
+    // cannot today (every replacement clears the dead record's timer first), but
+    // that makes the invariant incidental; this makes it structural.
+    if (this.mains.get(record.dshSessionId) === record) this.mains.delete(record.dshSessionId)
     // The debounced write would otherwise die with the process; the last
     // commands belong on disk.
     await record.history.flush().catch(() => {})
@@ -1327,13 +1416,14 @@ export class DshellTerminalBridge extends Service {
       ready: record.ready,
       failure: record.dead.failure,
     })
-    void this.ctx.terminals.kill(record.agent, record.ptyId, 'dshell: agent shell dead').catch(() => {})
+    void this.ctx.terminals.kill(this.ownerFor(record), record.ptyId, 'dshell: agent shell dead').catch(() => {})
   }
 
   /** Drop the agent record, releasing its buffer's file handle. */
   private async disposeAgentRecord(record: AgentRecord): Promise<void> {
     delete record.disposeTimer
-    this.agents.delete(record.agent)
+    // By identity, for the reason {@link disposeRecord} states.
+    if (this.agents.get(record.dshSessionId) === record) this.agents.delete(record.dshSessionId)
     await record.buffer.close().catch(() => {})
   }
 
@@ -1478,9 +1568,7 @@ export class DshellTerminalBridge extends Service {
       const cols = Math.max(1, Math.floor(frame.cols))
       const rows = Math.max(1, Math.floor(frame.rows))
       this.pendingSizes.set(session, { cols, rows })
-      const resizeAgent = this.ctx.get('agents')?.get(session as SessionId)
-      const resizeRecord = resizeAgent === undefined ? undefined : this.mains.get(resizeAgent)
-      resizeRecord?.session.resize(cols, rows)
+      this.mains.get(session)?.session.resize(cols, rows)
       return
     }
     // A retry, from the client's automatic loop or its button. Handled
@@ -1563,6 +1651,11 @@ export class DshellTerminalBridge extends Service {
         // and reading that out of the message text would be a guess.
         ...LOCAL_SHELL_SUPPORTED ? {} : { localUnsupported: true },
       })
+    }).catch((error: unknown) => {
+      // A throw inside the fulfilment handler — `pushAgentSnapshot` writing
+      // to a socket that is already gone — becomes a FRESH unhandled
+      // rejection, and the host exits the process on those.
+      console.warn('dshell-bridge: the agent shell was not announced:', error)
     })
   }
 
@@ -1608,8 +1701,7 @@ export class DshellTerminalBridge extends Service {
   private bindClient(client: PtySubscriber, dshSessionId: string): void {
     // Stash the dead reason BEFORE ensureMainShell swaps in a replacement,
     // so the close frame can be forwarded to a freshly reconnected client.
-    const agent = this.ctx.get('agents')?.get(dshSessionId as SessionId)
-    const priorDead = agent === undefined ? undefined : this.mains.get(agent)?.dead
+    const priorDead = this.mains.get(dshSessionId)?.dead
     this.attachToSession(client, dshSessionId, priorDead)
   }
 
@@ -1662,6 +1754,13 @@ export class DshellTerminalBridge extends Service {
         // does not say which of the two the reader can act on.
         ...classifyDeviceFailure(error) === undefined ? {} : { failure: classifyDeviceFailure(error) },
       })
+    }).catch((error: unknown) => {
+      // A throw inside either handler — `adopt` on a client that went away,
+      // `sendFrame` on a socket that is already closed — becomes a FRESH
+      // unhandled rejection, and the host exits the process on those. The
+      // desktop app then restarts, which is exactly the failure this guard
+      // exists to prevent.
+      console.warn('dshell-bridge: the client was not attached:', error)
     })
   }
 
@@ -1687,6 +1786,13 @@ export class DshellTerminalBridge extends Service {
         ...noShellRefusal(error) ? { noShell: true } : {},
         ...classifyDeviceFailure(error) === undefined ? {} : { failure: classifyDeviceFailure(error) },
       })
+    }).catch((error: unknown) => {
+      // A throw inside either handler — `adopt` on a client that went away,
+      // `sendFrame` on a socket that is already closed — becomes a FRESH
+      // unhandled rejection, and the host exits the process on those. The
+      // desktop app then restarts, which is exactly the failure this guard
+      // exists to prevent.
+      console.warn('dshell-bridge: the client was not reconnected:', error)
     })
   }
 

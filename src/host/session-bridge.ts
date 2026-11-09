@@ -2,8 +2,8 @@ import { createHash, randomUUID } from 'node:crypto';
 import { realpath, stat } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import {
-  foldConsumedWork, installModelSelection,
-  type Agent, type AgentHandle, type AgentOptions, type ModelSelectionRef,
+  foldConsumedWork,
+  type Agent, type AgentHandle, type AgentOptions,
 } from '@deepseek-ai/dsh-agent';
 import { createUserMessage, ReasoningEffortId, type UserMessage } from '@deepseek-ai/dsh-llm';
 import { buildForkSeed, SessionId, SessionLogOffset, SessionSeq, snapshotSessionEvent, type SessionEvent, type SessionHeader } from '@deepseek-ai/dsh-session';
@@ -113,7 +113,6 @@ export function createSessionBridge(
 } {
   const owned = new Map<string, AgentHandle>();
   const inflight = new Map<string, Promise<unknown>>();
-  const selections = new Map<string, { agent: Agent; ref: ModelSelectionRef; dispose(): void }>();
   let closing = false;
   const services = (): NexusServices => getServices();
   const requireService = (name: string, method: string): any => {
@@ -131,37 +130,6 @@ export function createSessionBridge(
   };
   const scheduledPrompts = createScheduledPromptDelivery(ctx, pluginSignal, services, findAgent,
     id => resolveScheduledRoot(ctx, id), nativeSnapshot, flush);
-  function selectionFor(agent: Agent) {
-    let selection = selections.get(agent.id);
-    if (selection?.agent !== agent) {
-      selection?.dispose();
-      const ref: ModelSelectionRef = { current: undefined, assembled: undefined };
-      selection = { agent, ref, dispose: installModelSelection(agent.ctx, ref) };
-      selections.set(agent.id, selection);
-    }
-    return selection!;
-  }
-  // Native subagents release their Agent at idle. Their next native continuation
-  // reconstructs creation options from the descriptor, so restore the user's
-  // later model choice from the official log before that continuation can run.
-  const removeSelectionRestore = ctx.on?.('agent/created', async ({ agent }: { agent: Agent }) => {
-    if (agent.session.header.origin !== 'subagent') return;
-    const source = await nativeSnapshot(agent.id);
-    const event = source.events.findLast(event => event.seq >= source.inheritedEventCount && event.type === 'model/selection' as string);
-    const selected = object(event?.data);
-    if (typeof selected.provider !== 'string' || typeof selected.model !== 'string') return;
-    selectionFor(agent).ref.current = {
-      provider: selected.provider, model: selected.model,
-      ...(typeof selected.reasoningEffort === 'string' ? { reasoningEffort: ReasoningEffortId(selected.reasoningEffort) } : {}),
-    };
-  });
-  const removeSelectionRelease = ctx.on?.('agent/disposed', ({ agent }: { agent: Agent }) => {
-    const selection = selections.get(agent.id);
-    if (selection?.agent === agent) {
-      selection.dispose();
-      selections.delete(agent.id);
-    }
-  });
   async function selectSessionModel(id: string, params: JsonRecord): Promise<JsonRecord> {
     // A new route without an explicit effort uses the selected provider's
     // default, rather than inheriting an effort from the previous provider.
@@ -172,8 +140,8 @@ export function createSessionBridge(
       ...(selected.reasoningEffort ? { reasoningEffort: selected.reasoningEffort } : {}),
     };
     const applyLive = async (agent: Agent) => {
-      (agent.session as any).append('model/selection', nextSelection);
-      selectionFor(agent).ref.current = nextSelection;
+      // rc.1 owns durable selection, cold restoration and step capture.
+      agent.model.select(nextSelection);
       if (await requireService('sessions', 'flush').flush(agent.session) !== true) {
         throw new NexusError('SESSION_DURABILITY_UNVERIFIED', '模型已选择，但宿主尚未确认保存，请重试');
       }
@@ -805,10 +773,6 @@ export function createSessionBridge(
       let pendingError: unknown;
       try { await bounded(Promise.allSettled([...inflight.values()]), 30_000, 'pending session publications'); }
       catch (error) { pendingError = error; }
-      if (typeof removeSelectionRestore === 'function') removeSelectionRestore();
-      if (typeof removeSelectionRelease === 'function') removeSelectionRelease();
-      for (const selection of selections.values()) selection.dispose();
-      selections.clear();
       const results = await Promise.allSettled([...owned].map(async ([id, handle]) => {
         await bounded(handle.dispose(), 30_000, `dispose ${id}`);
         owned.delete(id);

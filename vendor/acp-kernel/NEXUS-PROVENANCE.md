@@ -1,51 +1,8 @@
-# Nexus reuse record
+# Nexus ACP source identity
 
-Repository: https://github.com/ranxianglei/billion-context
+Published billion-context 0.1.213 pins `133f3525c628c4b959bb79ece82af6df82e131a3`, `kernel/` 0.0.186, MIT.
+The complete 251-file kernel Git tree is compared to the prior 244-file tree. Source/tests and regression fixtures are retained; no global fetch hook or upstream installer is activated.
 
-Pinned release source commit: `e226544f556712e33f3ef1d9fe5b4dc2b7715e15`
+The local indexed-runtime.ts/indexed-types.ts extension, transactional storage, covered-message lookup and bounded archive queries remain local adaptations. The rebase keeps upstream toolPairExtremes together with indexed coveredMessageIds. wire/bili-message.ts resolves the local types instead of a second kernel package. Three CRLF-only merge conflicts were normalized; unit-projection.ts was explicitly reconciled.
 
-Upstream path: `kernel/`; package version: `acp-kernel 0.0.176`; license: MIT.
-This is the kernel in the published `billion-context 0.1.211` release.
-
-The complete kernel `src/`, upstream `tests/` and fixtures are retained. The
-wire/bili-message.ts self-package type import is changed to ../types.js so the
-vendored source resolves without a second installed kernel package. Runtime
-adapter code lives in `src/adapters/upstream/billion/` and `src/domain/context/`.
-The upstream standalone persist adapter is retained as source but is not used
-by Nexus; Nexus uses the single shared transactional store. Global hooks and
-upstream installer code are not executed.
-
-Upstream test mapping: every `kernel/tests/*.test.ts` maps to the identically
-named `vendor/acp-kernel/tests/*.test.ts`. Integration tests live in
-`tests/context/`. Tests are written during implementation and run in the
-project's coordinated validation stage. This record does not claim a test pass.
-
-Nexus-local indexed-runtime.ts/indexed-types.ts and their integration points
-are retained and rebased from the previous Nexus checkout onto 0.0.169. They
-are an indexed archive extension, not files published by upstream. Rebase
-retains upstream orphan cleanup, stable reference migration, view/truncation
-latches and all-or-nothing compression, together with fail-closed archive
-lookups and bounded delta persistence.
-
-The 2026-10-24 rebase also retains upstream failed-compress folding,
-bounded receipt protection, middle-system preservation and orphan guards.
-All newly published kernel regression tests are retained and discovered by
-the normal coordinated test runner. A successful text merge alone is not a
-validation result.
-
-The 2026-10-26 three-way rebase retains the local indexed membership path and
-adds upstream exact ledger interval coverage, stable stamped citations and
-one-time restamping. Unstamped native views continue to use ID membership;
-no storage schema or existing session history is rewritten by this upgrade.
-
-The 2026-10-29 rebase preserves local indexed clone ownership while carrying upstream
-refLedgerAligned through sync and fold clones. It retains exact covered ranges and the
-new upstream schema/coverage regressions without rewriting persisted user sessions.
-
-The 2026-11-02 rebase resolves three source conflicts while retaining indexed coverage,
-fail-closed archive facts, refLedgerAligned, transactional persistence and native step
-ownership. Upstream 0.0.176 adds timestamp retention, no-progress retry/anchor fixes,
-shared screening and absorb-debt nudges. The new shared projection queries only
-current candidate IDs through indexed facts; thin headers never imply empty coverage.
-The exact full commit is resolved from the published npm dist/build-info, independently
-of the later moving Git HEAD. Full original kernel regressions remain in tests/.
+Every kernel test is discovered by the coordinated Node runner. The repository-wide Git compare was truncated at 300 files; the kernel comparison uses both complete Git trees and is not presented as a complete repository review. Exact validation is in docs/release-r54-verification.json.

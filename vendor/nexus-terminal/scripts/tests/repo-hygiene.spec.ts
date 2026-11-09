@@ -43,7 +43,6 @@ const TRACKED_IMAGES: readonly string[] = [
   'docs/images/pipe-detail.png',
   'docs/images/pipe-graph.png',
   'docs/images/task-block.png',
-  'docs/images/usage.png',
 ]
 
 /** Extensions whose bytes are not text; they are checked by name instead. */

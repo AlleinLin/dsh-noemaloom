@@ -221,11 +221,6 @@ export function registerAgentCommunications(ctx: HostContext, store: NexusStore)
       if (!tools.get('send_message', context.scope)) return assembly;
       return {
         ...assembly,
-        tools: assembly.tools.map((schema: any) => {
-          const current = tools.get(schema.name, context.scope);
-          return communicationNames.includes(schema.name) && current && (owns(current) || raw(current) === registeredReads.get(schema.name))
-            ? { ...schema, description: current.description, parameters: structuredClone(current.parameters) } : schema;
-        }),
         sections: assembly.sections.map((section: any) => section.name === 'team:policy' ? {
           ...section, text: 'Team members share the workspace. Coordinate disjoint writes; respect filesystem version guards and review the final diff. '
             + 'Shared tasks retain list/get/claim/complete and revision checks. Task readiness does not start an owner. '

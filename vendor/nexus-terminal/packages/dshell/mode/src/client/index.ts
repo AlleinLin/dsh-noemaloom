@@ -47,7 +47,7 @@ import { createShellCompletion, ShellCompletionList } from './completion.js'
 import { createCommandHints, ShellCommandHint } from './command-hint.js'
 import { DshellModeConfigPage } from './config-page.js'
 import type {} from './admin-seat.js'
-import { DSHELL_BUNDLE_NAME, mainSessionId } from '@nexus-aethra/dshell-std'
+import { DSHELL_BUNDLE_NAME, isHiddenDevice, mainSessionId } from '@nexus-aethra/dshell-std'
 import { adoptTheme, connectThemeSettings } from './theme.js'
 import { dshellDeviceDefinition, DSHELL_DEVICE_PANEL_ID } from './device-definition.js'
 import { DshellDevicePanel } from './device-panel.js'
@@ -82,7 +82,7 @@ const EMPTY_PIPE_STATE = { links: [], tickets: [], open: false } as const
  * every terminal is local. One shared value because a store's `getSnapshot`
  * must return the same object until something actually changed.
  */
-const NO_DEVICES: ReturnType<DeviceChoiceSeat['snapshot']> = { devices: [], bindings: [], lockedGroup: undefined }
+const NO_DEVICES: ReturnType<DeviceChoiceSeat['snapshot']> = { devices: [], allDevices: [], bindings: [], lockedGroup: undefined, hiddenDevices: [] }
 
 export const name = '@nexus-aethra/dshell-mode/client'
 
@@ -342,8 +342,12 @@ export function apply(ctx: Context): void {
        */
       dshellSsh: {
         getSnapshot(): {
-          devices: readonly { id: string; name: string }[]
+          // auth and builtin travel because the shared visibility rule is
+          // decided on them: only a provider built-in row can be hidden, and
+          // naming them here keeps one rule rather than a second copy of it.
+          devices: readonly { id: string; name: string; auth: string; builtin?: boolean }[]
           bindings: readonly { sessionId: string; deviceId: string }[]
+          hiddenDevices: readonly string[]
           /** The group a locked refusal was about, published for the surfaces. */
           lockedGroup: { readonly id: string; readonly name: string } | undefined
         }
@@ -415,7 +419,7 @@ export function apply(ctx: Context): void {
     const ssh = scope.dshellSsh
     let cachedRaw: unknown
     let cachedProjection: ReturnType<DeviceChoiceSeat['snapshot']> = {
-      devices: [], bindings: [], lockedGroup: undefined,
+      devices: [], allDevices: [], bindings: [], lockedGroup: undefined, hiddenDevices: [],
     }
     deviceSeat = {
       snapshot: () => {
@@ -423,9 +427,22 @@ export function apply(ctx: Context): void {
         if (raw !== cachedRaw) {
           cachedRaw = raw
           cachedProjection = {
-            devices: raw.devices.map(row => ({ id: row.id, name: row.name })),
+            // Hidden rows are dropped HERE, at the one projection every picker
+            // reads, rather than in each picker: the creation page's
+            // run-location menu and the terminal section's device rows are the
+            // same list. A session's existing binding is left alone, so a
+            // session on a hidden device keeps naming it.
+            // Two lists on purpose. devices is what a picker OFFERS;
+            // allDevices is what a surface naming a bound session's device
+            // resolves against. Filtering one list for both is how a session
+            // on a hidden distribution comes to read as local.
+            devices: raw.devices
+              .filter(row => !isHiddenDevice(row, raw.hiddenDevices))
+              .map(row => ({ id: row.id, name: row.name })),
+            allDevices: raw.devices.map(row => ({ id: row.id, name: row.name })),
             bindings: raw.bindings.map(row => ({ sessionId: row.sessionId, deviceId: row.deviceId })),
             lockedGroup: raw.lockedGroup,
+            hiddenDevices: raw.hiddenDevices,
           }
         }
         return cachedProjection

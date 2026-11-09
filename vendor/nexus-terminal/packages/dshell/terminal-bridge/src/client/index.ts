@@ -24,7 +24,9 @@ import { en, zh } from './locales.js'
 import { sendLocaleReport } from './locale-report.js'
 import {
   TIMELINE_LIMITS,
+  loadPrompted,
   loadTimeline,
+  savePrompted,
   saveTimeline,
   segmentsOf,
   splitByTime,
@@ -99,6 +101,17 @@ export interface PtyStreamState {
    * program in never sends one, and the view reads undefined as "the timeline".
    */
   tui: TuiReading | undefined
+  /**
+   * Whether this connection is recovering from a failure rather than rebinding.
+   *
+   * The view must not draw "connecting" over a shell that is merely being
+   * rebound, and must always draw it while a real outage is being retried. The
+   * retry count cannot carry that distinction: `openChannel` resets it on
+   * every dial, so a retry that has just re-dialled looks exactly like a
+   * rebind. This flag is set where the failure is known (`scheduleRetry`) and
+   * cleared where the shell answers, so it survives the reset.
+   */
+  recovering: boolean
   /** Why the shell (or the wire) ended, as the host reported it. */
   reason: string | undefined
   /** The last connection diagnostic the output held, when the host found one. */
@@ -173,6 +186,16 @@ export interface PtyStreamState {
 /** Browser render-buffer cap per session: the canvas replays from this store. */
 const HISTORY_MAX_BYTES = 256 * 1024
 const HISTORY_MAX_FRAMES = 1000
+
+/**
+ * The cap on one block's text, in characters.
+ *
+ * The host caps its own block log at 512 KiB; the browser copy grew without
+ * any limit, so a long-running shell kept a string that only ever got
+ * LONGER — and every chunk re-rendered it in full. The cap matches the
+ * host's, so the two sides keep the same amount of scrollback.
+ */
+const BLOCK_MAX_CHARS = 512 * 1024
 
 /**
  * The agent's own shell, as the task card's panel sees it.
@@ -259,6 +282,7 @@ export class PtyStreamService extends Service {
     maxAttempts: MAX_AUTO_ATTEMPTS,
     exhausted: false,
     since: Date.now(),
+    recovering: false,
     localUnsupported: false,
     lockedGroup: false,
     noShell: false,
@@ -302,6 +326,34 @@ export class PtyStreamService extends Service {
    * page's life, like `histories`.
    */
   private readonly prompted = new Set<string>()
+
+  /**
+   * Whether this session's shell has ever answered, from memory OR storage.
+   *
+   * The in-memory set is filled by this page's own frames; storage is what
+   * survives a reload, and a reload is exactly when the terminal would
+   * otherwise cover its own scrollback with a connection screen.
+   */
+  private hasPrompted(dshSessionId: string): boolean {
+    if (this.prompted.has(dshSessionId)) return true
+    if (!loadPrompted(dshSessionId)) return false
+    this.prompted.add(dshSessionId)
+    return true
+  }
+
+  /**
+   * Record a prompt, in memory and in storage — at most once per session.
+   *
+   * The frames that carry this fact repeat: every rebind re-sends `info` and
+   * `ready`, and a shell that dies and comes back sends both again. Writing to
+   * localStorage on each of those is a synchronous main-thread write for a fact
+   * that never changes once it is true, so the in-memory set is the guard.
+   */
+  private notePrompted(dshSessionId: string): void {
+    if (this.prompted.has(dshSessionId)) return
+    this.prompted.add(dshSessionId)
+    savePrompted(dshSessionId)
+  }
   /** Per-session block lists, exactly as the host ordered them. The stored
    * copy is mutable because a live block grows by deltas. */
   private readonly blockLists = new Map<string, {
@@ -527,6 +579,9 @@ export class PtyStreamService extends Service {
       maxAttempts: MAX_AUTO_ATTEMPTS,
       exhausted: false,
       status: 'connecting',
+      // The drop is a fact from here until the shell answers again, whatever
+      // the following dials do to the retry count.
+      recovering: true,
       since: Date.now(),
     })
     const delay = RETRY_BASE_DELAY_MS * 2 ** (this.attempt - 1)
@@ -565,7 +620,10 @@ export class PtyStreamService extends Service {
     if (this.attempt === 0 && !this.state.getSnapshot().exhausted
       && this.state.getSnapshot().reason === undefined) return
     this.attempt = 0
-    this.patch({ attempt: 0, exhausted: false, reason: undefined, detail: undefined, lockedGroup: false, noShell: false })
+    this.patch({
+      attempt: 0, exhausted: false, recovering: false,
+      reason: undefined, detail: undefined, lockedGroup: false, noShell: false,
+    })
   }
 
   private clearRetryTimer(): void {
@@ -796,10 +854,12 @@ export class PtyStreamService extends Service {
         tui: undefined,
         reason: undefined,
         detail: undefined,
-        ready: this.prompted.has(dshSessionId),
+        ready: this.hasPrompted(dshSessionId),
         attempt: 0,
         maxAttempts: MAX_AUTO_ATTEMPTS,
         exhausted: false,
+        // A different session has not failed yet, whatever the last one did.
+        recovering: false,
         since: Date.now(),
         // A new session has not failed yet, whatever the last one did.
         localUnsupported: false,
@@ -808,6 +868,10 @@ export class PtyStreamService extends Service {
         failure: undefined,
       })
     } else {
+      // The attempt count resets — a viewer coming back must not meet the
+      // previous socket's retry count — but `recovering` deliberately does
+      // not: this is the same dial the retry loop performs, and clearing the
+      // fact here is what made a dead device go silent.
       this.patch({ sessionId: dshSessionId, status: 'connecting', since: Date.now(), attempt: 0, exhausted: false })
     }
     let channel: PtyChannel
@@ -912,6 +976,12 @@ export class PtyStreamService extends Service {
       const block = list?.find(candidate => candidate.seq === frame.seq)
       if (block !== undefined) {
         block.text += frame.text
+        // The block grows by deltas, so it needs a cap of its own: without
+        // one a long session's shell block is a string that only ever gets
+        // longer, and every chunk re-renders all of it.
+        if (block.text.length > BLOCK_MAX_CHARS) {
+          block.text = block.text.slice(block.text.length - BLOCK_MAX_CHARS)
+        }
         this.patch({ version: this.state.getSnapshot().version + 1 })
       }
       return
@@ -933,7 +1003,7 @@ export class PtyStreamService extends Service {
         home: typeof frame.home === 'string' ? frame.home : '',
       })
       if (typeof frame.ready === 'boolean') {
-        if (frame.ready) this.prompted.add(dshSessionId)
+        if (frame.ready) this.notePrompted(dshSessionId)
         this.patch({ ready: frame.ready })
       }
       return
@@ -941,14 +1011,14 @@ export class PtyStreamService extends Service {
     if (frame.kind === 'ready') {
       // The shell reached its prompt. Until this arrives the view shows a
       // connecting state rather than an empty terminal.
-      if (frame.ready !== false) this.prompted.add(dshSessionId)
+      if (frame.ready !== false) this.notePrompted(dshSessionId)
       this.patch({ ready: frame.ready !== false })
       return
     }
     if (frame.kind === 'closed') {
       // Kept, not just logged: this is what the end-of-terminal marker says,
       // and what tells "the link dropped" apart from "it never came up".
-      if (frame.ready === true) this.prompted.add(dshSessionId)
+      if (frame.ready === true) this.notePrompted(dshSessionId)
       this.patch({
         status: 'closed',
         reason: typeof frame.reason === 'string' ? frame.reason : undefined,

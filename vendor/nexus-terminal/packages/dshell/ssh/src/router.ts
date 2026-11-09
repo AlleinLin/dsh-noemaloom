@@ -1087,7 +1087,11 @@ export class SshRouter {
   private probeProviderRoots(): void {
     void this.registry.probeTargets().then((targets) => {
       for (const device of targets) {
-        if (!this.deviceRoots.has(device.id)) void this.ensureDeviceRoot(device.id)
+        // Inside a fulfilment handler, so a throw here is a FRESH rejection
+        // that the chain's own catch never sees. `ensureDeviceRoot` answers
+        // undefined for a device it cannot reach, but the call itself can
+        // still refuse.
+        if (!this.deviceRoots.has(device.id)) void this.ensureDeviceRoot(device.id).catch(() => {})
       }
     }).catch(() => { /* a provider that cannot answer has no root to give */ })
   }

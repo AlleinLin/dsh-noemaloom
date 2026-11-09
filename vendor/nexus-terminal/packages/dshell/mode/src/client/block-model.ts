@@ -86,6 +86,26 @@ export function assembleTimeline(
   hostBlocks: readonly PtyBlock[],
   fold: { readonly blocks: readonly TurnBlock[] },
 ): ViewItem[] {
+  // One pass over the folded blocks, indexed by the two identities a host
+  // carrier can name. The previous shape scanned every folded block for every
+  // host carrier, which is quadratic in the two counts — and this function
+  // runs on every PTY frame, so the product of a long session's block count
+  // and a busy shell's frame count is what a reader feels as a freeze.
+  const byTurn = new Map<number, TurnBlock[]>()
+  const byCommand = new Map<string, TurnBlock[]>()
+  for (const block of fold.blocks) {
+    if (block.turn !== undefined) {
+      const bucket = byTurn.get(block.turn)
+      if (bucket === undefined) byTurn.set(block.turn, [block])
+      else bucket.push(block)
+    }
+    if (block.commandId !== undefined) {
+      const bucket = byCommand.get(block.commandId)
+      if (bucket === undefined) byCommand.set(block.commandId, [block])
+      else bucket.push(block)
+    }
+  }
+
   const items: ViewItem[] = []
   const used = new Set<string>()
   for (const host of hostBlocks) {
@@ -96,12 +116,13 @@ export function assembleTimeline(
       continue
     }
     // One turn can fold into several blocks (a supervised phase change splits
-    // it), so consume every block that carries this turn.
-    for (const block of fold.blocks) {
-      const matches = host.turn === undefined
-        ? host.commandId !== undefined && block.commandId === host.commandId
-        : block.turn === host.turn
-      if (!matches || used.has(block.key)) continue
+    // it), so every block that carries this carrier's identity is consumed.
+    const matched = host.turn === undefined
+      ? (host.commandId === undefined ? undefined : byCommand.get(host.commandId))
+      : byTurn.get(host.turn)
+    if (matched === undefined) continue
+    for (const block of matched) {
+      if (used.has(block.key)) continue
       used.add(block.key)
       const item = agentItemOf(block)
       if (item !== undefined) items.push(item)
@@ -110,16 +131,43 @@ export function assembleTimeline(
   // Tasks the host has no block for — history from before the block log
   // existed — are older than what it does have, so they slot in by time
   // rather than collecting at one end.
+  //
+  // Placed by a stable sort, not by inserting each one into the array: the
+  // insertion was O(items) per block, so a session with many unmatched blocks
+  // paid a quadratic number of element moves on every frame.
+  const orphans: { item: ViewItem; order: number }[] = []
+  let order = 0
   for (const block of fold.blocks) {
+    const at = order
+    order += 1
     if (used.has(block.key)) continue
     used.add(block.key)
     const node = agentItemOf(block)
     if (node === undefined) continue
-    const at = items.findIndex(item => item.time > block.startedAt)
-    if (at < 0) items.push(node)
-    else items.splice(at, 0, node)
+    orphans.push({ item: node, order: at })
   }
-  return items
+  if (orphans.length === 0) return items
+  orphans.sort((left, right) => left.item.time - right.item.time || left.order - right.order)
+  // The orphan goes before the first item that starts LATER than it, which is
+  // the placement the insertion produced.
+  const merged: ViewItem[] = []
+  let cursor = 0
+  for (const item of items) {
+    // The orphan goes BEFORE the first item that starts strictly later than
+    // it. An item at the SAME time stays ahead of it, which is what placing
+    // the orphan by insertion produced.
+    while (cursor < orphans.length && (orphans[cursor]?.item.time ?? Infinity) < item.time) {
+      const orphan = orphans[cursor]
+      if (orphan !== undefined) merged.push(orphan.item)
+      cursor += 1
+    }
+    merged.push(item)
+  }
+  for (; cursor < orphans.length; cursor += 1) {
+    const orphan = orphans[cursor]
+    if (orphan !== undefined) merged.push(orphan.item)
+  }
+  return merged
 }
 
 /**

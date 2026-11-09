@@ -8,7 +8,11 @@
  */
 
 import { Service, type Context } from '@deepseek-ai/cordis'
-import { DSHELL_BUNDLE_NAME } from '@nexus-aethra/dshell-std'
+import { DSHELL_BUNDLE_NAME, HIDDEN_DEVICES_FIELD, isHiddenDevice } from '@nexus-aethra/dshell-std'
+// Type-only: the schema module imports @deepseek-ai/schemastery, which dsh's
+// browser module table does not serve. A value import here would put that
+// require into this package's client bundle and the plugin would fail to load.
+import type { SshSettings } from '../ssh-settings.js'
 import {
   DSHELL_SSH_PATH, type CredentialInput, type CredentialView, type DeviceBinding, type DeviceHelperStatus, type DeviceInput, type DeviceView, type VaultGroupView,
   type SshKeyFile, type TrustedHostKey, type SshRequest, type SshResponse,
@@ -45,11 +49,20 @@ export interface SshSnapshot {
   readonly lockedGroup: { readonly id: string; readonly name: string } | undefined
   /** Whether the host has answered at least once. */
   readonly loaded: boolean
+  /**
+   * Device ids the reader hid from the pickers.
+   *
+   * Read from the same entry config the device form writes, so the toggle on
+   * a provider's card and the pickers that honour it can never disagree about
+   * what is hidden.
+   */
+  readonly hiddenDevices: readonly string[]
 }
 
 const EMPTY: SshSnapshot = {
   devices: [], bindings: [], testResult: undefined, helper: undefined,
   groups: [], credentials: [], error: undefined, lockedGroup: undefined, loaded: false,
+  hiddenDevices: [],
 }
 
 /** The stock shell's names for the plugins panel, in both shipped languages. */
@@ -88,12 +101,32 @@ function revealRow(needle: string, then: () => void, attempts = REVEAL_ATTEMPTS)
 }
 
 /** Device registry mirror plus its mutations. */
+/** The entry-config form this service reads its hidden set from and writes to. */
+type HiddenDevicesForm = {
+  getSnapshot(): {
+    readonly value: Partial<SshSettings> | undefined
+    /** Whether the host document accepts writes at all. */
+    readonly writable: boolean
+    /** `ready` once the host has answered; before that there is no value to read. */
+    readonly status: string
+  }
+  set(field: string, value: unknown): Promise<boolean>
+  subscribe(listener: () => void): () => void
+}
+
 export class SshClientService extends Service {
   private snapshot: SshSnapshot = EMPTY
   private readonly listeners = new Set<() => void>()
+  /**
+   * The settings form carrying the hidden set, or undefined in a composition
+   * that never composed the settings domain. Hiding is a preference, so its
+   * absence leaves every device visible rather than breaking the pickers.
+   */
+  private readonly form: HiddenDevicesForm | undefined
 
-  constructor(ctx: Context) {
+  constructor(ctx: Context, form?: HiddenDevicesForm) {
     super(ctx, 'dshellSsh')
+    this.form = form
   }
 
   getSnapshot = (): SshSnapshot => this.snapshot
@@ -182,6 +215,56 @@ export class SshClientService extends Service {
       })
     })
     return true
+  }
+
+  /**
+   * The hidden set as the settings document has it right now.
+   *
+   * Read from the form rather than remembered: the card that writes it and
+   * this service are the same browser, but a SECOND browser's write arrives
+   * through the mirror, and the last writer must not win by being first.
+   */
+  private hiddenFromSettings(): readonly string[] {
+    const stored = this.form?.getSnapshot().value?.[HIDDEN_DEVICES_FIELD]
+    return Array.isArray(stored) ? stored.filter((id): id is string => typeof id === 'string') : []
+  }
+
+  /**
+   * Publish a device list as though a route reply had carried it.
+   *
+   * For the browser half's own tests: the service is fed by `fetch`, and a
+   * spec that wants rows in the snapshot would otherwise have to stand up a
+   * server. Nothing in production calls this.
+   *
+   * @param devices - the rows to publish.
+   */
+  adoptSnapshot(devices: readonly DeviceView[]): void {
+    this.publish({ ...this.snapshot, devices, loaded: true })
+  }
+  /**
+   * Start following the settings document's hidden set.
+   *
+   * Called by the plugin once the form is up. The first read happens
+   * immediately rather than on the next change, so a browser that opens with
+   * a device already hidden never offers it for one frame.
+   */
+  watchHiddenDevices(): () => void {
+    const form = this.form
+    if (form === undefined) return () => {}
+    const sync = (): void => {
+      // Before the host answers there is no document to read, and an empty hidden
+      // set is indistinguishable from "nothing is hidden" -- so a browser that
+      // opens while the document loads would offer every distribution for a
+      // frame. Waiting for ready is what prevents that.
+      if (form.getSnapshot().status !== 'ready') return
+      const next = this.hiddenFromSettings()
+      const current = this.snapshot.hiddenDevices
+      if (next.length === current.length && next.every((id, index) => id === current[index])) return
+      this.publish({ ...this.snapshot, hiddenDevices: next })
+    }
+    const off = form.subscribe(sync)
+    sync()
+    return off
   }
 
   /** Read the registry. */
@@ -444,6 +527,58 @@ export class SshClientService extends Service {
     return body.mountPath
   }
 
+  /**
+   * The rows a picker should offer: every device the reader did not hide.
+   *
+   * Filtering here rather than in each picker is what keeps the two pickers
+   * and the admin card agreeing: they all read this, and a hidden row is
+   * dropped in one place.
+   */
+  visibleDevices(): readonly DeviceView[] {
+    const hidden = this.snapshot.hiddenDevices
+    if (hidden.length === 0) return this.snapshot.devices
+    return this.snapshot.devices.filter(device => !isHiddenDevice(device, hidden))
+  }
+
+  /**
+   * Hide or show one device in the pickers.
+   *
+   * A picker preference only: the device still answers, and a session bound
+   * to it keeps running there. The write goes through the entry config, so
+   * every browser sees it and it survives a restart.
+   *
+   * @param deviceId - device to hide, or to show again.
+   * @param hidden - whether the pickers should leave it out.
+   * @returns whether the choice was stored; false means it will not survive a
+   *   reload and the caller should say so.
+   */
+  async setDeviceHidden(deviceId: string, hidden: boolean): Promise<boolean> {
+    const form = this.form
+    // Nothing to write through, or a document that takes no writes: refuse
+    // BEFORE publishing anything, so the pickers never show a state that was
+    // never stored. The caller says so rather than leaving the reader to
+    // wonder why the switch moved back.
+    if (form === undefined || !form.getSnapshot().writable) return false
+    const current = this.snapshot.hiddenDevices
+    const next = hidden
+      ? [...new Set([...current, deviceId])]
+      : current.filter(id => id !== deviceId)
+    if (next.length === current.length && next.every((id, index) => id === current[index])) return true
+    // Optimistic: the pickers must stop offering it on the click that asked,
+    // and a reply that reorders the set is not worth a visible wait.
+    this.publish({ ...this.snapshot, hiddenDevices: next })
+    const stored = await form.set(HIDDEN_DEVICES_FIELD, next).catch(() => false)
+    if (stored !== true) {
+      // Roll the optimistic value back. The mirror will NOT do it for us: a
+      // refused write leaves the form's value unchanged, so its subscription
+      // never fires and the equality check below finds nothing to correct.
+      // Without this the pickers keep hiding a device the reader was told was
+      // only hidden for now.
+      this.publish({ ...this.snapshot, hiddenDevices: current })
+      return false
+    }
+    return true
+  }
   /** Clear the last result line. */
   clearResult(): void {
     if (this.snapshot.testResult === undefined && this.snapshot.error === undefined) return
@@ -493,6 +628,10 @@ export class SshClientService extends Service {
       // re-open an unlock box the reader has already used.
       lockedGroup: body.lockedGroup,
       loaded: true,
+      // The one field a route reply never carries: the hidden set is a
+      // browser-side preference read from the settings form, so a reply that
+      // said nothing about it must not blank what the form already knows.
+      hiddenDevices: this.snapshot.hiddenDevices,
     })
     if (strict && body.error !== undefined) throw new Error(body.error)
     return body

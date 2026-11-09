@@ -1,7 +1,7 @@
 {
   "name": "@nexus-aethra/dshell-wsl",
-  "version": "0.1.16",
-  "description": "dshell wsl: the WSL2 distributions of this machine as built-in devices — one provider registered into dshell-ssh's device registry, a ConPTY transport, and the admin card that lists them.",
+  "version": "0.1.17",
+  "description": "dshell wsl: the WSL2 distributions of this machine as built-in devices 鈥?one provider registered into dshell-ssh's device registry, a ConPTY transport, and the admin card that lists them.",
   "license": "MIT",
   "repository": {
     "type": "git",

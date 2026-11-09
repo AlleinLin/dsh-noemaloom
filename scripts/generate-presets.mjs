@@ -71,6 +71,8 @@ const gitbash = `- id: preset-suite-windows-gitbash
         name: '@deepseek-ai/dsh-tool-fs'
       - id: tool-fs-search
         name: '@deepseek-ai/dsh-tool-fs-search'
+        config:
+          sampleOverCapGlobResults: false
       - id: compaction
         name: cordis:group
         group: true
@@ -101,4 +103,4 @@ await writeFile(new URL('../cordis.presets.patch.yml', import.meta.url), patch);
 for (const [name, row] of [['windows-coding', coding], ['windows-gitbash', gitbash], ['adaptive-standard', adaptive]]) {
   await writeFile(new URL(`../assets/presets/${name}.declaration.yml`, import.meta.url), deepseekRules(row));
 }
-await writeFile(new URL('../assets/presets/PROVENANCE.md', import.meta.url), `# 预设来源\n\n完整预设基于 MIT 许可的 DeepSeek Harness 公开 commit \`${EXPECTED_DSH_REVISION}\`。\n原始声明在 \`upstream/*.patch.yml\`，宿主配置合同与 provider 源文件亦保留用于继续开发。\n独立 persona 描述替代官方 persona 文案；全部 compaction provider 绑定 Nexus。\n项目规则适配官方 agent-instructions ${EXPECTED_DSH_VERSION}，源码与 MIT 许可在 \`vendor/agent-instructions/\`。\n每目录依次查找 \`DEEPSEEK.md → AGENT.md → AGENTS.md → CLAUDE.md\`，首个命中即停止，禁用本地 overlay；保留官方预算、嵌套作用域和刷新。\n子智能体工具适配官方 tool-subagent ${EXPECTED_DSH_VERSION}，源码与许可在 \`vendor/tool-subagent/\`；按会话授权自动提供可用模型代号，空白 effort 默认所选模型最高支持强度，保留授权与生命周期合同。\n生成脚本只读公开源码，不读取本机 profile，也不生成部署恢复备份。\n\n`);
+await writeFile(new URL('../assets/presets/PROVENANCE.md', import.meta.url), `# 预设来源\n\n完整预设基于 MIT 许可的 DeepSeek Harness 公开 commit \`${EXPECTED_DSH_REVISION}\`。\n原始声明在 \`upstream/*.patch.yml\`，宿主配置合同与 provider 源文件亦保留用于继续开发。\n独立 persona 描述替代官方 persona 文案；全部 compaction provider 绑定 Nexus。\n项目规则适配官方 agent-instructions ${EXPECTED_DSH_VERSION}，源码与 MIT 许可在 \`vendor/agent-instructions/\`。\n每目录依次查找 \`DEEPSEEK.md → AGENT.md → AGENTS.md → CLAUDE.md\`，首个命中即停止，禁用本地 overlay；保留官方预算、嵌套作用域和刷新。\n子智能体工具适配官方 tool-subagent ${EXPECTED_DSH_VERSION}，源码与许可在 \`vendor/tool-subagent/\`；按会话授权自动提供可用模型代号，空白 effort 默认所选模型最高支持强度，保留授权与生命周期合同。\n生成脚本只读公开源码，不读取本机 profile，也不生成部署恢复备份。\n目录内其余 TypeScript 文件为历史参考快照，不参与上述四个 rc.1 YAML 生成。\n\n`);

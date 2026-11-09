@@ -4,6 +4,9 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { Context, type Fiber, type Plugin } from '@deepseek-ai/cordis';
 import { ToolRuntime } from '@deepseek-ai/dsh-tools';
+import { NativeToolExecutor } from '@deepseek-ai/dsh-tool-executor-native';
+import { ToolCallId } from '@deepseek-ai/dsh-llm';
+import { executeSingleTool } from './single-tool.js';
 import { NexusError, type JsonRecord, type NexusServices } from '../ports/contracts.js';
 import type { HostContext } from './types.js';
 
@@ -315,6 +318,8 @@ export function createExtensionBridge(hostContext: HostContext, getServices: () 
           const toolsFiber = scope.plugin(ToolRuntime, { mode: 'native' });
           await assertActive(toolsFiber, '扩展独立工具注册表');
           item.tools = scope.get('tools');
+          if (!item.tools) throw new NexusError('HOST_CAPABILITY_UNAVAILABLE', '扩展独立工具注册表不可用');
+          item.tools.setExecutor(new NativeToolExecutor(scope as unknown as Context));
           const extensionFiber = scope.plugin(plugin, params.config ?? {});
           await assertActive(extensionFiber, '扩展插件');
         },
@@ -455,7 +460,7 @@ export function createExtensionBridge(hostContext: HostContext, getServices: () 
         const controller = new AbortController(); const signal = AbortSignal.any([controller.signal, pluginSignal]);
         item.calls.add(controller); item.activeCalls++;
         try {
-          const result = await item.tools.execute({ callId: `nexus-extension:${randomUUID()}` as any, name, arguments: params.args ?? {}, signal });
+          const result = await executeSingleTool(item.tools, { callId: ToolCallId(`nexus-extension:${randomUUID()}`), name, arguments: params.args ?? {}, signal });
           if (result.isError) throw new NexusError(result.error.info?.code ?? 'EXTENSION_CALL_FAILED', result.error.message, { owner: item.owner, generation: item.generation });
           return result.value;
         } finally { item.calls.delete(controller); item.activeCalls--; if (!item.activeCalls) { for (const resolve of item.waiters) resolve(); item.waiters.clear(); } }

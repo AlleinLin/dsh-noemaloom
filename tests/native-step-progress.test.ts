@@ -1,13 +1,14 @@
+import { NativeToolExecutor } from '@deepseek-ai/dsh-tool-executor-native';
 import assert from 'node:assert/strict';
 import test, { type TestContext } from 'node:test';
-import { Context } from '@deepseek-ai/cordis';
+import { Context, Service } from '@deepseek-ai/cordis';
 import { AgentRegistry, type Agent, type AgentHandle } from '@deepseek-ai/dsh-agent';
 import { AgentLoop } from '@deepseek-ai/dsh-agent-loop';
 import { LlmAdapter, LlmRuntime, ToolCallId, createUserMessage, type GenerateOptions, type StreamChunk } from '@deepseek-ai/dsh-llm';
 import { SessionId, SessionStore } from '@deepseek-ai/dsh-session';
 import { SessionProjectionRegistry } from '@deepseek-ai/dsh-session-projection';
 import { SystemPrompt } from '@deepseek-ai/dsh-system-prompt';
-import { ToolRuntime, defineContentToolFixture } from '@deepseek-ai/dsh-tools';
+import { ToolRuntime, defineTool } from '@deepseek-ai/dsh-tools';
 import { createScopeModule } from '../src/domain/scope.js';
 import { registerStepPauseHook } from '../src/host/step-pause-hook.js';
 import { STEP_PAUSE_FEATURE, isStepProgressMessage } from '../src/shared/step-pause.js';
@@ -52,26 +53,27 @@ async function fixture(t: TestContext, options: { holdTool?: boolean; retrySecon
       }
     }
   }
-  const provider = root.plugin({ name: 'native-progress-services', apply(owner: Context) {
+  const provider = root.plugin({ name: 'native-progress-services', async apply(owner: Context) {
     new AgentRegistry(owner); new SessionStore(owner); new SessionProjectionRegistry(owner);
     new SystemPrompt(owner, { includeHarnessIdentity: false });
     const llm = new LlmRuntime(owner); llm.registerAdapter([route.provider], new Adapter());
   } });
   fibers.push(provider); await provider.await(); assert.equal(provider.state, 2);
-  const tools = root.plugin({ name: 'native-progress-tools', inject: ['systemPrompt'], apply(owner: Context) {
-    const runtime = new ToolRuntime(owner);
-    runtime.register(defineContentToolFixture({ name: toolName, description: 'Local progress regression work.', parameters: {},
+  const tools = root.plugin({ name: 'native-progress-tools', inject: ['systemPrompt'], async apply(owner: Context) {
+    const runtime = new ToolRuntime(owner); runtime.setExecutor(new NativeToolExecutor(owner));
+    runtime.register(defineTool({ name: toolName, description: 'Local progress regression work.', parameters: {},
+      output: { schema: { type: 'string' }, render: (_args, value) => [{ type: 'text', text: value }] },
       async execute(_args, exec) {
         assert.ok(exec.agent, 'native tool execution belongs to a live agent');
         const id = String(exec.agent.id), count = (toolRuns.get(id) ?? 0) + 1; toolRuns.set(id, count);
         if (options.holdTool && count === 1) { enteredTool.resolve(); await releaseTool.promise; }
-        return [{ type: 'text', text: 'Work completed once.' }];
+        return 'Work completed once.';
       } }));
   } });
   fibers.push(tools); await tools.await(); assert.equal(tools.state, 2);
   const driver = root.plugin({ name: 'native-progress-driver', inject: ['agents', 'sessions', 'sessionProjections', 'llm', 'tools', 'systemPrompt'],
-    apply(owner: Context) {
-      ctx = owner; new AgentLoop(owner, AgentLoop.Config({ agents: [], maxParallelToolCalls: 1 }));
+    async apply(owner: Context) {
+      ctx = owner; await owner.agents[Service.init](); await new AgentLoop(owner, AgentLoop.Config({ agents: [], maxParallelToolCalls: 1 }))[Service.init]();
       stop = registerStepPauseHook({ get: (name: string) => owner.get(name as any), on: (...args: any[]) => (owner.on as any)(...args),
         logger: { warn(_message: string, code: string) { warnings.push(code); } } } as unknown as HostContext, f.services);
       owner.on('agent/request-error', async (payload, next) => {

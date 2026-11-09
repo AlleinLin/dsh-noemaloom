@@ -107,7 +107,7 @@ function adaptContext(factory) {
   const ast = ts.createSourceFile('context-reviewed.js', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
   const placements = [];
   const visit = node => {
-    if (ts.isFunctionDeclaration(node) && node.name?.text === '$p') placements.push(node);
+    if (ts.isFunctionDeclaration(node) && node.name?.text === 'kh') placements.push(node);
     ts.forEachChild(node, visit);
   };
   visit(ast);
@@ -115,20 +115,20 @@ function adaptContext(factory) {
     || !placements[0].getText(ast).includes('t.tab()') || !placements[0].getText(ast).includes('t.sidebar()')) {
     throw new Error('Context reviewed dynamic placement registration changed');
   }
-  source = replaceOnce(source, placements[0].getText(ast), 'function $p(e,t){return t.tab()}',
+  source = replaceOnce(source, placements[0].getText(ast), 'function kh(e,t){return t.tab()}',
     'Context single native conversation registration');
-  source = replaceOnce(source, 'let c=Qp(o);if(!c.tab&&!c.sidebar)return null;', '',
+  source = replaceOnce(source, 'let c=Oh(o);if(!c.tab&&!c.sidebar)return null;', '',
     'Context native jump remains available with fixed placement');
-  source = replaceOnce(source, 'Wp(e)||Gp(r(`tab.context`))',
+  source = replaceOnce(source, 'yh(e)||bh(r(`tab.context`))',
     'nexusNativeNavigation.openView(t.sessionId,"context",l===null?"":String(l))',
     'Context message jump uses native session view action');
-  source = replaceOnce(source, 'Gp(i(`tab.fleet`))||Wp(e)',
+  source = replaceOnce(source, 'bh(i(`tab.fleet`))||yh(e)',
     'nexusNativeNavigation.openView(o,"fleet","")',
     'Context fleet jump uses native session view action');
-  const oldChromeClick = 'function Gp(e){let t=document.querySelectorAll(`button[role="tab"]`);for(let n of t)if(n.textContent.trim()===e)return n.getAttribute(`aria-selected`)!==`true`&&n.click(),!0;return!1}';
-  source = replaceOnce(source, oldChromeClick, 'function Gp(){return false}',
+  const oldChromeClick = 'function bh(e){let t=document.querySelectorAll(`button[role="tab"]`);for(let n of t)if(n.textContent.trim()===e)return n.getAttribute(`aria-selected`)!==`true`&&n.click(),!0;return!1}';
+  source = replaceOnce(source, oldChromeClick, 'function bh(){return false}',
     'Context remove obsolete chrome-click helper');
-  const placementChoice = '(0,d.jsx)(ru,{label:t(`settings.placement`),value:n.placement,disabled:i,options:[{id:`all`,label:t(`placement.all`)},{id:`tab`,label:t(`placement.tab`)},{id:`sidebar`,label:t(`placement.sidebar`)},{id:`hide`,label:t(`placement.hide`)}],onPick:e=>{r?.(`defaultPlacement`,e)}}),';
+  const placementChoice = '(0,d.jsx)(ku,{label:t(`settings.placement`),value:n.placement,disabled:i,options:[{id:`all`,label:t(`placement.all`)},{id:`tab`,label:t(`placement.tab`)},{id:`sidebar`,label:t(`placement.sidebar`)},{id:`hide`,label:t(`placement.hide`)}],onPick:e=>{r?.(`defaultPlacement`,e)}}),';
   source = replaceOnce(source, placementChoice, '', 'Context remove inactive placement preference');
   return source;
 }

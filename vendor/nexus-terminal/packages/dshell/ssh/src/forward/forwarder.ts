@@ -193,7 +193,10 @@ export class Forwarder {
     this.tunnels.set(this.keyOf(request.sessionId, localPort), tunnel)
 
     server.on('connection', (socket: Socket) => {
-      void this.carry(request, socket, channels, tunnel)
+      // A carried connection that fails has nowhere else to report: the
+      // socket is already gone by then. The chain only has to not become an
+      // unhandled rejection.
+      void this.carry(request, socket, channels, tunnel).catch(() => {})
     })
 
     // The first channel is opened eagerly so a device that refuses is refused

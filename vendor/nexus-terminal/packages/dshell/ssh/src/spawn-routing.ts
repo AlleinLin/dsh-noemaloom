@@ -117,35 +117,49 @@ export function installSpawnRouting(ctx: Context, router: SshRouter): () => void
   // pool's lifetime belongs to this seam: a second pool would mean a second
   // helper process on the device.
   router.helperConnection = deviceId => connections.peek(deviceId)
-  // A device that changed, or one a session was just bound to. Saving or
-  // deleting drops both cached answers and any live connection, because that
-  // connection was verified against a target which no longer applies.
+  // A device that changed, or one a session was just bound to.
+  //
+  // Only a CHANGE invalidates the cached answers; a bind adds a session to a
+  // device that is already reachable and leaves the live connection alone.
   router.onDeviceChanged = (deviceId, event) => {
     targets.drop(deviceId)
-    void connections.release(deviceId)
-    if (event !== 'bound') return
-    // Warm on bind so the first tool call usually finds a helper already there.
-    // Nothing depends on it — the seam falls back on its own — so a failure is
-    // only logged.
-    void (async () => {
-      const device = router.deviceFor(deviceId)
-      if (device === undefined) return
-      // A kind that carries no helper is not warmed: the probe asks the
-      // device for its Node and for the digest of a file this build would
-      // deploy there, and the answer would belong to a device that has no
-      // such concept.
-      if (!router.registry.usesHelper(deviceId)) return
-      // Where the device's home is, remembered by the router: a `~`-spelled
-      // session root has to become an absolute device path, and the device is
-      // the only party that knows what its own `~` means. Asked before the
-      // target, because the home is an answer even for a device with no Node.
-      router.noteDeviceRoot(deviceId, await targets.home(device))
-      const target = await targets.resolve(device)
-      if (target === undefined) return
-      await connections.forDevice(device, target)
-    })().catch((error: unknown) => {
-      ctx.logger.info(`dshell-ssh: no helper on "${deviceId}" yet (${error instanceof Error ? error.message : String(error)})`)
-    })
+    // A BINDING is not a change to the device.
+    //
+    // The connection in hand was verified against a target that still applies,
+    // and every other session on that device is using it right now. Tearing it
+    // down here made binding one more session drop the helper out from under
+    // all of them, then pay for a fresh probe, dial and handshake to build the
+    // very same helper back — the wait the reader saw as "正在连接" over a
+    // terminal that had already been working. The warm-up below is what a bind
+    // actually needs, and it is a no-op when the helper is already there.
+    if (event === 'bound') {
+      // Warm on bind so the first tool call usually finds a helper already there.
+      // Nothing depends on it — the seam falls back on its own — so a failure is
+      // only logged.
+      void (async () => {
+        const device = router.deviceFor(deviceId)
+        if (device === undefined) return
+        // A kind that carries no helper is not warmed: the probe asks the
+        // device for its Node and for the digest of a file this build would
+        // deploy there, and the answer would belong to a device that has no
+        // such concept.
+        if (!router.registry.usesHelper(deviceId)) return
+        // Where the device's home is, remembered by the router: a `~`-spelled
+        // session root has to become an absolute device path, and the device is
+        // the only party that knows what its own `~` means. Asked before the
+        // target, because the home is an answer even for a device with no Node.
+        router.noteDeviceRoot(deviceId, await targets.home(device))
+        const target = await targets.resolve(device)
+        if (target === undefined) return
+        await connections.forDevice(device, target)
+      })().catch((error: unknown) => {
+        ctx.logger.info(`dshell-ssh: no helper on "${deviceId}" yet (${error instanceof Error ? error.message : String(error)})`)
+      })
+      return
+    }
+    // Saving or deleting a device DOES invalidate both answers: the target it
+    // resolved to and the connection verified against that target.
+    void connections.release(deviceId).catch(() => {})
   }
   let owner = Object.getPrototypeOf(subprocess) as Record<string, unknown> | null
   while (owner !== null && !Object.prototype.hasOwnProperty.call(owner, 'spawn')) {
@@ -202,7 +216,7 @@ export function installSpawnRouting(ctx: Context, router: SshRouter): () => void
     target.spawn = original
     router.onDeviceChanged = undefined
     router.helperConnection = undefined
-    void connections.disposeAll()
+    void connections.disposeAll().catch(() => {})
     deviceTransport().releaseAll()
   }
 }

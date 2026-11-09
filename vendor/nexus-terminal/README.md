@@ -29,7 +29,6 @@ into dsh's documented extension points, so dsh stays upgradeable with upstream.
 - [Input assists: Tab, ↑, →](#input-assists-tab--)
 - [**Cross-session collaboration: pipes and the buffer**](#cross-session-collaboration-pipes-and-the-buffer)
 - [SSH device sessions](#ssh-device-sessions)
-- [Token usage](#token-usage)
 - [Settings](#settings)
 - [The status card](#the-status-card)
 - [Gesture cheat sheet](#gesture-cheat-sheet)
@@ -52,7 +51,7 @@ flowchart TB
   end
   subgraph HOST["The host — one Node process"]
     CORE["dsh's own core<br/>sessions, the agent, the tool registry"]
-    subgraph ROWS["dshell's plugin rows — twelve packages"]
+    subgraph ROWS["dshell's plugin rows — eleven packages"]
       VIEW["mode + terminal-bridge<br/>the view, and the PTYs behind it"]
       PANE["files + ssh<br/>the file pane, and where a session runs"]
       LINK["buffer<br/>pipes, and the buffer between them"]
@@ -81,7 +80,7 @@ Three bands, top to bottom:
   the AI's turns, in the order they happened — and it sends what you type. It holds no state of its
   own: everything on screen comes from the host over one websocket.
 - **The host** is dsh's own Node process. dshell adds **plugin rows** to it and changes none of
-  dsh's source, so dsh stays upgradeable with upstream. Those rows are the twelve packages listed
+  dsh's source, so dsh stays upgradeable with upstream. Those rows are the eleven packages listed
   at the bottom of this page, and the **data root** (`$DSH_HOME/dshell`) is where they keep their
   own files.
 - **Where the work happens** is a **world**: this machine, or a device. A session's commands, files
@@ -112,20 +111,24 @@ device routing ([SSH device sessions](#ssh-device-sessions)), and the pipes and 
 
 ## What's new since 0.1.15
 
-`0.1.16` is on npm as `latest`, and it changed one thing that matters at install time: dshell
-no longer pins a single dsh version but names a **window** of them, so every `0.2.1` release —
-`0.2.1-rc.5`, today's `latest`, included — installs without waiting for a dshell release.
+`0.1.17` is on npm as `latest`. It is the release that makes a terminal survive a session
+switch, turns a WSL2 distribution into a device row, and carries the port forwards that connect
+a local port to a service on the device.
 
-The release after it adds five more. All five are on this branch today; the published
-`0.1.16` does not have them yet.
+Its predecessor `0.1.16` changed one thing that matters at install time on its own: dshell no
+longer pins a single dsh version but names a **window** of them, so every `0.2.1` release —
+`0.2.1-rc.5`, today's `latest`, included — installs without waiting for a dshell release.
 
 | | What changed | What you notice |
 |---|---|---|
 | **WSL2 distributions are devices** | A WSL2 distribution on this Windows machine is detected and offered as a **built-in device row** of its own — open a terminal on it, browse its files, hand it to the AI | There is **no credential to enter** (the distribution is its own credential) and **no port forward** to ask for: WSL2 shares this machine's loopback, so its ports are already reachable here |
 | **The 管理台** | dsh's Settings gains a **dshell** section — one page that gathers the whole suite's settings | **设备与凭据**, **WSL 发行版** and **终端与数据** as three cards on one page, instead of a configure control per plugin row |
 | **A ConPTY repaint no longer blanks the terminal** | On Windows, a program that repaints its whole screen after a resize — the ConPTY signature — left a **blank wall above the prompt** | The region renders the rows that carry ink and cuts the dead frame around them, so the row count and the bytes agree again |
-| **A session switch keeps its prompt** | Switching to a session and back reset its readiness, so a live device session flashed the first-dial panel over a terminal that was about to work | That the session reached a prompt is remembered for the page's life, and seeded while the rebind handshake runs |
+| **A session switch keeps its prompt** | Switching to a session and back reset its readiness, so a live device session flashed the first-dial panel over a terminal that was about to work | That the session reached a prompt is remembered for the page's life **and across a reload**, and seeded while the rebind handshake runs |
+| **A session switch no longer redials** | Coming back to a terminal reopened the carrier, and the client drew "connecting" over a shell that had never stopped running. Three layers were wrong: the bridge indexed its shells by `Agent` object identity (an object that changes instance across a resume, an HMR reload or a host restart), binding a session released the device's **live** helper connection, and the client treated a rebind as a connection | Switching away and back is **silent**: the same scrollback, no connecting copy, no second dial — and a **real** outage still shows, because the retry state is now an explicit fact rather than inferred from a counter that a redial resets |
+| **Port forwards** | One SSH connection can carry a forwarded port, so a local port reaches a service on the device — from the panel and from the model's own tools | You can open a port on the device without a second `ssh -L` |
 | **dsh `0.2.2-rc.1` is supported** | Every dsh peer range dshell declares now names a **window** of dsh versions instead of a fixed list | The plugin installs on anything from `0.2.1-rc.2` through `0.2.2-rc.1` — **the published `0.1.14` does not install there at all** |
+| **A distribution can be hidden from the pickers** | A WSL2 distribution you never open a shell in is one more row in every device picker; the 管理台's WSL card now carries a per-distribution **hide** switch | The row leaves the new-session and device pickers, and nothing else: it still answers, and a session already bound to it keeps running there |
 
 ---
 
@@ -144,19 +147,21 @@ Which dshell release you want depends on which dsh you have:
 
 | dsh | dshell |
 |---|---|
-| `0.2.2-rc.1` **and every 0.2.1 release**, plus `0.2.0`, `0.1.7`, `0.1.6`, `0.1.5` | **`0.1.17`** — on this branch; the published `0.1.16` still carries `<0.2.2-0` and refuses `0.2.2-rc.1` |
-| `0.2.1-rc.3` only | **`0.1.15`** — superseded by `0.1.16` |
+| `0.2.2-rc.1` **and every 0.2.1 release**, plus `0.2.0`, `0.1.7`, `0.1.6`, `0.1.5` | **`0.1.17`** — `latest` |
+| `0.2.1` before `rc.2`, i.e. `0.2.1-rc.3` | **`0.1.16`** — its window is `<0.2.2-0`, so it also installs on every `0.2.1` release |
 | `0.2.1-rc.2` | **`0.1.14`** |
 | `0.2.0-rc.2`, `0.2.0-rc.1`, `0.1.7-rc.2`, `0.1.6-alpha.2`, `0.1.5-rc.2` | **`0.1.13`** |
 
 dsh checks every `@deepseek-ai/dsh-*` peer a plugin declares against its own version and skips the
 whole bundle when one does not match, so a dshell release declares the dsh versions it supports.
+**`0.1.16` was the release that made that a window rather than a pinned version** — before it, every
+dsh patch release locked users out until a matching dshell release shipped.
 That declaration is a range, not a list of exact versions, so a dsh patch or release candidate on
 a line dshell already runs on installs without waiting for a dshell release. The window is one
 file, `dsh-upstream.json` (`support.range`), and every manifest carries it:
 `0.1.5-rc.2 || 0.1.6-alpha.2 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2 || >=0.2.1-rc.2 <0.2.3-0`.
 So `0.2.1-rc.3` — and every later `0.2.1` release — installs without waiting for a dshell
-release, and `0.2.2-rc.1` installs too — verified against a live container on this branch. A dsh from
+release, and `0.2.2-rc.1` installs too — verified against a live container. A dsh from
 a newer minor line than that window is what `allow-version` is for — `dsh plugin --profile <name>
 allow-version <package@version> --dsh-version <exact> --accept-risk`, which records the grant in
 the profile's `compatibility.json`.
@@ -173,7 +178,7 @@ dsh web
 dsh prints a tokenized URL (for example `http://127.0.0.1:3080/?token=…`). Open it in a browser.
 
 In the **desktop app**, the same install is available as a window: `设置 → 插件`, and give it
-`@nexus-aethra/dshell-bundle@0.1.16` (it installs from npmjs and pins the version exactly).
+`@nexus-aethra/dshell-bundle@0.1.17` (it installs from npmjs and pins the version exactly).
 
 > Skipping step 2 is not fatal — dsh boots and reports the two rows as `did not activate`, and the
 > rest of dshell works. It is listed because the SSH device sessions and the agent's terminal tool
@@ -554,28 +559,6 @@ system information.
 
 ---
 
-## Token usage
-
-**Settings → `用量`** charts what the models have cost, from an index dshell keeps in its own data
-directory:
-
-![The usage page](docs/images/usage.png)
-
-- **每日热力** — a fixed 26-week calendar of daily totals, filled top-to-bottom and left-to-right, so
-  the newest day is always the bottom-right cell. It reads **all** time on purpose: the range chips
-  move the charts, never the calendar.
-- **合计 / 未缓存输入 / 输出 / 缓存读 / 调用 / 缓存命中率** — the window's headline numbers. The hit
-  rate is the one to watch: cache reads over all input.
-- **每日消耗（按模型）** and **模型占比** — one line per model over the window, and each one's share.
-- **按模型明细** — input, output, cache read, cache write, calls and total per model.
-
-The index is incremental: dsh attaches provider-reported usage to each `assistant/message`, and a scan
-reads only the sessions whose logs have grown since last time. It runs when you open the page, and on
-`重新聚合`. A session whose log dsh cannot decode is reported as skipped — the page shows that the
-totals are partial, and why, instead of quietly counting less.
-
----
-
 ## Settings
 
 dshell configures itself on dsh's **Plugins** panel, on the row each setting belongs to: open `插件`
@@ -589,8 +572,6 @@ in the sidebar, pick `@nexus-aethra/dshell-bundle`, then use the `配置` contro
 One page holds all of it: dsh's **Settings → `dshell`** — the **管理台** — lists **设备与凭据**,
 **WSL 发行版** and **终端与数据** as three cards side by side.
 
-**`用量`** (the token-usage page above) is a section of its own in Settings, beside `通用设置` and
-`模型` — it is a report rather than a plugin setting.
 
 Settings are stored on the host and **shared by every browser on it** — turn an assist off here and it
 is off in the other browser too.
@@ -724,9 +705,9 @@ This is exactly what produced the two screenshots above — the run is real, not
 | [`docs/dshell-setup.md`](docs/dshell-setup.md) | Setting up a machine, troubleshooting, build order |
 | [`docs/README.md`](docs/README.md) | The documentation index and its update rules |
 
-Twelve packages (`@nexus-aethra/dshell-*`), published together: `std` (contracts), `storage` (storage
+Eleven packages (`@nexus-aethra/dshell-*`), published together: `std` (contracts), `storage` (storage
 engines), `bundle` (the single patch layer), `conversation`, `terminal-bridge`, `mode`, `commands`,
-`files`, `ssh`, `buffer`, `usage` (the token-usage page) and `wsl` (this machine's WSL2
+`files`, `ssh`, `buffer` and `wsl` (this machine's WSL2
 distributions as built-in devices).
 
 ## License

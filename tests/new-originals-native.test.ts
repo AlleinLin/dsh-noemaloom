@@ -1,10 +1,12 @@
+import { executeSingleTool } from '../src/host/single-tool.js';
+import { NativeToolExecutor } from '@deepseek-ai/dsh-tool-executor-native';
 import test, { type TestContext } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { Context } from '@deepseek-ai/cordis';
+import { Context, Service } from '@deepseek-ai/cordis';
 import { AgentRegistry } from '@deepseek-ai/dsh-agent';
 import { AgentLoop } from '@deepseek-ai/dsh-agent-loop';
 import { LlmAdapter, LlmRuntime, ToolCallId, type GenerateOptions, type StreamChunk } from '@deepseek-ai/dsh-llm';
@@ -37,11 +39,13 @@ async function fixture(t: TestContext) {
   const directory = await mkdtemp(join(tmpdir(), 'nexus-new-native-')), outside = await mkdtemp(join(tmpdir(), 'nexus-new-outside-'));
   const adapter = new LocalAdapter(), f = stepProgressServices();
   let ctx!: Context, tools!: ToolRuntime, connection!: HostConnectionService, hook!: ReturnType<typeof registerAgentCommunications>;
-  const base = root.plugin({ name: 'new-native-base', apply(owner: Context) {
+  const base = root.plugin({ name: 'new-native-base', async apply(owner: Context) {
     new AgentRegistry(owner); new SessionStore(owner); new SessionProjectionRegistry(owner);
     new SystemPrompt(owner, { includeHarnessIdentity: false });
     new SubagentRuntime(owner, SubagentRuntime.Config({}));
     new LlmRuntime(owner).registerAdapter(['new-native'], adapter);
+    // This lifecycle fixture has no preset-owned tools; the official Host acceptance covers real mounting.
+    owner.provide('agentPresets', { defaultId: 'fixture', async resolve(id = 'fixture') { assert.equal(id, 'fixture'); return { id }; }, async mount(_ctx: Context, id = 'fixture') { assert.equal(id, 'fixture'); return { id }; } } as any);
     connection = new HostConnectionService(owner, [], {} as any);
     const session = (id: string) => {
       const value = owner.sessions.get(SessionId(id));
@@ -60,13 +64,13 @@ async function fixture(t: TestContext) {
       },
     } as any);
   } }); fibers.push(base); await base.await(); assert.equal(base.state, 2);
-  const runtime = root.plugin({ name: 'new-native-runtime', inject: ['systemPrompt', 'sessionProjections'], apply(owner: Context) {
-    tools = new ToolRuntime(owner);
-    new SandboxPolicyService(owner, { mode: 'workspace-write', workspaceRoot: directory });
-    new ApprovalService(owner, { policy: 'ask' });
+  const runtime = root.plugin({ name: 'new-native-runtime', inject: ['systemPrompt', 'sessionProjections'], async apply(owner: Context) {
+    tools = new ToolRuntime(owner); tools.setExecutor(new NativeToolExecutor(owner));
+    await new SandboxPolicyService(owner, { mode: 'workspace-write', workspaceRoot: directory })[Service.init]();
+    await new ApprovalService(owner, { policy: 'ask' })[Service.init]();
   } }); fibers.push(runtime); await runtime.await(); assert.equal(runtime.state, 2);
-  const driver = root.plugin({ name: 'new-native-driver', inject: ['agents','sessions','sessionProjections','llm','tools','systemPrompt','connection','sandboxPolicy','approval'], apply(owner: Context) {
-    ctx = owner; new AgentLoop(owner, AgentLoop.Config({ agents: [], maxParallelToolCalls: 1 }));
+  const driver = root.plugin({ name: 'new-native-driver', inject: ['subagents','agents','sessions','sessionProjections','llm','tools','systemPrompt','connection','sandboxPolicy','approval'], async apply(owner: Context) {
+    ctx = owner; await owner.agents[Service.init](); await owner.subagents[Service.init](); await new AgentLoop(owner, AgentLoop.Config({ agents: [], maxParallelToolCalls: 1 }))[Service.init]();
     owner.provide('permissionPresets', { defaultPreset: 'safe', names: ['safe','wide'], resolve(name: string) {
       return name === 'wide' ? { sandbox: 'danger-full-access', approval: 'ask' } : { sandbox: 'workspace-write', approval: 'ask' };
     }, permissionState(session: any) { return { sandbox: owner.sandboxPolicy.resolve({ session }).mode, approval: (owner.approval as any).effectivePolicy(session) }; } } as any);
@@ -93,11 +97,11 @@ async function fixture(t: TestContext) {
 test('rc.3 real native cross-session tool lifecycle uses shared receipts, preserves stop attribution and denies foreign scope', async t => {
   const h = await fixture(t);
   const entry = '../lib/original/cross-session-approval.js', original = await import(entry);
-  const mounted = h.root.plugin({ ...original, inject: ['tools','agents','nexusCrossSessionMailbox','sandboxPolicy','approval','sessions','permissionPresets'] } as any,
+  const mounted = h.root.plugin({ ...original, inject: ['tools','agents','nexusCrossSessionMailbox','sandboxPolicy','approval','sessions','permissionPresets','agentPresets'] } as any,
     { stateDir: '.fixture-cross', spawnPermission: 'cap', forkPermission: 'cap', approvalBridge: { enabled: true } });
   h.fibers.push(mounted); await mounted.await(); assert.equal(mounted.state, 2);
   const caller = await h.agent(), recipient = await h.agent(), outsider = await h.agent(h.outside);
-  const execute = (name: string, args: any, id = randomUUID()) => h.tools.execute({ name, arguments: args, agent: caller,
+  const execute = (name: string, args: any, id = randomUUID()) => executeSingleTool(h.tools, { name, arguments: args, agent: caller,
     callId: ToolCallId(id), signal: new AbortController().signal });
   assert.equal(h.tools.schemas(caller).filter(row => row.name.startsWith('cross_session_')).length, 10);
   const denied = await execute('cross_session_send', { session_id: outsider.id, message: 'must stay out' });
@@ -160,10 +164,10 @@ test('rc.3 computer native entry mounts with its real routes while every desktop
   assert.deepEqual(status.runtime.registrationFailures, [], 'safeRegister must not hide a rejected native tool schema');
   const state = await (await route.fetch(request(), owner)).json();
   assert.equal(state.enabled, false); assert.equal(state.backend.started, false);
-  const tool = await h.tools.execute({ name: 'computer_screenshot', arguments: {}, agent: caller,
+  const tool = await executeSingleTool(h.tools, { name: 'computer_screenshot', arguments: {}, agent: caller,
     callId: ToolCallId('computer-off'), signal: new AbortController().signal });
   assert.equal(tool.isError, true, 'no PowerShell backend or real input starts while the session grant is off');
-  const launch = await h.tools.execute({ name: 'app_launch', arguments: { target: process.execPath, verifyWindow: false, waitMs: 0 },
+  const launch = await executeSingleTool(h.tools, { name: 'app_launch', arguments: { target: process.execPath, verifyWindow: false, waitMs: 0 },
     agent: caller, callId: ToolCallId('app-launch-off'), signal: new AbortController().signal });
   assert.equal(launch.isError, true, 'the formerly independent launcher obeys the same native session grant');
   assert.match(JSON.stringify(launch), /NOT_AUTHORIZED/, 'the launcher must reach the shared grant gate');
@@ -180,7 +184,7 @@ test('computer bootstrap failure exposes authenticated 503 diagnostics without t
   const before = h.tools.schemas().map(row => row.name);
   const mounted = h.root.plugin({
     name: 'computer-degraded-fixture', inject: ['connection'],
-    apply(owner: Context) {
+    async apply(owner: Context) {
       applyDegraded(owner, {}, Object.assign(new Error('fixture host module unavailable'), {
         code: 'HOST_PACKAGE_IMPORT_FAILED',
       }));
@@ -235,7 +239,7 @@ test('computer launch uses native approval, immutable exact plans and original r
     async execute() { browserDispatches++; return {}; },
   })));
   const invoke = (name: string, args: any, signal = new AbortController().signal) =>
-    h.tools.execute({ name, arguments: args, agent: caller, callId: ToolCallId(randomUUID()), signal });
+    executeSingleTool(h.tools, { name, arguments: args, agent: caller, callId: ToolCallId(randomUUID()), signal });
   caller.session.append('turn/start', { turn: 1 });
   grants.grant(caller.id);
   const args = { target: process.execPath, arguments: ['--fixture-literal=$();`with spaces'] };
@@ -268,12 +272,12 @@ test('computer launch uses native approval, immutable exact plans and original r
 
 test('native root disposal cancels a persisted pending approval notice before the mailbox provider stops', { timeout: 15000 }, async t => {
   const h = await fixture(t), entry = '../lib/original/cross-session-approval.js', original = await import(entry);
-  const mounted = h.root.plugin({ ...original, inject: ['tools','agents','nexusCrossSessionMailbox','sandboxPolicy','approval','sessions','permissionPresets'] } as any,
+  const mounted = h.root.plugin({ ...original, inject: ['tools','agents','nexusCrossSessionMailbox','sandboxPolicy','approval','sessions','permissionPresets','agentPresets'] } as any,
     { stateDir: '.fixture-cross-drain', spawnPermission: 'cap', forkPermission: 'cap',
       approvalBridge: { enabled: true, timeoutMs: 10000, injectWithdraw: true } });
   h.fibers.push(mounted); await mounted.await(); assert.equal(mounted.state, 2);
   const owner = await h.agent(); setSandboxMode(owner.session, 'danger-full-access');
-  const spawn = await h.tools.execute({ name: 'cross_session_spawn', agent: owner, callId: ToolCallId('drain-child'),
+  const spawn = await executeSingleTool(h.tools, { name: 'cross_session_spawn', agent: owner, callId: ToolCallId('drain-child'),
     arguments: { name: 'native drain child', task: 'fixture initialization', provider: 'new-native', model: 'fixture', permission: 'safe' },
     signal: new AbortController().signal });
   assert.equal(spawn.isError, false, JSON.stringify(spawn));
@@ -303,7 +307,7 @@ test('native root disposal cancels a persisted pending approval notice before th
     return result;
   };
   child.session.append('turn/start', { turn: 1 });
-  const asking = h.tools.execute({ name: 'pwsh', arguments: { command: 'Get-Date', sandbox_permissions: 'danger-full-access' },
+  const asking = executeSingleTool(h.tools, { name: 'pwsh', arguments: { command: 'Get-Date', sandbox_permissions: 'danger-full-access' },
     agent: child, callId: ToolCallId('drain-approval'), signal: new AbortController().signal });
   try {
     const saved = await new Promise<{ collection: string; id: string }>((resolve, reject) => {
@@ -336,7 +340,7 @@ test('rc.3 Motion registers native tools and owner-only document routes with exa
   try { await mounted.await(); } finally { if (priorHome === undefined) delete process.env.DSH_HOME; else process.env.DSH_HOME = priorHome; }
   assert.equal(mounted.state, 2);
   const caller = await h.agent();
-  const rendered = await h.tools.execute({ name: 'render_ui', agent: caller, callId: ToolCallId('motion-render'),
+  const rendered = await executeSingleTool(h.tools, { name: 'render_ui', agent: caller, callId: ToolCallId('motion-render'),
     arguments: { document: { version: 1, title: 'Fixture', fallback: 'Native motion fixture',
       nodes: [{ id: 'hello', type: 'text', text: 'Native motion fixture' }] } }, signal: new AbortController().signal });
   assert.equal(rendered.isError, false, JSON.stringify(rendered));

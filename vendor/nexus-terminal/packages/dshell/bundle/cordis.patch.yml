@@ -97,13 +97,6 @@
     - id: dshell-files
       name: '@nexus-aethra/dshell-files'
 
-    # Token usage: a durable per-model index over every session's reported
-    # usage, and the settings page that charts it. Host half only — the page
-    # joins the client roster through the same package's `./client` face, which
-    # the client bundle loader picks up from this row like every other dshell
-    # plugin's.
-    - id: dshell-usage
-      name: '@nexus-aethra/dshell-usage'
 
 # ── the one stock row dshell must own ──────────────────────────────────
 # `ctx.fs` has exactly one provider, and a session bound to an SSH device needs

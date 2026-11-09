@@ -1,3 +1,5 @@
+import { executeSingleTool } from '../src/host/single-tool.js';
+import { NativeToolExecutor } from '@deepseek-ai/dsh-tool-executor-native';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { Context, Service, symbols } from '@deepseek-ai/cordis';
@@ -9,7 +11,7 @@ import { registerAgentCommunications } from '../src/host/communications/index.js
 import { stepProgressServices } from './step-progress-fixture.js';
 import type { HostContext } from '../src/host/types.js';
 
-test('real rc.2 registry retains scoped ownership, monotonic denies and canonical native output after takeover', async t => {
+test('real rc.1 registry retains scoped ownership, monotonic denies and canonical native output after takeover', async t => {
   const root = new Context(), f = stepProgressServices(), fibers: any[] = [];
   let host!: Context, hook!: ReturnType<typeof registerAgentCommunications>, runtime!: ToolRuntime;
   const caller: any = { id: 'native-mail-root', status: 'idle', session: { header: { cwd: process.cwd() } }, cancel() {} };
@@ -32,7 +34,7 @@ test('real rc.2 registry retains scoped ownership, monotonic denies and canonica
     ctx.provide('sessionQuery', { async readSession() { return { events: [], inheritedEventCount: 0 }; } } as any);
   } }); fibers.push(base); await base.await(); assert.equal(base.state, 2);
   const toolOwner = root.plugin({ name: 'native-mail-tools', inject: ['systemPrompt'], apply(ctx: Context) {
-    runtime = new ToolRuntime(ctx);
+    runtime = new ToolRuntime(ctx); runtime.setExecutor(new NativeToolExecutor(ctx));
     ctx.tools.register(defineTool({ name: 'send_message', description: 'active teammate only', parameters: { target: { type: 'string', required: true } },
       output: { schema: { type: 'object', additionalProperties: true }, render: () => [] }, async execute() { oldRuns++; return {}; } }));
     ctx.tools.register(defineTool({ name: 'list_agents', description: 'legacy Team roster', parameters: {},
@@ -65,17 +67,17 @@ test('real rc.2 registry retains scoped ownership, monotonic denies and canonica
   assert.ok((schema.parameters as any).properties.agent_id, 'legacy agent_id calls remain valid even under Team scope');
   assert.equal(runtime.get('send_message', child), local, 'no extra overriding layer stole the original scope owner');
   assert.equal(runtime.get('send_message', restrictedKey as any), undefined);
-  const denied = await runtime.execute({ callId: ToolCallId('native-mail-denied'), name: 'send_message',
+  const denied = await executeSingleTool(runtime, { callId: ToolCallId('native-mail-denied'), name: 'send_message',
     agent: child, arguments: { target: caller.id, message: 'deny-by-policy' }, signal: new AbortController().signal });
   assert.equal(denied.isError, true); assert.match(JSON.stringify(denied), /native policy denial/);
-  const listed = await runtime.execute({ callId: ToolCallId('native-mail-roster'), name: 'list_agents',
+  const listed = await executeSingleTool(runtime, { callId: ToolCallId('native-mail-roster'), name: 'list_agents',
     agent: caller, arguments: {}, signal: new AbortController().signal });
   assert.ok(!listed.isError);
   assert.match(JSON.stringify(listed), /native-mail-child/);
   assert.equal(oldRuns, 0); assert.equal(intercepted, 2);
   const assembly = await host.systemPrompt.assemble({ scope: child });
   assert.ok(assembly.contexts.some(row => row.name === 'nexus:agent-communication'));
-  assert.equal(assembly.tools.find(row => row.name === 'send_message')?.description, schema.description);
+  assert.equal(host.tools.schemas(child).find(row => row.name === 'send_message')?.description, schema.description);
   await hook.dispose();
   assert.equal(Object.getOwnPropertyDescriptor(service, 'sendMessage'), undefined, 'unload restores inherited method placement');
   assert.equal(service.sendMessage, NativeSubagents.prototype.sendMessage);

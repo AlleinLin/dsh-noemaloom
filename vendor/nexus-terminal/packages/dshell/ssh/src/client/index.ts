@@ -18,17 +18,21 @@ import type {} from '@deepseek-ai/dsh-client-locale/client'
 import type {} from '@deepseek-ai/dsh-client-ui-workspace/client'
 // Type-only: pulls the Plugins-panel SlotMap (`plugins.row.config`).
 import type {} from '@deepseek-ai/dsh-client-ui-plugin-manager/client'
-import { DSHELL_BUNDLE_NAME } from '@nexus-aethra/dshell-std'
+// Type-only: pulls the ctx.configForms service merge, which is how this
+// plugin's own entry config reaches the browser.
+import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
+import { DSHELL_BUNDLE_NAME, SSH_SETTINGS_NAMESPACE } from '@nexus-aethra/dshell-std'
 import { DshellAdminPage } from './admin.js'
 import { DshellSshConfigPage } from './card.js'
 import { watchDshellNavIcon } from './nav-icon.js'
+import type { SshSettings } from '../ssh-settings.js'
 import { en, zh } from './locales.js'
 import { SshClientService } from './service.js'
 import { DshellSessionDeviceButton } from './session-bind.js'
 
 export const name = '@nexus-aethra/dshell-ssh/client'
 
-export const inject = ['slots', 'locale'] as const
+export const inject = ['slots', 'locale', 'configForms'] as const
 
 /** This package's copy namespace. */
 const NS = 'dshellSsh'
@@ -40,8 +44,16 @@ export type { DshellSshKey } from './locales.js'
 export function apply(ctx: Context): void {
   ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'dshell-ssh: dictionaries')
   const t = ctx.locale.bind(NS)
-  const ssh = new SshClientService(ctx)
+  // This plugin's own entry config, reached through the settings domain's
+  // shared form service. The namespace is the entry id the bundle patch
+  // declares (see ssh-settings.ts), which is what both halves key on.
+  const hiddenForm = ctx.configForms.get<SshSettings>(SSH_SETTINGS_NAMESPACE)
+  const ssh = new SshClientService(ctx, hiddenForm)
   void ssh.load()
+  // The hidden set is a browser-side preference, so it is followed rather
+  // than fetched: the card's toggle writes it and the pickers re-render on
+  // the same store, and a second browser's write arrives the same way.
+  ctx.effect(() => ssh.watchHiddenDevices(), 'dshell-ssh: hidden device mirror')
   // The 管理台: one settings section whose body is a card list contributed by
   // whichever dshell packages are composed in (the children declaration is
   // what authorizes the page's renderSlot). This package owns the frame and

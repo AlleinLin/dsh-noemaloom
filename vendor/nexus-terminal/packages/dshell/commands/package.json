@@ -1,6 +1,6 @@
 {
   "name": "@nexus-aethra/dshell-commands",
-  "version": "0.1.16",
+  "version": "0.1.17",
   "description": "dshell commands and tools: /new on ctx.commands, plus the model-facing dshell_get_agent_terminal tool that hands the agent its own shell, and dshell_terminal_read / dshell_terminal_output for reading the user's shell (read-only).",
   "license": "MIT",
   "repository": {

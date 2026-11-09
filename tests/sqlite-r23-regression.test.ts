@@ -214,6 +214,8 @@ function engineFor(f: Awaited<ReturnType<typeof fixture>>) {
       assert.equal(key, nativeSurfaceProjection.key);
       return { lastSurfaceSeq: 1, nodes: nodes.map(node => ({ seq: node.seq, messageId: node.message.id })) };
     } } : undefined };
+  engine.ready = Promise.resolve();
+  engine.surfaceProjection = { stateOf: () => ({ lastSurfaceSeq: 1, nodes: nodes.map(node => ({ seq: node.seq, messageId: node.message.id })) }) };
   return { engine, agent, nodes,
     sync: () => engine.synchronize(agent, new AbortController().signal),
     window: (next: number) => { windowTokens = next; }, model: (next: string) => { model = next; } };

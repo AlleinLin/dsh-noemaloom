@@ -7,7 +7,7 @@ const parse = source => YAML.parse(source, { customTags: [{ tag: 'tag:yaml.org,2
 const flatten = entries => entries.flatMap(entry => [entry, ...(entry.group ? flatten(entry.config ?? []) : [])]);
 
 test('Desktop bundle replaces standard directly and preserves other tools and image capability', async () => {
-  const source = parse(await readFile('research/host-installed/dsh-web-app/presets/standard.patch.yml', 'utf8'))[0].insert[0];
+  const source = parse(await readFile('assets/upstream/standard.patch.yml', 'utf8'))[0].insert[0];
   assert.deepEqual(await readdir('presets'), ['forge-tools.patch.yml']);
   for (const filename of ['cordis.patch.yml', 'presets/forge-tools.patch.yml']) {
     const generated = parse(await readFile(filename, 'utf8'));
@@ -28,7 +28,7 @@ test('Desktop bundle replaces standard directly and preserves other tools and im
     assert.ok(own);
     assert.equal(Object.hasOwn(own.config, 'shellOnly'), false);
     const fs = rows.find(row => row.id === 'tool-fs');
-    assert.deepEqual(fs.config, { read: false, write: false, edit: false, readImage: true });
+    assert.deepEqual(fs.config, { applyPatch: false, read: false, write: false, edit: false, readImage: true });
     assert.equal(rows.some(row => ['tool-pwsh', 'tool-fs-search'].includes(row.id)), false);
     const ids = rows.map(row => row.id);
     assert.equal(new Set(ids).size, ids.length);

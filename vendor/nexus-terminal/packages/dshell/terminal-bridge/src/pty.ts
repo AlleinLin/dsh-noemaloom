@@ -52,6 +52,92 @@ import { shellLocale } from './shell-locale.js'
 /** Retention bounds for one raw session (mirrors dsh's own defaults). */
 const RETAINED_MAX_BYTES = 4 * 1024 * 1024
 const RETAINED_MAX_LINES = 10_000
+
+/** The exact measurement of a cut retained buffer. */
+export interface RetainedTrimResult {
+  /** The tail that is kept. */
+  readonly text: string
+  /** A newline count plus one. */
+  readonly lines: number
+  /** The UTF-8 byte length of text. */
+  readonly bytes: number
+  /** Whether anything was dropped. */
+  readonly truncated: boolean
+}
+
+/**
+ * Cut a retained buffer back under BOTH caps, to a LOW-WATER MARK.
+ *
+ * The caller keeps byte/line counters incrementally and invokes this only
+ * when a hard cap is crossed. Cutting back to exactly the cap would make
+ * every following chunk trim again — the same quadratic copying with a
+ * smaller constant — so the tail is cut to HALF of each cap. One scan here
+ * is then amortised O(1) per byte of output.
+ *
+ * The cut prefers a line boundary. When no boundary can help (a single line
+ * that is itself larger than the byte budget, or a buffer with no newline at
+ * all), it cuts at a CHARACTER boundary so a UTF-16 surrogate pair is never
+ * split. The returned counters are recomputed from what actually remains,
+ * which also re-bases the caller's incremental counters after a mid-line
+ * cut.
+ */
+export function trimRetainedText(text: string): RetainedTrimResult {
+  let lineCount = 1
+  for (let i = text.indexOf('\n'); i !== -1; i = text.indexOf('\n', i + 1)) lineCount += 1
+  const totalBytes = Buffer.byteLength(text)
+  if (lineCount <= RETAINED_MAX_LINES && totalBytes <= RETAINED_MAX_BYTES) {
+    return { text, lines: lineCount, bytes: totalBytes, truncated: false }
+  }
+
+  const targetLines = Math.max(1, Math.floor(RETAINED_MAX_LINES / 2))
+  const targetBytes = Math.max(1, Math.floor(RETAINED_MAX_BYTES / 2))
+
+  // Line starts and a prefix sum of their byte lengths: one O(buffer) pass.
+  const starts: number[] = [0]
+  for (let i = text.indexOf('\n'); i !== -1; i = text.indexOf('\n', i + 1)) starts.push(i + 1)
+  const bytesAt: number[] = [0]
+  for (let i = 0; i < starts.length; i += 1) {
+    const end = i + 1 < starts.length ? starts[i + 1] : text.length
+    bytesAt.push(bytesAt[i] + Buffer.byteLength(text.slice(starts[i], end)))
+  }
+  const total = bytesAt[starts.length]
+
+  // Keep the largest tail within both low-water marks. A larger k drops
+  // more, so the FIRST k that satisfies both keeps the most history while
+  // still leaving half a buffer of headroom.
+  let cut = 0
+  for (let k = 1; k < starts.length; k += 1) {
+    if (starts.length - k <= targetLines && total - bytesAt[k] <= targetBytes) {
+      cut = starts[k]
+      break
+    }
+  }
+
+  if (cut === 0) {
+    // No line boundary worked. Keep roughly targetBytes from the TAIL, cut
+    // on a code-point boundary. This is the case the old incremental trim
+    // could not handle at all: one giant line, and it grew without bound.
+    let accumulated = 0
+    let chars = 0
+    const keepFrom = total - targetBytes
+    for (const ch of text) {
+      accumulated += Buffer.byteLength(ch)
+      chars += ch.length
+      if (accumulated >= keepFrom) { cut = chars; break }
+    }
+    if (cut === 0 || cut > text.length) cut = text.length
+  }
+
+  const kept = text.slice(cut)
+  let keptLines = 1
+  for (let i = kept.indexOf('\n'); i !== -1; i = kept.indexOf('\n', i + 1)) keptLines += 1
+  return {
+    text: kept,
+    lines: keptLines,
+    bytes: Buffer.byteLength(kept),
+    truncated: cut > 0,
+  }
+}
 /** One read/send result caps at this many bytes (tail kept). */
 const MAX_RESULT_BYTES = 256 * 1024
 
@@ -446,6 +532,17 @@ abstract class RawSessionBase implements DshellPtySession {
   protected readonly decoder = new StringDecoder('utf8')
   private retained = ''
   private retainedTruncated = false
+  /**
+   * The retained buffer's size, counted as it grows.
+   *
+   * Both numbers are kept INCREMENTALLY rather than recomputed by splitting
+   * the buffer: the split cost O(buffer) on every chunk of output, and the
+   * buffer is capped at {@link RETAINED_MAX_BYTES}, so a busy shell paid
+   * megabytes of copying per chunk — quadratic in the session's output, and
+   * the CPU spike the reader sees as the app freezing.
+   */
+  private retainedBytes = 0
+  private retainedLines = 1
   private readonly outputListeners = new Set<(chunk: string) => void>()
   private readonly exitListeners = new Set<(status: TerminalSessionStatus) => void>()
   private statusValue: TerminalSessionStatus = { kind: 'running' }
@@ -613,7 +710,18 @@ abstract class RawSessionBase implements DshellPtySession {
     if (text.length === 0) return
     this.lastOutputAt = Date.now()
     this.retained += text
-    this.trimRetained()
+    this.retainedBytes += Buffer.byteLength(text)
+    // Newlines, not lines: a line count is a newline count plus one, and the
+    // buffer only ever grows by appending, so counting the separators is
+    // enough to keep the line total right.
+    for (let index = text.indexOf('\n'); index !== -1; index = text.indexOf('\n', index + 1)) {
+      this.retainedLines += 1
+    }
+    // Only crossed caps call the trimmer: its full scan must not run on
+    // every chunk, or the incremental counters would buy nothing.
+    if (this.retainedLines > RETAINED_MAX_LINES || this.retainedBytes > RETAINED_MAX_BYTES) {
+      this.trimRetained()
+    }
     this.trackMarker(text)
     for (const listener of [...this.outputListeners]) listener(text)
     this.active?.append(text)
@@ -626,17 +734,19 @@ abstract class RawSessionBase implements DshellPtySession {
     for (const listener of [...this.exitListeners]) listener(status)
   }
 
+  /**
+   * Cut the buffer back to the low-water mark and re-base the counters.
+   *
+   * The pure helper does the one full scan; this method exists so the AST
+   * guard can still name the seam, and so the counters never drift after a
+   * mid-line cut.
+   */
   private trimRetained(): void {
-    for (;;) {
-      if (this.retained.length === 0) return
-      const lines = this.retained.split('\n')
-      const overLines = lines.length > RETAINED_MAX_LINES
-      const overBytes = Buffer.byteLength(this.retained) > RETAINED_MAX_BYTES
-      if (!overLines && !overBytes) return
-      const drop = overLines ? lines.length - RETAINED_MAX_LINES : 1
-      this.retained = lines.slice(drop).join('\n')
-      this.retainedTruncated = true
-    }
+    const result = trimRetainedText(this.retained)
+    this.retained = result.text
+    this.retainedLines = result.lines
+    this.retainedBytes = result.bytes
+    if (result.truncated) this.retainedTruncated = true
   }
 
   /** Marker scan with a small carry so sequences split across chunks match. */
@@ -770,7 +880,14 @@ class DeviceShellSession extends RawSessionBase {
     private readonly plan: DeviceShellPlan,
   ) {
     super(id, 0, true, t)
-    void this.open(cols, rows)
+    // The host treats an unhandled rejection as fatal: it exits the process
+    // and the desktop app restarts it. Opening a device shell must never be
+    // the thing that takes the app down — a refusal is reported through
+    // `exited` instead.
+    void this.open(cols, rows).catch((error: unknown) => {
+      console.warn('dshell: the device shell could not be opened:', error)
+      this.exited({ kind: 'exited', exitCode: null, signal: null })
+    })
   }
 
   /** Open the device shell, or record why it could not be opened. */
@@ -802,6 +919,12 @@ class DeviceShellSession extends RawSessionBase {
         exitCode: outcome.exitCode,
         signal: outcome.signal as NodeJS.Signals | null,
       })
+    }).catch((error: unknown) => {
+      // The host treats an unhandled rejection as fatal: it exits the process
+      // and the desktop app restarts it. A device shell that dies badly must
+      // be reported as an exit, not as a rejection that takes the app down.
+      console.warn('dshell: the device shell ended badly:', error)
+      this.exited({ kind: 'exited', exitCode: null, signal: null })
     })
   }
 

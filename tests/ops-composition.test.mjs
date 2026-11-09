@@ -16,16 +16,16 @@ test('OPS keeps small read-only search tools available in Native and PTC scopes'
   const generatedComposition = parse(composed);
 
   for (const document of [generatedOps, generatedComposition]) {
-    assert.deepEqual(find(document, 'dsh-ops-mode-ptc').config.alwaysLoaded, ['grep', 'glob']);
-    assert.deepEqual(find(document, 'dsh-ops-discovery').config.alwaysLoaded, ['grep', 'glob']);
-    assert.notEqual(find(document, 'dsh-ops-discovery').disabled, true);
+    assert.deepEqual(find(document, 'dsh-ops').config.ptc.alwaysLoaded, ['grep', 'glob']);
+    assert.deepEqual(find(document, 'dsh-ops').config.discovery.alwaysLoaded, ['grep', 'glob']);
+    assert.notEqual(find(document, 'dsh-ops').config.discovery.enabled, false);
   }
 });
 
 test('OPS alwaysLoaded generation rejects missing upstream settings instead of silently dropping defaults', async () => {
   const upstream = await readFile('node_modules/dsh-ops/cordis.patch.yml', 'utf8');
   assert.throws(
-    () => configureOpsComposition(upstream.replace('alwaysLoaded: []', 'other: []')),
-    /Missing dsh-ops alwaysLoaded setting: dsh-ops-mode-ptc/,
+    () => configureOpsComposition(upstream.replace('        ptc:', '        retired:')),
+    /Missing dsh-ops enabled setting: ptc/,
   );
 });

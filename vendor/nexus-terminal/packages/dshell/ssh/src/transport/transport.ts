@@ -261,13 +261,19 @@ export class DeviceTransport {
   async open(device: DeviceConnection, command: string, options: DeviceExecOptions = {}): Promise<DeviceCommand> {
     const channel = await this.channel(device, command, options)
     const run = new ChannelCommand(channel)
-    if (options.stdin !== undefined) void this.feed(run, options.stdin)
+    // The write is fire-and-forget: a device that refuses the payload has its
+    // own failure channel (the command's exit), and a rejection nobody
+    // handles here would take the host down instead.
+    if (options.stdin !== undefined) void this.feed(run, options.stdin).catch(() => {})
     else if (options.openStdin !== true) run.stream.end()
     if (options.signal !== undefined) {
       const abort = (): void => { run.terminate() }
       if (options.signal.aborted) abort()
       else options.signal.addEventListener('abort', abort, { once: true })
-      void run.done.then(() => { options.signal?.removeEventListener('abort', abort) })
+      // The seam allows `done` to REJECT, and a rejection nobody handles is
+      // fatal to the host: the desktop app restarts it. The listener removal
+      // is bookkeeping, so a refusal is swallowed rather than raised.
+      void run.done.then(() => { options.signal?.removeEventListener('abort', abort) }).catch(() => {})
     }
     // The bound belongs HERE, where every path passes through: `exec` collects
     // its output and `open` hands back a live stream, and a bound that only the
@@ -278,7 +284,7 @@ export class DeviceTransport {
     if (options.graceMs !== undefined) {
       const timer = setTimeout(() => { run.terminate() }, options.graceMs)
       timer.unref()
-      void run.done.then(() => { clearTimeout(timer) })
+      void run.done.then(() => { clearTimeout(timer) }).catch(() => {})
     }
     return run
   }
@@ -426,7 +432,7 @@ export class DeviceTransport {
           resolve(TERMINATED)
         }, options.graceMs)
         timer.unref()
-        void run.done.then(() => { clearTimeout(timer) })
+        void run.done.then(() => { clearTimeout(timer) }).catch(() => {})
       }))
     }
     if (options.signal !== undefined) {

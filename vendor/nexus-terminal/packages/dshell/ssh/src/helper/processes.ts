@@ -207,7 +207,9 @@ export class RemoteProcesses {
     child.on('error', (error: Error) => { entry.spawnError = error })
     child.on('close', (code: number | null, signal: NodeJS.Signals | null) => {
       entry.outcome = { exitCode: code, signal }
-      void this.finalize(entry).then(() => { closed.resolve() })
+      // `closed` is resolved by the finalizer; a rejection there must not
+      // become an unhandled one.
+      void this.finalize(entry).then(() => { closed.resolve() }).catch(() => { closed.resolve() })
     })
     // No throw for a missing `pid`: the child object exists either way, the
     // platform's error arrives on its own event, and answering `done` with it

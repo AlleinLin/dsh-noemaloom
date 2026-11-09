@@ -232,9 +232,21 @@ export class BufferService {
   /** Start the watchdog and subscribe to worker disappearance. */
   start(): void {
     if (this.watchdog !== undefined) return
-    this.watchdog = setInterval(() => { void this.sweep() }, WATCHDOG_INTERVAL_MS)
+    this.watchdog = setInterval(() => {
+      // The host treats an unhandled rejection as fatal: it exits the process
+      // and the desktop app restarts it. A sweep that trips over one bad
+      // ticket must not be the thing that takes the app down — the next tick
+      // tries again anyway.
+      void this.sweep().catch((error: unknown) => {
+        console.warn('dshell-buffer: the watchdog sweep failed:', error)
+      })
+    }, WATCHDOG_INTERVAL_MS)
     this.watchdog.unref?.()
-    this.ctx.on('agent/disposed', ({ agent }) => { void this.onAgentDisposed(String(agent.id)) })
+    this.ctx.on('agent/disposed', ({ agent }) => {
+      void this.onAgentDisposed(String(agent.id)).catch((error: unknown) => {
+        console.warn('dshell-buffer: settling a disposed agent failed:', error)
+      })
+    })
     // dsh disposes a Session both when the reader deletes it and when the host
     // goes down, and only the first orphans anything. The hiding is therefore
     // immediate and memory-only, while the settlement waits out the grace: a
@@ -242,7 +254,9 @@ export class BufferService {
     // missed — a deletion inside a restart's blind window, state written
     // before this path existed — the boot reconciliation settles.
     this.ctx.on('session/disposed', (session: { id: SessionId }) => { this.hideSession(String(session.id)) })
-    void this.reconcile()
+    void this.reconcile().catch((error: unknown) => {
+      console.warn('dshell-buffer: the boot reconciliation failed:', error)
+    })
   }
 
   /** Stop the watchdog. State stays on disk for the next start. */
@@ -536,7 +550,9 @@ export class BufferService {
     if (this.disposed || this.hides.has(sessionId)) return
     const timer = setTimeout(() => {
       this.hides.delete(sessionId)
-      void this.detachSession(sessionId)
+      void this.detachSession(sessionId).catch((error: unknown) => {
+        console.warn('dshell-buffer: a departed session was not detached cleanly:', error)
+      })
     }, HIDE_GRACE_MS)
     timer.unref?.()
     this.hides.set(sessionId, timer)

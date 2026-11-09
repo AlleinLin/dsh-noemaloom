@@ -1,6 +1,6 @@
 {
   "name": "@nexus-aethra/dshell-terminal-bridge",
-  "version": "0.1.16",
+  "version": "0.1.17",
   "description": "dshell terminal bridge: owns the bridge-named `main` PTY per session through its raw node-pty backend (registered as the default `shell` type, so persistent shell tools land here without preset config), exposes /dshell/pty ws upgrade route, and hosts the PtyBuffer service consumed by dshell-mode and dshell-commands.",
   "license": "MIT",
   "repository": {

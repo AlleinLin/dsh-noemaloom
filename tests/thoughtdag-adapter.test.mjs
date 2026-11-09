@@ -20,7 +20,7 @@ function functions(text) {
 test('the reviewed standalone update entry performs no version fetch, state update or toast', async () => {
   const before = functions(source), after = functions(adaptThoughtdagClient(source).source);
   const calls = [];
-  const bootPluginUpdateCheck = vm.runInNewContext(`(${after.get('F0e')})`, {
+  const bootPluginUpdateCheck = vm.runInNewContext(`(${after.get('$0e')})`, {
     fetch: (...args) => { calls.push(['fetch', args]); },
     se: { getState: () => ({ setPluginUpdate: (...args) => calls.push(['update', args]) }) },
     He: (...args) => calls.push(['toast', args]),
@@ -28,10 +28,10 @@ test('the reviewed standalone update entry performs no version fetch, state upda
   await bootPluginUpdateCheck('/thoughtdag/api');
   await bootPluginUpdateCheck('https://localhost/thoughtdag/api/');
   assert.deepEqual(calls, []);
-  for (const name of ['He', 'D0e', 'j0e']) assert.ok(before.has(name), `reviewed upstream function ${name} exists`);
+  for (const name of ['He', 'L0e', 'z0e']) assert.ok(before.has(name), `reviewed upstream function ${name} exists`);
   assert.equal(after.get('He'), before.get('He'), 'ordinary info/error toast implementation is byte-identical');
-  assert.equal(after.get('D0e'), before.get('D0e'), 'upstream release announcement implementation is byte-identical');
-  assert.equal(after.get('j0e'), before.get('j0e'), 'the release history remains byte-identical');
+  assert.equal(after.get('L0e'), before.get('L0e'), 'upstream release announcement implementation is byte-identical');
+  assert.equal(after.get('z0e'), before.get('z0e'), 'the release history remains byte-identical');
 });
 
 test('ThoughtDAG host retains the real web search, argument key, form answerer and permission implementation', () => {

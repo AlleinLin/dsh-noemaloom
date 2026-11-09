@@ -1,6 +1,6 @@
 {
   "name": "@nexus-aethra/dshell-buffer",
-  "version": "0.1.16",
+  "version": "0.1.17",
   "description": "dshell cross-session buffer: user-established links between sessions, deferred requests one agent hands to another, a durable ticket queue with progress reports, scoped revocable folder grants, and a watchdog that guarantees the requester is always woken with an outcome.",
   "license": "MIT",
   "repository": {

@@ -28,6 +28,26 @@ export interface DeviceChoiceSeat {
      * itself still knows which group to send the reader to.
      */
     readonly lockedGroup?: { readonly id: string; readonly name: string } | undefined
+    /**
+     * Device ids the reader hid from the pickers.
+     *
+     * Published beside the rows so a surface that filters on it reads the
+     * same set the card wrote, rather than a second opinion about what is
+     * hidden.
+     */
+    readonly hiddenDevices: readonly string[]
+    /**
+     * Every device, including the hidden ones.
+     *
+     * The reason this exists beside {@link devices}: a session already bound
+     * to a device the reader later hid still has to be able to NAME it.
+     * Resolving a bound device's name out of the filtered list is how a
+     * session on a hidden distribution comes to read as local, which is the
+     * one thing hiding must never do. So a surface naming a bound session's
+     * device reads this list, and only a surface offering a CHOICE reads
+     * {@link devices}.
+     */
+    readonly allDevices: readonly { readonly id: string; readonly name: string }[]
   }
   bind(sessionId: string, deviceId: string | null): Promise<void>
   /**

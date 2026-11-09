@@ -218,10 +218,13 @@ export class RemoteProcess implements SubprocessHandle {
       // The start request is still in flight. Acting on the request rather than
       // on the id means an abort that arrives in that window still ends the
       // process, instead of leaving one running that nobody can name any more.
+      // The abort is already recorded; this chain only turns it into the
+      // terminate request, and a rejection nobody handles is fatal to the
+      // host.
       void this.prepared.promise.then((id) => {
         if (id === undefined || this.settled) return
         void this.connection.request(HELPER_OPS.processTerminate, { id }, nullReply).catch(() => undefined)
-      })
+      }).catch(() => undefined)
       return
     }
     void this.connection.request(HELPER_OPS.processTerminate, { id: this.id }, nullReply).catch(() => undefined)
@@ -302,7 +305,10 @@ export class RemoteProcess implements SubprocessHandle {
   private ensurePolling(): void {
     if (this.poll !== undefined || this.settled || this.id === undefined) return
     if (!this.streams.stdout.polled && !this.streams.stderr.polled) return
-    this.poll = setInterval(() => { void this.refresh() }, LIVE_POLL_MS)
+    // The poll answers a reader that asked for output; a device that cannot
+    // answer has its own failure channel, so the interval only has to not
+    // become an unhandled rejection.
+    this.poll = setInterval(() => { void this.refresh().catch(() => {}) }, LIVE_POLL_MS)
     this.poll.unref()
   }
 

@@ -32,7 +32,6 @@ PLUGINS=(
   wsl
   buffer
   files
-  usage
 )
 
 echo "Installing dshell plugins into profile '$PROFILE'..."

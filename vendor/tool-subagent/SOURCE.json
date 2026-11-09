@@ -1,17 +1,17 @@
 {
   "package": "@deepseek-ai/dsh-tool-subagent",
-  "version": "0.2.1-rc.3",
-  "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-tool-subagent/-/dsh-tool-subagent-0.2.1-rc.3.tgz",
-  "integrity": "sha512-kkCLC7wUV9ioPNBQjm+GT52Ruqj7fjO3RLrZz5ya7Gg9RP7rzdvYpy6aJhVs+IaBSshffXHOLTz3i7QUIEVvsA==",
+  "version": "0.2.2-rc.1",
+  "tarball": "https://registry.npmjs.org/@deepseek-ai/dsh-tool-subagent/-/dsh-tool-subagent-0.2.2-rc.1.tgz",
+  "integrity": "sha512-q0bq6taXvKjEH4Q1gSkMBSLsnL9+FtzKgViw5gs780BHmmPXVIm/daWxs7hagvn78tpjsux5J8VMqf11vqncIw==",
   "license": "MIT",
   "originalEntries": [
     {
       "path": "index.js",
-      "sha256": "de7b10aaf52b1b1616d13a831a9ece1f820b8a6302fe94667f31b6d641b2f46e"
+      "sha256": "e73d2fb1753421bfd80e8adf38a3cafe93a4fa2516e07f9764279a880821734e"
     },
     {
       "path": "model-selection-settings.js",
-      "sha256": "c0fcbd2ff5efa182802c892209460b271489e3b363c6afd1b62321507657d2d8"
+      "sha256": "b4b2853c8bc2417091701f2d1ee322767b515cc993e8d097a641617ac85e2e48"
     }
   ],
   "changes": [
@@ -19,5 +19,11 @@
     "Publish live allowed route codes and supported reasoning efforts in parent context and tool results.",
     "Normalize blank reasoning_effort as omitted; default to the effective model highest advertised effort before creating the child.",
     "Preserve official per-session route authorization, preset policy, depth, activation and cancellation contracts."
-  ]
+  ],
+  "sourceReview": "docs/upstream-audit-2026-11-09.json",
+  "upstreamEntrySha256": "e73d2fb1753421bfd80e8adf38a3cafe93a4fa2516e07f9764279a880821734e",
+  "localEntries": {
+    "index.js": "b1ef21f8c3753bf4905b1ce9fecc9e1334cbe932918c78c79579d2eb4c6af8f8",
+    "model-selection-settings.js": "b4b2853c8bc2417091701f2d1ee322767b515cc993e8d097a641617ac85e2e48"
+  }
 }
